@@ -1,0 +1,104 @@
+2026-01-24 16:49:24 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/admin/superadmin/login
+Params: {}
+Body: {"email":"admin@gmail.com","password":"admin123"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"49","sec-ch-ua-platform":"\"Windows\"","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-GB,en-US;q=0.9,en;q=0.8"}
+Error Message: Wrong Password
+Stack: Error: Wrong Password
+    at superAdminLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/admin/admin.service.js:58:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginSuperAdmin (file:///C:/Alok/projects/migti-crm_backend/src/controller/admin/admin.controller.js:64:18)
+   
+2026-01-24 16:49:42 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/admin/superadmin/login
+Params: {}
+Body: {"email":"admin@gmail.com","password":"admin@123"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"50","sec-ch-ua-platform":"\"Windows\"","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-GB,en-US;q=0.9,en;q=0.8"}
+Error Message: Wrong Password
+Stack: Error: Wrong Password
+    at superAdminLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/admin/admin.service.js:58:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginSuperAdmin (file:///C:/Alok/projects/migti-crm_backend/src/controller/admin/admin.controller.js:64:18)
+   
+2026-01-24 16:51:37 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/admin/superadmin/login
+Params: {}
+Body: {"email":"admin@gmail.com","password":"admin@123"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"50","sec-ch-ua-platform":"\"Windows\"","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-GB,en-US;q=0.9,en;q=0.8"}
+Error Message: Wrong Password
+Stack: Error: Wrong Password
+    at superAdminLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/admin/admin.service.js:58:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginSuperAdmin (file:///C:/Alok/projects/migti-crm_backend/src/controller/admin/admin.controller.js:64:18)
+   
+2026-01-24 19:27:14 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/create
+Params: {}
+Body: {"name":"Anuradha sisodiya","email":"sales@migti.co.in","phone":"7354540144","role":"hod","branchId":"6974bb1f2e63462b34763def","designation":"sales ","address":"NEW SIYAGANJ INDORE ","idnumber":"909895024907","password":"123456"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"230","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5MjU1OTA0LCJleHAiOjE3NjkzNDIzMDQsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.bHac9WakUwGNdb11t-o5TRdQA_ZKk83FuPm9vuJStIk","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-GB,en-US;q=0.9,en;q=0.8"}
+Error Message: Employee already exists
+Stack: Error: Employee already exists
+    at addEmployee (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:22:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async createEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:29:18)
+   
+2026-01-24 20:29:42 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/create
+Params: {}
+Body: {"name":"Anuradha sisodiya","email":"meera@gmail.com","phone":"7354540145","role":"finance","branchId":"6974bb1f2e63462b34763def","designation":"sales ","address":"NEW SIYAGANJ INDORE ","idnumber":"909895024907","password":"123456"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"232","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5MjY2MzA2LCJleHAiOjE3NjkzNTI3MDYsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.yDdvdYUNPOPWZyqfAIXpiDFt2A11XcY_HrTO5q0yczo","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-GB,en-US;q=0.9,en;q=0.8"}
+Error Message: Employee already exists
+Stack: Error: Employee already exists
+    at addEmployee (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:22:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async createEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:29:18)
+   
+2026-01-24 20:29:49 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/create
+Params: {}
+Body: {"name":"Anuradha sisodiya","email":"meera@gmail.com","phone":"7354540145","role":"finance","branchId":"6974bb1f2e63462b34763def","designation":"sales ","address":"NEW SIYAGANJ INDORE ","idnumber":"909895024907","password":"123456"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"232","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5MjY2MzA2LCJleHAiOjE3NjkzNTI3MDYsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.yDdvdYUNPOPWZyqfAIXpiDFt2A11XcY_HrTO5q0yczo","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-GB,en-US;q=0.9,en;q=0.8"}
+Error Message: Employee already exists
+Stack: Error: Employee already exists
+    at addEmployee (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:22:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async createEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:29:18)
+   
+2026-01-24 20:29:56 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/create
+Params: {}
+Body: {"name":"Anuradha sisodiya","email":"meerarfgr@gmail.com","phone":"7354540145","role":"finance","branchId":"6974bb1f2e63462b34763def","designation":"sales ","address":"NEW SIYAGANJ INDORE ","idnumber":"909895024907","password":"123456"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"236","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5MjY2MzA2LCJleHAiOjE3NjkzNTI3MDYsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.yDdvdYUNPOPWZyqfAIXpiDFt2A11XcY_HrTO5q0yczo","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-GB,en-US;q=0.9,en;q=0.8"}
+Error Message: Employee already exists
+Stack: Error: Employee already exists
+    at addEmployee (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:22:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async createEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:29:18)
+   
+2026-01-24 20:30:02 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/create
+Params: {}
+Body: {"name":"Anuradha sisodiya","email":"meerarfgr@gmail.com","phone":"7354540144","role":"finance","branchId":"6974bb1f2e63462b34763def","designation":"sales ","address":"NEW SIYAGANJ INDORE ","idnumber":"909895024907","password":"123456"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"236","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5MjY2MzA2LCJleHAiOjE3NjkzNTI3MDYsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.yDdvdYUNPOPWZyqfAIXpiDFt2A11XcY_HrTO5q0yczo","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-GB,en-US;q=0.9,en;q=0.8"}
+Error Message: Employee already exists
+Stack: Error: Employee already exists
+    at addEmployee (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:22:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async createEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:29:18)
+   

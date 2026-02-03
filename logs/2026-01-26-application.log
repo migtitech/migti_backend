@@ -1,0 +1,140 @@
+2026-01-26 11:15:56 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-26 11:15:56 [INFO] Server is running at port 4545 
+2026-01-26 11:17:06 [INFO] Incoming request: GET /api/v1/companies/list?search= 
+2026-01-26 11:17:25 [INFO] Incoming request: POST /api/v1/companies/create 
+2026-01-26 11:17:25 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/companies/create
+Params: {}
+Body: {"name":"Migti Industrial Pvt Ltd ","brandName":"Migti Industrial Pvt Ltd ","email":"sales@migti.co.in","password":"123123","logoUrl":"http://localhost:3000/#/companies"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"170","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5MjY2MzA2LCJleHAiOjE3NjkzNTI3MDYsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.yDdvdYUNPOPWZyqfAIXpiDFt2A11XcY_HrTO5q0yczo","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-GB,en-US;q=0.9,en;q=0.8"}
+Error Message: Company already exists
+Stack: Error: Company already exists
+    at addCompany (file:///C:/Alok/projects/migti-crm_backend/src/services/company/company.service.js:17:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async createCompanyController (file:///C:/Alok/projects/migti-crm_backend/src/controller/company/company.controller.js:29:18)
+   
+2026-01-26 11:17:33 [INFO] Incoming request: POST /api/v1/companies/create 
+2026-01-26 11:18:03 [INFO] Incoming request: GET /api/v1/companies/list?search= 
+2026-01-26 11:18:23 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-01-26 11:18:23 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-26 11:18:25 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-01-26 11:18:25 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-26 11:18:34 [INFO] Incoming request: GET /api/v1/raw-queries/list?pageNumber=1&pageSize=10&search= 
+2026-01-26 11:18:36 [INFO] Incoming request: GET /api/v1/raw-queries/list?pageNumber=1&pageSize=10&search= 
+2026-01-26 11:18:59 [INFO] Incoming request: POST /api/v1/raw-queries/create 
+2026-01-26 11:18:59 [INFO] Incoming request: GET /api/v1/raw-queries/list?pageNumber=1&pageSize=10&search= 
+2026-01-26 11:19:17 [INFO] Incoming request: PUT /api/v1/raw-queries/update?rawQueryId=6977004bbbf8b479d1e8ef10 
+2026-01-26 11:19:17 [INFO] Incoming request: GET /api/v1/raw-queries/list?pageNumber=1&pageSize=10&search= 
+2026-01-26 11:19:23 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-01-26 11:19:23 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-26 11:20:25 [INFO] Incoming request: POST /api/v1/company-branches/create 
+2026-01-26 11:20:32 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-01-26 11:20:33 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-26 11:20:34 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-01-26 11:20:34 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-26 11:24:17 [INFO] Incoming request: POST /api/v1/admin/superadmin/login 
+2026-01-26 11:27:25 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-01-26 11:27:25 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-26 11:27:30 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-01-26 11:27:30 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-26 11:27:37 [INFO] Incoming request: GET /api/v1/companies/list?search= 
+2026-01-26 11:27:58 [INFO] Incoming request: POST /api/v1/companies/create 
+2026-01-26 11:28:01 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-01-26 11:28:01 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-26 11:28:39 [INFO] Incoming request: POST /api/v1/company-branches/create 
+2026-01-26 11:28:43 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-01-26 11:28:43 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-26 11:32:51 [INFO] Incoming request: POST /api/v1/admin/superadmin/login 
+2026-01-26 11:33:22 [INFO] Incoming request: GET /api/v1/raw-queries/list?pageNumber=1&pageSize=10&search= 
+2026-01-26 11:33:31 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-01-26 11:33:31 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-26 11:33:35 [INFO] Incoming request: GET /api/v1/companies/list?search= 
+2026-01-26 11:33:41 [INFO] Incoming request: DELETE /api/v1/companies/delete 
+2026-01-26 11:34:11 [INFO] Incoming request: POST /api/v1/companies/create 
+2026-01-26 11:34:50 [INFO] Incoming request: POST /api/v1/companies/create 
+2026-01-26 11:35:02 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-01-26 11:35:02 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-26 11:35:07 [INFO] Incoming request: DELETE /api/v1/company-branches/delete?companyBranchId=6977028fbbf8b479d1e8ef3a 
+2026-01-26 11:41:51 [INFO] Incoming request: POST /api/v1/company-branches/create 
+2026-01-26 11:42:11 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-01-26 11:42:11 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-26 11:48:02 [INFO] Incoming request: POST /api/v1/employees/create 
+2026-01-26 11:49:20 [INFO] Incoming request: POST /api/v1/employees/login 
+2026-01-26 11:49:20 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"alok@gmail.com","password":"123456","role":"sales"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"61","sec-ch-ua-platform":"\"Windows\"","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-GB,en;q=0.9"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:165:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-26 11:49:31 [INFO] Incoming request: POST /api/v1/employees/login 
+2026-01-26 11:49:31 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"alok@gmail.com","password":"123456","role":"sales"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"61","sec-ch-ua-platform":"\"Windows\"","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-GB,en;q=0.9"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:165:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-26 11:50:03 [INFO] Incoming request: POST /api/v1/employees/login 
+2026-01-26 11:50:03 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"alok@gmail.com","password":"123456","role":"hod"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"59","sec-ch-ua-platform":"\"Windows\"","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-GB,en;q=0.9"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:165:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-26 11:50:07 [INFO] Incoming request: POST /api/v1/employees/login 
+2026-01-26 11:55:54 [INFO] Incoming request: GET /api/v1/raw-queries/list?pageNumber=1&pageSize=10&search= 
+2026-01-26 12:02:33 [INFO] Incoming request: POST /api/v1/raw-queries/create 
+2026-01-26 12:02:34 [INFO] Incoming request: GET /api/v1/raw-queries/list?pageNumber=1&pageSize=10&search= 
+2026-01-26 12:02:51 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-01-26 12:02:51 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-26 12:02:53 [INFO] Incoming request: GET /api/v1/raw-queries/list?pageNumber=1&pageSize=10&search= 
+2026-01-26 12:05:18 [INFO] Incoming request: GET /api/v1/raw-queries/list?pageNumber=1&pageSize=10&search= 
+2026-01-26 12:05:39 [INFO] Incoming request: GET /api/v1/raw-queries/list?pageNumber=1&pageSize=10&search= 
+2026-01-26 12:06:18 [INFO] Incoming request: GET /api/v1/raw-queries/list?pageNumber=1&pageSize=10&search= 
+2026-01-26 12:06:20 [INFO] Incoming request: GET /api/v1/raw-queries/list?pageNumber=1&pageSize=10&search= 
+2026-01-26 12:15:43 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-01-26 12:15:43 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-26 12:16:14 [INFO] Incoming request: POST /api/v1/employees/create 
+2026-01-26 12:17:25 [INFO] Incoming request: POST /api/v1/employees/login 
+2026-01-26 12:47:56 [INFO] Incoming request: GET /api/v1/companies/list?search= 
+2026-01-26 12:48:00 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-01-26 12:48:00 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-26 12:48:07 [INFO] Incoming request: GET /api/v1/raw-queries/list?pageNumber=1&pageSize=10&search= 
+2026-01-26 12:48:57 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-01-26 12:48:57 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-26 12:48:58 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-01-26 12:48:58 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-26 12:48:59 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-01-26 12:48:59 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-26 13:02:35 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-01-26 13:02:35 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-26 13:02:37 [INFO] Incoming request: GET /api/v1/raw-queries/list?pageNumber=1&pageSize=10&search= 
+2026-01-26 13:02:44 [INFO] Incoming request: GET /api/v1/companies/list?search= 
+2026-01-26 13:02:44 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-01-26 13:02:44 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-26 13:02:45 [INFO] Incoming request: GET /api/v1/companies/list?search= 
+2026-01-26 13:02:48 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-01-26 13:02:48 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-26 13:02:51 [INFO] Incoming request: GET /api/v1/raw-queries/list?pageNumber=1&pageSize=10&search= 

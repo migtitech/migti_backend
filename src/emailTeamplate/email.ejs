@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title><%= subject %></title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <style>
+    body, table, td, a {
+      -webkit-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
+    }
+    table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+    img { -ms-interpolation-mode: bicubic; }
+    body { margin: 0; padding: 0; background-color: #f4f4f7; font-family: 'Helvetica Neue', Arial, sans-serif; }
+    table { border-collapse: collapse !important; }
+    .email-container {
+      width: 100%;
+      background-color: #f4f4f7;
+      padding: 40px 0;
+    }
+    .email-body {
+      max-width: 600px;
+      background: #ffffff;
+      margin: auto;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .header {
+      background: linear-gradient(135deg, #6a11cb, #2575fc);
+      padding: 30px;
+      text-align: center;
+      color: #ffffff;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: bold;
+      line-height: 1.4;
+    }
+    .content {
+      padding: 30px;
+      color: #444444;
+      line-height: 1.6;
+    }
+    .content h2 {
+      font-size: 18px;
+      margin-bottom: 15px;
+      color: #222222;
+    }
+    .details {
+      margin: 20px 0;
+      padding: 15px;
+      background: #f9f9f9;
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+    }
+    .details p {
+      margin: 5px 0;
+      font-size: 15px;
+    }
+    .footer {
+      padding: 20px;
+      text-align: center;
+      font-size: 13px;
+      color: #888888;
+      background: #fafafa;
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <table class="email-body" role="presentation" cellpadding="0" cellspacing="0" width="100%">
+      <tr>
+        <td class="header">
+          <h1>Request for Join the Revolution.<br/> Culinary excellence</h1>
+        </td>
+      </tr>
+      <tr>
+        <td class="content">
+          <h2>Hello Sir,</h2>
+        
+
+          <div class="details">
+            <p><strong>Full Name:</strong> <%= fullName %></p>
+            <p><strong>Email:</strong> <%= email %></p>
+            <p><strong>User Type:</strong> <%= type %></p>
+            <p><strong>Language:</strong> <%= language %></p>
+          </div>
+<!-- 
+          <p style="margin-top:30px;">Our team will review your request and get back to you shortly.</p>
+          <p>Best regards,<br><strong>Global Culinary</strong></p> -->
+        </td>
+      </tr>
+      <tr>
+        <td class="footer">
+          <p>&copy; <%= new Date().getFullYear() %> All rights reserved.</p>
+        </td>
+      </tr>
+    </table>
+  </div>
+</body>
+</html>

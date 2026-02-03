@@ -1,0 +1,240 @@
+2026-02-01 14:12:04 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/categories/create
+Params: {}
+Body: {"name":"Alok Chaturvedi","description":"sdfas","parent":"697f11cfa17de6084c0cdfc2","status":"active","sortOrder":0}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"116","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5MzM2NDExLCJleHAiOjE3Njk0MjI4MTEsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.dBUsd4fFZ-p6Hkc4Ve8oAUZjanuz_9cMZzbCmt2dtcU","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"144\", \"Google Chrome\";v=\"144\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: E11000 duplicate key error collection: crm_db.categories index: code_1 dup key: { code: null }
+Stack: MongoServerError: E11000 duplicate key error collection: crm_db.categories index: code_1 dup key: { code: null }
+    at InsertOneOperation.handleOk (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\insert.js:51:19)
+    at tryOperation (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\execute_operation.js:214:34)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async executeOperation (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\execute_operation.js:78:16)
+    at async Collection.insertOne (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\collection.js:154:16)
+   
+2026-02-01 14:12:29 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/categories/create
+Params: {}
+Body: {"name":"adsfadsf","description":"asdfasd","parent":"697f11cfa17de6084c0cdfc2","status":"active","sortOrder":0}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"111","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5MzM2NDExLCJleHAiOjE3Njk0MjI4MTEsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.dBUsd4fFZ-p6Hkc4Ve8oAUZjanuz_9cMZzbCmt2dtcU","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"144\", \"Google Chrome\";v=\"144\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: E11000 duplicate key error collection: crm_db.categories index: code_1 dup key: { code: null }
+Stack: MongoServerError: E11000 duplicate key error collection: crm_db.categories index: code_1 dup key: { code: null }
+    at InsertOneOperation.handleOk (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\insert.js:51:19)
+    at tryOperation (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\execute_operation.js:214:34)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async executeOperation (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\execute_operation.js:78:16)
+    at async Collection.insertOne (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\collection.js:154:16)
+   
+2026-02-01 14:13:23 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/categories/create
+Params: {}
+Body: {"name":"asd","description":"adsfadf","parent":"697f11cfa17de6084c0cdfc2","status":"inactive","sortOrder":0}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"108","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5MzM2NDExLCJleHAiOjE3Njk0MjI4MTEsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.dBUsd4fFZ-p6Hkc4Ve8oAUZjanuz_9cMZzbCmt2dtcU","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"144\", \"Google Chrome\";v=\"144\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: E11000 duplicate key error collection: crm_db.categories index: code_1 dup key: { code: null }
+Stack: MongoServerError: E11000 duplicate key error collection: crm_db.categories index: code_1 dup key: { code: null }
+    at InsertOneOperation.handleOk (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\insert.js:51:19)
+    at tryOperation (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\execute_operation.js:214:34)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async executeOperation (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\execute_operation.js:78:16)
+    at async Collection.insertOne (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\collection.js:154:16)
+   
+2026-02-01 14:13:24 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/categories/create
+Params: {}
+Body: {"name":"asd","description":"adsfadf","parent":"697f11cfa17de6084c0cdfc2","status":"inactive","sortOrder":0}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"108","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5MzM2NDExLCJleHAiOjE3Njk0MjI4MTEsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.dBUsd4fFZ-p6Hkc4Ve8oAUZjanuz_9cMZzbCmt2dtcU","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"144\", \"Google Chrome\";v=\"144\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: E11000 duplicate key error collection: crm_db.categories index: code_1 dup key: { code: null }
+Stack: MongoServerError: E11000 duplicate key error collection: crm_db.categories index: code_1 dup key: { code: null }
+    at InsertOneOperation.handleOk (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\insert.js:51:19)
+    at tryOperation (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\execute_operation.js:214:34)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async executeOperation (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\execute_operation.js:78:16)
+    at async Collection.insertOne (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\collection.js:154:16)
+   
+2026-02-01 14:13:24 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/categories/create
+Params: {}
+Body: {"name":"asd","description":"adsfadf","parent":"697f11cfa17de6084c0cdfc2","status":"inactive","sortOrder":0}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"108","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5MzM2NDExLCJleHAiOjE3Njk0MjI4MTEsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.dBUsd4fFZ-p6Hkc4Ve8oAUZjanuz_9cMZzbCmt2dtcU","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"144\", \"Google Chrome\";v=\"144\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: E11000 duplicate key error collection: crm_db.categories index: code_1 dup key: { code: null }
+Stack: MongoServerError: E11000 duplicate key error collection: crm_db.categories index: code_1 dup key: { code: null }
+    at InsertOneOperation.handleOk (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\insert.js:51:19)
+    at tryOperation (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\execute_operation.js:214:34)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async executeOperation (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\execute_operation.js:78:16)
+    at async Collection.insertOne (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\collection.js:154:16)
+   
+2026-02-01 14:13:24 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/categories/create
+Params: {}
+Body: {"name":"asd","description":"adsfadf","parent":"697f11cfa17de6084c0cdfc2","status":"inactive","sortOrder":0}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"108","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5MzM2NDExLCJleHAiOjE3Njk0MjI4MTEsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.dBUsd4fFZ-p6Hkc4Ve8oAUZjanuz_9cMZzbCmt2dtcU","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"144\", \"Google Chrome\";v=\"144\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: E11000 duplicate key error collection: crm_db.categories index: code_1 dup key: { code: null }
+Stack: MongoServerError: E11000 duplicate key error collection: crm_db.categories index: code_1 dup key: { code: null }
+    at InsertOneOperation.handleOk (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\insert.js:51:19)
+    at tryOperation (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\execute_operation.js:214:34)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async executeOperation (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\execute_operation.js:78:16)
+    at async Collection.insertOne (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\collection.js:154:16)
+   
+2026-02-01 14:14:18 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/categories/create
+Params: {}
+Body: {"name":"asd","description":"adsfadf","parent":"697e04a83294b96424de65df","status":"inactive","sortOrder":0}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"108","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5MzM2NDExLCJleHAiOjE3Njk0MjI4MTEsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.dBUsd4fFZ-p6Hkc4Ve8oAUZjanuz_9cMZzbCmt2dtcU","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"144\", \"Google Chrome\";v=\"144\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: E11000 duplicate key error collection: crm_db.categories index: code_1 dup key: { code: null }
+Stack: MongoServerError: E11000 duplicate key error collection: crm_db.categories index: code_1 dup key: { code: null }
+    at InsertOneOperation.handleOk (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\insert.js:51:19)
+    at tryOperation (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\execute_operation.js:214:34)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async executeOperation (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\execute_operation.js:78:16)
+    at async Collection.insertOne (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\collection.js:154:16)
+   
+2026-02-01 14:14:21 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/categories/create
+Params: {}
+Body: {"name":"asd","description":"adsfadf","parent":null,"status":"inactive","sortOrder":0}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"86","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5MzM2NDExLCJleHAiOjE3Njk0MjI4MTEsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.dBUsd4fFZ-p6Hkc4Ve8oAUZjanuz_9cMZzbCmt2dtcU","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"144\", \"Google Chrome\";v=\"144\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: E11000 duplicate key error collection: crm_db.categories index: code_1 dup key: { code: null }
+Stack: MongoServerError: E11000 duplicate key error collection: crm_db.categories index: code_1 dup key: { code: null }
+    at InsertOneOperation.handleOk (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\insert.js:51:19)
+    at tryOperation (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\execute_operation.js:214:34)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async executeOperation (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\execute_operation.js:78:16)
+    at async Collection.insertOne (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\collection.js:154:16)
+   
+2026-02-01 14:14:22 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/categories/create
+Params: {}
+Body: {"name":"asd","description":"adsfadf","parent":null,"status":"inactive","sortOrder":0}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"86","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5MzM2NDExLCJleHAiOjE3Njk0MjI4MTEsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.dBUsd4fFZ-p6Hkc4Ve8oAUZjanuz_9cMZzbCmt2dtcU","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"144\", \"Google Chrome\";v=\"144\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: E11000 duplicate key error collection: crm_db.categories index: code_1 dup key: { code: null }
+Stack: MongoServerError: E11000 duplicate key error collection: crm_db.categories index: code_1 dup key: { code: null }
+    at InsertOneOperation.handleOk (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\insert.js:51:19)
+    at tryOperation (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\execute_operation.js:214:34)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async executeOperation (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\execute_operation.js:78:16)
+    at async Collection.insertOne (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\collection.js:154:16)
+   
+2026-02-01 14:14:22 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/categories/create
+Params: {}
+Body: {"name":"asd","description":"adsfadf","parent":null,"status":"inactive","sortOrder":0}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"86","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5MzM2NDExLCJleHAiOjE3Njk0MjI4MTEsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.dBUsd4fFZ-p6Hkc4Ve8oAUZjanuz_9cMZzbCmt2dtcU","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"144\", \"Google Chrome\";v=\"144\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: E11000 duplicate key error collection: crm_db.categories index: code_1 dup key: { code: null }
+Stack: MongoServerError: E11000 duplicate key error collection: crm_db.categories index: code_1 dup key: { code: null }
+    at InsertOneOperation.handleOk (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\insert.js:51:19)
+    at tryOperation (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\execute_operation.js:214:34)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async executeOperation (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\execute_operation.js:78:16)
+    at async Collection.insertOne (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\collection.js:154:16)
+   
+2026-02-01 14:14:22 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/categories/create
+Params: {}
+Body: {"name":"asd","description":"adsfadf","parent":null,"status":"inactive","sortOrder":0}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"86","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5MzM2NDExLCJleHAiOjE3Njk0MjI4MTEsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.dBUsd4fFZ-p6Hkc4Ve8oAUZjanuz_9cMZzbCmt2dtcU","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"144\", \"Google Chrome\";v=\"144\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: E11000 duplicate key error collection: crm_db.categories index: code_1 dup key: { code: null }
+Stack: MongoServerError: E11000 duplicate key error collection: crm_db.categories index: code_1 dup key: { code: null }
+    at InsertOneOperation.handleOk (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\insert.js:51:19)
+    at tryOperation (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\execute_operation.js:214:34)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async executeOperation (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\execute_operation.js:78:16)
+    at async Collection.insertOne (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\collection.js:154:16)
+   
+2026-02-01 14:14:26 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/categories/create
+Params: {}
+Body: {"name":"asdasxasddf","description":"adsfadf","parent":null,"status":"inactive","sortOrder":0}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"94","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5MzM2NDExLCJleHAiOjE3Njk0MjI4MTEsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.dBUsd4fFZ-p6Hkc4Ve8oAUZjanuz_9cMZzbCmt2dtcU","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"144\", \"Google Chrome\";v=\"144\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: E11000 duplicate key error collection: crm_db.categories index: code_1 dup key: { code: null }
+Stack: MongoServerError: E11000 duplicate key error collection: crm_db.categories index: code_1 dup key: { code: null }
+    at InsertOneOperation.handleOk (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\insert.js:51:19)
+    at tryOperation (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\execute_operation.js:214:34)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async executeOperation (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\execute_operation.js:78:16)
+    at async Collection.insertOne (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\collection.js:154:16)
+   
+2026-02-01 17:49:36 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/products/create
+Params: {}
+Body: {"name":"asefasdf","sku":"asdf","description":"asdfasdf","shortDescription":"asdf","category":"697f11cfa17de6084c0cdfc2","subcategory":null,"brand":"697f1301a17de6084c0ce014","price":100,"mrp":200,"costPrice":150,"quantity":100,"hasVariants":false,"variants":[],"variantCombinations":[],"images":["/uploads/images-1769948376097.jpeg"],"weight":100,"weightUnit":"g","dimensions":{"length":100,"width":100,"height":100},"dimensionUnit":"cm","tags":["electro","new","nat"],"status":"active","unit":"100pcs"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"504","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5MzM2NDExLCJleHAiOjE3Njk0MjI4MTEsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.dBUsd4fFZ-p6Hkc4Ve8oAUZjanuz_9cMZzbCmt2dtcU","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"144\", \"Google Chrome\";v=\"144\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: E11000 duplicate key error collection: crm_db.products index: itemCode_1 dup key: { itemCode: null }
+Stack: MongoServerError: E11000 duplicate key error collection: crm_db.products index: itemCode_1 dup key: { itemCode: null }
+    at InsertOneOperation.handleOk (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\insert.js:51:19)
+    at tryOperation (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\execute_operation.js:214:34)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async executeOperation (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\execute_operation.js:78:16)
+    at async Collection.insertOne (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\collection.js:154:16)
+   
+2026-02-01 18:13:29 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/categories/create
+Params: {}
+Body: {"name":"dfgsdfg","description":"fgsdfg","parent":"697e04a83294b96424de65df","status":"active","sortOrder":0}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"109","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5MzM2NDExLCJleHAiOjE3Njk0MjI4MTEsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.dBUsd4fFZ-p6Hkc4Ve8oAUZjanuz_9cMZzbCmt2dtcU","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"144\", \"Google Chrome\";v=\"144\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: E11000 duplicate key error collection: crm_db.categories index: code_1 dup key: { code: null }
+Stack: MongoServerError: E11000 duplicate key error collection: crm_db.categories index: code_1 dup key: { code: null }
+    at InsertOneOperation.handleOk (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\insert.js:51:19)
+    at tryOperation (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\execute_operation.js:214:34)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async executeOperation (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\execute_operation.js:78:16)
+    at async Collection.insertOne (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\collection.js:154:16)
+   
+2026-02-01 18:13:30 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/categories/create
+Params: {}
+Body: {"name":"dfgsdfg","description":"fgsdfg","parent":"697e04a83294b96424de65df","status":"active","sortOrder":0}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"109","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5MzM2NDExLCJleHAiOjE3Njk0MjI4MTEsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.dBUsd4fFZ-p6Hkc4Ve8oAUZjanuz_9cMZzbCmt2dtcU","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"144\", \"Google Chrome\";v=\"144\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: E11000 duplicate key error collection: crm_db.categories index: code_1 dup key: { code: null }
+Stack: MongoServerError: E11000 duplicate key error collection: crm_db.categories index: code_1 dup key: { code: null }
+    at InsertOneOperation.handleOk (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\insert.js:51:19)
+    at tryOperation (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\execute_operation.js:214:34)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async executeOperation (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\execute_operation.js:78:16)
+    at async Collection.insertOne (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\collection.js:154:16)
+   
+2026-02-01 18:13:57 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/categories/create
+Params: {}
+Body: {"name":"asdf","description":"asdfa","parent":"697f11cfa17de6084c0cdfc2","status":"active","sortOrder":0}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"105","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5MzM2NDExLCJleHAiOjE3Njk0MjI4MTEsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.dBUsd4fFZ-p6Hkc4Ve8oAUZjanuz_9cMZzbCmt2dtcU","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"144\", \"Google Chrome\";v=\"144\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: E11000 duplicate key error collection: crm_db.categories index: code_1 dup key: { code: null }
+Stack: MongoServerError: E11000 duplicate key error collection: crm_db.categories index: code_1 dup key: { code: null }
+    at InsertOneOperation.handleOk (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\insert.js:51:19)
+    at tryOperation (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\execute_operation.js:214:34)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async executeOperation (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\operations\execute_operation.js:78:16)
+    at async Collection.insertOne (C:\Alok\projects\migti-crm_backend\node_modules\mongoose\node_modules\mongodb\lib\collection.js:154:16)
+   

@@ -1,0 +1,387 @@
+2026-01-24 13:42:13 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 13:42:13 [INFO] Server is running at port 7208 
+2026-01-24 14:41:02 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 14:41:02 [INFO] Server is running at port 7208 
+2026-01-24 14:43:21 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 14:43:21 [INFO] Server is running at port 7208 
+2026-01-24 15:54:16 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 15:54:16 [INFO] Server is running at port 7208 
+2026-01-24 15:55:07 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 15:55:07 [INFO] Server is running at port 7208 
+2026-01-24 15:56:30 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 15:56:30 [INFO] Server is running at port 7208 
+2026-01-24 15:58:18 [INFO] Received SIGINT, shutting down gracefully... 
+2026-01-24 15:58:24 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 15:58:24 [INFO] Server is running at port 7208 
+2026-01-24 15:58:42 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 15:58:42 [INFO] Server is running at port 7208 
+2026-01-24 16:00:40 [INFO] Received SIGINT, shutting down gracefully... 
+2026-01-24 16:00:47 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 16:00:47 [INFO] Server is running at port 7208 
+2026-01-24 16:00:58 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 16:00:58 [INFO] Server is running at port 7208 
+2026-01-24 16:16:25 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 16:16:25 [INFO] Server is running at port 7208 
+2026-01-24 16:27:58 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 16:27:58 [INFO] Server is running at port undefined 
+2026-01-24 16:28:31 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 16:28:31 [INFO] Server is running at port undefined 
+2026-01-24 16:28:47 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 16:28:47 [INFO] Server is running at port undefined 
+2026-01-24 16:31:43 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 16:31:43 [INFO] Server is running at port undefined 
+2026-01-24 16:37:47 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 16:37:47 [INFO] Server is running at port undefined 
+2026-01-24 16:37:57 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 16:37:58 [INFO] Server is running at port undefined 
+2026-01-24 16:45:15 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 16:45:15 [INFO] Server is running at port 4545 
+2026-01-24 16:45:36 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 16:45:36 [INFO] Server is running at port 4545 
+2026-01-24 16:46:10 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 16:46:10 [INFO] Server is running at port 4545 
+2026-01-24 16:46:50 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 16:46:50 [INFO] Server is running at port 4545 
+2026-01-24 16:49:24 [INFO] Incoming request: POST /api/v1/admin/superadmin/login 
+2026-01-24 16:49:24 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/admin/superadmin/login
+Params: {}
+Body: {"email":"admin@gmail.com","password":"admin123"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"49","sec-ch-ua-platform":"\"Windows\"","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-GB,en-US;q=0.9,en;q=0.8"}
+Error Message: Wrong Password
+Stack: Error: Wrong Password
+    at superAdminLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/admin/admin.service.js:58:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginSuperAdmin (file:///C:/Alok/projects/migti-crm_backend/src/controller/admin/admin.controller.js:64:18)
+   
+2026-01-24 16:49:42 [INFO] Incoming request: POST /api/v1/admin/superadmin/login 
+2026-01-24 16:49:42 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/admin/superadmin/login
+Params: {}
+Body: {"email":"admin@gmail.com","password":"admin@123"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"50","sec-ch-ua-platform":"\"Windows\"","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-GB,en-US;q=0.9,en;q=0.8"}
+Error Message: Wrong Password
+Stack: Error: Wrong Password
+    at superAdminLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/admin/admin.service.js:58:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginSuperAdmin (file:///C:/Alok/projects/migti-crm_backend/src/controller/admin/admin.controller.js:64:18)
+   
+2026-01-24 16:51:00 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 16:51:00 [INFO] Server is running at port 4545 
+2026-01-24 16:51:37 [INFO] Incoming request: POST /api/v1/admin/superadmin/login 
+2026-01-24 16:51:37 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/admin/superadmin/login
+Params: {}
+Body: {"email":"admin@gmail.com","password":"admin@123"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"50","sec-ch-ua-platform":"\"Windows\"","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-GB,en-US;q=0.9,en;q=0.8"}
+Error Message: Wrong Password
+Stack: Error: Wrong Password
+    at superAdminLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/admin/admin.service.js:58:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginSuperAdmin (file:///C:/Alok/projects/migti-crm_backend/src/controller/admin/admin.controller.js:64:18)
+   
+2026-01-24 16:51:46 [INFO] Incoming request: POST /api/v1/admin/superadmin/login 
+2026-01-24 16:55:06 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 16:55:06 [INFO] Server is running at port 4545 
+2026-01-24 16:55:55 [INFO] Incoming request: POST /api/v1/admin/superadmin/login 
+2026-01-24 16:57:22 [INFO] Incoming request: POST /api/v1/admin/superadmin/login 
+2026-01-24 17:28:24 [INFO] Incoming request: POST /api/v1/admin/superadmin/login 
+2026-01-24 17:32:50 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 17:32:50 [INFO] Server is running at port 4545 
+2026-01-24 17:34:06 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 17:34:06 [INFO] Server is running at port 4545 
+2026-01-24 17:34:12 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 17:34:12 [INFO] Server is running at port 4545 
+2026-01-24 17:34:25 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 17:34:25 [INFO] Server is running at port 4545 
+2026-01-24 17:34:33 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 17:34:33 [INFO] Server is running at port 4545 
+2026-01-24 17:34:38 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 17:34:38 [INFO] Server is running at port 4545 
+2026-01-24 17:34:41 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 17:34:41 [INFO] Server is running at port 4545 
+2026-01-24 17:37:49 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-01-24 17:39:59 [INFO] Incoming request: POST /api/v1/companies/create 
+2026-01-24 17:40:00 [INFO] Incoming request: POST /api/v1/companies/create 
+2026-01-24 17:40:01 [INFO] Incoming request: POST /api/v1/companies/create 
+2026-01-24 17:40:01 [INFO] Incoming request: POST /api/v1/companies/create 
+2026-01-24 17:40:01 [INFO] Incoming request: POST /api/v1/companies/create 
+2026-01-24 17:40:06 [INFO] Incoming request: POST /api/v1/companies/create 
+2026-01-24 17:40:12 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 17:40:12 [INFO] Server is running at port 4545 
+2026-01-24 17:40:15 [INFO] Incoming request: POST /api/v1/companies/create 
+2026-01-24 17:40:18 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 17:40:18 [INFO] Server is running at port 4545 
+2026-01-24 17:40:26 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 17:40:26 [INFO] Server is running at port 4545 
+2026-01-24 17:40:33 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 17:40:33 [INFO] Server is running at port 4545 
+2026-01-24 17:40:38 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 17:40:38 [INFO] Server is running at port 4545 
+2026-01-24 17:40:43 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 17:40:43 [INFO] Server is running at port 4545 
+2026-01-24 17:40:43 [INFO] Incoming request: PUT /api/v1/companies/update?companyId=6974b6a721172051c2b8731f 
+2026-01-24 17:40:59 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 17:40:59 [INFO] Server is running at port 4545 
+2026-01-24 17:41:03 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 17:41:03 [INFO] Server is running at port 4545 
+2026-01-24 17:41:06 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 17:41:06 [INFO] Server is running at port 4545 
+2026-01-24 17:41:33 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 17:41:33 [INFO] Server is running at port 4545 
+2026-01-24 17:41:38 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 17:41:38 [INFO] Server is running at port 4545 
+2026-01-24 17:43:01 [INFO] Incoming request: GET /api/v1/companies/list?search= 
+2026-01-24 17:43:20 [INFO] Incoming request: GET /api/v1/companies/list?search= 
+2026-01-24 17:45:47 [INFO] Incoming request: GET /api/v1/companies/list?search= 
+2026-01-24 17:45:50 [INFO] Incoming request: GET /api/v1/companies/list?search=mi 
+2026-01-24 17:45:51 [INFO] Incoming request: GET /api/v1/companies/list?search= 
+2026-01-24 17:45:53 [INFO] Incoming request: GET /api/v1/companies/list?search=asdfasdfas 
+2026-01-24 17:45:54 [INFO] Incoming request: GET /api/v1/companies/list?search=asdfasdfa 
+2026-01-24 17:45:54 [INFO] Incoming request: GET /api/v1/companies/list?search= 
+2026-01-24 17:46:04 [INFO] Incoming request: GET /api/v1/companies/list?search=asdfasdf 
+2026-01-24 17:46:11 [INFO] Incoming request: GET /api/v1/companies/list?search= 
+2026-01-24 17:46:12 [INFO] Incoming request: GET /api/v1/companies/list?search=m 
+2026-01-24 17:47:09 [INFO] Incoming request: GET /api/v1/companies/list?search= 
+2026-01-24 17:48:21 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 17:48:21 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-01-24 17:48:22 [INFO] Incoming request: GET /api/v1/companies/list?search= 
+2026-01-24 17:49:13 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-01-24 17:49:13 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 17:50:47 [INFO] Incoming request: POST /api/v1/company-branches/create 
+2026-01-24 17:50:54 [INFO] Incoming request: POST /api/v1/company-branches/create 
+2026-01-24 17:55:07 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-01-24 17:55:07 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 17:55:09 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-01-24 17:55:09 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 17:55:22 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 17:55:22 [INFO] Server is running at port 4545 
+2026-01-24 17:55:27 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 17:55:27 [INFO] Server is running at port 4545 
+2026-01-24 17:55:29 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 17:55:29 [INFO] Server is running at port 4545 
+2026-01-24 17:58:08 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-01-24 17:58:08 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 17:58:09 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-01-24 17:58:09 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 17:59:19 [INFO] Incoming request: POST /api/v1/company-branches/create 
+2026-01-24 17:59:27 [INFO] Incoming request: PUT /api/v1/company-branches/update?companyBranchId=6974bb1f2e63462b34763def 
+2026-01-24 18:02:07 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 18:02:07 [INFO] Server is running at port 4545 
+2026-01-24 18:02:15 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-01-24 18:02:15 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 18:02:18 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-01-24 18:02:18 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 18:05:12 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-01-24 18:05:12 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 18:06:16 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-01-24 18:06:16 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 18:06:20 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-01-24 18:06:20 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 18:11:11 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-01-24 18:11:11 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 18:11:12 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-01-24 18:11:12 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 19:21:40 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 19:21:40 [INFO] Server is running at port 4545 
+2026-01-24 19:21:44 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 19:21:44 [INFO] Server is running at port 4545 
+2026-01-24 19:22:00 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 19:22:00 [INFO] Server is running at port 4545 
+2026-01-24 19:22:14 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 19:22:14 [INFO] Server is running at port 4545 
+2026-01-24 19:22:18 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 19:22:18 [INFO] Server is running at port 4545 
+2026-01-24 19:22:24 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-24 19:22:24 [INFO] Server is running at port 4545 
+2026-01-24 19:23:48 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-01-24 19:23:48 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 19:24:09 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-01-24 19:24:09 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 19:24:09 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-01-24 19:24:09 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 19:25:26 [INFO] Incoming request: POST /api/v1/employees/create 
+2026-01-24 19:27:14 [INFO] Incoming request: POST /api/v1/employees/create 
+2026-01-24 19:27:14 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/create
+Params: {}
+Body: {"name":"Anuradha sisodiya","email":"sales@migti.co.in","phone":"7354540144","role":"hod","branchId":"6974bb1f2e63462b34763def","designation":"sales ","address":"NEW SIYAGANJ INDORE ","idnumber":"909895024907","password":"123456"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"230","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5MjU1OTA0LCJleHAiOjE3NjkzNDIzMDQsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.bHac9WakUwGNdb11t-o5TRdQA_ZKk83FuPm9vuJStIk","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-GB,en-US;q=0.9,en;q=0.8"}
+Error Message: Employee already exists
+Stack: Error: Employee already exists
+    at addEmployee (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:22:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async createEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:29:18)
+   
+2026-01-24 19:35:50 [INFO] Incoming request: PUT /api/v1/employees/update?employeeId=6974cf4ec8ac1512d4b4b4a8 
+2026-01-24 19:36:01 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-01-24 19:36:01 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 19:36:02 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-01-24 19:36:02 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 19:36:06 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-01-24 19:36:06 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 19:36:10 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 19:36:10 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-01-24 19:36:17 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-01-24 19:36:17 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 19:36:22 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 19:36:22 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-01-24 19:36:26 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-01-24 19:36:26 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 19:36:35 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-01-24 19:36:35 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 19:36:38 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 19:36:38 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-01-24 19:36:40 [INFO] Incoming request: GET /api/v1/companies/list?search= 
+2026-01-24 19:36:40 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-01-24 19:36:40 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 19:36:46 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-01-24 19:36:46 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 19:38:09 [INFO] Incoming request: POST /api/v1/employees/create 
+2026-01-24 20:21:17 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-01-24 20:21:17 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 20:21:46 [INFO] Incoming request: POST /api/v1/admin/superadmin/login 
+2026-01-24 20:22:02 [INFO] Incoming request: GET /api/v1/companies/list?search= 
+2026-01-24 20:24:04 [INFO] Incoming request: POST /api/v1/companies/create 
+2026-01-24 20:24:10 [INFO] Incoming request: GET /api/v1/companies/list?search=mee 
+2026-01-24 20:24:11 [INFO] Incoming request: GET /api/v1/companies/list?search=me 
+2026-01-24 20:24:12 [INFO] Incoming request: GET /api/v1/companies/list?search= 
+2026-01-24 20:24:46 [INFO] Incoming request: GET /api/v1/companies/list?search= 
+2026-01-24 20:24:59 [INFO] Incoming request: PUT /api/v1/companies/update 
+2026-01-24 20:25:05 [INFO] Incoming request: PUT /api/v1/companies/update 
+2026-01-24 20:25:12 [INFO] Incoming request: PUT /api/v1/companies/update 
+2026-01-24 20:25:24 [INFO] Incoming request: DELETE /api/v1/companies/delete 
+2026-01-24 20:25:32 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-01-24 20:25:32 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 20:27:23 [INFO] Incoming request: POST /api/v1/company-branches/create 
+2026-01-24 20:27:58 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-01-24 20:27:58 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 20:28:09 [INFO] Incoming request: PUT /api/v1/company-branches/update?companyBranchId=6974ddd3c8ac1512d4b4b4f6 
+2026-01-24 20:28:17 [INFO] Incoming request: DELETE /api/v1/company-branches/delete?companyBranchId=6974ddd3c8ac1512d4b4b4f6 
+2026-01-24 20:28:20 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-01-24 20:28:20 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 20:28:29 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-01-24 20:28:29 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 20:29:42 [INFO] Incoming request: POST /api/v1/employees/create 
+2026-01-24 20:29:42 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/create
+Params: {}
+Body: {"name":"Anuradha sisodiya","email":"meera@gmail.com","phone":"7354540145","role":"finance","branchId":"6974bb1f2e63462b34763def","designation":"sales ","address":"NEW SIYAGANJ INDORE ","idnumber":"909895024907","password":"123456"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"232","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5MjY2MzA2LCJleHAiOjE3NjkzNTI3MDYsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.yDdvdYUNPOPWZyqfAIXpiDFt2A11XcY_HrTO5q0yczo","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-GB,en-US;q=0.9,en;q=0.8"}
+Error Message: Employee already exists
+Stack: Error: Employee already exists
+    at addEmployee (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:22:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async createEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:29:18)
+   
+2026-01-24 20:29:49 [INFO] Incoming request: POST /api/v1/employees/create 
+2026-01-24 20:29:49 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/create
+Params: {}
+Body: {"name":"Anuradha sisodiya","email":"meera@gmail.com","phone":"7354540145","role":"finance","branchId":"6974bb1f2e63462b34763def","designation":"sales ","address":"NEW SIYAGANJ INDORE ","idnumber":"909895024907","password":"123456"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"232","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5MjY2MzA2LCJleHAiOjE3NjkzNTI3MDYsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.yDdvdYUNPOPWZyqfAIXpiDFt2A11XcY_HrTO5q0yczo","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-GB,en-US;q=0.9,en;q=0.8"}
+Error Message: Employee already exists
+Stack: Error: Employee already exists
+    at addEmployee (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:22:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async createEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:29:18)
+   
+2026-01-24 20:29:56 [INFO] Incoming request: POST /api/v1/employees/create 
+2026-01-24 20:29:56 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/create
+Params: {}
+Body: {"name":"Anuradha sisodiya","email":"meerarfgr@gmail.com","phone":"7354540145","role":"finance","branchId":"6974bb1f2e63462b34763def","designation":"sales ","address":"NEW SIYAGANJ INDORE ","idnumber":"909895024907","password":"123456"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"236","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5MjY2MzA2LCJleHAiOjE3NjkzNTI3MDYsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.yDdvdYUNPOPWZyqfAIXpiDFt2A11XcY_HrTO5q0yczo","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-GB,en-US;q=0.9,en;q=0.8"}
+Error Message: Employee already exists
+Stack: Error: Employee already exists
+    at addEmployee (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:22:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async createEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:29:18)
+   
+2026-01-24 20:30:02 [INFO] Incoming request: POST /api/v1/employees/create 
+2026-01-24 20:30:02 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/create
+Params: {}
+Body: {"name":"Anuradha sisodiya","email":"meerarfgr@gmail.com","phone":"7354540144","role":"finance","branchId":"6974bb1f2e63462b34763def","designation":"sales ","address":"NEW SIYAGANJ INDORE ","idnumber":"909895024907","password":"123456"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"236","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5MjY2MzA2LCJleHAiOjE3NjkzNTI3MDYsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.yDdvdYUNPOPWZyqfAIXpiDFt2A11XcY_HrTO5q0yczo","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-GB,en-US;q=0.9,en;q=0.8"}
+Error Message: Employee already exists
+Stack: Error: Employee already exists
+    at addEmployee (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:22:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async createEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:29:18)
+   
+2026-01-24 20:30:06 [INFO] Incoming request: POST /api/v1/employees/create 
+2026-01-24 20:30:33 [INFO] Incoming request: PUT /api/v1/employees/update?employeeId=6974de76c8ac1512d4b4b50d 
+2026-01-24 20:32:35 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-01-24 20:32:35 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 20:32:43 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-01-24 20:32:43 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 20:32:47 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-01-24 20:32:47 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 20:32:48 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-01-24 20:32:48 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 20:32:49 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-01-24 20:32:49 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 20:32:50 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-01-24 20:32:50 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 20:32:51 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-01-24 20:32:51 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 20:32:53 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-01-24 20:32:53 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 20:32:54 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-01-24 20:32:54 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 20:32:55 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-01-24 20:32:55 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 20:32:55 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-01-24 20:32:55 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 20:32:56 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-01-24 20:32:56 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 20:33:02 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-01-24 20:33:02 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 20:33:03 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-01-24 20:33:03 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 20:33:25 [INFO] Incoming request: GET /api/v1/companies/list?search= 
+2026-01-24 20:33:27 [INFO] Incoming request: GET /api/v1/companies/list?search=jm 
+2026-01-24 20:33:28 [INFO] Incoming request: GET /api/v1/companies/list?search= 
+2026-01-24 20:33:29 [INFO] Incoming request: GET /api/v1/companies/list?search=m 
+2026-01-24 20:33:33 [INFO] Incoming request: GET /api/v1/companies/list?search=mee 
+2026-01-24 20:33:35 [INFO] Incoming request: GET /api/v1/companies/list?search=m 
+2026-01-24 20:33:36 [INFO] Incoming request: GET /api/v1/companies/list?search= 
+2026-01-24 20:33:52 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-01-24 20:33:52 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 20:38:34 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-01-24 20:38:34 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 20:38:38 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 20:38:38 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-01-24 20:38:58 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-01-24 20:38:58 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 20:40:47 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-01-24 20:40:47 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 20:40:48 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-01-24 20:40:48 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 20:41:08 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-01-24 20:41:08 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 20:41:18 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-01-24 20:41:18 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 20:41:25 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-01-24 20:41:25 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 20:41:30 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-24 20:41:30 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-01-24 20:42:03 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-01-24 20:42:03 [INFO] Incoming request: GET /api/v1/company-branches/list 

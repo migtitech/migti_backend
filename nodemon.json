@@ -1,0 +1,14 @@
+{
+  "watch": ["src", "index.js"],
+  "ignore": [
+    "node_modules",
+    "dist",
+    "uploads",
+    "logs",
+    "*.log",
+    ".git",
+    "GCA_Backend_API.postman_collection.json"
+  ],
+  "ext": "js,json",
+  "delay": 1000
+}

@@ -1,0 +1,182 @@
+2026-01-28 09:25:26 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-28 09:25:26 [INFO] Server is running at port 4545 
+2026-01-28 09:28:21 [INFO] Incoming request: GET /api/v1/raw-queries/list?pageNumber=1&pageSize=10&search= 
+2026-01-28 09:30:31 [INFO] Incoming request: GET /api/v1/raw-queries/list?pageNumber=1&pageSize=10&search= 
+2026-01-28 09:31:46 [INFO] Incoming request: GET /api/v1/raw-queries/get-by-id?rawQueryId=69770a81bbf8b479d1e8ef65 
+2026-01-28 09:31:55 [INFO] Incoming request: GET /api/v1/raw-queries/list?pageNumber=1&pageSize=10&search= 
+2026-01-28 09:33:16 [INFO] Incoming request: GET /api/v1/raw-queries/list?pageNumber=1&pageSize=10&search= 
+2026-01-28 09:35:27 [INFO] Incoming request: GET /api/v1/raw-queries/list?pageNumber=1&pageSize=10&search= 
+2026-01-28 09:51:35 [INFO] Incoming request: GET /api/v1/raw-queries/list?pageNumber=1&pageSize=10&search= 
+2026-01-28 09:51:54 [INFO] Incoming request: GET /api/v1/raw-queries/list?pageNumber=1&pageSize=10&search= 
+2026-01-28 10:04:09 [INFO] Incoming request: POST /api/v1/admin/superadmin/login 
+2026-01-28 10:04:09 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/admin/superadmin/login
+Params: {}
+Body: {"email":"superadmin@gmail.com","password":"admin123"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"54","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5NDA3MzcxLCJleHAiOjE3Njk0OTM3NzEsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.LaXnX24oXbPUbadRnMfiOXzOkebTGMkgVwZWcSgk_Bs","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-GB,en-US;q=0.9,en;q=0.8"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at superAdminLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/admin/admin.service.js:49:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginSuperAdmin (file:///C:/Alok/projects/migti-crm_backend/src/controller/admin/admin.controller.js:64:18)
+   
+2026-01-28 10:04:22 [INFO] Incoming request: POST /api/v1/admin/superadmin/login 
+2026-01-28 10:04:22 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/admin/superadmin/login
+Params: {}
+Body: {"email":"superadmin@gmail.com","password":"admin123"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"54","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5NDA3MzcxLCJleHAiOjE3Njk0OTM3NzEsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.LaXnX24oXbPUbadRnMfiOXzOkebTGMkgVwZWcSgk_Bs","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-GB,en-US;q=0.9,en;q=0.8"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at superAdminLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/admin/admin.service.js:49:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginSuperAdmin (file:///C:/Alok/projects/migti-crm_backend/src/controller/admin/admin.controller.js:64:18)
+   
+2026-01-28 10:04:33 [INFO] Incoming request: POST /api/v1/admin/login 
+2026-01-28 10:04:33 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/admin/login
+Params: {}
+Body: {"email":"admin@gmail.com","password":"admin123"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"49","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5NDA3MzcxLCJleHAiOjE3Njk0OTM3NzEsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.LaXnX24oXbPUbadRnMfiOXzOkebTGMkgVwZWcSgk_Bs","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-GB,en-US;q=0.9,en;q=0.8"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at adminLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/admin/admin.service.js:11:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginAdmin (file:///C:/Alok/projects/migti-crm_backend/src/controller/admin/admin.controller.js:40:18)
+   
+2026-01-28 10:16:42 [INFO] Incoming request: POST /api/v1/admin/superadmin/login 
+2026-01-28 10:16:42 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/admin/superadmin/login
+Params: {}
+Body: {"email":"superadmin@gmail.com","password":"admin123"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"54","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5NDA3MzcxLCJleHAiOjE3Njk0OTM3NzEsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.LaXnX24oXbPUbadRnMfiOXzOkebTGMkgVwZWcSgk_Bs","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-GB,en-US;q=0.9,en;q=0.8"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at superAdminLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/admin/admin.service.js:49:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginSuperAdmin (file:///C:/Alok/projects/migti-crm_backend/src/controller/admin/admin.controller.js:64:18)
+   
+2026-01-28 10:20:43 [INFO] Received SIGINT, shutting down gracefully... 
+2026-01-28 10:20:55 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-28 10:20:55 [INFO] Server is running at port 4545 
+2026-01-28 10:22:03 [INFO] Incoming request: POST /api/v1/admin/superadmin/login 
+2026-01-28 10:22:03 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/admin/superadmin/login
+Params: {}
+Body: {"email":"superadmin@gmail.com","password":"admin123"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"54","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5NDA3MzcxLCJleHAiOjE3Njk0OTM3NzEsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.LaXnX24oXbPUbadRnMfiOXzOkebTGMkgVwZWcSgk_Bs","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-GB,en-US;q=0.9,en;q=0.8"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at superAdminLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/admin/admin.service.js:49:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginSuperAdmin (file:///C:/Alok/projects/migti-crm_backend/src/controller/admin/admin.controller.js:64:18)
+   
+2026-01-28 10:28:13 [INFO] Incoming request: POST /api/v1/admin/superadmin/login 
+2026-01-28 10:28:13 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/admin/superadmin/login
+Params: {}
+Body: {"email":"superadmin@gmail.com","password":"admin123"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"54","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5NDA3MzcxLCJleHAiOjE3Njk0OTM3NzEsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.LaXnX24oXbPUbadRnMfiOXzOkebTGMkgVwZWcSgk_Bs","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-GB,en-US;q=0.9,en;q=0.8"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at superAdminLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/admin/admin.service.js:49:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginSuperAdmin (file:///C:/Alok/projects/migti-crm_backend/src/controller/admin/admin.controller.js:64:18)
+   
+2026-01-28 10:30:34 [INFO] Incoming request: POST /api/v1/admin/login 
+2026-01-28 10:30:34 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/admin/login
+Params: {}
+Body: {"email":"admin@gmail.com","password":"admin123"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"49","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5NDA3MzcxLCJleHAiOjE3Njk0OTM3NzEsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.LaXnX24oXbPUbadRnMfiOXzOkebTGMkgVwZWcSgk_Bs","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-GB,en-US;q=0.9,en;q=0.8"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at adminLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/admin/admin.service.js:11:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginAdmin (file:///C:/Alok/projects/migti-crm_backend/src/controller/admin/admin.controller.js:40:18)
+   
+2026-01-28 10:35:27 [INFO] Incoming request: POST /api/v1/admin/superadmin/login 
+2026-01-28 10:35:27 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/admin/superadmin/login
+Params: {}
+Body: {"email":"superadmin@gmail.com","password":"admin123"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"54","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5NDA3MzcxLCJleHAiOjE3Njk0OTM3NzEsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.LaXnX24oXbPUbadRnMfiOXzOkebTGMkgVwZWcSgk_Bs","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-GB,en-US;q=0.9,en;q=0.8"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at superAdminLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/admin/admin.service.js:49:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginSuperAdmin (file:///C:/Alok/projects/migti-crm_backend/src/controller/admin/admin.controller.js:64:18)
+   
+2026-01-28 10:36:17 [INFO] Incoming request: POST /api/v1/admin/login 
+2026-01-28 10:36:17 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/admin/login
+Params: {}
+Body: {"email":"admin@gmail.com","password":"admin123"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"49","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5NDA3MzcxLCJleHAiOjE3Njk0OTM3NzEsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.LaXnX24oXbPUbadRnMfiOXzOkebTGMkgVwZWcSgk_Bs","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-GB,en-US;q=0.9,en;q=0.8"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at adminLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/admin/admin.service.js:11:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginAdmin (file:///C:/Alok/projects/migti-crm_backend/src/controller/admin/admin.controller.js:40:18)
+   
+2026-01-28 10:36:55 [INFO] Incoming request: POST /api/v1/employees/login 
+2026-01-28 10:36:55 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"sales@gmail.com","password":"admin123","role":"sales"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"64","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5NDA3MzcxLCJleHAiOjE3Njk0OTM3NzEsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.LaXnX24oXbPUbadRnMfiOXzOkebTGMkgVwZWcSgk_Bs","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-GB,en-US;q=0.9,en;q=0.8"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:165:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-28 10:38:21 [INFO] Incoming request: POST /api/v1/admin/superadmin/login 
+2026-01-28 10:38:21 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/admin/superadmin/login
+Params: {}
+Body: {"email":"superadmin@gmail.com","password":"admin123"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"54","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5NDA3MzcxLCJleHAiOjE3Njk0OTM3NzEsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.LaXnX24oXbPUbadRnMfiOXzOkebTGMkgVwZWcSgk_Bs","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-GB,en-US;q=0.9,en;q=0.8"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at superAdminLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/admin/admin.service.js:49:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginSuperAdmin (file:///C:/Alok/projects/migti-crm_backend/src/controller/admin/admin.controller.js:64:18)
+   
+2026-01-28 10:39:28 [INFO] Incoming request: POST /api/v1/admin/superadmin/login 
+2026-01-28 10:40:16 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-01-28 10:40:16 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-28 10:40:18 [INFO] Incoming request: GET /api/v1/raw-queries/list?pageNumber=1&pageSize=10&search= 
+2026-01-28 10:40:34 [INFO] Incoming request: GET /api/v1/raw-queries/list?pageNumber=1&pageSize=10&search= 
+2026-01-28 10:42:38 [INFO] Incoming request: GET /api/v1/raw-queries/get-by-id?rawQueryId=69770a81bbf8b479d1e8ef65 
+2026-01-28 10:45:07 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-01-28 10:45:07 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-28 10:45:35 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-01-28 10:45:35 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-28 13:59:41 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-01-28 13:59:41 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-28 13:59:43 [INFO] Incoming request: GET /api/v1/raw-queries/list?pageNumber=1&pageSize=10&search= 
+2026-01-28 13:59:56 [INFO] Incoming request: GET /api/v1/raw-queries/list?pageNumber=1&pageSize=10&search= 
+2026-01-28 16:25:29 [INFO] Incoming request: GET /api/v1/raw-queries/list?pageNumber=1&pageSize=10&search= 

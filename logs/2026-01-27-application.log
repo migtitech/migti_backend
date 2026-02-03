@@ -1,0 +1,75 @@
+2026-01-27 10:37:06 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-01-27 10:37:06 [INFO] Server is running at port 4545 
+2026-01-27 11:07:59 [INFO] Incoming request: POST /api/v1/admin/login 
+2026-01-27 11:08:38 [INFO] Incoming request: POST /api/v1/admin/superadmin/login 
+2026-01-27 11:09:37 [INFO] Incoming request: POST /api/v1/admin/login 
+2026-01-27 11:09:37 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/admin/login
+Params: {}
+Body: {"email":"admin@gmail.com","password":"admin123"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"49","sec-ch-ua-platform":"\"Windows\"","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Cursor/2.4.21 Chrome/142.0.7444.235 Electron/39.2.7 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Not_A Brand\";v=\"99\", \"Chromium\";v=\"142\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at adminLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/admin/admin.service.js:11:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginAdmin (file:///C:/Alok/projects/migti-crm_backend/src/controller/admin/admin.controller.js:40:18)
+   
+2026-01-27 11:09:51 [INFO] Incoming request: POST /api/v1/admin/superadmin/login 
+2026-01-27 11:09:51 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/admin/superadmin/login
+Params: {}
+Body: {"email":"superadmin@gmail.com","password":"admin123"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"54","sec-ch-ua-platform":"\"Windows\"","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Cursor/2.4.21 Chrome/142.0.7444.235 Electron/39.2.7 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Not_A Brand\";v=\"99\", \"Chromium\";v=\"142\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at superAdminLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/admin/admin.service.js:49:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginSuperAdmin (file:///C:/Alok/projects/migti-crm_backend/src/controller/admin/admin.controller.js:64:18)
+   
+2026-01-27 11:11:00 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-01-27 11:11:00 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-27 11:11:18 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-01-27 11:11:18 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-27 11:12:56 [INFO] Incoming request: GET /api/v1/raw-queries/list?pageNumber=1&pageSize=10&search= 
+2026-01-27 11:52:48 [INFO] Incoming request: GET /api/v1/raw-queries/list?pageNumber=1&pageSize=10&search= 
+2026-01-27 11:52:57 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-01-27 11:52:57 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-27 11:53:11 [INFO] Incoming request: GET /api/v1/raw-queries/list?pageNumber=1&pageSize=10&search= 
+2026-01-27 11:55:06 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-01-27 11:55:06 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-27 11:55:09 [INFO] Incoming request: GET /api/v1/raw-queries/list?pageNumber=1&pageSize=10&search= 
+2026-01-27 11:55:44 [INFO] Incoming request: GET /api/v1/raw-queries/list?pageNumber=1&pageSize=10&search=i 
+2026-01-27 11:55:57 [INFO] Incoming request: GET /api/v1/raw-queries/list?pageNumber=1&pageSize=10&search=it 
+2026-01-27 12:18:56 [INFO] Incoming request: GET /api/v1/raw-queries/list?pageNumber=1&pageSize=10&search=i 
+2026-01-27 12:18:56 [INFO] Incoming request: GET /api/v1/raw-queries/list?pageNumber=1&pageSize=10&search= 
+2026-01-27 12:19:09 [INFO] Incoming request: GET /api/v1/raw-queries/list?pageNumber=1&pageSize=10&search= 
+2026-01-27 12:19:18 [INFO] Incoming request: GET /api/v1/companies/list?search= 
+2026-01-27 12:20:00 [INFO] Incoming request: GET /api/v1/companies/list?search= 
+2026-01-27 12:20:04 [INFO] Incoming request: GET /api/v1/companies/list?search= 
+2026-01-27 12:21:20 [INFO] Incoming request: GET /api/v1/companies/list?search= 
+2026-01-27 12:23:39 [INFO] Incoming request: POST /api/v1/admin/superadmin/login 
+2026-01-27 12:23:45 [INFO] Incoming request: POST /api/v1/admin/superadmin/login 
+2026-01-27 12:24:06 [INFO] Incoming request: POST /api/v1/admin/superadmin/login 
+2026-01-27 12:25:43 [INFO] Incoming request: POST /api/v1/admin/superadmin/login 
+2026-01-27 12:25:43 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/admin/superadmin/login
+Params: {}
+Body: {"email":"superadmin@gmail.com","password":"admin123"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"54","sec-ch-ua-platform":"\"Windows\"","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Cursor/2.4.21 Chrome/142.0.7444.235 Electron/39.2.7 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Not_A Brand\";v=\"99\", \"Chromium\";v=\"142\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at superAdminLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/admin/admin.service.js:49:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginSuperAdmin (file:///C:/Alok/projects/migti-crm_backend/src/controller/admin/admin.controller.js:64:18)
+   
+2026-01-27 13:41:00 [INFO] Incoming request: GET /api/v1/raw-queries/list?pageNumber=1&pageSize=10&search= 
+2026-01-27 13:41:10 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-01-27 13:41:10 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-01-27 18:00:31 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-01-27 18:00:31 [INFO] Incoming request: GET /api/v1/company-branches/list 

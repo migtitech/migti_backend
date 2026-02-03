@@ -1,0 +1,156 @@
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
+import { v4 as uuidv4 } from 'uuid'
+import path from 'path'
+
+const s3Client = new S3Client({
+  region: process.env.AWS_REGION || 'eu-north-1',
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  },
+})
+
+export const uploadToS3 = async (
+  file,
+  bucketName = process.env.AWS_BUCKET_NAME,
+  folder = 'general'
+) => {
+  try {
+    if (!file) {
+      return {
+        success: false,
+        message: 'No file provided',
+        data: null,
+      }
+    }
+
+    if (!bucketName) {
+      return {
+        success: false,
+        message: 'Bucket name is required',
+        data: null,
+      }
+    }
+
+    // Check AWS credentials
+    if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
+      return {
+        success: false,
+        message: 'AWS credentials not configured',
+        data: null,
+      }
+    }
+
+    console.log('Starting S3 upload for file:', file.originalname)
+
+    const fileExtension = path.extname(file.originalname)
+    const fileName = `${uuidv4()}${fileExtension}`
+    const key = folder ? `${folder}/${fileName}` : fileName
+
+    const uploadParams = {
+      Bucket: bucketName,
+      Key: key,
+      Body: file.buffer,
+      ContentType: file.mimetype,
+      // ACL removed - bucket doesn't allow ACLs, use bucket policy instead
+    }
+
+    const command = new PutObjectCommand(uploadParams)
+
+    // Add timeout to prevent infinite hanging
+    const uploadPromise = s3Client.send(command)
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(
+        () => reject(new Error('Upload timeout after 30 seconds')),
+        30000
+      )
+    })
+
+    const result = await Promise.race([uploadPromise, timeoutPromise])
+
+    const fileUrl = `https://${bucketName}.s3.${process.env.AWS_REGION || 'us-east-1'}.amazonaws.com/${key}`
+
+    console.log('S3 upload completed successfully for:', file.originalname)
+
+    return {
+      success: true,
+      message: 'File uploaded successfully',
+      data: {
+        fileName: fileName,
+        originalName: file.originalname,
+        key: key,
+        url: fileUrl,
+        size: file.size,
+        mimetype: file.mimetype,
+        etag: result.ETag,
+      },
+    }
+  } catch (error) {
+    console.error('S3 Upload Error:', error)
+    return {
+      success: false,
+      message: `Upload failed: ${error.message}`,
+      data: null,
+      error: error.message,
+    }
+  }
+}
+
+export const uploadMultipleToS3 = async (
+  files,
+  bucketName = process.env.AWS_BUCKET_NAME,
+  folder = 'general'
+) => {
+  try {
+    if (!files || files.length === 0) {
+      return {
+        success: false,
+        message: 'No files provided',
+        data: null,
+      }
+    }
+
+    if (!bucketName) {
+      return {
+        success: false,
+        message: 'Bucket name is required',
+        data: null,
+      }
+    }
+
+    const uploadPromises = files.map((file) =>
+      uploadToS3(file, bucketName, folder)
+    )
+    const results = await Promise.all(uploadPromises)
+
+    const successfulUploads = results.filter((result) => result.success)
+    const failedUploads = results.filter((result) => !result.success)
+
+    return {
+      success: failedUploads.length === 0,
+      message:
+        failedUploads.length === 0
+          ? 'All files uploaded successfully'
+          : `${successfulUploads.length} files uploaded, ${failedUploads.length} failed`,
+      data: {
+        successful: successfulUploads.map((result) => result.data),
+        failed: failedUploads.map((result) => result.message),
+        total: files.length,
+        successfulCount: successfulUploads.length,
+        failedCount: failedUploads.length,
+      },
+    }
+  } catch (error) {
+    console.error('Multiple S3 Upload Error:', error)
+    return {
+      success: false,
+      message: `Multiple upload failed: ${error.message}`,
+      data: null,
+    }
+  }
+}
+
+export default {
+  uploadToS3,
+  uploadMultipleToS3,
+}

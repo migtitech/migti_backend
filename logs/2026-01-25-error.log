@@ -1,0 +1,625 @@
+2026-01-25 12:23:04 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/admin/superadmin/login
+Params: {}
+Body: {"email":"admin@gmail.com","password":"Admin123\\"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"51","sec-ch-ua-platform":"\"Windows\"","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Wrong Password
+Stack: Error: Wrong Password
+    at superAdminLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/admin/admin.service.js:58:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginSuperAdmin (file:///C:/Alok/projects/migti-crm_backend/src/controller/admin/admin.controller.js:64:18)
+   
+2026-01-25 12:32:30 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/admin/superadmin/login
+Params: {}
+Body: {"email":"admin@gamail.com","password":"admin123"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"50","sec-ch-ua-platform":"\"Windows\"","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at superAdminLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/admin/admin.service.js:49:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginSuperAdmin (file:///C:/Alok/projects/migti-crm_backend/src/controller/admin/admin.controller.js:64:18)
+   
+2026-01-25 12:44:50 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"admin@gmail.com","password":"admin123","role":"sales"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"64","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5MzI0NTU0LCJleHAiOjE3Njk0MTA5NTQsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.fAJ9vCniOyu-QlkKr0O9qUWmzJr6nEYbR1UwrForwqg","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:165:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-25 12:45:00 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"admin@gmail.com","password":"admin123","role":"sales"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"64","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5MzI0NTU0LCJleHAiOjE3Njk0MTA5NTQsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.fAJ9vCniOyu-QlkKr0O9qUWmzJr6nEYbR1UwrForwqg","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:165:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-25 12:45:16 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"admin@gmail.com","password":"admin123","role":"hod"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"62","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5MzI0NTU0LCJleHAiOjE3Njk0MTA5NTQsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.fAJ9vCniOyu-QlkKr0O9qUWmzJr6nEYbR1UwrForwqg","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:165:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-25 12:45:32 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"meerarfgr@gmail.com","password":"123456","role":"hod"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"64","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5MzI0NTU0LCJleHAiOjE3Njk0MTA5NTQsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.fAJ9vCniOyu-QlkKr0O9qUWmzJr6nEYbR1UwrForwqg","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:165:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-25 12:45:51 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"meerarfgr@gmail.com","password":"meerarfgr@gmail.com","role":"hod"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"77","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5MzI0NTU0LCJleHAiOjE3Njk0MTA5NTQsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.fAJ9vCniOyu-QlkKr0O9qUWmzJr6nEYbR1UwrForwqg","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:165:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-25 12:45:58 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"meerarfgr@gmail.com","password":"meerarfgr@gmail.com","role":"sales"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"79","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5MzI0NTU0LCJleHAiOjE3Njk0MTA5NTQsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.fAJ9vCniOyu-QlkKr0O9qUWmzJr6nEYbR1UwrForwqg","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Wrong Password
+Stack: Error: Wrong Password
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:174:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-25 12:46:05 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"admin@gmail.com","password":"admin123","role":"sales"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"64","sec-ch-ua-platform":"\"Windows\"","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:165:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-25 12:48:12 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"dummy@gmail.com","password":"123456","role":"hod"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"60","sec-ch-ua-platform":"\"Windows\"","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:165:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-25 12:48:20 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"dummy@gmail.com","password":"123456","role":"hod"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"60","sec-ch-ua-platform":"\"Windows\"","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:165:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-25 12:56:09 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"dummy@gmail.com","password":"123456","role":"hod"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"60","sec-ch-ua-platform":"\"Windows\"","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:166:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-25 12:56:31 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"dummy@gmail.com","password":"123456","role":"hod"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"60","sec-ch-ua-platform":"\"Windows\"","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:167:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-25 12:57:03 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"dummy@gmail.com","password":"123456","role":"hod"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"60","sec-ch-ua-platform":"\"Windows\"","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:167:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-25 12:59:59 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"dummy@gmail.com","password":"123456","role":"hod"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"60","sec-ch-ua-platform":"\"Windows\"","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:168:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-25 13:03:01 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"dummy@gmail.com","password":"123456","role":"hod"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"60","sec-ch-ua-platform":"\"Windows\"","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:183:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-25 13:04:24 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"dummy@gmail.com","password":"123456","role":"hod"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"60","sec-ch-ua-platform":"\"Windows\"","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:183:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-25 13:04:25 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"dummy@gmail.com","password":"123456","role":"hod"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"60","sec-ch-ua-platform":"\"Windows\"","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:183:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-25 13:04:29 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"dummy@gmail.com","password":"123456","role":"hod"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"60","sec-ch-ua-platform":"\"Windows\"","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:183:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-25 13:25:07 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"dummy@gmail.com","password":"123456","role":"hod"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"60","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5MzI1Mzc2LCJleHAiOjE3Njk0MTE3NzYsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.fnUzALFEiUFRdS6nUsrkw0W_niZZ6llQu-KJZvJ6TBI","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:183:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-25 13:25:14 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"dummy@gmail.com","password":"123456","role":"hod"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"60","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5MzI1Mzc2LCJleHAiOjE3Njk0MTE3NzYsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.fnUzALFEiUFRdS6nUsrkw0W_niZZ6llQu-KJZvJ6TBI","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:183:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-25 13:25:37 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"dummy@gmail.com","password":"123456","role":"hod"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"60","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5MzI1Mzc2LCJleHAiOjE3Njk0MTE3NzYsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.fnUzALFEiUFRdS6nUsrkw0W_niZZ6llQu-KJZvJ6TBI","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:183:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-25 13:33:29 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"dummy@gmail.com","password":"123456","role":"hod"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"60","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5MzI1Mzc2LCJleHAiOjE3Njk0MTE3NzYsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.fnUzALFEiUFRdS6nUsrkw0W_niZZ6llQu-KJZvJ6TBI","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: The "data" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received undefined
+Stack: TypeError [ERR_INVALID_ARG_TYPE]: The "data" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received undefined
+    at Decipheriv.update (node:internal/crypto/cipher:155:11)
+    at decrypt (file:///C:/Alok/projects/migti-crm_backend/src/core/crypto/helper.cryto.js:16:28)
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:187:29)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-25 13:34:00 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"dummy@gmail.com","password":"123456","role":"hod"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"60","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5MzI1Mzc2LCJleHAiOjE3Njk0MTE3NzYsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.fnUzALFEiUFRdS6nUsrkw0W_niZZ6llQu-KJZvJ6TBI","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: The "data" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received undefined
+Stack: TypeError [ERR_INVALID_ARG_TYPE]: The "data" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received undefined
+    at Decipheriv.update (node:internal/crypto/cipher:155:11)
+    at decrypt (file:///C:/Alok/projects/migti-crm_backend/src/core/crypto/helper.cryto.js:16:28)
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:187:29)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-25 13:34:21 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"dummy@gmail.com","password":"123456","role":"hod"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"60","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5MzI1Mzc2LCJleHAiOjE3Njk0MTE3NzYsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.fnUzALFEiUFRdS6nUsrkw0W_niZZ6llQu-KJZvJ6TBI","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: The "data" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received undefined
+Stack: TypeError [ERR_INVALID_ARG_TYPE]: The "data" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received undefined
+    at Decipheriv.update (node:internal/crypto/cipher:155:11)
+    at decrypt (file:///C:/Alok/projects/migti-crm_backend/src/core/crypto/helper.cryto.js:16:28)
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:187:29)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-25 13:35:21 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"dummy@gmail.com","password":"123456","role":"hod"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"60","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5MzI1Mzc2LCJleHAiOjE3Njk0MTE3NzYsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.fnUzALFEiUFRdS6nUsrkw0W_niZZ6llQu-KJZvJ6TBI","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: The "data" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received undefined
+Stack: TypeError [ERR_INVALID_ARG_TYPE]: The "data" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received undefined
+    at Decipheriv.update (node:internal/crypto/cipher:155:11)
+    at decrypt (file:///C:/Alok/projects/migti-crm_backend/src/core/crypto/helper.cryto.js:16:28)
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:185:29)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-25 13:37:58 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"dummy@gmail.com","password":"123456","role":"hod"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"60","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5MzI1Mzc2LCJleHAiOjE3Njk0MTE3NzYsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.fnUzALFEiUFRdS6nUsrkw0W_niZZ6llQu-KJZvJ6TBI","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: The "data" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received undefined
+Stack: TypeError [ERR_INVALID_ARG_TYPE]: The "data" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received undefined
+    at Decipheriv.update (node:internal/crypto/cipher:155:11)
+    at decrypt (file:///C:/Alok/projects/migti-crm_backend/src/core/crypto/helper.cryto.js:16:28)
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:185:29)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-25 13:38:45 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"dummy@gmail.com","password":"123456","role":"hod"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"60","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5MzI1Mzc2LCJleHAiOjE3Njk0MTE3NzYsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.fnUzALFEiUFRdS6nUsrkw0W_niZZ6llQu-KJZvJ6TBI","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: The "data" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received undefined
+Stack: TypeError [ERR_INVALID_ARG_TYPE]: The "data" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received undefined
+    at Decipheriv.update (node:internal/crypto/cipher:155:11)
+    at decrypt (file:///C:/Alok/projects/migti-crm_backend/src/core/crypto/helper.cryto.js:16:28)
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:185:29)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-25 13:39:37 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"dummy@gmail.com","password":"123456","role":"hod"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"60","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5MzI1Mzc2LCJleHAiOjE3Njk0MTE3NzYsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.fnUzALFEiUFRdS6nUsrkw0W_niZZ6llQu-KJZvJ6TBI","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: The "data" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received undefined
+Stack: TypeError [ERR_INVALID_ARG_TYPE]: The "data" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received undefined
+    at Decipheriv.update (node:internal/crypto/cipher:155:11)
+    at decrypt (file:///C:/Alok/projects/migti-crm_backend/src/core/crypto/helper.cryto.js:16:28)
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:185:29)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-25 13:41:12 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"dummy@gmail.com","password":"123456","role":"hod"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"60","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5MzI1Mzc2LCJleHAiOjE3Njk0MTE3NzYsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.fnUzALFEiUFRdS6nUsrkw0W_niZZ6llQu-KJZvJ6TBI","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:180:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-25 13:42:35 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"dummy@gmail.com","password":"123456","role":"hod"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"60","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzRhYjNiZTRjMGJlNjg3ODU5NjRhYiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicm9sZSI6InN1cGVyYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzY5MzI1Mzc2LCJleHAiOjE3Njk0MTE3NzYsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.fnUzALFEiUFRdS6nUsrkw0W_niZZ6llQu-KJZvJ6TBI","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:180:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-25 13:46:28 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"dummy@gmail.com","password":"123456","role":"hod"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"60","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzVjM2EwZjgyOWEyYzBkMDg2NzFkOSIsImVtYWlsIjoiZHVtbXlAZ2FtaWwuY29tIiwicm9sZSI6ImhvZCIsInR5cGUiOiJhY2Nlc3MiLCJicmFuY2hJZCI6IjY5NzRiYjFmMmU2MzQ2MmIzNDc2M2RlZiIsImlhdCI6MTc2OTMyODgxNywiZXhwIjoxNzY5NDE1MjE3LCJhdWQiOiJnY2EtZnJvbnRlbmQiLCJpc3MiOiJnY2EtYmFja2VuZCJ9.6FcYDlHjfuMKeJOSnmyJGSQRItlm1psg-mfT8c7EMsU","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:180:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-25 13:46:34 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"dummy@gmail.com","password":"123456","role":"hod"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"60","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzVjM2EwZjgyOWEyYzBkMDg2NzFkOSIsImVtYWlsIjoiZHVtbXlAZ2FtaWwuY29tIiwicm9sZSI6ImhvZCIsInR5cGUiOiJhY2Nlc3MiLCJicmFuY2hJZCI6IjY5NzRiYjFmMmU2MzQ2MmIzNDc2M2RlZiIsImlhdCI6MTc2OTMyODgxNywiZXhwIjoxNzY5NDE1MjE3LCJhdWQiOiJnY2EtZnJvbnRlbmQiLCJpc3MiOiJnY2EtYmFja2VuZCJ9.6FcYDlHjfuMKeJOSnmyJGSQRItlm1psg-mfT8c7EMsU","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:180:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-25 13:47:57 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"dummy@gmail.com","password":"123456","role":"hod"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"60","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzVjM2EwZjgyOWEyYzBkMDg2NzFkOSIsImVtYWlsIjoiZHVtbXlAZ2FtaWwuY29tIiwicm9sZSI6ImhvZCIsInR5cGUiOiJhY2Nlc3MiLCJicmFuY2hJZCI6IjY5NzRiYjFmMmU2MzQ2MmIzNDc2M2RlZiIsImlhdCI6MTc2OTMyODgxNywiZXhwIjoxNzY5NDE1MjE3LCJhdWQiOiJnY2EtZnJvbnRlbmQiLCJpc3MiOiJnY2EtYmFja2VuZCJ9.6FcYDlHjfuMKeJOSnmyJGSQRItlm1psg-mfT8c7EMsU","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:183:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-25 13:47:58 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"dummy@gmail.com","password":"123456","role":"hod"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"60","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzVjM2EwZjgyOWEyYzBkMDg2NzFkOSIsImVtYWlsIjoiZHVtbXlAZ2FtaWwuY29tIiwicm9sZSI6ImhvZCIsInR5cGUiOiJhY2Nlc3MiLCJicmFuY2hJZCI6IjY5NzRiYjFmMmU2MzQ2MmIzNDc2M2RlZiIsImlhdCI6MTc2OTMyODgxNywiZXhwIjoxNzY5NDE1MjE3LCJhdWQiOiJnY2EtZnJvbnRlbmQiLCJpc3MiOiJnY2EtYmFja2VuZCJ9.6FcYDlHjfuMKeJOSnmyJGSQRItlm1psg-mfT8c7EMsU","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:183:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-25 13:48:48 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"dummy@gmail.com","password":"123456","role":"hod"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"60","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzVjM2EwZjgyOWEyYzBkMDg2NzFkOSIsImVtYWlsIjoiZHVtbXlAZ2FtaWwuY29tIiwicm9sZSI6ImhvZCIsInR5cGUiOiJhY2Nlc3MiLCJicmFuY2hJZCI6IjY5NzRiYjFmMmU2MzQ2MmIzNDc2M2RlZiIsImlhdCI6MTc2OTMyODgxNywiZXhwIjoxNzY5NDE1MjE3LCJhdWQiOiJnY2EtZnJvbnRlbmQiLCJpc3MiOiJnY2EtYmFja2VuZCJ9.6FcYDlHjfuMKeJOSnmyJGSQRItlm1psg-mfT8c7EMsU","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:176:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-25 13:50:17 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"dummy@gmail.com","password":"123456","role":"hod"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"60","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzVjM2EwZjgyOWEyYzBkMDg2NzFkOSIsImVtYWlsIjoiZHVtbXlAZ2FtaWwuY29tIiwicm9sZSI6ImhvZCIsInR5cGUiOiJhY2Nlc3MiLCJicmFuY2hJZCI6IjY5NzRiYjFmMmU2MzQ2MmIzNDc2M2RlZiIsImlhdCI6MTc2OTMyODgxNywiZXhwIjoxNzY5NDE1MjE3LCJhdWQiOiJnY2EtZnJvbnRlbmQiLCJpc3MiOiJnY2EtYmFja2VuZCJ9.6FcYDlHjfuMKeJOSnmyJGSQRItlm1psg-mfT8c7EMsU","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:176:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-25 13:51:14 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"dummy@gmail.com","password":"123456","role":"hod"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"60","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzVjM2EwZjgyOWEyYzBkMDg2NzFkOSIsImVtYWlsIjoiZHVtbXlAZ2FtaWwuY29tIiwicm9sZSI6ImhvZCIsInR5cGUiOiJhY2Nlc3MiLCJicmFuY2hJZCI6IjY5NzRiYjFmMmU2MzQ2MmIzNDc2M2RlZiIsImlhdCI6MTc2OTMyODgxNywiZXhwIjoxNzY5NDE1MjE3LCJhdWQiOiJnY2EtZnJvbnRlbmQiLCJpc3MiOiJnY2EtYmFja2VuZCJ9.6FcYDlHjfuMKeJOSnmyJGSQRItlm1psg-mfT8c7EMsU","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:177:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-25 13:51:39 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"dummy@gmail.com","password":"123456","role":"hod"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"60","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzVjM2EwZjgyOWEyYzBkMDg2NzFkOSIsImVtYWlsIjoiZHVtbXlAZ2FtaWwuY29tIiwicm9sZSI6ImhvZCIsInR5cGUiOiJhY2Nlc3MiLCJicmFuY2hJZCI6IjY5NzRiYjFmMmU2MzQ2MmIzNDc2M2RlZiIsImlhdCI6MTc2OTMyODgxNywiZXhwIjoxNzY5NDE1MjE3LCJhdWQiOiJnY2EtZnJvbnRlbmQiLCJpc3MiOiJnY2EtYmFja2VuZCJ9.6FcYDlHjfuMKeJOSnmyJGSQRItlm1psg-mfT8c7EMsU","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:177:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-25 13:51:42 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"dummy@gmail.com","password":"123456","role":"hod"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"60","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzVjM2EwZjgyOWEyYzBkMDg2NzFkOSIsImVtYWlsIjoiZHVtbXlAZ2FtaWwuY29tIiwicm9sZSI6ImhvZCIsInR5cGUiOiJhY2Nlc3MiLCJicmFuY2hJZCI6IjY5NzRiYjFmMmU2MzQ2MmIzNDc2M2RlZiIsImlhdCI6MTc2OTMyODgxNywiZXhwIjoxNzY5NDE1MjE3LCJhdWQiOiJnY2EtZnJvbnRlbmQiLCJpc3MiOiJnY2EtYmFja2VuZCJ9.6FcYDlHjfuMKeJOSnmyJGSQRItlm1psg-mfT8c7EMsU","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:177:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-25 13:55:25 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"dummy@gmail.com","password":"123456","role":"hod"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"60","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzVjM2EwZjgyOWEyYzBkMDg2NzFkOSIsImVtYWlsIjoiZHVtbXlAZ2FtaWwuY29tIiwicm9sZSI6ImhvZCIsInR5cGUiOiJhY2Nlc3MiLCJicmFuY2hJZCI6IjY5NzRiYjFmMmU2MzQ2MmIzNDc2M2RlZiIsImlhdCI6MTc2OTMyODgxNywiZXhwIjoxNzY5NDE1MjE3LCJhdWQiOiJnY2EtZnJvbnRlbmQiLCJpc3MiOiJnY2EtYmFja2VuZCJ9.6FcYDlHjfuMKeJOSnmyJGSQRItlm1psg-mfT8c7EMsU","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:182:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-25 13:56:00 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"dummy@gmail.com","password":"123456","role":"hod"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"60","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzVjM2EwZjgyOWEyYzBkMDg2NzFkOSIsImVtYWlsIjoiZHVtbXlAZ2FtaWwuY29tIiwicm9sZSI6ImhvZCIsInR5cGUiOiJhY2Nlc3MiLCJicmFuY2hJZCI6IjY5NzRiYjFmMmU2MzQ2MmIzNDc2M2RlZiIsImlhdCI6MTc2OTMyODgxNywiZXhwIjoxNzY5NDE1MjE3LCJhdWQiOiJnY2EtZnJvbnRlbmQiLCJpc3MiOiJnY2EtYmFja2VuZCJ9.6FcYDlHjfuMKeJOSnmyJGSQRItlm1psg-mfT8c7EMsU","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:182:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-25 13:56:21 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"dummy@gmail.com","password":"123456","role":"hod"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"60","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzVjM2EwZjgyOWEyYzBkMDg2NzFkOSIsImVtYWlsIjoiZHVtbXlAZ2FtaWwuY29tIiwicm9sZSI6ImhvZCIsInR5cGUiOiJhY2Nlc3MiLCJicmFuY2hJZCI6IjY5NzRiYjFmMmU2MzQ2MmIzNDc2M2RlZiIsImlhdCI6MTc2OTMyODgxNywiZXhwIjoxNzY5NDE1MjE3LCJhdWQiOiJnY2EtZnJvbnRlbmQiLCJpc3MiOiJnY2EtYmFja2VuZCJ9.6FcYDlHjfuMKeJOSnmyJGSQRItlm1psg-mfT8c7EMsU","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:181:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-25 13:56:27 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"dummy@gmail.com","password":"123456","role":"hod"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"60","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzVjM2EwZjgyOWEyYzBkMDg2NzFkOSIsImVtYWlsIjoiZHVtbXlAZ2FtaWwuY29tIiwicm9sZSI6ImhvZCIsInR5cGUiOiJhY2Nlc3MiLCJicmFuY2hJZCI6IjY5NzRiYjFmMmU2MzQ2MmIzNDc2M2RlZiIsImlhdCI6MTc2OTMyODgxNywiZXhwIjoxNzY5NDE1MjE3LCJhdWQiOiJnY2EtZnJvbnRlbmQiLCJpc3MiOiJnY2EtYmFja2VuZCJ9.6FcYDlHjfuMKeJOSnmyJGSQRItlm1psg-mfT8c7EMsU","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:181:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-25 13:57:38 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"dummy@gmail.com","password":"123456","role":"hod"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"60","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzVjM2EwZjgyOWEyYzBkMDg2NzFkOSIsImVtYWlsIjoiZHVtbXlAZ2FtaWwuY29tIiwicm9sZSI6ImhvZCIsInR5cGUiOiJhY2Nlc3MiLCJicmFuY2hJZCI6IjY5NzRiYjFmMmU2MzQ2MmIzNDc2M2RlZiIsImlhdCI6MTc2OTMyODgxNywiZXhwIjoxNzY5NDE1MjE3LCJhdWQiOiJnY2EtZnJvbnRlbmQiLCJpc3MiOiJnY2EtYmFja2VuZCJ9.6FcYDlHjfuMKeJOSnmyJGSQRItlm1psg-mfT8c7EMsU","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:181:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-25 13:58:37 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"dummy@gmail.com","password":"123456","role":"hod"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"60","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzVjM2EwZjgyOWEyYzBkMDg2NzFkOSIsImVtYWlsIjoiZHVtbXlAZ2FtaWwuY29tIiwicm9sZSI6ImhvZCIsInR5cGUiOiJhY2Nlc3MiLCJicmFuY2hJZCI6IjY5NzRiYjFmMmU2MzQ2MmIzNDc2M2RlZiIsImlhdCI6MTc2OTMyODgxNywiZXhwIjoxNzY5NDE1MjE3LCJhdWQiOiJnY2EtZnJvbnRlbmQiLCJpc3MiOiJnY2EtYmFja2VuZCJ9.6FcYDlHjfuMKeJOSnmyJGSQRItlm1psg-mfT8c7EMsU","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: normalizedRole is not defined
+Stack: ReferenceError: normalizedRole is not defined
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:188:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-01-25 13:59:44 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"dummy@gmail.com","password":"123456","role":"hod"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"60","sec-ch-ua-platform":"\"Windows\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NzVjM2EwZjgyOWEyYzBkMDg2NzFkOSIsImVtYWlsIjoiZHVtbXlAZ2FtaWwuY29tIiwicm9sZSI6ImhvZCIsInR5cGUiOiJhY2Nlc3MiLCJicmFuY2hJZCI6IjY5NzRiYjFmMmU2MzQ2MmIzNDc2M2RlZiIsImlhdCI6MTc2OTMyODgxNywiZXhwIjoxNzY5NDE1MjE3LCJhdWQiOiJnY2EtZnJvbnRlbmQiLCJpc3MiOiJnY2EtYmFja2VuZCJ9.6FcYDlHjfuMKeJOSnmyJGSQRItlm1psg-mfT8c7EMsU","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: normalizedRole is not defined
+Stack: ReferenceError: normalizedRole is not defined
+    at employeeLogin (file:///C:/Alok/projects/migti-crm_backend/src/services/employee/employee.service.js:188:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///C:/Alok/projects/migti-crm_backend/src/controller/employee/employee.controller.js:138:18)
+   
