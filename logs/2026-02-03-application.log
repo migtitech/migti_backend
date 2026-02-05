@@ -269,3 +269,437 @@
 2026-02-03 17:19:12 [INFO] Incoming request: GET /api/v1/company-branches/list 
 2026-02-03 17:19:16 [INFO] Incoming request: GET /api/v1/employees/list 
 2026-02-03 17:19:16 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 18:07:52 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-02-03 18:07:52 [INFO] Server is running at port undefined 
+2026-02-03 18:08:15 [INFO] Received SIGINT, shutting down gracefully... 
+2026-02-03 18:09:50 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-02-03 18:09:50 [INFO] Server is running at port 4545 
+2026-02-03 18:09:59 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-02-03 18:09:59 [INFO] Server is running at port 4545 
+2026-02-03 18:44:28 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-02-03 18:44:28 [INFO] Server is running at port 4545 
+2026-02-03 18:45:11 [INFO] Incoming request: POST /api/v1/admin/superadmin/login 
+2026-02-03 18:45:11 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/admin/superadmin/login
+Params: {}
+Body: {"email":"admin@gmail.com","password":"admin@123"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"50","sec-ch-ua-platform":"\"Linux\"","user-agent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Cursor/2.4.27 Chrome/142.0.7444.235 Electron/39.2.7 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Not_A Brand\";v=\"99\", \"Chromium\";v=\"142\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US"}
+Error Message: Wrong Password
+Stack: Error: Wrong Password
+    at superAdminLogin (file:///home/alok/Desktop/projects/migti_backend/src/services/admin/admin.service.js:58:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginSuperAdmin (file:///home/alok/Desktop/projects/migti_backend/src/controller/admin/admin.controller.js:64:18)
+   
+2026-02-03 18:45:17 [INFO] Incoming request: POST /api/v1/admin/superadmin/login 
+2026-02-03 18:46:44 [INFO] Incoming request: GET /api/v1/companies/list?search= 
+2026-02-03 18:46:48 [INFO] Incoming request: GET /api/v1/companies/list?search= 
+2026-02-03 18:48:16 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 18:48:17 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=10&search=&parent=null 
+2026-02-03 18:48:23 [INFO] Incoming request: DELETE /api/v1/categories/delete?categoryId=697f11cfa17de6084c0cdfc2 
+2026-02-03 18:48:23 [ERROR] 
+[ERROR]
+Method: DELETE
+URL: /api/v1/categories/delete?categoryId=697f11cfa17de6084c0cdfc2
+Params: {}
+Body: {}
+Headers: {"host":"localhost:4545","connection":"keep-alive","sec-ch-ua-platform":"\"Linux\"","user-agent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"144\", \"Google Chrome\";v=\"144\"","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Cannot delete category with subcategories. Remove subcategories first.
+Stack: Error: Cannot delete category with subcategories. Remove subcategories first.
+    at deleteCategory (file:///home/alok/Desktop/projects/migti_backend/src/services/category/category.service.js:169:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async deleteCategoryController (file:///home/alok/Desktop/projects/migti_backend/src/controller/category/category.controller.js:112:18)
+   
+2026-02-03 18:48:39 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=697f11cfa17de6084c0cdfc2 
+2026-02-03 18:48:43 [INFO] Incoming request: DELETE /api/v1/categories/delete?categoryId=697f4ad99d3e654fd2ee859d 
+2026-02-03 18:48:43 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=10&search=&parent=null 
+2026-02-03 18:48:43 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 18:48:43 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=697f11cfa17de6084c0cdfc2 
+2026-02-03 18:48:46 [INFO] Incoming request: DELETE /api/v1/categories/delete?categoryId=697f12c5a17de6084c0ce004 
+2026-02-03 18:48:46 [ERROR] 
+[ERROR]
+Method: DELETE
+URL: /api/v1/categories/delete?categoryId=697f12c5a17de6084c0ce004
+Params: {}
+Body: {}
+Headers: {"host":"localhost:4545","connection":"keep-alive","sec-ch-ua-platform":"\"Linux\"","user-agent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"144\", \"Google Chrome\";v=\"144\"","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Cannot delete category with associated products.
+Stack: Error: Cannot delete category with associated products.
+    at deleteCategory (file:///home/alok/Desktop/projects/migti_backend/src/services/category/category.service.js:181:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async deleteCategoryController (file:///home/alok/Desktop/projects/migti_backend/src/controller/category/category.controller.js:112:18)
+   
+2026-02-03 18:50:09 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 18:50:09 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=10&search=&parent=null 
+2026-02-03 18:50:09 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 18:50:10 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=10&search=&parent=null 
+2026-02-03 18:50:13 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 18:50:13 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=10&search=&parent=null 
+2026-02-03 18:50:16 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 18:50:17 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=10&search=&parent=null 
+2026-02-03 18:50:18 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 18:50:18 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=10&search=&parent=null 
+2026-02-03 18:50:31 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 18:50:31 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=10&search=&parent=null 
+2026-02-03 18:51:27 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 18:51:27 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=10&search=&parent=null 
+2026-02-03 18:51:29 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 18:51:29 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=10&search=&parent=null 
+2026-02-03 18:51:35 [INFO] Incoming request: GET /api/v1/companies/list?search= 
+2026-02-03 18:51:37 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-02-03 18:51:37 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 18:51:41 [INFO] Incoming request: GET /api/v1/companies/list?search= 
+2026-02-03 18:53:33 [INFO] Incoming request: GET /api/v1/companies/list?search= 
+2026-02-03 18:53:59 [INFO] Incoming request: GET /api/v1/companies/list?search= 
+2026-02-03 18:54:02 [INFO] Incoming request: GET /api/v1/companies/list?search= 
+2026-02-03 18:54:05 [INFO] Incoming request: GET /api/v1/companies/list?search= 
+2026-02-03 18:54:54 [INFO] Incoming request: GET /api/v1/companies/list?search= 
+2026-02-03 18:54:57 [INFO] Incoming request: GET /api/v1/companies/list?search= 
+2026-02-03 18:55:01 [INFO] Incoming request: GET /api/v1/companies/list?search= 
+2026-02-03 18:55:08 [INFO] Incoming request: GET /api/v1/companies/list?search= 
+2026-02-03 18:55:10 [INFO] Incoming request: GET /api/v1/companies/list?search= 
+2026-02-03 18:55:55 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-02-03 18:55:55 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 18:55:59 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 18:56:00 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=10&search=&parent=null 
+2026-02-03 18:56:04 [INFO] Incoming request: GET /api/v1/brands/list?pageNumber=1&pageSize=10&search= 
+2026-02-03 18:56:07 [INFO] Incoming request: GET /api/v1/brands/list?pageNumber=1&pageSize=100 
+2026-02-03 18:56:07 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 18:56:07 [INFO] Incoming request: GET /api/v1/products/list?pageNumber=1&pageSize=10&search= 
+2026-02-03 18:56:14 [INFO] Incoming request: GET /api/v1/raw-queries/list?pageNumber=1&pageSize=10&search= 
+2026-02-03 18:56:15 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 18:56:16 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=10&search=&parent=null 
+2026-02-03 18:56:20 [INFO] Incoming request: GET /api/v1/brands/list?pageNumber=1&pageSize=10&search= 
+2026-02-03 18:56:24 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 18:56:24 [INFO] Incoming request: GET /api/v1/brands/list?pageNumber=1&pageSize=100 
+2026-02-03 18:56:24 [INFO] Incoming request: GET /api/v1/products/list?pageNumber=1&pageSize=10&search= 
+2026-02-03 18:56:34 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 18:56:34 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 18:56:38 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 18:57:00 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 18:57:03 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 18:57:05 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 18:57:08 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 18:57:12 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 18:57:25 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 18:57:26 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 18:58:03 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 18:58:09 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 18:58:14 [INFO] Incoming request: GET /api/v1/companies/list?search= 
+2026-02-03 18:58:15 [INFO] Incoming request: GET /api/v1/companies/list 
+2026-02-03 18:58:15 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 18:58:19 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 18:58:20 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=10&search=&parent=null 
+2026-02-03 18:58:26 [INFO] Incoming request: GET /api/v1/raw-queries/list?pageNumber=1&pageSize=10&search= 
+2026-02-03 18:58:36 [INFO] Incoming request: GET /api/v1/suppliers/list?pageNumber=1&pageSize=10&search= 
+2026-02-03 18:58:40 [INFO] Incoming request: GET /api/v1/suppliers/list?pageNumber=1&pageSize=10&search= 
+2026-02-03 18:58:45 [INFO] Incoming request: GET /api/v1/suppliers/list?pageNumber=1&pageSize=10&search= 
+2026-02-03 18:59:00 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 18:59:00 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 18:59:04 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:01:44 [INFO] Incoming request: POST /api/v1/employees/create 
+2026-02-03 19:01:56 [INFO] Incoming request: POST /api/v1/employees/create 
+2026-02-03 19:03:51 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-02-03 19:03:51 [INFO] Server is running at port 4545 
+2026-02-03 19:04:04 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:04:43 [ERROR] 
+[ERROR]
+Method: GET
+URL: /api/v1/company-branches/list
+Params: {}
+Body: {}
+Headers: {"host":"localhost:4545","connection":"keep-alive","sec-ch-ua-platform":"\"Linux\"","user-agent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"144\", \"Google Chrome\";v=\"144\"","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9","if-none-match":"W/\"35c-suS0dujz0DO6uSR3KYKmK9/vhrI\""}
+Error Message: getaddrinfo EAI_AGAIN ac-tyseaw3-shard-00-00.1omv7mx.mongodb.net
+Stack: MongoServerSelectionError: getaddrinfo EAI_AGAIN ac-tyseaw3-shard-00-00.1omv7mx.mongodb.net
+    at Topology.selectServer (/home/alok/Desktop/projects/migti_backend/node_modules/mongoose/node_modules/mongodb/lib/sdam/topology.js:327:38)
+    at async tryOperation (/home/alok/Desktop/projects/migti_backend/node_modules/mongoose/node_modules/mongodb/lib/operations/execute_operation.js:196:22)
+    at async executeOperation (/home/alok/Desktop/projects/migti_backend/node_modules/mongoose/node_modules/mongodb/lib/operations/execute_operation.js:78:16)
+    at async AggregationCursor._initialize (/home/alok/Desktop/projects/migti_backend/node_modules/mongoose/node_modules/mongodb/lib/cursor/aggregation_cursor.js:57:26)
+    at async AggregationCursor.cursorInit (/home/alok/Desktop/projects/migti_backend/node_modules/mongoose/node_modules/mongodb/lib/cursor/abstract_cursor.js:632:27)
+    at async AggregationCursor.fetchBatch (/home/alok/Desktop/projects/migti_backend/node_modules/mongoose/node_modules/mongodb/lib/cursor/abstract_cursor.js:666:13)
+    at async AggregationCursor.next (/home/alok/Desktop/projects/migti_backend/node_modules/mongoose/node_modules/mongodb/lib/cursor/abstract_cursor.js:342:17)
+    at async Collection.countDocuments (/home/alok/Desktop/projects/migti_backend/node_modules/mongoose/node_modules/mongodb/lib/collection.js:521:21)
+    at async model.Query.exec (/home/alok/Desktop/projects/migti_backend/node_modules/mongoose/lib/query.js:4627:63)
+    at async listCompanyBranches (file:///home/alok/Desktop/projects/migti_backend/src/services/companyBranch/companyBranch.service.js:53:22)
+   
+2026-02-03 19:05:14 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-02-03 19:05:14 [INFO] Server is running at port 4545 
+2026-02-03 19:05:24 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-02-03 19:05:24 [INFO] Server is running at port 4545 
+2026-02-03 19:06:03 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-02-03 19:06:03 [INFO] Server is running at port 4545 
+2026-02-03 19:08:20 [INFO] Incoming request: GET /api/v1/companies/list?search= 
+2026-02-03 19:08:25 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:08:25 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:08:36 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:11:17 [INFO] Incoming request: POST /api/v1/employees/create 
+2026-02-03 19:11:17 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:11:17 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:11:23 [INFO] Incoming request: GET /api/v1/employees/get-by-id?employeeId=6981fafd36d38b60b231d138 
+2026-02-03 19:11:25 [INFO] Incoming request: GET /api/v1/company-branches/get-by-id?companyBranchId=697705a7bbf8b479d1e8ef56 
+2026-02-03 19:12:53 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:12:53 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:13:27 [INFO] Incoming request: POST /api/v1/employees/login 
+2026-02-03 19:13:27 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"alok.infosparkles@gmail.com","password":"123123","role":"purchase"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"77","sec-ch-ua-platform":"\"Linux\"","user-agent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"144\", \"Google Chrome\";v=\"144\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at employeeLogin (file:///home/alok/Desktop/projects/migti_backend/src/services/employee/employee.service.js:151:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///home/alok/Desktop/projects/migti_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-02-03 19:13:50 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:13:50 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:14:05 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:14:05 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:14:11 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:14:11 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:14:19 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:14:19 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:15:36 [INFO] Incoming request: POST /api/v1/employees/login 
+2026-02-03 19:15:36 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"alok.infosparkles@gmail.com","password":"123123","role":"purchase"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"77","sec-ch-ua-platform":"\"Linux\"","user-agent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"144\", \"Google Chrome\";v=\"144\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at employeeLogin (file:///home/alok/Desktop/projects/migti_backend/src/services/employee/employee.service.js:151:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///home/alok/Desktop/projects/migti_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-02-03 19:15:48 [INFO] Incoming request: POST /api/v1/employees/login 
+2026-02-03 19:16:21 [INFO] Incoming request: POST /api/v1/employees/login 
+2026-02-03 19:16:39 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 19:16:39 [INFO] Incoming request: GET /api/v1/brands/list?pageNumber=1&pageSize=100 
+2026-02-03 19:16:39 [INFO] Incoming request: GET /api/v1/products/list?pageNumber=1&pageSize=10&search= 
+2026-02-03 19:16:53 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 19:16:53 [INFO] Incoming request: GET /api/v1/brands/list?pageNumber=1&pageSize=100 
+2026-02-03 19:16:54 [INFO] Incoming request: GET /api/v1/products/list?pageNumber=1&pageSize=10&search= 
+2026-02-03 19:18:04 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:18:04 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:18:11 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:18:11 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:18:16 [INFO] Incoming request: GET /api/v1/brands/list?pageNumber=1&pageSize=10&search= 
+2026-02-03 19:18:19 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 19:18:20 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=10&search=&parent=null 
+2026-02-03 19:18:23 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 19:18:23 [INFO] Incoming request: GET /api/v1/brands/list?pageNumber=1&pageSize=100 
+2026-02-03 19:18:24 [INFO] Incoming request: GET /api/v1/products/list?pageNumber=1&pageSize=10&search= 
+2026-02-03 19:18:27 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 19:18:28 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=10&search=&parent=null 
+2026-02-03 19:18:35 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=697f11cfa17de6084c0cdfc2 
+2026-02-03 19:18:38 [INFO] Incoming request: DELETE /api/v1/categories/delete?categoryId=697f12c5a17de6084c0ce004 
+2026-02-03 19:18:38 [ERROR] 
+[ERROR]
+Method: DELETE
+URL: /api/v1/categories/delete?categoryId=697f12c5a17de6084c0ce004
+Params: {}
+Body: {}
+Headers: {"host":"localhost:4545","connection":"keep-alive","sec-ch-ua-platform":"\"Linux\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5ODFmYWZkMzZkMzhiNjBiMjMxZDEzOCIsImVtYWlsIjoiYWxvay5pbmZvc3BhcmtsZXNAZ21haWwuY29tIiwicm9sZSI6InB1cmNoYXNlIiwidHlwZSI6ImFjY2VzcyIsImJyYW5jaElkIjoiNjk3NzA1YTdiYmY4YjQ3OWQxZThlZjU2IiwiaWF0IjoxNzcwMTI2MzgxLCJleHAiOjE3NzAyMTI3ODEsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.qNFbQKElvXLo1q0L4LdRwd1rL0OWJNnBLmI6osGlPbs","user-agent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"144\", \"Google Chrome\";v=\"144\"","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Cannot delete category with associated products.
+Stack: Error: Cannot delete category with associated products.
+    at deleteCategory (file:///home/alok/Desktop/projects/migti_backend/src/services/category/category.service.js:181:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async deleteCategoryController (file:///home/alok/Desktop/projects/migti_backend/src/controller/category/category.controller.js:112:18)
+   
+2026-02-03 19:18:45 [INFO] Incoming request: DELETE /api/v1/categories/delete?categoryId=697e04a83294b96424de65df 
+2026-02-03 19:18:45 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=10&search=&parent=null 
+2026-02-03 19:18:45 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 19:18:50 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 19:18:50 [INFO] Incoming request: GET /api/v1/brands/list?pageNumber=1&pageSize=100 
+2026-02-03 19:18:50 [INFO] Incoming request: GET /api/v1/products/list?pageNumber=1&pageSize=10&search= 
+2026-02-03 19:18:56 [INFO] Incoming request: DELETE /api/v1/products/delete?productId=697e08483294b96424de65fd 
+2026-02-03 19:18:56 [INFO] Incoming request: GET /api/v1/products/list?pageNumber=1&pageSize=10&search= 
+2026-02-03 19:19:01 [INFO] Incoming request: DELETE /api/v1/products/delete?productId=697f378f17c04e5459fbfed3 
+2026-02-03 19:19:01 [INFO] Incoming request: GET /api/v1/products/list?pageNumber=1&pageSize=10&search= 
+2026-02-03 19:19:05 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 19:19:05 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=10&search=&parent=null 
+2026-02-03 19:19:12 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=697f11cfa17de6084c0cdfc2 
+2026-02-03 19:19:15 [INFO] Incoming request: DELETE /api/v1/categories/delete?categoryId=697f12c5a17de6084c0ce004 
+2026-02-03 19:19:15 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=697f11cfa17de6084c0cdfc2 
+2026-02-03 19:19:15 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=10&search=&parent=null 
+2026-02-03 19:19:15 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 19:19:20 [INFO] Incoming request: DELETE /api/v1/categories/delete?categoryId=697f11cfa17de6084c0cdfc2 
+2026-02-03 19:19:20 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=10&search=&parent=null 
+2026-02-03 19:19:20 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 19:19:26 [INFO] Incoming request: GET /api/v1/brands/list?pageNumber=1&pageSize=10&search= 
+2026-02-03 19:21:21 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:21:21 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:21:28 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:21:28 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:21:31 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:21:31 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:21:35 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:21:35 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:21:47 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:21:47 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:21:51 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:21:51 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:21:54 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:21:54 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:21:58 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:21:58 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:22:03 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:22:03 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:22:09 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:22:09 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:22:17 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:22:17 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:22:20 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:22:20 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:22:29 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:22:29 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:22:31 [INFO] Incoming request: GET /api/v1/brands/list?pageNumber=1&pageSize=10&search= 
+2026-02-03 19:22:41 [INFO] Incoming request: DELETE /api/v1/brands/delete?brandId=697f4ae79d3e654fd2ee85aa 
+2026-02-03 19:22:41 [INFO] Incoming request: GET /api/v1/brands/list?pageNumber=1&pageSize=10&search= 
+2026-02-03 19:22:47 [INFO] Incoming request: GET /api/v1/brands/list?pageNumber=1&pageSize=10&search= 
+2026-02-03 19:22:49 [INFO] Incoming request: GET /api/v1/brands/list?pageNumber=1&pageSize=10&search= 
+2026-02-03 19:22:51 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:22:51 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:22:59 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:22:59 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:23:08 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:23:08 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:23:11 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 19:23:11 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=10&search=&parent=null 
+2026-02-03 19:23:11 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:23:11 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:23:25 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 19:23:25 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=10&search=&parent=null 
+2026-02-03 19:23:28 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 19:23:29 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 19:23:29 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=10&search=&parent=null 
+2026-02-03 19:23:30 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:23:30 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:23:41 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 19:23:41 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=10&search=&parent=null 
+2026-02-03 19:23:44 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:23:44 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:23:48 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 19:23:49 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=10&search=&parent=null 
+2026-02-03 19:23:50 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:23:50 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:23:54 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 19:23:55 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=10&search=&parent=null 
+2026-02-03 19:23:56 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:23:56 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:24:02 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 19:24:03 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=10&search=&parent=null 
+2026-02-03 19:24:05 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:24:05 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:24:17 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 19:24:17 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=10&search=&parent=null 
+2026-02-03 19:24:19 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:24:19 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:24:23 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 19:24:24 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=10&search=&parent=null 
+2026-02-03 19:24:26 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:24:26 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:24:31 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 19:24:32 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=10&search=&parent=null 
+2026-02-03 19:24:33 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:24:33 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:24:37 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 19:24:38 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=10&search=&parent=null 
+2026-02-03 19:24:39 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:24:39 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:24:44 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 19:24:44 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=10&search=&parent=null 
+2026-02-03 19:24:46 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:24:46 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:24:49 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 19:24:49 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=10&search=&parent=null 
+2026-02-03 19:24:51 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:24:51 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:24:55 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 19:24:56 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=10&search=&parent=null 
+2026-02-03 19:24:58 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:24:58 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:25:13 [INFO] Incoming request: POST /api/v1/categories/create 
+2026-02-03 19:25:13 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=10&search=&parent=null 
+2026-02-03 19:25:13 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 19:25:17 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 19:25:17 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=10&search=&parent=null 
+2026-02-03 19:25:19 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:25:19 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:25:33 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:25:33 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:25:43 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:25:43 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:26:01 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:26:01 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:26:39 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:26:39 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:26:44 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:26:44 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:27:11 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:27:11 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:27:17 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:27:17 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:27:25 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:27:25 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:27:30 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:27:30 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:27:52 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:27:52 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:27:56 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:27:56 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:28:00 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:28:00 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:28:13 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:28:13 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:29:51 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 19:29:51 [INFO] Incoming request: GET /api/v1/brands/list?pageNumber=1&pageSize=100 
+2026-02-03 19:29:51 [INFO] Incoming request: GET /api/v1/products/list?pageNumber=1&pageSize=10&search= 
+2026-02-03 19:29:52 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:29:52 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:29:56 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 19:29:56 [INFO] Incoming request: GET /api/v1/brands/list?pageNumber=1&pageSize=100 
+2026-02-03 19:29:57 [INFO] Incoming request: GET /api/v1/products/list?pageNumber=1&pageSize=10&search= 
+2026-02-03 19:29:57 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:29:57 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:30:07 [INFO] Incoming request: GET /api/v1/brands/list?pageNumber=1&pageSize=10&search= 
+2026-02-03 19:30:13 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 19:30:13 [INFO] Incoming request: GET /api/v1/brands/list?pageNumber=1&pageSize=100 
+2026-02-03 19:30:13 [INFO] Incoming request: GET /api/v1/products/list?pageNumber=1&pageSize=10&search= 
+2026-02-03 19:30:23 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 19:30:23 [INFO] Incoming request: GET /api/v1/brands/list?pageNumber=1&pageSize=100 
+2026-02-03 19:30:24 [INFO] Incoming request: GET /api/v1/products/list?pageNumber=1&pageSize=10&search= 
+2026-02-03 19:30:46 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 19:30:46 [INFO] Incoming request: GET /api/v1/brands/list?pageNumber=1&pageSize=100 
+2026-02-03 19:30:46 [INFO] Incoming request: GET /api/v1/products/list?pageNumber=1&pageSize=10&search= 
+2026-02-03 19:30:59 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 19:30:59 [INFO] Incoming request: GET /api/v1/brands/list?pageNumber=1&pageSize=100 
+2026-02-03 19:31:00 [INFO] Incoming request: GET /api/v1/products/list?pageNumber=1&pageSize=10&search= 
+2026-02-03 19:31:08 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 19:31:08 [INFO] Incoming request: GET /api/v1/brands/list?pageNumber=1&pageSize=100 
+2026-02-03 19:31:09 [INFO] Incoming request: GET /api/v1/products/list?pageNumber=1&pageSize=10&search= 
+2026-02-03 19:31:40 [INFO] Email queue started successfully. Email sending is enabled. 
+2026-02-03 19:31:40 [INFO] Server is running at port 4545 
+2026-02-03 19:31:46 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 19:31:46 [INFO] Incoming request: GET /api/v1/brands/list?pageNumber=1&pageSize=100 
+2026-02-03 19:31:47 [INFO] Incoming request: GET /api/v1/products/list?pageNumber=1&pageSize=10&search= 
+2026-02-03 19:31:48 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:31:48 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:34:49 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 19:34:49 [INFO] Incoming request: GET /api/v1/brands/list?pageNumber=1&pageSize=100 
+2026-02-03 19:34:49 [INFO] Incoming request: GET /api/v1/products/list?pageNumber=1&pageSize=10&search= 
+2026-02-03 19:34:51 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:34:51 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:35:19 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 19:35:19 [INFO] Incoming request: GET /api/v1/brands/list?pageNumber=1&pageSize=100 
+2026-02-03 19:35:19 [INFO] Incoming request: GET /api/v1/products/list?pageNumber=1&pageSize=10&search= 
+2026-02-03 19:35:21 [INFO] Incoming request: GET /api/v1/employees/list 
+2026-02-03 19:35:21 [INFO] Incoming request: GET /api/v1/company-branches/list 
+2026-02-03 19:35:33 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=null 
+2026-02-03 19:35:33 [INFO] Incoming request: GET /api/v1/brands/list?pageNumber=1&pageSize=100 
+2026-02-03 19:36:00 [INFO] Incoming request: GET /api/v1/categories/list?pageNumber=1&pageSize=100&parent=6981fe4136d38b60b231d27d 

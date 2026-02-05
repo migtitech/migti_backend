@@ -1,0 +1,98 @@
+2026-02-03 18:45:11 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/admin/superadmin/login
+Params: {}
+Body: {"email":"admin@gmail.com","password":"admin@123"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"50","sec-ch-ua-platform":"\"Linux\"","user-agent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Cursor/2.4.27 Chrome/142.0.7444.235 Electron/39.2.7 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Not_A Brand\";v=\"99\", \"Chromium\";v=\"142\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US"}
+Error Message: Wrong Password
+Stack: Error: Wrong Password
+    at superAdminLogin (file:///home/alok/Desktop/projects/migti_backend/src/services/admin/admin.service.js:58:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginSuperAdmin (file:///home/alok/Desktop/projects/migti_backend/src/controller/admin/admin.controller.js:64:18)
+   
+2026-02-03 18:48:23 [ERROR] 
+[ERROR]
+Method: DELETE
+URL: /api/v1/categories/delete?categoryId=697f11cfa17de6084c0cdfc2
+Params: {}
+Body: {}
+Headers: {"host":"localhost:4545","connection":"keep-alive","sec-ch-ua-platform":"\"Linux\"","user-agent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"144\", \"Google Chrome\";v=\"144\"","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Cannot delete category with subcategories. Remove subcategories first.
+Stack: Error: Cannot delete category with subcategories. Remove subcategories first.
+    at deleteCategory (file:///home/alok/Desktop/projects/migti_backend/src/services/category/category.service.js:169:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async deleteCategoryController (file:///home/alok/Desktop/projects/migti_backend/src/controller/category/category.controller.js:112:18)
+   
+2026-02-03 18:48:46 [ERROR] 
+[ERROR]
+Method: DELETE
+URL: /api/v1/categories/delete?categoryId=697f12c5a17de6084c0ce004
+Params: {}
+Body: {}
+Headers: {"host":"localhost:4545","connection":"keep-alive","sec-ch-ua-platform":"\"Linux\"","user-agent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"144\", \"Google Chrome\";v=\"144\"","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Cannot delete category with associated products.
+Stack: Error: Cannot delete category with associated products.
+    at deleteCategory (file:///home/alok/Desktop/projects/migti_backend/src/services/category/category.service.js:181:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async deleteCategoryController (file:///home/alok/Desktop/projects/migti_backend/src/controller/category/category.controller.js:112:18)
+   
+2026-02-03 19:04:43 [ERROR] 
+[ERROR]
+Method: GET
+URL: /api/v1/company-branches/list
+Params: {}
+Body: {}
+Headers: {"host":"localhost:4545","connection":"keep-alive","sec-ch-ua-platform":"\"Linux\"","user-agent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"144\", \"Google Chrome\";v=\"144\"","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9","if-none-match":"W/\"35c-suS0dujz0DO6uSR3KYKmK9/vhrI\""}
+Error Message: getaddrinfo EAI_AGAIN ac-tyseaw3-shard-00-00.1omv7mx.mongodb.net
+Stack: MongoServerSelectionError: getaddrinfo EAI_AGAIN ac-tyseaw3-shard-00-00.1omv7mx.mongodb.net
+    at Topology.selectServer (/home/alok/Desktop/projects/migti_backend/node_modules/mongoose/node_modules/mongodb/lib/sdam/topology.js:327:38)
+    at async tryOperation (/home/alok/Desktop/projects/migti_backend/node_modules/mongoose/node_modules/mongodb/lib/operations/execute_operation.js:196:22)
+    at async executeOperation (/home/alok/Desktop/projects/migti_backend/node_modules/mongoose/node_modules/mongodb/lib/operations/execute_operation.js:78:16)
+    at async AggregationCursor._initialize (/home/alok/Desktop/projects/migti_backend/node_modules/mongoose/node_modules/mongodb/lib/cursor/aggregation_cursor.js:57:26)
+    at async AggregationCursor.cursorInit (/home/alok/Desktop/projects/migti_backend/node_modules/mongoose/node_modules/mongodb/lib/cursor/abstract_cursor.js:632:27)
+    at async AggregationCursor.fetchBatch (/home/alok/Desktop/projects/migti_backend/node_modules/mongoose/node_modules/mongodb/lib/cursor/abstract_cursor.js:666:13)
+    at async AggregationCursor.next (/home/alok/Desktop/projects/migti_backend/node_modules/mongoose/node_modules/mongodb/lib/cursor/abstract_cursor.js:342:17)
+    at async Collection.countDocuments (/home/alok/Desktop/projects/migti_backend/node_modules/mongoose/node_modules/mongodb/lib/collection.js:521:21)
+    at async model.Query.exec (/home/alok/Desktop/projects/migti_backend/node_modules/mongoose/lib/query.js:4627:63)
+    at async listCompanyBranches (file:///home/alok/Desktop/projects/migti_backend/src/services/companyBranch/companyBranch.service.js:53:22)
+   
+2026-02-03 19:13:27 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"alok.infosparkles@gmail.com","password":"123123","role":"purchase"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"77","sec-ch-ua-platform":"\"Linux\"","user-agent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"144\", \"Google Chrome\";v=\"144\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at employeeLogin (file:///home/alok/Desktop/projects/migti_backend/src/services/employee/employee.service.js:151:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///home/alok/Desktop/projects/migti_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-02-03 19:15:36 [ERROR] 
+[ERROR]
+Method: POST
+URL: /api/v1/employees/login
+Params: {}
+Body: {"email":"alok.infosparkles@gmail.com","password":"123123","role":"purchase"}
+Headers: {"host":"localhost:4545","connection":"keep-alive","content-length":"77","sec-ch-ua-platform":"\"Linux\"","user-agent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"144\", \"Google Chrome\";v=\"144\"","content-type":"application/json","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Not Found
+Stack: Error: Not Found
+    at employeeLogin (file:///home/alok/Desktop/projects/migti_backend/src/services/employee/employee.service.js:151:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async loginEmployeeController (file:///home/alok/Desktop/projects/migti_backend/src/controller/employee/employee.controller.js:138:18)
+   
+2026-02-03 19:18:38 [ERROR] 
+[ERROR]
+Method: DELETE
+URL: /api/v1/categories/delete?categoryId=697f12c5a17de6084c0ce004
+Params: {}
+Body: {}
+Headers: {"host":"localhost:4545","connection":"keep-alive","sec-ch-ua-platform":"\"Linux\"","authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5ODFmYWZkMzZkMzhiNjBiMjMxZDEzOCIsImVtYWlsIjoiYWxvay5pbmZvc3BhcmtsZXNAZ21haWwuY29tIiwicm9sZSI6InB1cmNoYXNlIiwidHlwZSI6ImFjY2VzcyIsImJyYW5jaElkIjoiNjk3NzA1YTdiYmY4YjQ3OWQxZThlZjU2IiwiaWF0IjoxNzcwMTI2MzgxLCJleHAiOjE3NzAyMTI3ODEsImF1ZCI6ImdjYS1mcm9udGVuZCIsImlzcyI6ImdjYS1iYWNrZW5kIn0.qNFbQKElvXLo1q0L4LdRwd1rL0OWJNnBLmI6osGlPbs","user-agent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36","accept":"application/json, text/plain, */*","sec-ch-ua":"\"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"144\", \"Google Chrome\";v=\"144\"","sec-ch-ua-mobile":"?0","origin":"http://localhost:3000","sec-fetch-site":"same-site","sec-fetch-mode":"cors","sec-fetch-dest":"empty","referer":"http://localhost:3000/","accept-encoding":"gzip, deflate, br, zstd","accept-language":"en-US,en;q=0.9"}
+Error Message: Cannot delete category with associated products.
+Stack: Error: Cannot delete category with associated products.
+    at deleteCategory (file:///home/alok/Desktop/projects/migti_backend/src/services/category/category.service.js:181:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async deleteCategoryController (file:///home/alok/Desktop/projects/migti_backend/src/controller/category/category.controller.js:112:18)
+   
