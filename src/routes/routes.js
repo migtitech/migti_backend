@@ -8,6 +8,7 @@ import categoryRouter from './category.routes.js'
 import brandRouter from './brand.routes.js'
 import productRouter from './product.routes.js'
 import supplierRouter from './supplier.routes.js'
+import rateCardRouter from './rateCard.routes.js'
 
 const mainRoutes = express.Router()
 mainRoutes.use((req, res, next) => {
@@ -35,5 +36,6 @@ mainRoutes.use('/v1/categories', categoryRouter)
 mainRoutes.use('/v1/brands', brandRouter)
 mainRoutes.use('/v1/products', productRouter)
 mainRoutes.use('/v1/suppliers', supplierRouter)
+mainRoutes.use('/v1/rate-cards', rateCardRouter)
 
 export default mainRoutes
