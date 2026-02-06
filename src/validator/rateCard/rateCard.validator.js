@@ -50,3 +50,25 @@ export const updateRateCardSchema = Joi.object({
 export const deleteRateCardSchema = Joi.object({
   rateCardId: Joi.string().required(),
 })
+
+export const addSupplierSchema = Joi.object({
+  rateCardId: Joi.string().required(),
+  supplierName: Joi.string().required().min(1).max(200).trim(),
+  rate: Joi.number().min(0).required(),
+  contact: Joi.string().required().min(1).max(50).trim(),
+  notes: Joi.string().optional().allow(''),
+})
+
+export const updateSupplierSchema = Joi.object({
+  rateCardId: Joi.string().required(),
+  supplierId: Joi.string().required(),
+  supplierName: Joi.string().min(1).max(200).trim().optional(),
+  rate: Joi.number().min(0).optional(),
+  contact: Joi.string().min(1).max(50).trim().optional(),
+  notes: Joi.string().optional().allow(''),
+})
+
+export const deleteSupplierSchema = Joi.object({
+  rateCardId: Joi.string().required(),
+  supplierId: Joi.string().required(),
+})

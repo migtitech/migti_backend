@@ -68,6 +68,14 @@ const rateCardSchema = new mongoose.Schema(
       type: SchemaTypes.Number,
       default: 0,
     },
+    suppliers: [
+      {
+        supplierName: { type: SchemaTypes.String, required: true, trim: true },
+        rate: { type: SchemaTypes.Number, required: true, min: 0 },
+        contact: { type: SchemaTypes.String, required: true, trim: true },
+        notes: { type: SchemaTypes.String, default: '' },
+      },
+    ],
   },
   { timestamps: true },
 )

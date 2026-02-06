@@ -130,3 +130,95 @@ export const deleteRateCard = async ({ rateCardId }) => {
     },
   }
 }
+
+export const addSupplierToRateCard = async ({ rateCardId, supplierName, rate, contact, notes = '' }) => {
+  const rateCard = await RateCardModel.findById(rateCardId)
+  if (!rateCard) {
+    throw new CustomError(
+      statusCodes.notFound,
+      'Rate card not found',
+      errorCodes.not_found,
+    )
+  }
+  // Ensure required field for validation (handles legacy docs or docs created without name)
+  if (!rateCard.name || (typeof rateCard.name === 'string' && rateCard.name.trim() === '')) {
+    rateCard.name = rateCard.description?.trim() || 'Unnamed Product'
+  }
+  // Validate the document before adding supplier
+  const validationError = rateCard.validateSync()
+  if (validationError) {
+    throw new CustomError(
+      statusCodes.badRequest,
+      `Rate card is invalid: ${validationError.message}. Please update the rate card first.`,
+      errorCodes.validation_error,
+    )
+  }
+  rateCard.suppliers.push({ supplierName, rate, contact, notes })
+  try {
+    await rateCard.save()
+  } catch (error) {
+    if (error.name === 'ValidationError') {
+      throw new CustomError(
+        statusCodes.badRequest,
+        `Rate card validation failed: ${error.message}. Please ensure the rate card has a valid name.`,
+        errorCodes.validation_error,
+      )
+    }
+    throw error
+  }
+  const updated = await RateCardModel.findById(rateCardId).lean()
+  return updated
+}
+
+export const updateSupplierOnRateCard = async ({ rateCardId, supplierId, supplierName, rate, contact, notes }) => {
+  const rateCard = await RateCardModel.findById(rateCardId)
+  if (!rateCard) {
+    throw new CustomError(
+      statusCodes.notFound,
+      'Rate card not found',
+      errorCodes.not_found,
+    )
+  }
+  const supplier = rateCard.suppliers.id(supplierId)
+  if (!supplier) {
+    throw new CustomError(
+      statusCodes.notFound,
+      'Supplier not found on this rate card',
+      errorCodes.not_found,
+    )
+  }
+  if (supplierName !== undefined) supplier.supplierName = supplierName
+  if (rate !== undefined) supplier.rate = rate
+  if (contact !== undefined) supplier.contact = contact
+  if (notes !== undefined) supplier.notes = notes
+  if (!rateCard.name) rateCard.name = rateCard.description || 'Unnamed'
+  await rateCard.save()
+  const updated = await RateCardModel.findById(rateCardId).lean()
+  return updated
+}
+
+export const deleteSupplierFromRateCard = async ({ rateCardId, supplierId }) => {
+  const rateCard = await RateCardModel.findById(rateCardId)
+  if (!rateCard) {
+    throw new CustomError(
+      statusCodes.notFound,
+      'Rate card not found',
+      errorCodes.not_found,
+    )
+  }
+  const supplier = rateCard.suppliers.id(supplierId)
+  if (!supplier) {
+    throw new CustomError(
+      statusCodes.notFound,
+      'Supplier not found on this rate card',
+      errorCodes.not_found,
+    )
+  }
+  rateCard.suppliers.pull(supplierId)
+  if (!rateCard.name || rateCard.name.trim() === '') {
+    rateCard.name = rateCard.description?.trim() || 'Unnamed Product'
+  }
+  await rateCard.save()
+  const updated = await RateCardModel.findById(rateCardId).lean()
+  return updated
+}
