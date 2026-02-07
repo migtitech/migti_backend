@@ -20,7 +20,12 @@ const rawQuerySchema = new mongoose.Schema(
     },
     company_info: {
       type: SchemaTypes.String,
-      required: true,
+      default: '',
+    },
+    industry_id: {
+      type: SchemaTypes.ObjectId,
+      ref: 'industry',
+      default: null,
     },
     supplier_id: {
       type: SchemaTypes.ObjectId,

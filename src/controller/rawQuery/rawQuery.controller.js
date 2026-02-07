@@ -5,6 +5,8 @@ import {
   getRawQueryByIdSchema,
   updateRawQuerySchema,
   deleteRawQuerySchema,
+  listRawQueryActivitiesSchema,
+  recordRawQueryActivitySchema,
 } from '../../validator/rawQuery/rawQuery.validator.js'
 import {
   addRawQuery,
@@ -12,6 +14,8 @@ import {
   getRawQueryById,
   updateRawQuery,
   deleteRawQuery,
+  listRawQueryActivities,
+  recordRawQueryActivity,
 } from '../../services/rawQuery/rawQuery.service.js'
 
 export const createRawQueryController = async (req, res) => {
@@ -113,6 +117,46 @@ export const deleteRawQueryController = async (req, res) => {
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Raw query deleted successfully',
+    data: result,
+  })
+}
+
+export const listRawQueryActivitiesController = async (req, res) => {
+  const { error, value } = listRawQueryActivitiesSchema.validate(req.query, {
+    abortEarly: false,
+  })
+  if (error) {
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: Message.validationError,
+      error: error.details.map((d) => d.message),
+    })
+  }
+
+  const result = await listRawQueryActivities(value)
+  return res.status(statusCodes.ok).json({
+    success: true,
+    message: 'Raw query activities retrieved successfully',
+    data: result,
+  })
+}
+
+export const recordRawQueryActivityController = async (req, res) => {
+  const { error, value } = recordRawQueryActivitySchema.validate(req.body, {
+    abortEarly: false,
+  })
+  if (error) {
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: Message.validationError,
+      error: error.details.map((d) => d.message),
+    })
+  }
+
+  const result = await recordRawQueryActivity(value)
+  return res.status(statusCodes.ok).json({
+    success: true,
+    message: 'Activity recorded successfully',
     data: result,
   })
 }

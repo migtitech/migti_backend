@@ -97,7 +97,6 @@ const productSchema = new mongoose.Schema(
   {
     uniqueId: {
       type: String,
-      unique: true,
       default: uuidv4,
     },
     name: {
@@ -107,7 +106,6 @@ const productSchema = new mongoose.Schema(
     },
     slug: {
       type: SchemaTypes.String,
-      unique: true,
       trim: true,
       lowercase: true,
     },
@@ -122,7 +120,6 @@ const productSchema = new mongoose.Schema(
     sku: {
       type: SchemaTypes.String,
       required: true,
-      unique: true,
       trim: true,
     },
     category: {

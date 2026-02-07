@@ -6,6 +6,8 @@ import {
   getRawQueryByIdController,
   updateRawQueryController,
   deleteRawQueryController,
+  listRawQueryActivitiesController,
+  recordRawQueryActivityController,
 } from '../controller/rawQuery/rawQuery.controller.js'
 
 const rawQueryRouter = Router()
@@ -15,5 +17,7 @@ rawQueryRouter.get('/list', asyncHandler(listRawQueriesController))
 rawQueryRouter.get('/get-by-id', asyncHandler(getRawQueryByIdController))
 rawQueryRouter.put('/update', asyncHandler(updateRawQueryController))
 rawQueryRouter.delete('/delete', asyncHandler(deleteRawQueryController))
+rawQueryRouter.get('/activities', asyncHandler(listRawQueryActivitiesController))
+rawQueryRouter.post('/record-activity', asyncHandler(recordRawQueryActivityController))
 
 export default rawQueryRouter

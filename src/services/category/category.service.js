@@ -66,6 +66,7 @@ export const addCategory = async (data) => {
     parent: parentId,
     isDeleted: false,
   }).lean()
+  
   if (existing) {
     throw new CustomError(
       statusCodes.conflict,
