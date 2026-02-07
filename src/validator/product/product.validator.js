@@ -5,6 +5,11 @@ const variantOptionValueJoi = Joi.object({
   variantValue: Joi.string().required(),
 })
 
+const imageItemJoi = Joi.alternatives().try(
+  Joi.string(),
+  Joi.object({ imageUrl: Joi.string().required(), s3Key: Joi.string().optional() })
+)
+
 const variantCombinationJoi = Joi.object({
   optionValues: Joi.array().items(variantOptionValueJoi).min(1).required(),
   sku: Joi.string().required(),
@@ -12,7 +17,7 @@ const variantCombinationJoi = Joi.object({
   mrp: Joi.number().min(0).optional().default(0),
   costPrice: Joi.number().min(0).optional().default(0),
   quantity: Joi.number().integer().min(0).optional().default(0),
-  images: Joi.array().items(Joi.string()).optional().default([]),
+  images: Joi.array().items(imageItemJoi).optional().default([]),
   isActive: Joi.boolean().optional().default(true),
 })
 
@@ -42,7 +47,7 @@ export const createProductSchema = Joi.object({
   hasVariants: Joi.boolean().optional().default(false),
   variants: Joi.array().items(variantJoi).optional().default([]),
   variantCombinations: Joi.array().items(variantCombinationJoi).optional().default([]),
-  images: Joi.array().items(Joi.string()).optional().default([]),
+  images: Joi.array().items(imageItemJoi).optional().default([]),
   weight: Joi.number().min(0).optional().default(0),
   weightUnit: Joi.string().valid('g', 'kg', 'lb', 'oz').optional().default('g'),
   dimensions: dimensionsJoi.optional(),
@@ -84,7 +89,7 @@ export const updateProductSchema = Joi.object({
   hasVariants: Joi.boolean().optional(),
   variants: Joi.array().items(variantJoi).optional(),
   variantCombinations: Joi.array().items(variantCombinationJoi).optional(),
-  images: Joi.array().items(Joi.string()).optional(),
+  images: Joi.array().items(imageItemJoi).optional(),
   weight: Joi.number().min(0).optional(),
   weightUnit: Joi.string().valid('g', 'kg', 'lb', 'oz').optional(),
   dimensions: dimensionsJoi.optional(),

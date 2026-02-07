@@ -48,7 +48,6 @@ const variantCombinationSchema = new mongoose.Schema(
       default: 0,
       min: 0,
     },
-    images: [{ type: SchemaTypes.String }],
     isActive: {
       type: SchemaTypes.Boolean,
       default: true,
@@ -146,7 +145,6 @@ const productSchema = new mongoose.Schema(
     },
     variants: [variantSchema],
     variantCombinations: [variantCombinationSchema],
-    images: [{ type: SchemaTypes.String }],
     weight: {
       type: SchemaTypes.Number,
       default: 0,

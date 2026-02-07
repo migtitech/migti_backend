@@ -4,6 +4,13 @@ import BrandModel from '../../models/brand.model.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 import { generateSlug, generateUniqueSlug } from '../../utils/slugGenerator.js'
+import {
+  addImagesForProduct,
+  attachImagesToProducts,
+  getImagesForProduct,
+  updateImagesForProduct,
+  deleteImagesForProduct,
+} from '../image/image.service.js'
 
 export const addProduct = async (data) => {
   const baseSlug = generateSlug(data.name)
@@ -51,14 +58,33 @@ export const addProduct = async (data) => {
     }
   }
 
+  const { images, variantCombinations, ...productData } = data
   const product = await ProductModel.create({
-    ...data,
+    ...productData,
     slug,
     subcategory: data.subcategory || null,
     brand: data.brand || null,
+    variantCombinations: variantCombinations || [],
   })
 
-  return product.toObject()
+  const variantCombosWithImages = (product.variantCombinations || []).map((combo, i) => ({
+    uniqueId: combo.uniqueId,
+    images: (variantCombinations || [])[i]?.images || [],
+  }))
+  if (images?.length || variantCombosWithImages.some((c) => c.images?.length)) {
+    await addImagesForProduct(product._id, images || [], variantCombosWithImages)
+  }
+
+  const { images: imgList, variantImages } = await getImagesForProduct(product._id)
+  const productObj = product.toObject()
+  productObj.images = imgList
+  if (productObj.variantCombinations) {
+    productObj.variantCombinations = productObj.variantCombinations.map((combo) => ({
+      ...combo,
+      images: variantImages[combo.uniqueId] || [],
+    }))
+  }
+  return productObj
 }
 
 export const listProducts = async ({
@@ -106,8 +132,10 @@ export const listProducts = async ({
 
   const totalPages = Math.ceil(totalItems / limit)
 
+  const productsWithImages = await attachImagesToProducts(products)
+
   return {
-    products,
+    products: productsWithImages,
     pagination: {
       currentPage: page,
       totalPages,
@@ -134,7 +162,8 @@ export const getProductById = async ({ productId }) => {
     )
   }
 
-  return product
+  const [productWithImages] = await attachImagesToProducts([product])
+  return productWithImages
 }
 
 export const updateProduct = async ({ productId, ...updateData }) => {
@@ -209,7 +238,19 @@ export const updateProduct = async ({ productId, ...updateData }) => {
     updateData.brand = null
   }
 
-  const updated = await ProductModel.findByIdAndUpdate(productId, updateData, {
+  const { images, variantCombinations, ...restUpdateData } = updateData
+  if (images !== undefined || variantCombinations !== undefined) {
+    await updateImagesForProduct(
+      productId,
+      images || [],
+      variantCombinations || [],
+    )
+  }
+  if (variantCombinations !== undefined) {
+    restUpdateData.variantCombinations = variantCombinations
+  }
+
+  const updated = await ProductModel.findByIdAndUpdate(productId, restUpdateData, {
     new: true,
     runValidators: true,
   })
@@ -218,7 +259,8 @@ export const updateProduct = async ({ productId, ...updateData }) => {
     .populate('brand', 'name slug logo')
     .lean()
 
-  return updated
+  const [updatedWithImages] = await attachImagesToProducts([updated])
+  return updatedWithImages
 }
 
 export const deleteProduct = async ({ productId }) => {
@@ -231,6 +273,7 @@ export const deleteProduct = async ({ productId }) => {
     )
   }
 
+  await deleteImagesForProduct(productId)
   await ProductModel.findByIdAndDelete(productId)
 
   return {

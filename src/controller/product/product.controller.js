@@ -133,3 +133,46 @@ export const uploadProductImagesController = async (req, res) => {
     data: { images: imagePaths },
   })
 }
+
+export const uploadProductImagesS3Controller = async (req, res) => {
+  if (!req.files || req.files.length === 0) {
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: 'No files uploaded',
+    })
+  }
+
+  const productId = req.query?.productId
+
+  if (!productId) {
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: 'productId is required for S3 upload',
+    })
+  }
+
+  const { uploadFilesToS3AndSave } = await import(
+    '../../services/image/image.service.js'
+  )
+  const { S3_CONFIG } = await import('../../core/config/s3.config.js')
+
+  if (!S3_CONFIG.isConfigured) {
+    return res.status(statusCodes.badGateway).json({
+      success: false,
+      message: 'S3 storage is not configured',
+    })
+  }
+
+  const result = await uploadFilesToS3AndSave({
+    files: req.files,
+    referenceId: productId,
+    imageType: 'product',
+    folderPath: 'products',
+  })
+
+  return res.status(statusCodes.created).json({
+    success: true,
+    message: 'Images uploaded successfully',
+    data: { images: result },
+  })
+}
