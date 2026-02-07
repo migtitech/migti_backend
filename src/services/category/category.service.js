@@ -4,6 +4,44 @@ import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 import { generateSlug, generateUniqueSlug } from '../../utils/slugGenerator.js'
 
+const generateCategoryCode = async (parentId) => {
+  if (!parentId) {
+    const roots = await CategoryModel.find(
+      { parent: null, isDeleted: false, categoryCode: { $exists: true, $ne: '' } },
+      { categoryCode: 1 },
+    )
+      .lean()
+    const nums = roots
+      .map((c) => {
+        const m = c.categoryCode?.match(/^MIG(\d+)$/i)
+        return m ? parseInt(m[1], 10) : 0
+      })
+      .filter((n) => n > 0)
+    const next = nums.length > 0 ? Math.max(...nums) + 1 : 1
+    return `MIG${String(next).padStart(2, '0')}`
+  }
+  const parent = await CategoryModel.findById(parentId).lean()
+  let parentCode = parent?.categoryCode
+  if (!parentCode) {
+    parentCode = await generateCategoryCode(parent?.parent || null)
+    await CategoryModel.findByIdAndUpdate(parentId, { categoryCode: parentCode })
+  }
+  const prefix = parent.categoryCode
+  const subs = await CategoryModel.find(
+    { parent: parentId, isDeleted: false, categoryCode: { $exists: true, $ne: '' } },
+    { categoryCode: 1 },
+  ).lean()
+  const re = new RegExp(`^${prefix}SUB(\\d+)$`, 'i')
+  const nums = subs
+    .map((c) => {
+      const m = c.categoryCode?.match(re)
+      return m ? parseInt(m[1], 10) : 0
+    })
+    .filter((n) => n > 0)
+  const next = nums.length > 0 ? Math.max(...nums) + 1 : 1
+  return `${prefix}SUB${String(next).padStart(2, '0')}`
+}
+
 export const addCategory = async (data) => {
   const baseSlug = generateSlug(data.name)
   const slug = await generateUniqueSlug(baseSlug, async (s) => {
@@ -36,10 +74,13 @@ export const addCategory = async (data) => {
     )
   }
 
+  const categoryCode = await generateCategoryCode(parentId)
+
   const category = await CategoryModel.create({
     ...data,
     slug,
     parent: parentId,
+    categoryCode,
   })
 
   return category.toObject()
@@ -78,7 +119,7 @@ export const listCategories = async ({
   const totalItems = await CategoryModel.countDocuments(filter)
 
   const categories = await CategoryModel.find(filter)
-    .populate('parent', 'name slug')
+    .populate('parent', 'name slug categoryCode')
     .sort({ sortOrder: 1, createdAt: -1 })
     .skip(skip)
     .limit(limit)
@@ -145,7 +186,7 @@ export const updateCategory = async ({ categoryId, ...updateData }) => {
     new: true,
     runValidators: true,
   })
-    .populate('parent', 'name slug')
+    .populate('parent', 'name slug categoryCode')
     .lean()
 
   return updated

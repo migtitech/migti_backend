@@ -48,6 +48,26 @@ const variantCombinationSchema = new mongoose.Schema(
       default: 0,
       min: 0,
     },
+    weight: {
+      type: SchemaTypes.Number,
+      default: 0,
+      min: 0,
+    },
+    weightUnit: {
+      type: SchemaTypes.String,
+      enum: ['g', 'kg', 'lb', 'oz'],
+      default: 'g',
+    },
+    dimensions: {
+      length: { type: SchemaTypes.Number, default: 0, min: 0 },
+      width: { type: SchemaTypes.Number, default: 0, min: 0 },
+      height: { type: SchemaTypes.Number, default: 0, min: 0 },
+    },
+    dimensionUnit: {
+      type: SchemaTypes.String,
+      enum: ['cm', 'in', 'm'],
+      default: 'cm',
+    },
     images: [{ type: SchemaTypes.String }],
     isActive: {
       type: SchemaTypes.Boolean,
