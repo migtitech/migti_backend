@@ -4,17 +4,10 @@ import { Message, statusCodes, errorCodes } from '../../core/common/constant.js'
 import { decrypt, encrypt } from '../../core/crypto/helper.cryto.js'
 import { createTokenPair } from '../../core/helpers/jwt.helper.js'
 
-export const addEmployee = async ({
-  name,
-  email,
-  phone,
-  role,
-  designation,
-  address,
-  idnumber,
-  password,
-  branchId,
-}) => {
+export const addEmployee = async (payload) => {
+  const { password, ...rest } = payload
+  const { email, idnumber } = rest
+
   const existingEmployee = await EmployeeModel.findOne({
     $or: [{ email }, { idnumber }],
   }).lean()
@@ -28,15 +21,8 @@ export const addEmployee = async ({
   }
 
   const employeeDoc = await EmployeeModel.create({
-    name,
-    email,
-    phone,
-    role,
-    designation,
-    address,
-    idnumber,
+    ...rest,
     password: encrypt(password),
-    branchId,
   })
 
   const employee = employeeDoc.toObject()

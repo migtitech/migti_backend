@@ -2,7 +2,7 @@ import { Router } from 'express'
 import { asyncHandler } from '../utils/asyncWrapper.js'
 import { upload } from '../middlewares/uploads.js'
 import {
-  createProductController,
+  createProductController, 
   listProductsController,
   getProductByIdController,
   updateProductController,

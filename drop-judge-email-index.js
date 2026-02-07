@@ -33,7 +33,7 @@ const dropEmailIndex = async () => {
         } 
       }
     )
-    console.log(`✅ Removed email and password fields from ${result.modifiedCount} judge documents`)
+      console.log(`✅ Removed email and password fields from ${result.modifiedCount} judge documents`)
 
     console.log('\n✅ Migration completed successfully!')
     process.exit(0)
