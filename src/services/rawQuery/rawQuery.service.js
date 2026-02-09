@@ -4,6 +4,17 @@ import IndustryModel from '../../models/industry.model.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 
+const generateRawQueryNumber = async () => {
+  let number
+  let exists = true
+  while (exists) {
+    const rand = Math.floor(10000 + Math.random() * 90000)
+    number = `RQRY0${rand}`
+    exists = await RawQueryModel.exists({ raw_query_number: number })
+  }
+  return number
+}
+
 export const addRawQuery = async ({
   priority,
   title,
@@ -14,7 +25,10 @@ export const addRawQuery = async ({
   files = [],
   created_by,
 }) => {
+  const raw_query_number = await generateRawQueryNumber()
+
   const rawQueryDoc = await RawQueryModel.create({
+    raw_query_number,
     priority,
     title,
     company_info: company_info || '',
@@ -50,6 +64,7 @@ export const listRawQueries = async ({
       { company_info: { $regex: search, $options: 'i' } },
       { description: { $regex: search, $options: 'i' } },
       { priority: { $regex: search, $options: 'i' } },
+      { raw_query_number: { $regex: search, $options: 'i' } },
       ...(industryIds.length ? [{ industry_id: { $in: industryIds } }] : []),
     ]
   }

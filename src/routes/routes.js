@@ -11,6 +11,7 @@ import supplierRouter from './supplier.routes.js'
 import rateCardRouter from './rateCard.routes.js'
 import areaRouter from './area.routes.js'
 import industryRouter from './industry.routes.js'
+import queryRouter from './query.routes.js'
 
 const mainRoutes = express.Router()
 mainRoutes.use((req, res, next) => {
@@ -41,5 +42,6 @@ mainRoutes.use('/v1/suppliers', supplierRouter)
 mainRoutes.use('/v1/rate-cards', rateCardRouter)
 mainRoutes.use('/v1/areas', areaRouter)
 mainRoutes.use('/v1/industries', industryRouter)
+mainRoutes.use('/v1/queries', queryRouter)
 
 export default mainRoutes

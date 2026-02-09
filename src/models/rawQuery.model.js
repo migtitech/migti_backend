@@ -10,6 +10,11 @@ const rawQuerySchema = new mongoose.Schema(
       unique: true,
       default: uuidv4,
     },
+    raw_query_number: {
+      type: String,
+      unique: true,
+      index: true,
+    },
     priority: {
       type: SchemaTypes.String,
       required: true,
