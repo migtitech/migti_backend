@@ -2,20 +2,20 @@ import mongoose from 'mongoose'
 import dotenv from 'dotenv'
 dotenv.config()
 
-const removeLegacyProductItemCodeIndex = async () => {
+const removeAllProductIndexes = async () => {
   try {
     const db = mongoose.connection.db
     if (!db) return
     const collection = db.collection('products')
     const indexes = await collection.indexes()
-    const hasItemCodeIndex = indexes.some((idx) => idx.name === 'itemCode_1')
-    if (hasItemCodeIndex) {
-      await collection.dropIndex('itemCode_1')
-      console.log('Dropped legacy index: products.itemCode_1')
+    const removableIndexes = indexes.filter((idx) => idx.name !== '_id_')
+    for (const index of removableIndexes) {
+      await collection.dropIndex(index.name)
+      console.log(`Dropped products index: ${index.name}`)
     }
   } catch (error) {
     if (error?.codeName !== 'IndexNotFound' && error?.code !== 27) {
-      console.warn('Failed to drop products.itemCode_1 index:', error.message)
+      console.warn('Failed to drop products indexes:', error.message)
     }
   }
 }
@@ -63,7 +63,7 @@ const connectDB = async () => {
       }
     })
     console.log('Database connected successfully')
-    await removeLegacyProductItemCodeIndex()
+    await removeAllProductIndexes()
     await removeCategoryIndexes()
   } catch (error) {
     console.error('Database connection error:', error.message)

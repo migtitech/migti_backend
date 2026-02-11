@@ -1,123 +1,66 @@
 import RateCardModel from '../../models/rateCard.model.js'
+import ProductModel from '../../models/product.model.js'
+import SupplierModel from '../../models/supplier.model.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 
-const buildRateCardSearchFilter = (search = '', status = '') => {
-  const filter = { isDeleted: false }
-  if (search) {
-    filter.$or = [
-      { name: { $regex: search, $options: 'i' } },
-      { description: { $regex: search, $options: 'i' } },
-    ]
+export const upsertRate = async ({ productId, supplierId, rate, notes = '' }) => {
+  const product = await ProductModel.findById(productId)
+  if (!product) {
+    throw new CustomError(statusCodes.notFound, 'Product not found', errorCodes.not_found)
   }
-  if (status) {
-    filter.status = status
+
+  const supplier = await SupplierModel.findById(supplierId)
+  if (!supplier) {
+    throw new CustomError(statusCodes.notFound, 'Supplier not found', errorCodes.not_found)
   }
-  return filter
+
+  const entry = await RateCardModel.findOneAndUpdate(
+    { product: productId, supplier: supplierId },
+    { rate, notes },
+    { upsert: true, new: true },
+  )
+    .populate('product', 'name sku price')
+    .populate('supplier', 'name shopname phone_1 email')
+    .lean()
+
+  return entry
 }
 
-export const addRateCard = async (data) => {
-  const rateCard = await RateCardModel.create(data)
-  return rateCard.toObject()
+export const getSuppliersByProduct = async ({ productId }) => {
+  const product = await ProductModel.findById(productId).select('name sku price description').lean()
+  if (!product) {
+    throw new CustomError(statusCodes.notFound, 'Product not found', errorCodes.not_found)
+  }
+
+  const rates = await RateCardModel.find({ product: productId, isDeleted: false })
+    .populate('supplier', 'name shopname phone_1 phone_2 email address')
+    .sort({ rate: 1 })
+    .lean()
+
+  return { product, rates }
 }
 
-export const listRateCards = async ({
-  pageNumber = 1,
-  pageSize = 10,
-  search = '',
-  status = '',
-}) => {
-  const page = Math.max(1, parseInt(pageNumber))
-  const limit = Math.min(100, Math.max(1, parseInt(pageSize)))
-  const skip = (page - 1) * limit
+export const getProductsBySupplier = async ({ supplierId }) => {
+  const supplier = await SupplierModel.findById(supplierId)
+    .select('name shopname phone_1 phone_2 email address')
+    .lean()
+  if (!supplier) {
+    throw new CustomError(statusCodes.notFound, 'Supplier not found', errorCodes.not_found)
+  }
 
-  const filter = buildRateCardSearchFilter(search, status)
-
-  const totalItems = await RateCardModel.countDocuments(filter)
-
-  const rateCards = await RateCardModel.find(filter)
-    .populate('applicableCategories', 'name slug')
-    .populate('applicableProducts', 'name sku')
+  const rates = await RateCardModel.find({ supplier: supplierId, isDeleted: false })
+    .populate('product', 'name sku price description')
     .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(limit)
     .lean()
 
-  const totalPages = Math.ceil(totalItems / limit)
-
-  return {
-    rateCards,
-    pagination: {
-      currentPage: page,
-      totalPages,
-      totalItems,
-      itemsPerPage: limit,
-      hasNextPage: page < totalPages,
-      hasPrevPage: page > 1,
-    },
-  }
-}
-
-export const searchRateCards = async ({ search = '', limit = 5 }) => {
-  const take = Math.min(20, Math.max(1, parseInt(limit)))
-  const filter = buildRateCardSearchFilter(search)
-  const sort = search ? { name: 1 } : { createdAt: -1 }
-
-  const rateCards = await RateCardModel.find(filter)
-    .select('name description type value status')
-    .sort(sort)
-    .limit(take)
-    .lean()
-
-  return { rateCards }
-}
-
-export const getRateCardById = async ({ rateCardId }) => {
-  const rateCard = await RateCardModel.findById(rateCardId)
-    .populate('applicableCategories', 'name slug')
-    .populate('applicableProducts', 'name sku')
-    .lean()
-
-  if (!rateCard) {
-    throw new CustomError(
-      statusCodes.notFound,
-      'Rate card not found',
-      errorCodes.not_found,
-    )
-  }
-
-  return rateCard
-}
-
-export const updateRateCard = async ({ rateCardId, ...updateData }) => {
-  const rateCard = await RateCardModel.findById(rateCardId).lean()
-  if (!rateCard) {
-    throw new CustomError(
-      statusCodes.notFound,
-      'Rate card not found',
-      errorCodes.not_found,
-    )
-  }
-
-  const updated = await RateCardModel.findByIdAndUpdate(rateCardId, updateData, {
-    new: true,
-    runValidators: true,
-  })
-    .populate('applicableCategories', 'name slug')
-    .populate('applicableProducts', 'name sku')
-    .lean()
-
-  return updated
+  return { supplier, rates }
 }
 
 export const deleteRateCard = async ({ rateCardId }) => {
   const rateCard = await RateCardModel.findById(rateCardId).lean()
   if (!rateCard) {
-    throw new CustomError(
-      statusCodes.notFound,
-      'Rate card not found',
-      errorCodes.not_found,
-    )
+    throw new CustomError(statusCodes.notFound, 'Rate card entry not found', errorCodes.not_found)
   }
 
   await RateCardModel.findByIdAndDelete(rateCardId)
@@ -125,100 +68,46 @@ export const deleteRateCard = async ({ rateCardId }) => {
   return {
     deletedRateCard: {
       id: rateCard._id,
-      name: rateCard.name,
       deletedAt: new Date().toISOString(),
     },
   }
 }
 
-export const addSupplierToRateCard = async ({ rateCardId, supplierName, rate, contact, notes = '' }) => {
-  const rateCard = await RateCardModel.findById(rateCardId)
-  if (!rateCard) {
-    throw new CustomError(
-      statusCodes.notFound,
-      'Rate card not found',
-      errorCodes.not_found,
-    )
+export const searchProducts = async ({ search = '', limit = 10 }) => {
+  const take = Math.min(50, Math.max(1, parseInt(limit)))
+  const filter = { isDeleted: false }
+  if (search) {
+    filter.$or = [
+      { name: { $regex: search, $options: 'i' } },
+      { sku: { $regex: search, $options: 'i' } },
+    ]
   }
-  // Ensure required field for validation (handles legacy docs or docs created without name)
-  if (!rateCard.name || (typeof rateCard.name === 'string' && rateCard.name.trim() === '')) {
-    rateCard.name = rateCard.description?.trim() || 'Unnamed Product'
-  }
-  // Validate the document before adding supplier
-  const validationError = rateCard.validateSync()
-  if (validationError) {
-    throw new CustomError(
-      statusCodes.badRequest,
-      `Rate card is invalid: ${validationError.message}. Please update the rate card first.`,
-      errorCodes.validation_error,
-    )
-  }
-  rateCard.suppliers.push({ supplierName, rate, contact, notes })
-  try {
-    await rateCard.save()
-  } catch (error) {
-    if (error.name === 'ValidationError') {
-      throw new CustomError(
-        statusCodes.badRequest,
-        `Rate card validation failed: ${error.message}. Please ensure the rate card has a valid name.`,
-        errorCodes.validation_error,
-      )
-    }
-    throw error
-  }
-  const updated = await RateCardModel.findById(rateCardId).lean()
-  return updated
+
+  const products = await ProductModel.find(filter)
+    .select('name sku price')
+    .sort(search ? { name: 1 } : { createdAt: -1 })
+    .limit(take)
+    .lean()
+
+  return { products }
 }
 
-export const updateSupplierOnRateCard = async ({ rateCardId, supplierId, supplierName, rate, contact, notes }) => {
-  const rateCard = await RateCardModel.findById(rateCardId)
-  if (!rateCard) {
-    throw new CustomError(
-      statusCodes.notFound,
-      'Rate card not found',
-      errorCodes.not_found,
-    )
+export const searchSuppliers = async ({ search = '', limit = 10 }) => {
+  const take = Math.min(50, Math.max(1, parseInt(limit)))
+  const filter = { isDeleted: false }
+  if (search) {
+    filter.$or = [
+      { name: { $regex: search, $options: 'i' } },
+      { shopname: { $regex: search, $options: 'i' } },
+      { phone_1: { $regex: search, $options: 'i' } },
+    ]
   }
-  const supplier = rateCard.suppliers.id(supplierId)
-  if (!supplier) {
-    throw new CustomError(
-      statusCodes.notFound,
-      'Supplier not found on this rate card',
-      errorCodes.not_found,
-    )
-  }
-  if (supplierName !== undefined) supplier.supplierName = supplierName
-  if (rate !== undefined) supplier.rate = rate
-  if (contact !== undefined) supplier.contact = contact
-  if (notes !== undefined) supplier.notes = notes
-  if (!rateCard.name) rateCard.name = rateCard.description || 'Unnamed'
-  await rateCard.save()
-  const updated = await RateCardModel.findById(rateCardId).lean()
-  return updated
-}
 
-export const deleteSupplierFromRateCard = async ({ rateCardId, supplierId }) => {
-  const rateCard = await RateCardModel.findById(rateCardId)
-  if (!rateCard) {
-    throw new CustomError(
-      statusCodes.notFound,
-      'Rate card not found',
-      errorCodes.not_found,
-    )
-  }
-  const supplier = rateCard.suppliers.id(supplierId)
-  if (!supplier) {
-    throw new CustomError(
-      statusCodes.notFound,
-      'Supplier not found on this rate card',
-      errorCodes.not_found,
-    )
-  }
-  rateCard.suppliers.pull(supplierId)
-  if (!rateCard.name || rateCard.name.trim() === '') {
-    rateCard.name = rateCard.description?.trim() || 'Unnamed Product'
-  }
-  await rateCard.save()
-  const updated = await RateCardModel.findById(rateCardId).lean()
-  return updated
+  const suppliers = await SupplierModel.find(filter)
+    .select('name shopname phone_1 email')
+    .sort(search ? { name: 1 } : { createdAt: -1 })
+    .limit(take)
+    .lean()
+
+  return { suppliers }
 }

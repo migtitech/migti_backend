@@ -48,6 +48,27 @@ const variantCombinationSchema = new mongoose.Schema(
       default: 0,
       min: 0,
     },
+    weight: {
+      type: SchemaTypes.Number,
+      default: 0,
+      min: 0,
+    },
+    weightUnit: {
+      type: SchemaTypes.String,
+      enum: ['g', 'kg', 'lb', 'oz'],
+      default: 'g',
+    },
+    dimensions: {
+      length: { type: SchemaTypes.Number, default: 0, min: 0 },
+      width: { type: SchemaTypes.Number, default: 0, min: 0 },
+      height: { type: SchemaTypes.Number, default: 0, min: 0 },
+    },
+    dimensionUnit: {
+      type: SchemaTypes.String,
+      enum: ['cm', 'in', 'm'],
+      default: 'cm',
+    },
+    images: [{ type: SchemaTypes.String }],
     isActive: {
       type: SchemaTypes.Boolean,
       default: true,
@@ -76,7 +97,6 @@ const productSchema = new mongoose.Schema(
   {
     uniqueId: {
       type: String,
-      unique: true,
       default: uuidv4,
     },
     name: {
@@ -86,7 +106,6 @@ const productSchema = new mongoose.Schema(
     },
     slug: {
       type: SchemaTypes.String,
-      unique: true,
       trim: true,
       lowercase: true,
     },
@@ -101,7 +120,6 @@ const productSchema = new mongoose.Schema(
     sku: {
       type: SchemaTypes.String,
       required: true,
-      unique: true,
       trim: true,
     },
     category: {

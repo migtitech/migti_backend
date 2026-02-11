@@ -10,6 +10,11 @@ const rawQuerySchema = new mongoose.Schema(
       unique: true,
       default: uuidv4,
     },
+    raw_query_number: {
+      type: String,
+      unique: true,
+      index: true,
+    },
     priority: {
       type: SchemaTypes.String,
       required: true,
@@ -20,7 +25,12 @@ const rawQuerySchema = new mongoose.Schema(
     },
     company_info: {
       type: SchemaTypes.String,
-      required: true,
+      default: '',
+    },
+    industry_id: {
+      type: SchemaTypes.ObjectId,
+      ref: 'industry',
+      default: null,
     },
     supplier_id: {
       type: SchemaTypes.ObjectId,

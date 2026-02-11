@@ -20,6 +20,8 @@ export const listSupplierSchema = Joi.object({
   pageSize: Joi.number().integer().min(1).max(100).default(10),
   search: Joi.string().allow('', null),
   category: Joi.string().allow('', null),
+  subcategory: Joi.string().allow('', null),
+  area: Joi.string().allow('', null),
 })
 
 export const searchSupplierSchema = Joi.object({

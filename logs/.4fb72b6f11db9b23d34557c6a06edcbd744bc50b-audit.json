@@ -56,6 +56,7 @@
             "hash": "3540820cf3c4ba19425e462cca417e7e4d13bfda88dc61975a2c725dedd40a38"
         },
         {
+<<<<<<< HEAD
             "date": 1770359125422,
             "name": "logs/2026-02-06-error.log",
             "hash": "f872a4501b65de0236ca5cca24d089ff2a4478c7742a8b8fa9a592001e71d19f"
@@ -64,6 +65,11 @@
             "date": 1770447540856,
             "name": "logs\\2026-02-07-error.log",
             "hash": "7b9675a5a0c6ed632c078cf39582b16eae7f6004062d9524b674bb678a277afe"
+=======
+            "date": 1770789230906,
+            "name": "logs/2026-02-11-error.log",
+            "hash": "e1604e6cee842c219bfb641cfac2a7ded178214ddfc632a16e9235fd3f8b997e"
+>>>>>>> origin/develop
         }
     ],
     "hashType": "sha256"

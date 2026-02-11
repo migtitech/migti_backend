@@ -5,10 +5,11 @@ const variantOptionValueJoi = Joi.object({
   variantValue: Joi.string().required(),
 })
 
-const imageItemJoi = Joi.alternatives().try(
-  Joi.string(),
-  Joi.object({ imageUrl: Joi.string().required(), s3Key: Joi.string().optional() })
-)
+const variantDimensionsJoi = Joi.object({
+  length: Joi.number().min(0).optional().default(0),
+  width: Joi.number().min(0).optional().default(0),
+  height: Joi.number().min(0).optional().default(0),
+})
 
 const variantCombinationJoi = Joi.object({
   optionValues: Joi.array().items(variantOptionValueJoi).min(1).required(),
@@ -17,7 +18,11 @@ const variantCombinationJoi = Joi.object({
   mrp: Joi.number().min(0).optional().default(0),
   costPrice: Joi.number().min(0).optional().default(0),
   quantity: Joi.number().integer().min(0).optional().default(0),
-  images: Joi.array().items(imageItemJoi).optional().default([]),
+  weight: Joi.number().min(0).optional().default(0),
+  weightUnit: Joi.string().valid('g', 'kg', 'lb', 'oz').optional().default('g'),
+  dimensions: variantDimensionsJoi.optional(),
+  dimensionUnit: Joi.string().valid('cm', 'in', 'm').optional().default('cm'),
+  images: Joi.array().items(Joi.string()).optional().default([]),
   isActive: Joi.boolean().optional().default(true),
 })
 

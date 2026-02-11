@@ -1,20 +1,38 @@
 import RawQueryModel from '../../models/rawQuery.model.js'
+import RawQueryActivityModel from '../../models/rawQueryActivity.model.js'
+import IndustryModel from '../../models/industry.model.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
+
+const generateRawQueryNumber = async () => {
+  let number
+  let exists = true
+  while (exists) {
+    const rand = Math.floor(10000 + Math.random() * 90000)
+    number = `RQRY0${rand}`
+    exists = await RawQueryModel.exists({ raw_query_number: number })
+  }
+  return number
+}
 
 export const addRawQuery = async ({
   priority,
   title,
-  company_info,
+  company_info = '',
+  industry_id,
   supplier_id,
   description,
   files = [],
   created_by,
 }) => {
+  const raw_query_number = await generateRawQueryNumber()
+
   const rawQueryDoc = await RawQueryModel.create({
+    raw_query_number,
     priority,
     title,
-    company_info,
+    company_info: company_info || '',
+    industry_id: industry_id || null,
     supplier_id: supplier_id || null,
     description,
     files,
@@ -35,17 +53,26 @@ export const listRawQueries = async ({
 
   const filter = {}
   if (search) {
+    const industryIds = await IndustryModel.find({
+      name: { $regex: search, $options: 'i' },
+      isDeleted: false,
+    })
+      .distinct('_id')
+      .lean()
     filter.$or = [
       { title: { $regex: search, $options: 'i' } },
       { company_info: { $regex: search, $options: 'i' } },
       { description: { $regex: search, $options: 'i' } },
       { priority: { $regex: search, $options: 'i' } },
+      { raw_query_number: { $regex: search, $options: 'i' } },
+      ...(industryIds.length ? [{ industry_id: { $in: industryIds } }] : []),
     ]
   }
 
   const totalItems = await RawQueryModel.countDocuments(filter)
 
   const rawQueries = await RawQueryModel.find(filter)
+    .populate('industry_id', 'name location email')
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit)
@@ -71,6 +98,8 @@ export const listRawQueries = async ({
 export const getRawQueryById = async ({ rawQueryId }) => {
   const rawQuery = await RawQueryModel.findById(rawQueryId)
     .populate('supplier_id')
+    .populate('industry_id', 'name location address email purchase_manager_name purchase_manager_phone')
+    .populate('created_by', 'name email')
     .lean()
 
   if (!rawQuery) {
@@ -82,6 +111,46 @@ export const getRawQueryById = async ({ rawQueryId }) => {
   }
 
   return rawQuery
+}
+
+export const listRawQueryActivities = async ({ rawQueryId }) => {
+  const activities = await RawQueryActivityModel.find({ rawQueryId })
+    .populate('performedBy', 'name email')
+    .sort({ createdAt: -1 })
+    .lean()
+  return activities
+}
+
+export const recordRawQueryActivity = async ({
+  rawQueryId,
+  type,
+  performedBy,
+  meta = {},
+}) => {
+  const rawQuery = await RawQueryModel.findById(rawQueryId).lean()
+  if (!rawQuery) {
+    throw new CustomError(
+      statusCodes.notFound,
+      'Raw query not found',
+      errorCodes.not_found
+    )
+  }
+
+  const activity = await RawQueryActivityModel.create({
+    rawQueryId,
+    type,
+    performedBy,
+    meta: {
+      action: meta.action || '',
+      followUpStatus: meta.followUpStatus || '',
+      note: meta.note || '',
+    },
+  })
+
+  const populated = await RawQueryActivityModel.findById(activity._id)
+    .populate('performedBy', 'name email')
+    .lean()
+  return populated
 }
 
 export const updateRawQuery = async ({ rawQueryId, ...updateData }) => {
