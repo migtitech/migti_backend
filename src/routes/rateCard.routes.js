@@ -1,27 +1,21 @@
 import { Router } from 'express'
 import { asyncHandler } from '../utils/asyncWrapper.js'
 import {
-  createRateCardController,
-  listRateCardsController,
-  searchRateCardsController,
-  getRateCardByIdController,
-  updateRateCardController,
+  upsertRateController,
+  getByProductController,
+  getBySupplierController,
   deleteRateCardController,
-  addSupplierController,
-  updateSupplierController,
-  deleteSupplierController,
+  searchProductsController,
+  searchSuppliersController,
 } from '../controller/rateCard/rateCard.controller.js'
 
 const rateCardRouter = Router()
 
-rateCardRouter.post('/create', asyncHandler(createRateCardController))
-rateCardRouter.get('/list', asyncHandler(listRateCardsController))
-rateCardRouter.get('/search', asyncHandler(searchRateCardsController))
-rateCardRouter.get('/get-by-id', asyncHandler(getRateCardByIdController))
-rateCardRouter.put('/update', asyncHandler(updateRateCardController))
+rateCardRouter.post('/upsert-rate', asyncHandler(upsertRateController))
+rateCardRouter.get('/by-product', asyncHandler(getByProductController))
+rateCardRouter.get('/by-supplier', asyncHandler(getBySupplierController))
 rateCardRouter.delete('/delete', asyncHandler(deleteRateCardController))
-rateCardRouter.post('/add-supplier', asyncHandler(addSupplierController))
-rateCardRouter.put('/update-supplier', asyncHandler(updateSupplierController))
-rateCardRouter.delete('/delete-supplier', asyncHandler(deleteSupplierController))
+rateCardRouter.get('/search-products', asyncHandler(searchProductsController))
+rateCardRouter.get('/search-suppliers', asyncHandler(searchSuppliersController))
 
 export default rateCardRouter
