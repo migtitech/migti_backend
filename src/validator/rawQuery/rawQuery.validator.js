@@ -3,7 +3,8 @@ import Joi from 'joi'
 export const createRawQuerySchema = Joi.object({
   priority: Joi.string().required().min(2).max(50),
   title: Joi.string().required().min(2).max(200),
-  company_info: Joi.string().required().min(2).max(200),
+  company_info: Joi.string().allow('', null).optional(),
+  industry_id: Joi.string().required(),
   supplier_id: Joi.string().allow('', null).optional(),
   description: Joi.string().required().min(5).max(2000),
   files: Joi.array().items(Joi.string()).default([]),
@@ -24,7 +25,8 @@ export const updateRawQuerySchema = Joi.object({
   rawQueryId: Joi.string().required(),
   priority: Joi.string().min(2).max(50).optional(),
   title: Joi.string().min(2).max(200).optional(),
-  company_info: Joi.string().min(2).max(200).optional(),
+  company_info: Joi.string().min(2).max(200).allow('', null).optional(),
+  industry_id: Joi.string().allow('', null).optional(),
   supplier_id: Joi.string().allow('', null).optional(),
   description: Joi.string().min(5).max(2000).optional(),
   files: Joi.array().items(Joi.string()).optional(),
@@ -33,4 +35,19 @@ export const updateRawQuerySchema = Joi.object({
 
 export const deleteRawQuerySchema = Joi.object({
   rawQueryId: Joi.string().required(),
+})
+
+export const listRawQueryActivitiesSchema = Joi.object({
+  rawQueryId: Joi.string().required(),
+})
+
+export const recordRawQueryActivitySchema = Joi.object({
+  rawQueryId: Joi.string().required(),
+  type: Joi.string().valid('viewed', 'action', 'follow_up').required(),
+  performedBy: Joi.string().required(),
+  meta: Joi.object({
+    action: Joi.string().allow('').optional(),
+    followUpStatus: Joi.string().allow('').optional(),
+    note: Joi.string().allow('').optional(),
+  }).optional(),
 })

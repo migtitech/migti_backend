@@ -1,25 +1,25 @@
 import { Message, statusCodes } from '../../core/common/constant.js'
 import {
-  createRawQuerySchema,
-  listRawQuerySchema,
-  getRawQueryByIdSchema,
-  updateRawQuerySchema,
-  deleteRawQuerySchema,
-  listRawQueryActivitiesSchema,
-  recordRawQueryActivitySchema,
-} from '../../validator/rawQuery/rawQuery.validator.js'
+  createQuerySchema,
+  listQuerySchema,
+  getQueryByIdSchema,
+  updateQuerySchema,
+  deleteQuerySchema,
+  listQueryActivitiesSchema,
+  recordQueryActivitySchema,
+} from '../../validator/query/query.validator.js'
 import {
-  addRawQuery,
-  listRawQueries,
-  getRawQueryById,
-  updateRawQuery,
-  deleteRawQuery,
-  listRawQueryActivities,
-  recordRawQueryActivity,
-} from '../../services/rawQuery/rawQuery.service.js'
+  addQuery,
+  listQueries,
+  getQueryById,
+  updateQuery,
+  deleteQuery,
+  listQueryActivities,
+  recordQueryActivity,
+} from '../../services/query/query.service.js'
 
-export const createRawQueryController = async (req, res) => {
-  const { error, value } = createRawQuerySchema.validate(req.body, {
+export const createQueryController = async (req, res) => {
+  const { error, value } = createQuerySchema.validate(req.body, {
     abortEarly: false,
   })
   if (error) {
@@ -30,16 +30,16 @@ export const createRawQueryController = async (req, res) => {
     })
   }
 
-  const result = await addRawQuery(value)
-  return res.status(statusCodes.ok).json({
+  const result = await addQuery(value)
+  return res.status(statusCodes.created).json({
     success: true,
-    message: 'Raw query created successfully',
+    message: 'Query created successfully',
     data: result,
   })
 }
 
-export const listRawQueriesController = async (req, res) => {
-  const { error, value } = listRawQuerySchema.validate(req.query, {
+export const listQueriesController = async (req, res) => {
+  const { error, value } = listQuerySchema.validate(req.query, {
     abortEarly: false,
   })
   if (error) {
@@ -50,16 +50,16 @@ export const listRawQueriesController = async (req, res) => {
     })
   }
 
-  const result = await listRawQueries(value)
+  const result = await listQueries(value)
   return res.status(statusCodes.ok).json({
     success: true,
-    message: 'Raw queries retrieved successfully',
+    message: 'Queries retrieved successfully',
     data: result,
   })
 }
 
-export const getRawQueryByIdController = async (req, res) => {
-  const { error, value } = getRawQueryByIdSchema.validate(req.query, {
+export const getQueryByIdController = async (req, res) => {
+  const { error, value } = getQueryByIdSchema.validate(req.query, {
     abortEarly: false,
   })
   if (error) {
@@ -70,20 +70,18 @@ export const getRawQueryByIdController = async (req, res) => {
     })
   }
 
-  const result = await getRawQueryById(value)
+  const result = await getQueryById(value)
   return res.status(statusCodes.ok).json({
     success: true,
-    message: 'Raw query details retrieved successfully',
+    message: 'Query details retrieved successfully',
     data: result,
   })
 }
 
-export const updateRawQueryController = async (req, res) => {
-  const { error, value } = updateRawQuerySchema.validate(
+export const updateQueryController = async (req, res) => {
+  const { error, value } = updateQuerySchema.validate(
     { ...req.body, ...req.query },
-    {
-      abortEarly: false,
-    }
+    { abortEarly: false },
   )
   if (error) {
     return res.status(statusCodes.badRequest).json({
@@ -93,16 +91,16 @@ export const updateRawQueryController = async (req, res) => {
     })
   }
 
-  const result = await updateRawQuery(value)
+  const result = await updateQuery(value)
   return res.status(statusCodes.ok).json({
     success: true,
-    message: 'Raw query updated successfully',
+    message: 'Query updated successfully',
     data: result,
   })
 }
 
-export const deleteRawQueryController = async (req, res) => {
-  const { error, value } = deleteRawQuerySchema.validate(req.query, {
+export const deleteQueryController = async (req, res) => {
+  const { error, value } = deleteQuerySchema.validate(req.query, {
     abortEarly: false,
   })
   if (error) {
@@ -113,16 +111,16 @@ export const deleteRawQueryController = async (req, res) => {
     })
   }
 
-  const result = await deleteRawQuery(value)
+  const result = await deleteQuery(value)
   return res.status(statusCodes.ok).json({
     success: true,
-    message: 'Raw query deleted successfully',
+    message: 'Query deleted successfully',
     data: result,
   })
 }
 
-export const listRawQueryActivitiesController = async (req, res) => {
-  const { error, value } = listRawQueryActivitiesSchema.validate(req.query, {
+export const listQueryActivitiesController = async (req, res) => {
+  const { error, value } = listQueryActivitiesSchema.validate(req.query, {
     abortEarly: false,
   })
   if (error) {
@@ -133,16 +131,16 @@ export const listRawQueryActivitiesController = async (req, res) => {
     })
   }
 
-  const result = await listRawQueryActivities(value)
+  const result = await listQueryActivities(value)
   return res.status(statusCodes.ok).json({
     success: true,
-    message: 'Raw query activities retrieved successfully',
+    message: 'Query activities retrieved successfully',
     data: result,
   })
 }
 
-export const recordRawQueryActivityController = async (req, res) => {
-  const { error, value } = recordRawQueryActivitySchema.validate(req.body, {
+export const recordQueryActivityController = async (req, res) => {
+  const { error, value } = recordQueryActivitySchema.validate(req.body, {
     abortEarly: false,
   })
   if (error) {
@@ -153,7 +151,7 @@ export const recordRawQueryActivityController = async (req, res) => {
     })
   }
 
-  const result = await recordRawQueryActivity(value)
+  const result = await recordQueryActivity(value)
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Activity recorded successfully',

@@ -9,6 +9,11 @@ const categorySchema = new mongoose.Schema(
       type: String,
       default: uuidv4,
     },
+    categoryCode: {
+      type: SchemaTypes.String,
+      trim: true,
+      sparse: true,
+    },
     name: {
       type: SchemaTypes.String,
       required: true,

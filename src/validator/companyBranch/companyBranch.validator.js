@@ -22,6 +22,7 @@ export const createCompanyBranchSchema = Joi.object({
 export const listCompanyBranchSchema = Joi.object({
   pageNumber: Joi.number().integer().min(1).default(1),
   pageSize: Joi.number().integer().min(1).max(100).default(10),
+  companyId: Joi.string().allow('', null),
 })
 
 export const getCompanyBranchByIdSchema = Joi.object({

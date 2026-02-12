@@ -54,6 +54,8 @@ export const listSuppliers = async ({
   pageSize = 10,
   search = '',
   category,
+  subcategory,
+  area,
 }) => {
   const page = Math.max(1, parseInt(pageNumber))
   const limit = Math.min(100, Math.max(1, parseInt(pageSize)))
@@ -61,8 +63,25 @@ export const listSuppliers = async ({
 
   const filter = buildSupplierSearchFilter(search)
 
-  if (category) {
+  if (subcategory) {
+    filter.categories = subcategory
+  } else if (category) {
     filter.categories = category
+  }
+
+  if (area) {
+    const areaCondition = {
+      $or: [
+        { shop_location: { $regex: area, $options: 'i' } },
+        { address: { $regex: area, $options: 'i' } },
+      ],
+    }
+    if (filter.$or) {
+      filter.$and = [{ $or: filter.$or }, areaCondition]
+      delete filter.$or
+    } else {
+      Object.assign(filter, areaCondition)
+    }
   }
 
   const totalItems = await SupplierModel.countDocuments(filter)

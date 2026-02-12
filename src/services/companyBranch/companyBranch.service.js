@@ -45,14 +45,19 @@ export const addCompanyBranch = async ({
   return branchDoc.toObject()
 }
 
-export const listCompanyBranches = async ({ pageNumber = 1, pageSize = 10 }) => {
+export const listCompanyBranches = async ({ pageNumber = 1, pageSize = 10, companyId }) => {
   const page = Math.max(1, parseInt(pageNumber))
   const limit = Math.min(100, Math.max(1, parseInt(pageSize)))
   const skip = (page - 1) * limit
 
-  const totalItems = await CompanyBranchModel.countDocuments()
+  const filter = {}
+  if (companyId) {
+    filter.companyId = companyId
+  }
 
-  const branches = await CompanyBranchModel.find()
+  const totalItems = await CompanyBranchModel.countDocuments(filter)
+
+  const branches = await CompanyBranchModel.find(filter)
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit)

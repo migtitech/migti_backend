@@ -1,31 +1,23 @@
 import { Message, statusCodes } from '../../core/common/constant.js'
 import {
-  createRateCardSchema,
-  listRateCardSchema,
-  searchRateCardSchema,
-  getRateCardByIdSchema,
-  updateRateCardSchema,
+  upsertRateSchema,
+  getByProductSchema,
+  getBySupplierSchema,
   deleteRateCardSchema,
-  addSupplierSchema,
-  updateSupplierSchema,
-  deleteSupplierSchema,
+  searchProductsSchema,
+  searchSuppliersSchema,
 } from '../../validator/rateCard/rateCard.validator.js'
 import {
-  addRateCard,
-  listRateCards,
-  searchRateCards,
-  getRateCardById,
-  updateRateCard,
+  upsertRate,
+  getSuppliersByProduct,
+  getProductsBySupplier,
   deleteRateCard,
-  addSupplierToRateCard,
-  updateSupplierOnRateCard,
-  deleteSupplierFromRateCard,
+  searchProducts,
+  searchSuppliers,
 } from '../../services/rateCard/rateCard.service.js'
 
-export const createRateCardController = async (req, res) => {
-  const { error, value } = createRateCardSchema.validate(req.body, {
-    abortEarly: false,
-  })
+export const upsertRateController = async (req, res) => {
+  const { error, value } = upsertRateSchema.validate(req.body, { abortEarly: false })
   if (error) {
     return res.status(statusCodes.badRequest).json({
       success: false,
@@ -34,18 +26,16 @@ export const createRateCardController = async (req, res) => {
     })
   }
 
-  const result = await addRateCard(value)
-  return res.status(statusCodes.created).json({
+  const result = await upsertRate(value)
+  return res.status(statusCodes.ok).json({
     success: true,
-    message: 'Rate card created successfully',
+    message: 'Rate saved successfully',
     data: result,
   })
 }
 
-export const listRateCardsController = async (req, res) => {
-  const { error, value } = listRateCardSchema.validate(req.query, {
-    abortEarly: false,
-  })
+export const getByProductController = async (req, res) => {
+  const { error, value } = getByProductSchema.validate(req.query, { abortEarly: false })
   if (error) {
     return res.status(statusCodes.badRequest).json({
       success: false,
@@ -54,18 +44,16 @@ export const listRateCardsController = async (req, res) => {
     })
   }
 
-  const result = await listRateCards(value)
+  const result = await getSuppliersByProduct(value)
   return res.status(statusCodes.ok).json({
     success: true,
-    message: 'Rate cards retrieved successfully',
+    message: 'Suppliers retrieved successfully',
     data: result,
   })
 }
 
-export const searchRateCardsController = async (req, res) => {
-  const { error, value } = searchRateCardSchema.validate(req.query, {
-    abortEarly: false,
-  })
+export const getBySupplierController = async (req, res) => {
+  const { error, value } = getBySupplierSchema.validate(req.query, { abortEarly: false })
   if (error) {
     return res.status(statusCodes.badRequest).json({
       success: false,
@@ -74,61 +62,16 @@ export const searchRateCardsController = async (req, res) => {
     })
   }
 
-  const result = await searchRateCards(value)
+  const result = await getProductsBySupplier(value)
   return res.status(statusCodes.ok).json({
     success: true,
-    message: 'Rate cards search results retrieved successfully',
-    data: result,
-  })
-}
-
-export const getRateCardByIdController = async (req, res) => {
-  const { error, value } = getRateCardByIdSchema.validate(req.query, {
-    abortEarly: false,
-  })
-  if (error) {
-    return res.status(statusCodes.badRequest).json({
-      success: false,
-      message: Message.validationError,
-      error: error.details.map((d) => d.message),
-    })
-  }
-
-  const result = await getRateCardById(value)
-  return res.status(statusCodes.ok).json({
-    success: true,
-    message: 'Rate card details retrieved successfully',
-    data: result,
-  })
-}
-
-export const updateRateCardController = async (req, res) => {
-  const { error, value } = updateRateCardSchema.validate(
-    { ...req.body, ...req.query },
-    {
-      abortEarly: false,
-    },
-  )
-  if (error) {
-    return res.status(statusCodes.badRequest).json({
-      success: false,
-      message: Message.validationError,
-      error: error.details.map((d) => d.message),
-    })
-  }
-
-  const result = await updateRateCard(value)
-  return res.status(statusCodes.ok).json({
-    success: true,
-    message: 'Rate card updated successfully',
+    message: 'Products retrieved successfully',
     data: result,
   })
 }
 
 export const deleteRateCardController = async (req, res) => {
-  const { error, value } = deleteRateCardSchema.validate(req.query, {
-    abortEarly: false,
-  })
+  const { error, value } = deleteRateCardSchema.validate(req.query, { abortEarly: false })
   if (error) {
     return res.status(statusCodes.badRequest).json({
       success: false,
@@ -140,16 +83,13 @@ export const deleteRateCardController = async (req, res) => {
   const result = await deleteRateCard(value)
   return res.status(statusCodes.ok).json({
     success: true,
-    message: 'Rate card deleted successfully',
+    message: 'Rate card entry deleted successfully',
     data: result,
   })
 }
 
-export const addSupplierController = async (req, res) => {
-  const { error, value } = addSupplierSchema.validate(
-    { ...req.body, ...req.query },
-    { abortEarly: false },
-  )
+export const searchProductsController = async (req, res) => {
+  const { error, value } = searchProductsSchema.validate(req.query, { abortEarly: false })
   if (error) {
     return res.status(statusCodes.badRequest).json({
       success: false,
@@ -157,38 +97,17 @@ export const addSupplierController = async (req, res) => {
       error: error.details.map((d) => d.message),
     })
   }
-  const result = await addSupplierToRateCard(value)
-  return res.status(statusCodes.created).json({
-    success: true,
-    message: 'Supplier added to rate card successfully',
-    data: result,
-  })
-}
 
-export const updateSupplierController = async (req, res) => {
-  const { error, value } = updateSupplierSchema.validate(
-    { ...req.body, ...req.query },
-    { abortEarly: false },
-  )
-  if (error) {
-    return res.status(statusCodes.badRequest).json({
-      success: false,
-      message: Message.validationError,
-      error: error.details.map((d) => d.message),
-    })
-  }
-  const result = await updateSupplierOnRateCard(value)
+  const result = await searchProducts(value)
   return res.status(statusCodes.ok).json({
     success: true,
-    message: 'Supplier updated successfully',
+    message: 'Products retrieved successfully',
     data: result,
   })
 }
 
-export const deleteSupplierController = async (req, res) => {
-  const { error, value } = deleteSupplierSchema.validate(req.query, {
-    abortEarly: false,
-  })
+export const searchSuppliersController = async (req, res) => {
+  const { error, value } = searchSuppliersSchema.validate(req.query, { abortEarly: false })
   if (error) {
     return res.status(statusCodes.badRequest).json({
       success: false,
@@ -196,10 +115,11 @@ export const deleteSupplierController = async (req, res) => {
       error: error.details.map((d) => d.message),
     })
   }
-  const result = await deleteSupplierFromRateCard(value)
+
+  const result = await searchSuppliers(value)
   return res.status(statusCodes.ok).json({
     success: true,
-    message: 'Supplier removed from rate card successfully',
+    message: 'Suppliers retrieved successfully',
     data: result,
   })
 }
