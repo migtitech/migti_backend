@@ -7,6 +7,7 @@ import rawQueryRouter from './rawQuery.routes.js'
 import categoryRouter from './category.routes.js'
 import brandRouter from './brand.routes.js'
 import productRouter from './product.routes.js'
+import imageRouter from './image.routes.js'
 import supplierRouter from './supplier.routes.js'
 import rateCardRouter from './rateCard.routes.js'
 import areaRouter from './area.routes.js'
@@ -38,6 +39,7 @@ mainRoutes.use('/v1/raw-queries', rawQueryRouter)
 mainRoutes.use('/v1/categories', categoryRouter)
 mainRoutes.use('/v1/brands', brandRouter)
 mainRoutes.use('/v1/products', productRouter)
+mainRoutes.use('/v1/images', imageRouter)
 mainRoutes.use('/v1/suppliers', supplierRouter)
 mainRoutes.use('/v1/rate-cards', rateCardRouter)
 mainRoutes.use('/v1/areas', areaRouter)

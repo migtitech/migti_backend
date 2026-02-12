@@ -163,7 +163,6 @@ const productSchema = new mongoose.Schema(
     },
     variants: [variantSchema],
     variantCombinations: [variantCombinationSchema],
-    images: [{ type: SchemaTypes.String }],
     weight: {
       type: SchemaTypes.Number,
       default: 0,

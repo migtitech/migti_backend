@@ -5,6 +5,16 @@ const variantOptionValueJoi = Joi.object({
   variantValue: Joi.string().required(),
 })
 
+// Support both plain URL strings and rich image objects
+const imageItemJoi = Joi.alternatives().try(
+  Joi.string(),
+  Joi.object({
+    imageUrl: Joi.string().uri().required(),
+    s3Key: Joi.string().allow(null, '').optional(),
+    signedUrl: Joi.string().allow(null, '').optional(),
+  }),
+)
+
 const variantDimensionsJoi = Joi.object({
   length: Joi.number().min(0).optional().default(0),
   width: Joi.number().min(0).optional().default(0),
@@ -22,7 +32,7 @@ const variantCombinationJoi = Joi.object({
   weightUnit: Joi.string().valid('g', 'kg', 'lb', 'oz').optional().default('g'),
   dimensions: variantDimensionsJoi.optional(),
   dimensionUnit: Joi.string().valid('cm', 'in', 'm').optional().default('cm'),
-  images: Joi.array().items(Joi.string()).optional().default([]),
+  images: Joi.array().items(imageItemJoi).optional().default([]),
   isActive: Joi.boolean().optional().default(true),
 })
 
@@ -52,7 +62,7 @@ export const createProductSchema = Joi.object({
   hasVariants: Joi.boolean().optional().default(false),
   variants: Joi.array().items(variantJoi).optional().default([]),
   variantCombinations: Joi.array().items(variantCombinationJoi).optional().default([]),
-  images: Joi.array().items(Joi.string()).optional().default([]),
+  images: Joi.array().items(imageItemJoi).optional().default([]),
   weight: Joi.number().min(0).optional().default(0),
   weightUnit: Joi.string().valid('g', 'kg', 'lb', 'oz').optional().default('g'),
   dimensions: dimensionsJoi.optional(),
@@ -94,7 +104,7 @@ export const updateProductSchema = Joi.object({
   hasVariants: Joi.boolean().optional(),
   variants: Joi.array().items(variantJoi).optional(),
   variantCombinations: Joi.array().items(variantCombinationJoi).optional(),
-  images: Joi.array().items(Joi.string()).optional(),
+  images: Joi.array().items(imageItemJoi).optional(),
   weight: Joi.number().min(0).optional(),
   weightUnit: Joi.string().valid('g', 'kg', 'lb', 'oz').optional(),
   dimensions: dimensionsJoi.optional(),

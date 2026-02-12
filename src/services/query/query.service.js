@@ -137,6 +137,21 @@ export const recordQueryActivity = async ({
     )
   }
 
+  // For "viewed" type, only store the first view per user per query
+  if (type === 'viewed' && performedBy) {
+    const existing = await QueryActivityModel.findOne({
+      queryId,
+      type: 'viewed',
+      performedBy,
+    })
+      .populate('performedBy', 'name email')
+      .lean()
+
+    if (existing) {
+      return existing
+    }
+  }
+
   const activity = await QueryActivityModel.create({
     queryId,
     type,
