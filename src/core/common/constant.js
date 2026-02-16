@@ -353,6 +353,50 @@ export const USER_ROLES = Object.freeze({
   SUPER_ADMIN: 'super_admin',
 })
 
+// RBAC Modules - each maps to a sidebar section / resource
+export const MODULES = Object.freeze({
+  COMPANIES: 'companies',
+  BRANCHES: 'branches',
+  ZONES: 'zones',
+  INDUSTRIES: 'industries',
+  INDUSTRY_BRANCHES: 'industry_branches',
+  GROUPS: 'groups',
+  CATEGORIES: 'categories',
+  BRANDS: 'brands',
+  PRODUCTS: 'products',
+  SUPPLIERS: 'suppliers',
+  RATE_CARDS: 'rate_cards',
+  QUERIES: 'queries',
+  RAW_QUERIES: 'raw_queries',
+  QUOTATIONS: 'quotations',
+  PURCHASE_ORDERS: 'purchase_orders',
+  FINANCE: 'finance',
+  FOLLOW_UP: 'follow_up',
+  EMPLOYEES: 'employees',
+})
+
+// RBAC Actions
+export const ACTIONS = Object.freeze({
+  READ: 'read',
+  CREATE: 'create',
+  UPDATE: 'update',
+  DELETE: 'delete',
+})
+
+// Roles that automatically get full access to everything
+export const FULL_ACCESS_ROLES = Object.freeze(['super_admin', 'admin', 'hod'])
+
+// All available modules with labels (for the frontend permissions UI)
+export const MODULE_LIST = Object.freeze(
+  Object.entries(MODULES).map(([key, value]) => ({
+    key: value,
+    label: key
+      .split('_')
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+      .join(' '),
+  }))
+)
+
 export const DocumentPath = Object.freeze({
   judgesPhoto: 'judges/photos',
   judgesCertifications: 'judges/certifications',

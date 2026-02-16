@@ -28,10 +28,6 @@ const companyBranchSchema = new mongoose.Schema(
       type: SchemaTypes.String,
       required: true,
     },
-    location: {
-      type: SchemaTypes.String,
-      required: true,
-    },
     branchcode: {
       type: SchemaTypes.String,
       required: true,
@@ -52,9 +48,9 @@ const companyBranchSchema = new mongoose.Schema(
       type: SchemaTypes.String,
       required: true,
     },
-    officeImages: {
+    mapLocationUrl: {
       type: SchemaTypes.String,
-      required: true,
+      required: false,
     },
   },
   { timestamps: true }

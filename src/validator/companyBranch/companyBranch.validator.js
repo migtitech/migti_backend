@@ -5,7 +5,7 @@ export const createCompanyBranchSchema = Joi.object({
   companyId: Joi.string().required(),
   adminId: Joi.string().optional(),
   email: Joi.string().email().required(),
-  location: Joi.string().required().min(2).max(200),
+  location: Joi.string().optional().allow('').max(200),
   branchcode: Joi.string().required().min(1).max(50),
   phone: Joi.string()
     .pattern(/^\d{5,20}$/)
@@ -16,7 +16,7 @@ export const createCompanyBranchSchema = Joi.object({
   address: Joi.string().required().min(2).max(200),
   gstNumber: Joi.string().required().min(3).max(50),
   fullAddress: Joi.string().required().min(5).max(500),
-  officeImages: Joi.string().required().min(1).max(500),
+  mapLocationUrl: Joi.string().optional().empty('').uri().max(500),
 })
 
 export const listCompanyBranchSchema = Joi.object({
@@ -35,7 +35,7 @@ export const updateCompanyBranchSchema = Joi.object({
   companyId: Joi.string().optional(),
   adminId: Joi.string().optional(),
   email: Joi.string().email().optional(),
-  location: Joi.string().min(2).max(200).optional(),
+  location: Joi.string().optional().allow('').max(200),
   branchcode: Joi.string().min(1).max(50).optional(),
   phone: Joi.string()
     .pattern(/^\d{5,20}$/)
@@ -46,7 +46,7 @@ export const updateCompanyBranchSchema = Joi.object({
   address: Joi.string().min(2).max(200).optional(),
   gstNumber: Joi.string().min(3).max(50).optional(),
   fullAddress: Joi.string().min(5).max(500).optional(),
-  officeImages: Joi.string().min(1).max(500).optional(),
+  mapLocationUrl: Joi.string().optional().empty('').uri().max(500),
 })
 
 export const deleteCompanyBranchSchema = Joi.object({

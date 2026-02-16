@@ -14,6 +14,7 @@ import areaRouter from './area.routes.js'
 import industryRouter from './industry.routes.js'
 import industryBranchRouter from './industryBranch.routes.js'
 import queryRouter from './query.routes.js'
+import documentRouter from './document.routes.js'
 
 const mainRoutes = express.Router()
 mainRoutes.use((req, res, next) => {
@@ -47,5 +48,6 @@ mainRoutes.use('/v1/areas', areaRouter)
 mainRoutes.use('/v1/industries', industryRouter)
 mainRoutes.use('/v1/industry-branches', industryBranchRouter)
 mainRoutes.use('/v1/queries', queryRouter)
+mainRoutes.use('/v1/documents', documentRouter)
 
 export default mainRoutes

@@ -1,5 +1,6 @@
 import IndustryModel from '../../models/industry.model.js'
 import IndustryPurchaseManagerModel from '../../models/industryPurchaseManager.model.js'
+import IndustryBranchModel from '../../models/industryBranch.model.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 
@@ -183,6 +184,10 @@ export const deleteIndustry = async ({ industryId }) => {
   }
 
   await IndustryPurchaseManagerModel.updateMany(
+    { industryId },
+    { $set: { isDeleted: true } },
+  )
+  await IndustryBranchModel.updateMany(
     { industryId },
     { $set: { isDeleted: true } },
   )

@@ -4,7 +4,6 @@ export const createGroupSchema = Joi.object({
   name: Joi.string().required().min(2).max(100),
   code: Joi.string().optional().allow(''),
   description: Joi.string().optional().allow(''),
-  sortOrder: Joi.number().integer().optional().default(0),
   status: Joi.string().valid('active', 'inactive').optional().default('active'),
 })
 
@@ -24,7 +23,6 @@ export const updateGroupSchema = Joi.object({
   name: Joi.string().min(2).max(100).optional(),
   code: Joi.string().optional().allow(''),
   description: Joi.string().optional().allow(''),
-  sortOrder: Joi.number().integer().optional(),
   status: Joi.string().valid('active', 'inactive').optional(),
 })
 

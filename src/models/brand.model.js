@@ -26,14 +26,6 @@ const brandSchema = new mongoose.Schema(
       type: SchemaTypes.String,
       default: '',
     },
-    logo: {
-      type: SchemaTypes.String,
-      default: '',
-    },
-    website: {
-      type: SchemaTypes.String,
-      default: '',
-    },
     status: {
       type: SchemaTypes.String,
       enum: ['active', 'inactive'],

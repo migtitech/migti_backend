@@ -66,7 +66,7 @@ export const listGroups = async ({
   const totalItems = await GroupModel.countDocuments(filter)
 
   const groups = await GroupModel.find(filter)
-    .sort({ sortOrder: 1, createdAt: -1 })
+    .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit)
     .lean()

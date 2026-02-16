@@ -170,6 +170,7 @@ export const employeeLogin = async ({ email, password, role }) => {
     role: employee.role,
     type: 'access',
     branchId: employee.branchId,
+    permissions: employee.permissions || [],
   }
 
   const tokens = createTokenPair(tokenPayload)

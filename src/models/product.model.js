@@ -68,7 +68,23 @@ const variantCombinationSchema = new mongoose.Schema(
       enum: ['cm', 'in', 'm'],
       default: 'cm',
     },
-    images: [{ type: SchemaTypes.String }],
+    images: [{ type: SchemaTypes.ObjectId, ref: 'document' }],
+    modelNumber: {
+      type: SchemaTypes.String,
+      default: '',
+      trim: true,
+    },
+    hsnNumber: {
+      type: SchemaTypes.String,
+      default: '',
+      trim: true,
+    },
+    gstPercentage: {
+      type: SchemaTypes.Number,
+      default: null,
+      min: 0,
+      max: 100,
+    },
     isActive: {
       type: SchemaTypes.Boolean,
       default: true,
@@ -109,10 +125,6 @@ const productSchema = new mongoose.Schema(
       trim: true,
       lowercase: true,
     },
-    description: {
-      type: SchemaTypes.String,
-      default: '',
-    },
     shortDescription: {
       type: SchemaTypes.String,
       default: '',
@@ -137,9 +149,30 @@ const productSchema = new mongoose.Schema(
       ref: 'brand',
       default: null,
     },
+    group: {
+      type: SchemaTypes.ObjectId,
+      ref: 'group',
+      default: null,
+    },
+    hsnNumber: {
+      type: SchemaTypes.String,
+      default: '',
+      trim: true,
+    },
+    gstPercentage: {
+      type: SchemaTypes.Number,
+      default: 0,
+      min: 0,
+      max: 100,
+    },
+    defaultModelNumber: {
+      type: SchemaTypes.String,
+      default: '',
+      trim: true,
+    },
     price: {
       type: SchemaTypes.Number,
-      required: true,
+      default: 0,
       min: 0,
     },
     mrp: {
@@ -163,7 +196,7 @@ const productSchema = new mongoose.Schema(
     },
     variants: [variantSchema],
     variantCombinations: [variantCombinationSchema],
-    images: [{ type: SchemaTypes.String }],
+    images: [{ type: SchemaTypes.ObjectId, ref: 'document' }],
     weight: {
       type: SchemaTypes.Number,
       default: 0,

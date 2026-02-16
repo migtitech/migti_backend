@@ -1,5 +1,7 @@
 import { Router } from 'express'
 import { asyncHandler } from '../utils/asyncWrapper.js'
+import { authenticateToken, checkPermission } from '../middlewares/jwtAuth.js'
+import { MODULES } from '../core/common/constant.js'
 import {
   createSupplierController,
   listSuppliersController,
@@ -11,11 +13,11 @@ import {
 
 const supplierRouter = Router()
 
-supplierRouter.post('/create', asyncHandler(createSupplierController))
-supplierRouter.get('/list', asyncHandler(listSuppliersController))
-supplierRouter.get('/search', asyncHandler(searchSuppliersController))
-supplierRouter.get('/get-by-id', asyncHandler(getSupplierByIdController))
-supplierRouter.put('/update', asyncHandler(updateSupplierController))
-supplierRouter.delete('/delete', asyncHandler(deleteSupplierController))
+supplierRouter.post('/create', authenticateToken, checkPermission(MODULES.SUPPLIERS, 'create'), asyncHandler(createSupplierController))
+supplierRouter.get('/list', authenticateToken, checkPermission(MODULES.SUPPLIERS, 'read'), asyncHandler(listSuppliersController))
+supplierRouter.get('/search', authenticateToken, checkPermission(MODULES.SUPPLIERS, 'read'), asyncHandler(searchSuppliersController))
+supplierRouter.get('/get-by-id', authenticateToken, checkPermission(MODULES.SUPPLIERS, 'read'), asyncHandler(getSupplierByIdController))
+supplierRouter.put('/update', authenticateToken, checkPermission(MODULES.SUPPLIERS, 'update'), asyncHandler(updateSupplierController))
+supplierRouter.delete('/delete', authenticateToken, checkPermission(MODULES.SUPPLIERS, 'delete'), asyncHandler(deleteSupplierController))
 
 export default supplierRouter

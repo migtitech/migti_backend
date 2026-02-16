@@ -2,7 +2,7 @@ import {
   verifyToken,
   extractTokenFromHeader,
 } from '../core/helpers/jwt.helper.js'
-import { statusCodes, errorCodes } from '../core/common/constant.js'
+import { statusCodes, errorCodes, FULL_ACCESS_ROLES } from '../core/common/constant.js'
 import CustomError from '../utils/exception.js'
 
 /**
@@ -140,5 +140,46 @@ export const requireAdmin = (req, res, next) => {
     next()
   } catch (error) {
     next(error)
+  }
+}
+
+/**
+ * Permission-based authorization middleware (RBAC)
+ * Full-access roles (super_admin, admin, hod) bypass permission checks.
+ * Other roles must have the specific "module:action" permission.
+ * @param {string} module - The module name (e.g., 'companies')
+ * @param {string} action - The action name (e.g., 'read', 'create', 'update', 'delete')
+ */
+export const checkPermission = (module, action) => {
+  return (req, res, next) => {
+    try {
+      if (!req.user) {
+        throw new CustomError(
+          statusCodes.unauthorized,
+          'Authentication required',
+          errorCodes.authentication_required
+        )
+      }
+
+      // Full-access roles bypass permission checks
+      if (FULL_ACCESS_ROLES.includes(req.user.role)) {
+        return next()
+      }
+
+      const requiredPermission = `${module}:${action}`
+      const userPermissions = req.user.permissions || []
+
+      if (!userPermissions.includes(requiredPermission)) {
+        throw new CustomError(
+          statusCodes.forbidden,
+          `You do not have permission to ${action} ${module}`,
+          errorCodes.insufficient_permissions
+        )
+      }
+
+      next()
+    } catch (error) {
+      next(error)
+    }
   }
 }

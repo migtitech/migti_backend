@@ -11,4 +11,5 @@
 /examples
 /templates
 /config
-/logs
+/logs 
+.env

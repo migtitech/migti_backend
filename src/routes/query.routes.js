@@ -1,5 +1,7 @@
 import { Router } from 'express'
 import { asyncHandler } from '../utils/asyncWrapper.js'
+import { authenticateToken, checkPermission } from '../middlewares/jwtAuth.js'
+import { MODULES } from '../core/common/constant.js'
 import {
   createQueryController,
   listQueriesController,
@@ -12,12 +14,12 @@ import {
 
 const queryRouter = Router()
 
-queryRouter.post('/create', asyncHandler(createQueryController))
-queryRouter.get('/list', asyncHandler(listQueriesController))
-queryRouter.get('/get-by-id', asyncHandler(getQueryByIdController))
-queryRouter.put('/update', asyncHandler(updateQueryController))
-queryRouter.delete('/delete', asyncHandler(deleteQueryController))
-queryRouter.get('/activities', asyncHandler(listQueryActivitiesController))
-queryRouter.post('/record-activity', asyncHandler(recordQueryActivityController))
+queryRouter.post('/create', authenticateToken, checkPermission(MODULES.QUERIES, 'create'), asyncHandler(createQueryController))
+queryRouter.get('/list', authenticateToken, checkPermission(MODULES.QUERIES, 'read'), asyncHandler(listQueriesController))
+queryRouter.get('/get-by-id', authenticateToken, checkPermission(MODULES.QUERIES, 'read'), asyncHandler(getQueryByIdController))
+queryRouter.put('/update', authenticateToken, checkPermission(MODULES.QUERIES, 'update'), asyncHandler(updateQueryController))
+queryRouter.delete('/delete', authenticateToken, checkPermission(MODULES.QUERIES, 'delete'), asyncHandler(deleteQueryController))
+queryRouter.get('/activities', authenticateToken, checkPermission(MODULES.QUERIES, 'read'), asyncHandler(listQueryActivitiesController))
+queryRouter.post('/record-activity', authenticateToken, checkPermission(MODULES.QUERIES, 'create'), asyncHandler(recordQueryActivityController))
 
 export default queryRouter

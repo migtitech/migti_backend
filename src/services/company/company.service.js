@@ -1,7 +1,6 @@
 import CompanyModel from '../../models/company.model.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
-import { encrypt } from '../../core/crypto/helper.cryto.js'
 
 const DEFAULT_LOGO_URL = 'https://migti.co.in/assets/images/logo.png'
 
@@ -9,8 +8,8 @@ export const addCompany = async ({
   name,
   logoUrl,
   email,
-  password,
   brandName,
+  gst,
 }) => {
   const existingCompany = await CompanyModel.findOne({ email }).lean()
   if (existingCompany) {
@@ -25,8 +24,8 @@ export const addCompany = async ({
     name,
     logoUrl: logoUrl || DEFAULT_LOGO_URL,
     email,
-    password: encrypt(password),
     brandName,
+    gst: gst || '',
   })
 
   const company = companyDoc.toObject()
@@ -104,10 +103,10 @@ export const updateCompany = async ({ companyId, ...updateData }) => {
     )
   }
 
-  if (updateData.password) {
-    updateData.password = encrypt(updateData.password)
+  delete updateData.password
+  if (updateData.gst !== undefined) {
+    updateData.gst = updateData.gst == null ? '' : String(updateData.gst)
   }
-
   if (updateData.logoUrl === '') {
     updateData.logoUrl = DEFAULT_LOGO_URL
   }
