@@ -117,6 +117,8 @@ export const deleteProductController = async (req, res) => {
   })
 }
 
+import { createDocumentsForUploadedFiles } from '../../services/document/document.service.js'
+
 export const uploadProductImagesController = async (req, res) => {
   if (!req.files || req.files.length === 0) {
     return res.status(statusCodes.badRequest).json({
@@ -125,11 +127,10 @@ export const uploadProductImagesController = async (req, res) => {
     })
   }
 
-  const imagePaths = req.files.map((file) => `/uploads/${file.filename}`)
-
+  const documents = await createDocumentsForUploadedFiles(req.files)
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Images uploaded successfully',
-    data: { images: imagePaths },
+    data: { documents },
   })
 }

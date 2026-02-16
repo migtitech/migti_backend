@@ -81,7 +81,7 @@ export const addCategory = async (data) => {
   const category = await CategoryModel.create({
     ...data,
     slug,
-    group: groupId,
+    group: data.group || null,
     parent: parentId,
     categoryCode,
   })
@@ -131,7 +131,7 @@ export const listCategories = async ({
   const categories = await CategoryModel.find(filter)
     .populate('group', 'name code')
     .populate('parent', 'name slug categoryCode')
-    .sort({ sortOrder: 1, createdAt: -1 })
+    .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit)
     .lean()

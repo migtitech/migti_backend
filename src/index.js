@@ -10,6 +10,7 @@ import responseInterceptor from './utils/responseInterceptor.js'
 import { startAgenda, stopAgenda } from './core/queue/loyaltyPoints.js'
 import { startEmailQueue, stopEmailQueue } from './core/queue/emailQueue.js'
 import { seedPreferences } from './core/helpers/preferenceData.js'
+import { ensureAssetsDir } from './models/document.model.js'
 import { fileURLToPath } from 'url'
 
 
@@ -50,6 +51,7 @@ app.use((req, res, next) => {
 
 app.use(express.urlencoded({ extended: true }))
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')))
+app.use('/assets', express.static(path.join(process.cwd(), 'assets')))
 
 // Routes
 app.use('/api', mainRoutes)
@@ -61,6 +63,10 @@ app.use((err, req, res, next) => {
 
 // Database connection
 connectDB()
+
+// Ensure assets folders exist at runtime (created dynamically on first upload if missing)
+ensureAssetsDir('assets')
+ensureAssetsDir('assets/temp')
 
 
 // Initialize Agenda queues

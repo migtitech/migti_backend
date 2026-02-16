@@ -99,6 +99,7 @@ export const listProducts = async ({
     .populate('category', 'name slug')
     .populate('subcategory', 'name slug')
     .populate('brand', 'name slug logo')
+    .populate('images', 'path')
     .sort(sort)
     .skip(skip)
     .limit(limit)
@@ -124,6 +125,9 @@ export const getProductById = async ({ productId }) => {
     .populate('category', 'name slug')
     .populate('subcategory', 'name slug')
     .populate('brand', 'name slug logo')
+    .populate('group', 'name code')
+    .populate('images', 'path')
+    .populate({ path: 'variantCombinations.images', model: 'document', select: 'path' })
     .lean()
 
   if (!product) {
@@ -208,6 +212,9 @@ export const updateProduct = async ({ productId, ...updateData }) => {
   if (updateData.brand === '') {
     updateData.brand = null
   }
+  if (updateData.group === '') {
+    updateData.group = null
+  }
 
   const updated = await ProductModel.findByIdAndUpdate(productId, updateData, {
     new: true,
@@ -216,6 +223,7 @@ export const updateProduct = async ({ productId, ...updateData }) => {
     .populate('category', 'name slug')
     .populate('subcategory', 'name slug')
     .populate('brand', 'name slug logo')
+    .populate('group', 'name code')
     .lean()
 
   return updated

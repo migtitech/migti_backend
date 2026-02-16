@@ -23,10 +23,6 @@ const groupSchema = new mongoose.Schema(
       type: SchemaTypes.String,
       default: '',
     },
-    sortOrder: {
-      type: SchemaTypes.Number,
-      default: 0,
-    },
     status: {
       type: SchemaTypes.String,
       enum: ['active', 'inactive'],

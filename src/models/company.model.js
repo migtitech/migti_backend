@@ -25,11 +25,16 @@ const companySchema = new mongoose.Schema(
     },
     password: {
       type: SchemaTypes.String,
-      required: true,
+      required: false,
+      default: null,
     },
     brandName: {
       type: SchemaTypes.String,
       required: true,
+    },
+    gst: {
+      type: SchemaTypes.String,
+      default: '',
     },
   },
   { timestamps: true }

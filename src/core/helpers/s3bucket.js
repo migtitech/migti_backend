@@ -24,6 +24,14 @@ export const uploadToS3 = async (
       }
     }
 
+    if (!file.buffer || !Buffer.isBuffer(file.buffer)) {
+      return {
+        success: false,
+        message: 'File buffer is required (use multer memory storage)',
+        data: null,
+      }
+    }
+
     if (!bucketName) {
       return {
         success: false,
@@ -43,8 +51,9 @@ export const uploadToS3 = async (
 
     console.log('Starting S3 upload for file:', file.originalname)
 
-    const fileExtension = path.extname(file.originalname)
-    const fileName = `${uuidv4()}${fileExtension}`
+    const fileExtension = path.extname(file.originalname) || '.jpg'
+    const base = (file.originalname || 'file').replace(/\s+/g, '-').slice(0, 50)
+    const fileName = `${base}-${Date.now()}-${uuidv4().slice(0, 8)}${fileExtension}`
     const key = folder ? `${folder}/${fileName}` : fileName
 
     const uploadParams = {
@@ -68,7 +77,8 @@ export const uploadToS3 = async (
 
     const result = await Promise.race([uploadPromise, timeoutPromise])
 
-    const fileUrl = `https://${bucketName}.s3.${process.env.AWS_REGION || 'us-east-1'}.amazonaws.com/${key}`
+    const region = process.env.AWS_REGION || 'us-east-1'
+    const fileUrl = `https://${bucketName}.s3.${region}.amazonaws.com/${key}`
 
     console.log('S3 upload completed successfully for:', file.originalname)
 

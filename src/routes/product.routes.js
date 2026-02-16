@@ -1,8 +1,10 @@
 import { Router } from 'express'
 import { asyncHandler } from '../utils/asyncWrapper.js'
-import { upload } from '../middlewares/uploads.js'
+import { authenticateToken, checkPermission } from '../middlewares/jwtAuth.js'
+import { MODULES } from '../core/common/constant.js'
+import { uploadAssetsMemory } from '../middlewares/uploads.js'
 import {
-  createProductController, 
+  createProductController,
   listProductsController,
   getProductByIdController,
   updateProductController,
@@ -12,11 +14,17 @@ import {
 
 const productRouter = Router()
 
-productRouter.post('/create', asyncHandler(createProductController))
-productRouter.get('/list', asyncHandler(listProductsController))
-productRouter.get('/get-by-id', asyncHandler(getProductByIdController))
-productRouter.put('/update', asyncHandler(updateProductController))
-productRouter.delete('/delete', asyncHandler(deleteProductController))
-productRouter.post('/upload-images', upload.array('images', 10), asyncHandler(uploadProductImagesController))
+productRouter.post('/create', authenticateToken, checkPermission(MODULES.PRODUCTS, 'create'), asyncHandler(createProductController))
+productRouter.get('/list', authenticateToken, checkPermission(MODULES.PRODUCTS, 'read'), asyncHandler(listProductsController))
+productRouter.get('/get-by-id', authenticateToken, checkPermission(MODULES.PRODUCTS, 'read'), asyncHandler(getProductByIdController))
+productRouter.put('/update', authenticateToken, checkPermission(MODULES.PRODUCTS, 'update'), asyncHandler(updateProductController))
+productRouter.delete('/delete', authenticateToken, checkPermission(MODULES.PRODUCTS, 'delete'), asyncHandler(deleteProductController))
+productRouter.post(
+  '/upload-images',
+  authenticateToken,
+  checkPermission(MODULES.PRODUCTS, 'create'),
+  uploadAssetsMemory.array('images', 20),
+  asyncHandler(uploadProductImagesController),
+)
 
 export default productRouter

@@ -60,6 +60,7 @@ export const createEmployeeSchema = Joi.object({
   salary: Joi.number().min(0).optional(),
   password: Joi.string().required().min(6),
   branchId: Joi.string().required(),
+  permissions: Joi.array().items(Joi.string()).optional(),
   bankDetails: bankDetailsSchema.optional(),
   assets: assetsSchema.optional(),
 }).unknown(true)
@@ -102,8 +103,9 @@ export const updateEmployeeSchema = Joi.object({
   idnumber: Joi.string().min(2).max(50).optional(),
   salaryType: Joi.string().allow('').max(50).optional(),
   salary: Joi.number().min(0).optional(),
-  password: Joi.string().min(6).optional(),
+  password: Joi.forbidden(), // password cannot be updated via this endpoint
   branchId: Joi.string().optional(),
+  permissions: Joi.array().items(Joi.string()).optional(),
   bankDetails: bankDetailsSchema.optional(),
   assets: assetsSchema.optional(),
 }).unknown(true)

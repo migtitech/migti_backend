@@ -97,6 +97,7 @@ const employeeSchema = new mongoose.Schema(
       ref: 'companyBranch',
       required: true,
     },
+    permissions: [{ type: String }],
     bankDetails: { type: bankDetailsSchema, default: () => ({}) },
     assets: { type: assetsSchema, default: () => ({}) },
   },

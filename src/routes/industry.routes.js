@@ -1,5 +1,7 @@
 import { Router } from 'express'
 import { asyncHandler } from '../utils/asyncWrapper.js'
+import { authenticateToken, checkPermission } from '../middlewares/jwtAuth.js'
+import { MODULES } from '../core/common/constant.js'
 import {
   createIndustryController,
   listIndustriesController,
@@ -10,10 +12,10 @@ import {
 
 const industryRouter = Router()
 
-industryRouter.post('/create', asyncHandler(createIndustryController))
-industryRouter.get('/list', asyncHandler(listIndustriesController))
-industryRouter.get('/get-by-id', asyncHandler(getIndustryByIdController))
-industryRouter.put('/update', asyncHandler(updateIndustryController))
-industryRouter.delete('/delete', asyncHandler(deleteIndustryController))
+industryRouter.post('/create', authenticateToken, checkPermission(MODULES.INDUSTRIES, 'create'), asyncHandler(createIndustryController))
+industryRouter.get('/list', authenticateToken, checkPermission(MODULES.INDUSTRIES, 'read'), asyncHandler(listIndustriesController))
+industryRouter.get('/get-by-id', authenticateToken, checkPermission(MODULES.INDUSTRIES, 'read'), asyncHandler(getIndustryByIdController))
+industryRouter.put('/update', authenticateToken, checkPermission(MODULES.INDUSTRIES, 'update'), asyncHandler(updateIndustryController))
+industryRouter.delete('/delete', authenticateToken, checkPermission(MODULES.INDUSTRIES, 'delete'), asyncHandler(deleteIndustryController))
 
 export default industryRouter
