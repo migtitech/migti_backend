@@ -1,5 +1,11 @@
 import Joi from 'joi'
 
+const purchaseManagerItemSchema = Joi.object({
+  name: Joi.string().required().min(1).max(100),
+  phone: Joi.string().optional().allow('').max(20),
+  email: Joi.string().email({ tlds: { allow: false } }).optional().allow(''),
+})
+
 export const createIndustrySchema = Joi.object({
   name: Joi.string().required().min(2).max(100),
   area: Joi.string().optional().allow(null, ''),
@@ -8,6 +14,8 @@ export const createIndustrySchema = Joi.object({
   purchase_manager_name: Joi.string().optional().allow(''),
   purchase_manager_phone: Joi.string().optional().allow(''),
   email: Joi.string().email({ tlds: { allow: false } }).optional().allow(''),
+  gstNumber: Joi.string().optional().allow('').max(50),
+  purchaseManagers: Joi.array().items(purchaseManagerItemSchema).optional().default([]),
 })
 
 export const listIndustrySchema = Joi.object({
@@ -29,6 +37,8 @@ export const updateIndustrySchema = Joi.object({
   purchase_manager_name: Joi.string().optional().allow(''),
   purchase_manager_phone: Joi.string().optional().allow(''),
   email: Joi.string().email({ tlds: { allow: false } }).optional().allow(''),
+  gstNumber: Joi.string().optional().allow('').max(50),
+  purchaseManagers: Joi.array().items(purchaseManagerItemSchema).optional(),
 })
 
 export const deleteIndustrySchema = Joi.object({

@@ -1,4 +1,5 @@
 import CategoryModel from '../../models/category.model.js'
+import GroupModel from '../../models/group.model.js'
 import ProductModel from '../../models/product.model.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
@@ -80,6 +81,7 @@ export const addCategory = async (data) => {
   const category = await CategoryModel.create({
     ...data,
     slug,
+    group: groupId,
     parent: parentId,
     categoryCode,
   })
@@ -92,6 +94,7 @@ export const listCategories = async ({
   pageSize = 10,
   search = '',
   parent,
+  group,
   status,
 }) => {
   const page = Math.max(1, parseInt(pageNumber))
@@ -113,6 +116,12 @@ export const listCategories = async ({
     filter.parent = parent
   }
 
+  if (group === 'null' || group === '') {
+    filter.group = null
+  } else if (group) {
+    filter.group = group
+  }
+
   if (status) {
     filter.status = status
   }
@@ -120,6 +129,7 @@ export const listCategories = async ({
   const totalItems = await CategoryModel.countDocuments(filter)
 
   const categories = await CategoryModel.find(filter)
+    .populate('group', 'name code')
     .populate('parent', 'name slug categoryCode')
     .sort({ sortOrder: 1, createdAt: -1 })
     .skip(skip)
@@ -143,6 +153,7 @@ export const listCategories = async ({
 
 export const getCategoryById = async ({ categoryId }) => {
   const category = await CategoryModel.findById(categoryId)
+    .populate('group', 'name code')
     .populate('parent', 'name slug')
     .lean()
 
@@ -182,11 +193,15 @@ export const updateCategory = async ({ categoryId, ...updateData }) => {
   if (updateData.parent === '') {
     updateData.parent = null
   }
+  if (updateData.group === '') {
+    updateData.group = null
+  }
 
   const updated = await CategoryModel.findByIdAndUpdate(categoryId, updateData, {
     new: true,
     runValidators: true,
   })
+    .populate('group', 'name code')
     .populate('parent', 'name slug categoryCode')
     .lean()
 

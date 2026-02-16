@@ -3,6 +3,7 @@ import Joi from 'joi'
 export const createCategorySchema = Joi.object({
   name: Joi.string().required().min(2).max(100),
   description: Joi.string().optional().allow(''),
+  group: Joi.string().optional().allow(null, ''),
   parent: Joi.string().optional().allow(null, ''),
   image: Joi.string().optional().allow(''),
   sortOrder: Joi.number().integer().optional().default(0),
@@ -15,6 +16,7 @@ export const listCategorySchema = Joi.object({
   pageSize: Joi.number().integer().min(1).max(100).default(10),
   search: Joi.string().allow('', null),
   parent: Joi.string().allow('', null),
+  group: Joi.string().allow('', null),
   status: Joi.string().valid('active', 'inactive').allow('', null),
 })
 
@@ -26,6 +28,7 @@ export const updateCategorySchema = Joi.object({
   categoryId: Joi.string().required(),
   name: Joi.string().min(2).max(100).optional(),
   description: Joi.string().optional().allow(''),
+  group: Joi.string().optional().allow(null, ''),
   parent: Joi.string().optional().allow(null, ''),
   image: Joi.string().optional().allow(''),
   sortOrder: Joi.number().integer().optional(),

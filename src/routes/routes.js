@@ -5,6 +5,7 @@ import companyBranchRouter from './companyBranch.routes.js'
 import employeeRouter from './employee.routes.js'
 import rawQueryRouter from './rawQuery.routes.js'
 import categoryRouter from './category.routes.js'
+import groupRouter from './group.routes.js'
 import brandRouter from './brand.routes.js'
 import productRouter from './product.routes.js'
 import supplierRouter from './supplier.routes.js'
@@ -36,6 +37,7 @@ mainRoutes.use('/v1/company-branches', companyBranchRouter)
 mainRoutes.use('/v1/employees', employeeRouter)
 mainRoutes.use('/v1/raw-queries', rawQueryRouter)
 mainRoutes.use('/v1/categories', categoryRouter)
+mainRoutes.use('/v1/groups', groupRouter)
 mainRoutes.use('/v1/brands', brandRouter)
 mainRoutes.use('/v1/products', productRouter)
 mainRoutes.use('/v1/suppliers', supplierRouter)

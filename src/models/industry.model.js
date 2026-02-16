@@ -45,6 +45,11 @@ const industrySchema = new mongoose.Schema(
       lowercase: true,
       default: '',
     },
+    gstNumber: {
+      type: SchemaTypes.String,
+      trim: true,
+      default: '',
+    },
   },
   { timestamps: true },
 )
