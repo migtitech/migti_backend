@@ -11,7 +11,6 @@ const removeAllProductIndexes = async () => {
     const removableIndexes = indexes.filter((idx) => idx.name !== '_id_')
     for (const index of removableIndexes) {
       await collection.dropIndex(index.name)
-      console.log(`Dropped products index: ${index.name}`)
     }
   } catch (error) {
     if (error?.codeName !== 'IndexNotFound' && error?.code !== 27) {
@@ -29,7 +28,6 @@ const removeCategoryIndexes = async () => {
     const removableIndexes = indexes.filter((idx) => idx.name !== '_id_')
     for (const index of removableIndexes) {
       await collection.dropIndex(index.name)
-      console.log(`Dropped categories index: ${index.name}`)
     }
   } catch (error) {
     if (error?.codeName !== 'IndexNotFound' && error?.code !== 27) {
