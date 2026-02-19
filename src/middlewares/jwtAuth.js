@@ -183,3 +183,38 @@ export const checkPermission = (module, action) => {
     }
   }
 }
+
+/**
+ * Allow if user has any of the given actions on the module (e.g. create OR update for upload).
+ */
+export const checkPermissionAny = (module, actions) => {
+  const actionsList = Array.isArray(actions) ? actions : [actions]
+  return (req, res, next) => {
+    try {
+      if (!req.user) {
+        throw new CustomError(
+          statusCodes.unauthorized,
+          'Authentication required',
+          errorCodes.authentication_required
+        )
+      }
+      if (FULL_ACCESS_ROLES.includes(req.user.role)) {
+        return next()
+      }
+      const userPermissions = req.user.permissions || []
+      const hasAny = actionsList.some(
+        (action) => userPermissions.includes(`${module}:${action}`)
+      )
+      if (!hasAny) {
+        throw new CustomError(
+          statusCodes.forbidden,
+          `You do not have permission to perform this action on ${module}`,
+          errorCodes.insufficient_permissions
+        )
+      }
+      next()
+    } catch (error) {
+      next(error)
+    }
+  }
+}

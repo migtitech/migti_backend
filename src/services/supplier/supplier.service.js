@@ -19,6 +19,7 @@ const buildSupplierSearchFilter = (search = '') => {
       { phone_2: { $regex: search, $options: 'i' } },
       { other_contact: { $regex: search, $options: 'i' } },
       { label: { $regex: search, $options: 'i' } },
+      { gst: { $regex: search, $options: 'i' } },
     ]
   }
   return filter
@@ -44,6 +45,7 @@ export const addSupplier = async (data) => {
     ...data,
     categories,
     label: data.label || data.labal || '',
+    gst: (data.gst || '').trim().toUpperCase(),
   })
 
   return supplier.toObject()
@@ -138,6 +140,8 @@ export const getSupplierById = async ({ supplierId }) => {
   return supplier
 }
 
+const ALLOWED_UPDATE_FIELDS = ['address', 'phone_1', 'phone_2', 'categories', 'remark']
+
 export const updateSupplier = async ({ supplierId, ...updateData }) => {
   const supplier = await SupplierModel.findById(supplierId).lean()
   if (!supplier) {
@@ -148,17 +152,19 @@ export const updateSupplier = async ({ supplierId, ...updateData }) => {
     )
   }
 
-  if (updateData.categories) {
-    updateData.categories = normalizeCategories(updateData.categories)
-    await ensureCategoriesExist(updateData.categories)
+  const allowedUpdate = {}
+  for (const key of ALLOWED_UPDATE_FIELDS) {
+    if (Object.prototype.hasOwnProperty.call(updateData, key)) {
+      allowedUpdate[key] = updateData[key]
+    }
   }
 
-  if (updateData.labal && !updateData.label) {
-    updateData.label = updateData.labal
+  if (allowedUpdate.categories) {
+    allowedUpdate.categories = normalizeCategories(allowedUpdate.categories)
+    await ensureCategoriesExist(allowedUpdate.categories)
   }
-  delete updateData.labal
 
-  const updated = await SupplierModel.findByIdAndUpdate(supplierId, updateData, {
+  const updated = await SupplierModel.findByIdAndUpdate(supplierId, allowedUpdate, {
     new: true,
     runValidators: true,
   })

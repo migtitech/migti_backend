@@ -36,6 +36,20 @@ const companySchema = new mongoose.Schema(
       type: SchemaTypes.String,
       default: '',
     },
+    mobile: {
+      type: SchemaTypes.String,
+      trim: true,
+      default: '',
+    },
+    address: {
+      type: SchemaTypes.String,
+      default: '',
+    },
+    website: {
+      type: SchemaTypes.String,
+      trim: true,
+      default: '',
+    },
   },
   { timestamps: true }
 )

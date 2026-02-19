@@ -12,4 +12,4 @@
 /templates
 /config
 /logs 
-.env.env
+.env

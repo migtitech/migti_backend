@@ -53,7 +53,7 @@ export const listIndustries = async ({
   search = '',
 }) => {
   const page = Math.max(1, parseInt(pageNumber))
-  const limit = Math.min(100, Math.max(1, parseInt(pageSize)))
+  const limit = Math.min(1000, Math.max(1, parseInt(pageSize)))
   const skip = (page - 1) * limit
 
   const filter = { isDeleted: false }
@@ -128,6 +128,8 @@ export const getIndustryById = async ({ industryId }) => {
   return { ...industry, purchaseManagers }
 }
 
+const ALLOWED_UPDATE_FIELDS = ['location', 'address', 'purchase_manager_name', 'purchase_manager_phone']
+
 export const updateIndustry = async ({ industryId, purchaseManagers, ...updateData }) => {
   const industry = await IndustryModel.findById(industryId).lean()
   if (!industry) {
@@ -138,8 +140,11 @@ export const updateIndustry = async ({ industryId, purchaseManagers, ...updateDa
     )
   }
 
-  if (updateData.area === '') {
-    updateData.area = null
+  const allowedUpdate = {}
+  for (const key of ALLOWED_UPDATE_FIELDS) {
+    if (Object.prototype.hasOwnProperty.call(updateData, key)) {
+      allowedUpdate[key] = updateData[key]
+    }
   }
 
   if (Array.isArray(purchaseManagers)) {
@@ -159,7 +164,7 @@ export const updateIndustry = async ({ industryId, purchaseManagers, ...updateDa
     }
   }
 
-  const updated = await IndustryModel.findByIdAndUpdate(industryId, updateData, {
+  const updated = await IndustryModel.findByIdAndUpdate(industryId, allowedUpdate, {
     new: true,
     runValidators: true,
   })

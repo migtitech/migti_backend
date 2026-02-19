@@ -20,7 +20,7 @@ export const createIndustrySchema = Joi.object({
 
 export const listIndustrySchema = Joi.object({
   pageNumber: Joi.number().integer().min(1).default(1),
-  pageSize: Joi.number().integer().min(1).max(100).default(10),
+  pageSize: Joi.number().integer().min(1).max(1000).default(10),
   search: Joi.string().allow('', null),
 })
 
@@ -28,16 +28,13 @@ export const getIndustryByIdSchema = Joi.object({
   industryId: Joi.string().required(),
 })
 
+// Edit mode: only location, purchase manager(s) and address can be updated
 export const updateIndustrySchema = Joi.object({
   industryId: Joi.string().required(),
-  name: Joi.string().min(2).max(100).optional(),
-  area: Joi.string().optional().allow(null, ''),
   location: Joi.string().optional().allow(''),
   address: Joi.string().optional().allow(''),
   purchase_manager_name: Joi.string().optional().allow('', null),
   purchase_manager_phone: Joi.string().optional().allow('', null),
-  email: Joi.string().email({ tlds: { allow: false } }).optional().allow('', null),
-  gstNumber: Joi.string().optional().allow('').max(50),
   purchaseManagers: Joi.array().items(purchaseManagerItemSchema).optional(),
 })
 

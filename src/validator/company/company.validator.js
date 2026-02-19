@@ -6,6 +6,10 @@ export const createCompanySchema = Joi.object({
   email: Joi.string().email().required(),
   brandName: Joi.string().required().min(2).max(100),
   gst: Joi.string().optional().allow(''),
+  mobile: Joi.string().optional().allow('').max(20),
+  address: Joi.string().optional().allow('').max(500),
+  website: Joi.string().uri().optional().allow('').max(200),
+  isActive: Joi.boolean().optional(),
 })
 
 export const listCompanySchema = Joi.object({
@@ -25,6 +29,10 @@ export const updateCompanySchema = Joi.object({
   email: Joi.string().email().optional(),
   brandName: Joi.string().min(2).max(100).optional(),
   gst: Joi.string().optional().allow(''),
+  mobile: Joi.string().optional().allow('').max(20),
+  address: Joi.string().optional().allow('').max(500),
+  website: Joi.string().uri().optional().allow('').max(200),
+  isActive: Joi.boolean().optional(),
 })
 
 export const deleteCompanySchema = Joi.object({

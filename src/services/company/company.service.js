@@ -10,6 +10,10 @@ export const addCompany = async ({
   email,
   brandName,
   gst,
+  mobile = '',
+  address = '',
+  website = '',
+  isActive = true,
 }) => {
   const existingCompany = await CompanyModel.findOne({ email }).lean()
   if (existingCompany) {
@@ -26,6 +30,10 @@ export const addCompany = async ({
     email,
     brandName,
     gst: gst || '',
+    mobile: mobile || '',
+    address: address || '',
+    website: website || '',
+    isActive: isActive !== false,
   })
 
   const company = companyDoc.toObject()
@@ -48,6 +56,8 @@ export const listCompanies = async ({
       { name: { $regex: search, $options: 'i' } },
       { brandName: { $regex: search, $options: 'i' } },
       { email: { $regex: search, $options: 'i' } },
+      { mobile: { $regex: search, $options: 'i' } },
+      { website: { $regex: search, $options: 'i' } },
     ]
   }
 
@@ -109,6 +119,18 @@ export const updateCompany = async ({ companyId, ...updateData }) => {
   }
   if (updateData.logoUrl === '') {
     updateData.logoUrl = DEFAULT_LOGO_URL
+  }
+  if (updateData.mobile !== undefined) {
+    updateData.mobile = updateData.mobile == null ? '' : String(updateData.mobile)
+  }
+  if (updateData.address !== undefined) {
+    updateData.address = updateData.address == null ? '' : String(updateData.address)
+  }
+  if (updateData.website !== undefined) {
+    updateData.website = updateData.website == null ? '' : String(updateData.website)
+  }
+  if (updateData.isActive === undefined) {
+    delete updateData.isActive
   }
 
   const updatedCompany = await CompanyModel.findByIdAndUpdate(

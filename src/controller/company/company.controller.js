@@ -13,6 +13,7 @@ import {
   updateCompany,
   deleteCompany,
 } from '../../services/company/company.service.js'
+import { uploadToS3 } from '../../core/helpers/s3bucket.js'
 
 export const createCompanyController = async (req, res) => {
   const { error, value } = createCompanySchema.validate(req.body, {
@@ -114,5 +115,32 @@ export const deleteCompanyController = async (req, res) => {
     success: true,
     message: 'Company deleted successfully',
     data: result,
+  })
+}
+
+/**
+ * Upload company logo to S3. Expects multipart form with field 'logo' (image file).
+ * Returns { url } for use in create/update company.
+ */
+export const uploadCompanyLogoController = async (req, res) => {
+  if (!req.file) {
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: 'No logo file uploaded. Use field name "logo".',
+    })
+  }
+
+  const result = await uploadToS3(req.file, process.env.AWS_BUCKET_NAME, 'company-logos')
+  if (!result.success) {
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: result.message || 'Logo upload failed',
+    })
+  }
+
+  return res.status(statusCodes.ok).json({
+    success: true,
+    message: 'Logo uploaded successfully',
+    data: { url: result.data.url },
   })
 }

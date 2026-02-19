@@ -55,6 +55,12 @@ const supplierSchema = new mongoose.Schema(
       trim: true,
       default: '',
     },
+    gst: {
+      type: SchemaTypes.String,
+      trim: true,
+      uppercase: true,
+      default: '',
+    },
     categories: [
       {
         type: SchemaTypes.ObjectId,
