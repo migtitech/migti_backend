@@ -2,7 +2,7 @@ import path from 'path'
 import fs from 'fs'
 import { v4 as uuidv4 } from 'uuid'
 import DocumentModel from '../../models/document.model.js'
-import { uploadToS3 } from '../../core/helpers/s3bucket.js'
+import { uploadToS3, getSignedUrlForPath } from '../../core/helpers/s3bucket.js'
 
 const ASSETS_DIR = path.join(process.cwd(), 'assets')
 
@@ -119,4 +119,83 @@ export const createDocumentsForUploadedFiles = async (files) => {
 export const getDocumentById = async (documentId) => {
   const doc = await DocumentModel.findById(documentId).lean()
   return doc
+}
+
+/**
+ * Convert S3 paths to signed URLs for private bucket access.
+ * Local paths are returned as-is.
+ * @param {string} docPath - path from document (S3 URL or local relative path)
+ * @returns {Promise<string>} signed URL for S3, or original path for local
+ */
+export const toDisplayPath = async (docPath) => {
+  if (!docPath) return docPath
+  if (typeof docPath === 'string' && (docPath.startsWith('http://') || docPath.startsWith('https://'))) {
+    const signed = await getSignedUrlForPath(docPath)
+    return signed || docPath
+  }
+  return docPath
+}
+
+/**
+ * Transform documents array: replace S3 paths with signed URLs.
+ * @param {Array<{_id, path}>} docs - documents with path
+ * @returns {Promise<Array>} same docs with path replaced by signed URL when S3
+ */
+export const transformPathsToSignedUrls = async (docs) => {
+  if (!docs?.length) return docs
+  const result = []
+  for (const d of docs) {
+    const displayPath = await toDisplayPath(d?.path)
+    result.push({ ...d, path: displayPath })
+  }
+  return result
+}
+
+/**
+ * Transform product(s) images paths to signed URLs for S3 private bucket.
+ * Handles product.images and product.variantCombinations[].images
+ */
+export const transformProductImagesToSigned = async (productOrProducts) => {
+  const transformDoc = async (doc) => {
+    if (!doc?.path) return doc
+    const displayPath = await toDisplayPath(doc.path)
+    return { ...doc, path: displayPath }
+  }
+  const transformOne = async (p) => {
+    if (!p) return p
+    const out = { ...p }
+    if (Array.isArray(out.images) && out.images.length) {
+      out.images = await Promise.all(out.images.map(transformDoc))
+    }
+    if (Array.isArray(out.variantCombinations)) {
+      out.variantCombinations = await Promise.all(
+        out.variantCombinations.map(async (vc) => {
+          if (!vc?.images?.length) return vc
+          return { ...vc, images: await Promise.all(vc.images.map(transformDoc)) }
+        })
+      )
+    }
+    return out
+  }
+  if (Array.isArray(productOrProducts)) {
+    return Promise.all(productOrProducts.map(transformOne))
+  }
+  return transformOne(productOrProducts)
+}
+
+/**
+ * Add logoDisplayUrl (signed URL) to company for display. Keeps logoUrl as permanent for DB/form.
+ */
+export const addLogoDisplayUrl = async (company) => {
+  if (!company?.logoUrl) return company
+  const displayUrl = await toDisplayPath(company.logoUrl)
+  return { ...company, logoDisplayUrl: displayUrl }
+}
+
+/**
+ * Add logoDisplayUrl to companies array.
+ */
+export const addLogoDisplayUrlToCompanies = async (companies) => {
+  if (!companies?.length) return companies
+  return Promise.all(companies.map(addLogoDisplayUrl))
 }

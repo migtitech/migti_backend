@@ -13,7 +13,11 @@ import {
   updateCompany,
   deleteCompany,
 } from '../../services/company/company.service.js'
-import { uploadToS3 } from '../../core/helpers/s3bucket.js'
+import { uploadToS3, getSignedUrlForPath } from '../../core/helpers/s3bucket.js'
+import {
+  addLogoDisplayUrl,
+  addLogoDisplayUrlToCompanies,
+} from '../../services/document/document.service.js'
 
 export const createCompanyController = async (req, res) => {
   const { error, value } = createCompanySchema.validate(req.body, {
@@ -28,10 +32,11 @@ export const createCompanyController = async (req, res) => {
   }
 
   const result = await addCompany(value)
+  const data = await addLogoDisplayUrl(result)
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Company created successfully',
-    data: result,
+    data,
   })
 }
 
@@ -48,6 +53,7 @@ export const listCompaniesController = async (req, res) => {
   }
 
   const result = await listCompanies(value)
+  result.companies = await addLogoDisplayUrlToCompanies(result.companies)
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Companies retrieved successfully',
@@ -68,10 +74,11 @@ export const getCompanyByIdController = async (req, res) => {
   }
 
   const result = await getCompanyById(value)
+  const data = await addLogoDisplayUrl(result)
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Company details retrieved successfully',
-    data: result,
+    data,
   })
 }
 
@@ -91,10 +98,11 @@ export const updateCompanyController = async (req, res) => {
   }
 
   const result = await updateCompany(value)
+  const data = await addLogoDisplayUrl(result)
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Company updated successfully',
-    data: result,
+    data,
   })
 }
 
@@ -138,9 +146,13 @@ export const uploadCompanyLogoController = async (req, res) => {
     })
   }
 
+  const url = result.data.url
+  const signedUrl = await getSignedUrlForPath(url)
+  const displayUrl = signedUrl || url
+
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Logo uploaded successfully',
-    data: { url: result.data.url },
+    data: { url, displayUrl },
   })
 }

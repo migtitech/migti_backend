@@ -47,6 +47,7 @@ export const listProductsController = async (req, res) => {
   }
 
   const result = await listProducts(value)
+  result.products = await transformProductImagesToSigned(result.products)
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Products retrieved successfully',
@@ -67,10 +68,11 @@ export const getProductByIdController = async (req, res) => {
   }
 
   const result = await getProductById(value)
+  const data = await transformProductImagesToSigned(result)
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Product details retrieved successfully',
-    data: result,
+    data,
   })
 }
 
@@ -117,7 +119,11 @@ export const deleteProductController = async (req, res) => {
   })
 }
 
-import { createDocumentsForUploadedFiles } from '../../services/document/document.service.js'
+import {
+  createDocumentsForUploadedFiles,
+  transformPathsToSignedUrls,
+  transformProductImagesToSigned,
+} from '../../services/document/document.service.js'
 
 export const uploadProductImagesController = async (req, res) => {
   if (!req.files || req.files.length === 0) {
@@ -128,9 +134,10 @@ export const uploadProductImagesController = async (req, res) => {
   }
 
   const documents = await createDocumentsForUploadedFiles(req.files)
+  const documentsWithSignedUrls = await transformPathsToSignedUrls(documents)
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Images uploaded successfully',
-    data: { documents },
+    data: { documents: documentsWithSignedUrls },
   })
 }

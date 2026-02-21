@@ -1,4 +1,5 @@
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
+import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3'
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { v4 as uuidv4 } from 'uuid'
 import path from 'path'
 
@@ -160,7 +161,37 @@ export const uploadMultipleToS3 = async (
   }
 }
 
+/**
+ * Generate a presigned (signed) URL for private S3 objects. Use when bucket is private.
+ * @param {string} s3PathOrUrl - Full S3 URL (https://bucket.s3.region.amazonaws.com/key) or S3 key
+ * @param {number} expiresIn - URL validity in seconds (default: 1 hour)
+ * @returns {Promise<string|null>} Signed URL or null if not S3 / error
+ */
+export const getSignedUrlForPath = async (s3PathOrUrl, expiresIn = 3600) => {
+  try {
+    const bucketName = process.env.AWS_BUCKET_NAME
+    if (!bucketName || !process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
+      return null
+    }
+    let key = s3PathOrUrl
+    if (typeof s3PathOrUrl === 'string' && s3PathOrUrl.startsWith('http')) {
+      const match = s3PathOrUrl.match(/\.amazonaws\.com\/(.+)$/)
+      if (!match) return null
+      key = decodeURIComponent(match[1])
+    }
+    if (!key || typeof key !== 'string') return null
+
+    const command = new GetObjectCommand({ Bucket: bucketName, Key: key })
+    const signedUrl = await getSignedUrl(s3Client, command, { expiresIn })
+    return signedUrl
+  } catch (err) {
+    console.error('getSignedUrlForPath error:', err)
+    return null
+  }
+}
+
 export default {
   uploadToS3,
   uploadMultipleToS3,
+  getSignedUrlForPath,
 }
