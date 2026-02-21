@@ -18,13 +18,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 const app = express()
-const PORT = (() => {
-  const env = process.env.ENV
-
-  return env === 'development' ? 4545 : process.env.PORT
-})()
-console.log("app render");
-
+const PORT =  process.env.PORT || 7200
 app.use(express.static(path.join(__dirname, 'public')));
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -54,7 +48,7 @@ app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')))
 app.use('/assets', express.static(path.join(process.cwd(), 'assets')))
 
 // Routes
-app.use('/api', mainRoutes)
+app.use(mainRoutes)
 
 // Global error handler (must be after routes)
 app.use((err, req, res, next) => {
@@ -93,7 +87,6 @@ process.on('SIGTERM', async () => {
   process.exit(0)
 })
 
-// Start server
 app.listen(PORT, '0.0.0.0', () => {
   logger.info(`Server is running at port ${PORT}`)
 })
