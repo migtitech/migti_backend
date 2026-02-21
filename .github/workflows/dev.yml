@@ -34,5 +34,7 @@ jobs:
 
             cd /var/www/migtidev/migti_backend
             git checkout development
+            git stash 
             git pull origin development
+            git stash pop
             pm2 restart migtibedev
