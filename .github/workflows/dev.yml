@@ -8,7 +8,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -18,19 +17,9 @@ jobs:
         with:
           node-version: 18
 
-      # - name: Install Dependencies
-      #   run: npm install
-
-      # - name: Run Tests
-      #   run: npm test
-
-      # - name: Build Project
-      #   run: npm run build 
-
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/prod'
 
     steps:
       - name: Deploy to Server via SSH
@@ -41,6 +30,6 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             cd /migti/migti_backend
-            git pull origin prod
+            git pull origin development
             npm install
             pm2 restart all
