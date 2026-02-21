@@ -32,4 +32,12 @@ jobs:
           script: |
             cd /
             ls -la
-            pm2 restart ll
+            cd var/www/migtidev/migti_backend
+            ls -la 
+            git status 
+            git branch 
+            git stash 
+            git ckeckout development 
+            git pull origin development 
+            git stash pop 
+            pm2 restart 7
