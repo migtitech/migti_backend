@@ -1,6 +1,5 @@
 name: CI-CD Pipeline
 
-
 on:
   push:
     branches:
@@ -18,17 +17,18 @@ jobs:
         with:
           node-version: 18
 
-  deploy:
+    deploy:
     needs: build
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy to Server via SSH
+      - name: Deploy to Server via SSH (Password)
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
+          username: root
+          password: ${{ secrets.SERVER_PASSWORD }}
+          port: 22
           script: |
             cd /migti/migti_backend
             git pull origin development
