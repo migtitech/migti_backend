@@ -30,7 +30,5 @@ jobs:
           password: ${{ secrets.SERVER_PASSWORD }}
           port: 22
           script: |
-            cd /migti/migti_backend
-            git pull origin development
-            npm install
-            pm2 restart all
+            cd /
+            pm2 restart --all
