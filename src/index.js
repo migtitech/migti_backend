@@ -48,7 +48,7 @@ app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')))
 app.use('/assets', express.static(path.join(process.cwd(), 'assets')))
 
 // Routes
-app.use('/api', mainRoutes)
+app.use(mainRoutes)
 
 // Global error handler (must be after routes)
 app.use((err, req, res, next) => {
