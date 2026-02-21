@@ -39,6 +39,8 @@ export const deleteRawQuerySchema = Joi.object({
 
 export const listRawQueryActivitiesSchema = Joi.object({
   rawQueryId: Joi.string().required(),
+  pageNumber: Joi.number().integer().min(1).default(1),
+  pageSize: Joi.number().integer().min(1).max(100).default(10),
 })
 
 export const recordRawQueryActivitySchema = Joi.object({

@@ -24,6 +24,14 @@ const supplierSchema = new mongoose.Schema(
       type: SchemaTypes.String,
       default: '',
     },
+    shippingAddress: {
+      type: SchemaTypes.String,
+      default: '',
+    },
+    billingAddress: {
+      type: SchemaTypes.String,
+      default: '',
+    },
     phone_1: {
       type: SchemaTypes.String,
       trim: true,

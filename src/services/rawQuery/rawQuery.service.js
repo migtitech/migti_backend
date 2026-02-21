@@ -1,5 +1,8 @@
 import RawQueryModel from '../../models/rawQuery.model.js'
+import SuperAdminModel from '../../models/super.admin.js'
 import RawQueryActivityModel from '../../models/rawQueryActivity.model.js'
+import EmployeeModel from '../../models/employee.model.js'
+import AdminModel from '../../models/admin.model.js'
 import IndustryModel from '../../models/industry.model.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
@@ -113,12 +116,58 @@ export const getRawQueryById = async ({ rawQueryId }) => {
   return rawQuery
 }
 
-export const listRawQueryActivities = async ({ rawQueryId }) => {
-  const activities = await RawQueryActivityModel.find({ rawQueryId })
-    .populate('performedBy', 'name email')
+const resolvePerformerName = async (performerId) => {
+  if (!performerId) return null
+  let user = await EmployeeModel.findById(performerId).select('name email').lean()
+  if (user) return { name: user.name, email: user.email, role: user.role || 'employee' }
+  user = await AdminModel.findById(performerId).select('name email').lean()
+  if (user) return { name: user.name, email: user.email, role: 'admin' }
+  user = await SuperAdminModel.findById(performerId).select('name email').lean()
+  if (user) return { name: user.name, email: user.email, role: 'super_admin' }
+  return null
+}
+
+export const listRawQueryActivities = async ({ rawQueryId, pageNumber = 1, pageSize = 10 }) => {
+  const page = Math.max(1, parseInt(pageNumber))
+  const limit = Math.min(100, Math.max(1, parseInt(pageSize)))
+  const skip = (page - 1) * limit
+
+  const filter = { rawQueryId }
+  const totalItems = await RawQueryActivityModel.countDocuments(filter)
+  const activities = await RawQueryActivityModel.find(filter)
+    .select('rawQueryId type performedBy meta createdAt')
     .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit)
     .lean()
-  return activities
+
+  const totalPages = Math.ceil(totalItems / limit)
+
+  const performerIds = [...new Set(activities.map((a) => a.performedBy).filter(Boolean))]
+  const performerMap = {}
+  for (const pid of performerIds) {
+    const resolved = await resolvePerformerName(pid)
+    if (resolved) performerMap[String(pid)] = resolved
+  }
+
+  for (const act of activities) {
+    const pid = act.performedBy
+    const performer = pid ? performerMap[String(pid)] : null
+    act.performedBy = performer || { name: null, email: null, role: null }
+    act.performByName = performer?.name || '—'
+  }
+
+  return {
+    activities,
+    pagination: {
+      currentPage: page,
+      totalPages,
+      totalItems,
+      itemsPerPage: limit,
+      hasNextPage: page < totalPages,
+      hasPrevPage: page > 1,
+    },
+  }
 }
 
 export const recordRawQueryActivity = async ({

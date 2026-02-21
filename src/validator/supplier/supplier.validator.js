@@ -17,6 +17,8 @@ export const createSupplierSchema = Joi.object({
   name: Joi.string().required().min(2).max(100),
   shopname: Joi.string().optional().allow(''),
   address: Joi.string().optional().allow(''),
+  shippingAddress: Joi.string().optional().allow(''),
+  billingAddress: Joi.string().optional().allow(''),
   phone_1: Joi.string().optional().allow(''),
   phone_2: Joi.string().optional().allow(''),
   email: Joi.string().email({ tlds: { allow: false } }).optional().allow(''),
@@ -47,10 +49,12 @@ export const getSupplierByIdSchema = Joi.object({
   supplierId: Joi.string().required(),
 })
 
-// Edit mode: only address, mobile numbers, categories and remark can be updated
+// Edit mode: only address, shipping, billing, mobile numbers, categories and remark can be updated
 export const updateSupplierSchema = Joi.object({
   supplierId: Joi.string().required(),
   address: Joi.string().optional().allow(''),
+  shippingAddress: Joi.string().optional().allow(''),
+  billingAddress: Joi.string().optional().allow(''),
   phone_1: Joi.string().optional().allow(''),
   phone_2: Joi.string().optional().allow(''),
   categories: Joi.array().items(Joi.string()).optional(),

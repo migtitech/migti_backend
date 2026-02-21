@@ -140,7 +140,7 @@ export const getSupplierById = async ({ supplierId }) => {
   return supplier
 }
 
-const ALLOWED_UPDATE_FIELDS = ['address', 'phone_1', 'phone_2', 'categories', 'remark']
+const ALLOWED_UPDATE_FIELDS = ['address', 'shippingAddress', 'billingAddress', 'phone_1', 'phone_2', 'categories', 'remark']
 
 export const updateSupplier = async ({ supplierId, ...updateData }) => {
   const supplier = await SupplierModel.findById(supplierId).lean()
