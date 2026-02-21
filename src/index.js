@@ -18,7 +18,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 const app = express()
-const PORT =  process.env.PORT
+const PORT =  process.env.PORT || 7200
 app.use(express.static(path.join(__dirname, 'public')));
 // Health check endpoint
 app.get('/health', (req, res) => {
