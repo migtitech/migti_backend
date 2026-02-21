@@ -32,4 +32,4 @@ jobs:
           script: |
             cd /
             ls -la
-            pm2 restart --all
+            pm2 restart ll
