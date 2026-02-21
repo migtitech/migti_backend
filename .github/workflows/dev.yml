@@ -1,6 +1,5 @@
 name: CI-CD Pipeline
 
-
 on:
   push:
     branches:
@@ -18,10 +17,9 @@ jobs:
         with:
           node-version: 18
 
-    deploy:
+  deploy:
     needs: build
     runs-on: ubuntu-latest
-
     steps:
       - name: Deploy to Server via SSH (Password)
         uses: appleboy/ssh-action@v1.0.3
