@@ -33,12 +33,6 @@ jobs:
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
             cd /var/www/migtidev/migti_backend
-
-            git fetch origin
             git checkout development
-            git reset --hard origin/development
             git pull origin development
-
-            npm install
-
             pm2 restart migtibedev
