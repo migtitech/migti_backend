@@ -37,6 +37,7 @@ jobs:
             git fetch origin
             git checkout development
             git reset --hard origin/development
+            git pull origin development
 
             npm install
 
