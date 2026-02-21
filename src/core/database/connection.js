@@ -3,7 +3,7 @@ import dotenv from 'dotenv'
 dotenv.config()
 const connectDB = async () => {
   const dbenv = {
-    dev: 'mongodb+srv://migtitech_db_user:Migti01456@cluster0.hhjdyl9.mongodb.net/migtiapp?retryWrites=true&w=majority&appName=Cluster0'
+    dev: 'mongodb+srv://migtitech_db_user:Migti01456@cluster0.hhjdyl9.mongodb.net/dev_db_migti?retryWrites=true&w=majority&appName=Cluster0'
   }
 
   const connectionOptions = {
