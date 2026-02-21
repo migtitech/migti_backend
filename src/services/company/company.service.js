@@ -12,6 +12,8 @@ export const addCompany = async ({
   gst,
   mobile = '',
   address = '',
+  shippingAddress = '',
+  billingAddress = '',
   website = '',
   isActive = true,
 }) => {
@@ -32,6 +34,8 @@ export const addCompany = async ({
     gst: gst || '',
     mobile: mobile || '',
     address: address || '',
+    shippingAddress: shippingAddress || '',
+    billingAddress: billingAddress || '',
     website: website || '',
     isActive: isActive !== false,
   })
@@ -125,6 +129,12 @@ export const updateCompany = async ({ companyId, ...updateData }) => {
   }
   if (updateData.address !== undefined) {
     updateData.address = updateData.address == null ? '' : String(updateData.address)
+  }
+  if (updateData.shippingAddress !== undefined) {
+    updateData.shippingAddress = updateData.shippingAddress == null ? '' : String(updateData.shippingAddress)
+  }
+  if (updateData.billingAddress !== undefined) {
+    updateData.billingAddress = updateData.billingAddress == null ? '' : String(updateData.billingAddress)
   }
   if (updateData.website !== undefined) {
     updateData.website = updateData.website == null ? '' : String(updateData.website)

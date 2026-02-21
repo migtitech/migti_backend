@@ -68,6 +68,7 @@ export const createEmployeeSchema = Joi.object({
 export const listEmployeeSchema = Joi.object({
   pageNumber: Joi.number().integer().min(1).default(1),
   pageSize: Joi.number().integer().min(1).max(100).default(10),
+  branchId: Joi.string().optional().allow('', null),
 })
 
 export const getEmployeeByIdSchema = Joi.object({

@@ -30,14 +30,17 @@ export const addEmployee = async (payload) => {
   return employee
 }
 
-export const listEmployees = async ({ pageNumber = 1, pageSize = 10 }) => {
+export const listEmployees = async ({ pageNumber = 1, pageSize = 10, branchId }) => {
   const page = Math.max(1, parseInt(pageNumber))
   const limit = Math.min(100, Math.max(1, parseInt(pageSize)))
   const skip = (page - 1) * limit
 
-  const totalItems = await EmployeeModel.countDocuments()
+  const filter = {}
+  if (branchId) filter.branchId = branchId
 
-  const employees = await EmployeeModel.find()
+  const totalItems = await EmployeeModel.countDocuments(filter)
+
+  const employees = await EmployeeModel.find(filter)
     .select('-password')
     .sort({ createdAt: -1 })
     .skip(skip)

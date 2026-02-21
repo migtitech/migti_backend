@@ -2,12 +2,13 @@ import IndustryBranchModel from '../../models/industryBranch.model.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 
-export const addIndustryBranch = async ({ industryId, name, location, address }) => {
+export const addIndustryBranch = async ({ industryId, name, location, address, gst }) => {
   const branchDoc = await IndustryBranchModel.create({
     industryId,
     name: name || '',
     location: location || '',
     address: address || '',
+    gst: gst || '',
   })
   const result = await IndustryBranchModel.findById(branchDoc._id)
     .populate('industryId', 'name location address gstNumber')
@@ -34,6 +35,7 @@ export const listIndustryBranches = async ({
       { name: { $regex: search, $options: 'i' } },
       { location: { $regex: search, $options: 'i' } },
       { address: { $regex: search, $options: 'i' } },
+      { gst: { $regex: search, $options: 'i' } },
     ]
   }
 
@@ -85,6 +87,7 @@ export const updateIndustryBranch = async ({
   name,
   location,
   address,
+  gst,
 }) => {
   const branch = await IndustryBranchModel.findOne({
     _id: industryBranchId,
@@ -104,6 +107,7 @@ export const updateIndustryBranch = async ({
   if (name !== undefined) updateData.name = name
   if (location !== undefined) updateData.location = location
   if (address !== undefined) updateData.address = address
+  if (gst !== undefined) updateData.gst = gst || ''
 
   const updated = await IndustryBranchModel.findByIdAndUpdate(
     industryBranchId,

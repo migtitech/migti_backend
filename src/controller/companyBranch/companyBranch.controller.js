@@ -70,7 +70,7 @@ export const getCompanyBranchByIdController = async (req, res) => {
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Company branch details retrieved successfully',
-    data: result,
+    data: { branch: result },
   })
 }
 

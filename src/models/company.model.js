@@ -45,6 +45,14 @@ const companySchema = new mongoose.Schema(
       type: SchemaTypes.String,
       default: '',
     },
+    shippingAddress: {
+      type: SchemaTypes.String,
+      default: '',
+    },
+    billingAddress: {
+      type: SchemaTypes.String,
+      default: '',
+    },
     website: {
       type: SchemaTypes.String,
       trim: true,

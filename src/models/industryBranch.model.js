@@ -29,6 +29,11 @@ const industryBranchSchema = new mongoose.Schema(
       type: SchemaTypes.String,
       default: '',
     },
+    gst: {
+      type: SchemaTypes.String,
+      trim: true,
+      default: '',
+    },
   },
   { timestamps: true },
 )
