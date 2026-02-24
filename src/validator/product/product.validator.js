@@ -79,6 +79,8 @@ export const listProductSchema = Joi.object({
   subcategory: Joi.string().allow('', null),
   brand: Joi.string().allow('', null),
   status: Joi.string().valid('active', 'inactive', 'draft').allow('', null),
+  hsnNumber: Joi.string().allow('', null),
+  modelNumber: Joi.string().allow('', null),
   sortBy: Joi.string().valid('name', 'createdAt').optional().default('createdAt'),
   sortOrder: Joi.string().valid('asc', 'desc').optional().default('desc'),
 })

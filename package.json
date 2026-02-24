@@ -15,7 +15,8 @@
     "dev:setup": "node dev-workflow.js",
     "seed:preferences": "node seed-preferences.js",
     "seed:countries": "node seed-countries.js",
-    "seed:superadmin": "node seed-superadmin.js"
+    "seed:superadmin": "node seed-superadmin.js",
+    "backfill:productCode": "node scripts/backfill-product-code.js"
   },
   "author": "",
   "license": "ISC",

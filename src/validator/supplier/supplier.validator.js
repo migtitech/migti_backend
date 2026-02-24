@@ -64,3 +64,7 @@ export const updateSupplierSchema = Joi.object({
 export const deleteSupplierSchema = Joi.object({
   supplierId: Joi.string().required(),
 })
+
+export const uploadCatalogSchema = Joi.object({
+  supplierId: Joi.string().required(),
+})

@@ -1,13 +1,17 @@
 import Joi from 'joi'
 
+const purchaseManagerSchema = Joi.object({
+  name: Joi.string().allow('').optional(),
+  phone: Joi.string().allow('').optional(),
+  email: Joi.string().email({ tlds: { allow: false } }).allow('').optional(),
+})
+
 const companyInfoSchema = Joi.object({
   name: Joi.string().allow('').optional(),
   area: Joi.string().allow('').optional(),
   location: Joi.string().allow('').optional(),
   address: Joi.string().allow('').optional(),
-  purchase_manager_name: Joi.string().allow('').optional(),
-  purchase_manager_phone: Joi.string().allow('').optional(),
-  email: Joi.string().email({ tlds: { allow: false } }).allow('').optional(),
+  purchaseManagers: Joi.array().items(purchaseManagerSchema).optional().default([]),
 })
 
 const productVariantSchema = Joi.object({
@@ -24,14 +28,6 @@ const productItemSchema = Joi.object({
   product_id: Joi.string().allow(null, '').optional(),
 })
 
-const deliveryInfoSchema = Joi.object({
-  location: Joi.string().allow('').optional(),
-  contactPersonName: Joi.string().allow('').optional(),
-  contactPersonPhone: Joi.string().allow('').optional(),
-  expectedDateByCompany: Joi.date().allow(null).optional(),
-  urgent: Joi.boolean().optional().default(false),
-})
-
 const queryStatusValues = [
   'pending',
   'followup01pending',
@@ -46,7 +42,6 @@ export const createQuerySchema = Joi.object({
   companyInfo: companyInfoSchema.optional().default({}),
   industry_id: Joi.string().allow(null, '').optional(),
   products: Joi.array().items(productItemSchema).optional().default([]),
-  delivery: deliveryInfoSchema.optional().default({}),
   status: Joi.string().valid(...queryStatusValues).optional().default('pending'),
   created_by: Joi.string().allow(null, '').optional(),
 })
@@ -55,6 +50,7 @@ export const listQuerySchema = Joi.object({
   pageNumber: Joi.number().integer().min(1).default(1),
   pageSize: Joi.number().integer().min(1).max(100).default(10),
   search: Joi.string().allow('').optional(),
+  status: Joi.string().valid(...queryStatusValues).allow('').optional(),
 })
 
 export const getQueryByIdSchema = Joi.object({
@@ -66,7 +62,6 @@ export const updateQuerySchema = Joi.object({
   companyInfo: companyInfoSchema.optional(),
   industry_id: Joi.string().allow(null, '').optional(),
   products: Joi.array().items(productItemSchema).optional(),
-  delivery: deliveryInfoSchema.optional(),
   status: Joi.string().valid(...queryStatusValues).optional(),
 })
 

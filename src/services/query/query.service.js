@@ -15,7 +15,6 @@ export const addQuery = async ({
   companyInfo = {},
   industry_id,
   products = [],
-  delivery = {},
   status = 'pending',
   created_by,
 }) => {
@@ -46,7 +45,6 @@ export const addQuery = async ({
     companyInfo: companyInfo || {},
     industry_id: industry_id || null,
     products: products || [],
-    delivery: delivery || {},
     created_by: created_by || null,
   })
   return doc.toObject()
@@ -56,6 +54,7 @@ export const listQueries = async ({
   pageNumber = 1,
   pageSize = 10,
   search = '',
+  status = '',
 }) => {
   const page = Math.max(1, parseInt(pageNumber))
   const limit = Math.min(100, Math.max(1, parseInt(pageSize)))
@@ -63,16 +62,19 @@ export const listQueries = async ({
 
   const filter = { isDeleted: false }
 
+  if (status && status.trim()) {
+    filter.status = status.trim()
+  }
+
   if (search && search.trim()) {
     const term = search.trim()
     filter.$or = [
       { queryCode: { $regex: term, $options: 'i' } },
       { 'companyInfo.name': { $regex: term, $options: 'i' } },
       { 'companyInfo.location': { $regex: term, $options: 'i' } },
-      { 'companyInfo.email': { $regex: term, $options: 'i' } },
+      { 'companyInfo.purchaseManagers.name': { $regex: term, $options: 'i' } },
+      { 'companyInfo.purchaseManagers.email': { $regex: term, $options: 'i' } },
       { 'products.productName': { $regex: term, $options: 'i' } },
-      { 'delivery.location': { $regex: term, $options: 'i' } },
-      { 'delivery.contactPersonName': { $regex: term, $options: 'i' } },
     ]
   }
 
@@ -102,8 +104,9 @@ export const listQueries = async ({
 
 export const getQueryById = async ({ queryId }) => {
   const query = await QueryModel.findOne({ _id: queryId, isDeleted: false })
-    .populate('industry_id', 'name location address email purchase_manager_name purchase_manager_phone')
+    .populate('industry_id', 'name location address')
     .populate('created_by', 'name email')
+    .populate('products.product_id', 'name sku hsnNumber gstPercentage')
     .lean()
 
   if (!query) {
@@ -203,7 +206,7 @@ export const recordQueryActivity = async ({
   return populated
 }
 
-export const updateQuery = async ({ queryId, companyInfo, industry_id, products, delivery, status }) => {
+export const updateQuery = async ({ queryId, companyInfo, industry_id, products, status }) => {
   const existing = await QueryModel.findOne({ _id: queryId, isDeleted: false }).lean()
   if (!existing) {
     throw new CustomError(
@@ -217,7 +220,6 @@ export const updateQuery = async ({ queryId, companyInfo, industry_id, products,
   if (companyInfo !== undefined) updatePayload.companyInfo = companyInfo
   if (industry_id !== undefined) updatePayload.industry_id = industry_id || null
   if (products !== undefined) updatePayload.products = products
-  if (delivery !== undefined) updatePayload.delivery = delivery
   if (status !== undefined) updatePayload.status = status
 
   const updated = await QueryModel.findByIdAndUpdate(

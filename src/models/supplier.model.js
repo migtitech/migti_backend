@@ -79,6 +79,11 @@ const supplierSchema = new mongoose.Schema(
       type: SchemaTypes.String,
       default: '',
     },
+    catalog: {
+      url: { type: SchemaTypes.String, default: '' },
+      fileName: { type: SchemaTypes.String, default: '' },
+      uploadedAt: { type: Date, default: null },
+    },
   },
   { timestamps: true },
 )
