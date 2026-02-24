@@ -1,4 +1,5 @@
 import { Message, statusCodes } from '../../core/common/constant.js'
+import { getBranchFilter, getBranchIdForCreate } from '../../core/helpers/branchFilter.js'
 import {
   createRawQuerySchema,
   listRawQuerySchema,
@@ -30,7 +31,9 @@ export const createRawQueryController = async (req, res) => {
     })
   }
 
-  const result = await addRawQuery(value)
+  const branchId = getBranchIdForCreate(req)
+  const created_by = req.user?.id || req.user?._id || value.created_by
+  const result = await addRawQuery({ ...value, created_by, branchId })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Raw query created successfully',
@@ -50,7 +53,8 @@ export const listRawQueriesController = async (req, res) => {
     })
   }
 
-  const result = await listRawQueries(value)
+  const branchFilter = getBranchFilter(req, { allowQueryBranchId: true })
+  const result = await listRawQueries({ ...value, branchFilter })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Raw queries retrieved successfully',
@@ -70,7 +74,8 @@ export const getRawQueryByIdController = async (req, res) => {
     })
   }
 
-  const result = await getRawQueryById(value)
+  const branchFilter = getBranchFilter(req)
+  const result = await getRawQueryById({ ...value, branchFilter })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Raw query details retrieved successfully',
@@ -93,7 +98,8 @@ export const updateRawQueryController = async (req, res) => {
     })
   }
 
-  const result = await updateRawQuery(value)
+  const branchFilter = getBranchFilter(req)
+  const result = await updateRawQuery({ ...value, branchFilter })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Raw query updated successfully',
@@ -113,7 +119,8 @@ export const deleteRawQueryController = async (req, res) => {
     })
   }
 
-  const result = await deleteRawQuery(value)
+  const branchFilter = getBranchFilter(req)
+  const result = await deleteRawQuery({ ...value, branchFilter })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Raw query deleted successfully',
@@ -133,7 +140,8 @@ export const listRawQueryActivitiesController = async (req, res) => {
     })
   }
 
-  const result = await listRawQueryActivities(value)
+  const branchFilter = getBranchFilter(req)
+  const result = await listRawQueryActivities({ ...value, branchFilter })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Raw query activities retrieved successfully',
@@ -153,7 +161,8 @@ export const recordRawQueryActivityController = async (req, res) => {
     })
   }
 
-  const result = await recordRawQueryActivity(value)
+  const branchFilter = getBranchFilter(req)
+  const result = await recordRawQueryActivity({ ...value, branchFilter })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Activity recorded successfully',

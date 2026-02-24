@@ -50,6 +50,12 @@ const rawQuerySchema = new mongoose.Schema(
       ref: 'employee',
       required: true,
     },
+    branchId: {
+      type: SchemaTypes.ObjectId,
+      ref: 'companyBranch',
+      default: null,
+      index: true,
+    },
   },
   { timestamps: true }
 )

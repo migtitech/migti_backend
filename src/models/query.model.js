@@ -99,6 +99,12 @@ const querySchema = new mongoose.Schema(
       ref: 'employee',
       default: null,
     },
+    branchId: {
+      type: SchemaTypes.ObjectId,
+      ref: 'companyBranch',
+      default: null,
+      index: true,
+    },
   },
   { timestamps: true },
 )

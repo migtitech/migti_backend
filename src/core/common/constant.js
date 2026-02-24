@@ -386,6 +386,9 @@ export const ACTIONS = Object.freeze({
 // Roles that automatically get full access to everything
 export const FULL_ACCESS_ROLES = Object.freeze(['super_admin', 'admin', 'hod'])
 
+// Roles that are not restricted to a single branch (see all branches). Super_admin and admin only.
+export const BRANCH_BYPASS_ROLES = Object.freeze(['super_admin', 'admin'])
+
 // All available modules with labels (for the frontend permissions UI)
 export const MODULE_LIST = Object.freeze(
   Object.entries(MODULES).map(([key, value]) => ({

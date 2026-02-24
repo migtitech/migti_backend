@@ -1,4 +1,5 @@
 import { Message, statusCodes } from '../../core/common/constant.js'
+import { getBranchFilter } from '../../core/helpers/branchFilter.js'
 import {
   createEmployeeSchema,
   listEmployeeSchema,
@@ -48,7 +49,8 @@ export const listEmployeesController = async (req, res) => {
     })
   }
 
-  const result = await listEmployees(value)
+  const branchFilter = getBranchFilter(req, { allowQueryBranchId: true })
+  const result = await listEmployees({ ...value, branchFilter })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Employees retrieved successfully',
@@ -68,7 +70,8 @@ export const getEmployeeByIdController = async (req, res) => {
     })
   }
 
-  const result = await getEmployeeById(value)
+  const branchFilter = getBranchFilter(req)
+  const result = await getEmployeeById({ ...value, branchFilter })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Employee details retrieved successfully',
@@ -91,7 +94,8 @@ export const updateEmployeeController = async (req, res) => {
     })
   }
 
-  const result = await updateEmployee(value)
+  const branchFilter = getBranchFilter(req)
+  const result = await updateEmployee({ ...value, branchFilter })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Employee updated successfully',
@@ -111,7 +115,8 @@ export const deleteEmployeeController = async (req, res) => {
     })
   }
 
-  const result = await deleteEmployee(value)
+  const branchFilter = getBranchFilter(req)
+  const result = await deleteEmployee({ ...value, branchFilter })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Employee deleted successfully',

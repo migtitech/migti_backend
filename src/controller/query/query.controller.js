@@ -1,4 +1,5 @@
 import { Message, statusCodes } from '../../core/common/constant.js'
+import { getBranchFilter, getBranchIdForCreate } from '../../core/helpers/branchFilter.js'
 import {
   createQuerySchema,
   listQuerySchema,
@@ -30,7 +31,9 @@ export const createQueryController = async (req, res) => {
     })
   }
 
-  const result = await addQuery(value)
+  const branchId = getBranchIdForCreate(req)
+  const created_by = req.user?.id || req.user?._id || value.created_by
+  const result = await addQuery({ ...value, created_by, branchId })
   return res.status(statusCodes.created).json({
     success: true,
     message: 'Query created successfully',
@@ -50,7 +53,8 @@ export const listQueriesController = async (req, res) => {
     })
   }
 
-  const result = await listQueries(value)
+  const branchFilter = getBranchFilter(req, { allowQueryBranchId: true })
+  const result = await listQueries({ ...value, branchFilter })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Queries retrieved successfully',
@@ -70,7 +74,8 @@ export const getQueryByIdController = async (req, res) => {
     })
   }
 
-  const result = await getQueryById(value)
+  const branchFilter = getBranchFilter(req)
+  const result = await getQueryById({ ...value, branchFilter })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Query details retrieved successfully',
@@ -91,7 +96,8 @@ export const updateQueryController = async (req, res) => {
     })
   }
 
-  const result = await updateQuery(value)
+  const branchFilter = getBranchFilter(req)
+  const result = await updateQuery({ ...value, branchFilter })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Query updated successfully',
@@ -111,7 +117,8 @@ export const deleteQueryController = async (req, res) => {
     })
   }
 
-  const result = await deleteQuery(value)
+  const branchFilter = getBranchFilter(req)
+  const result = await deleteQuery({ ...value, branchFilter })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Query deleted successfully',
@@ -131,7 +138,8 @@ export const listQueryActivitiesController = async (req, res) => {
     })
   }
 
-  const result = await listQueryActivities(value)
+  const branchFilter = getBranchFilter(req)
+  const result = await listQueryActivities({ ...value, branchFilter })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Query activities retrieved successfully',
@@ -151,7 +159,8 @@ export const recordQueryActivityController = async (req, res) => {
     })
   }
 
-  const result = await recordQueryActivity(value)
+  const branchFilter = getBranchFilter(req)
+  const result = await recordQueryActivity({ ...value, branchFilter })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Activity recorded successfully',

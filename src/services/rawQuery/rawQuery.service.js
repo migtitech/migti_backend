@@ -27,6 +27,7 @@ export const addRawQuery = async ({
   description,
   files = [],
   created_by,
+  branchId,
 }) => {
   const raw_query_number = await generateRawQueryNumber()
 
@@ -40,6 +41,7 @@ export const addRawQuery = async ({
     description,
     files,
     created_by,
+    branchId: branchId || null,
   })
 
   return rawQueryDoc.toObject()
@@ -49,12 +51,13 @@ export const listRawQueries = async ({
   pageNumber = 1,
   pageSize = 10,
   search = '',
+  branchFilter = {},
 }) => {
   const page = Math.max(1, parseInt(pageNumber))
   const limit = Math.min(100, Math.max(1, parseInt(pageSize)))
   const skip = (page - 1) * limit
 
-  const filter = {}
+  const filter = { ...branchFilter }
   if (search) {
     const industryIds = await IndustryModel.find({
       name: { $regex: search, $options: 'i' },
@@ -98,8 +101,8 @@ export const listRawQueries = async ({
   }
 }
 
-export const getRawQueryById = async ({ rawQueryId }) => {
-  const rawQuery = await RawQueryModel.findById(rawQueryId)
+export const getRawQueryById = async ({ rawQueryId, branchFilter = {} }) => {
+  const rawQuery = await RawQueryModel.findOne({ _id: rawQueryId, ...branchFilter })
     .populate('supplier_id')
     .populate('industry_id', 'name location address email purchase_manager_name purchase_manager_phone')
     .populate('created_by', 'name email')
@@ -127,7 +130,16 @@ const resolvePerformerName = async (performerId) => {
   return null
 }
 
-export const listRawQueryActivities = async ({ rawQueryId, pageNumber = 1, pageSize = 10 }) => {
+export const listRawQueryActivities = async ({ rawQueryId, pageNumber = 1, pageSize = 10, branchFilter = {} }) => {
+  const rawQueryBelongs = await RawQueryModel.findOne({ _id: rawQueryId, ...branchFilter }).lean()
+  if (!rawQueryBelongs) {
+    throw new CustomError(
+      statusCodes.notFound,
+      'Raw query not found',
+      errorCodes.not_found,
+    )
+  }
+
   const page = Math.max(1, parseInt(pageNumber))
   const limit = Math.min(100, Math.max(1, parseInt(pageSize)))
   const skip = (page - 1) * limit
@@ -175,8 +187,9 @@ export const recordRawQueryActivity = async ({
   type,
   performedBy,
   meta = {},
+  branchFilter = {},
 }) => {
-  const rawQuery = await RawQueryModel.findById(rawQueryId).lean()
+  const rawQuery = await RawQueryModel.findOne({ _id: rawQueryId, ...branchFilter }).lean()
   if (!rawQuery) {
     throw new CustomError(
       statusCodes.notFound,
@@ -202,8 +215,8 @@ export const recordRawQueryActivity = async ({
   return populated
 }
 
-export const updateRawQuery = async ({ rawQueryId, ...updateData }) => {
-  const rawQuery = await RawQueryModel.findById(rawQueryId).lean()
+export const updateRawQuery = async ({ rawQueryId, branchFilter = {}, ...updateData }) => {
+  const rawQuery = await RawQueryModel.findOne({ _id: rawQueryId, ...branchFilter }).lean()
   if (!rawQuery) {
     throw new CustomError(
       statusCodes.notFound,
@@ -224,8 +237,8 @@ export const updateRawQuery = async ({ rawQueryId, ...updateData }) => {
   return updatedRawQuery
 }
 
-export const deleteRawQuery = async ({ rawQueryId }) => {
-  const rawQuery = await RawQueryModel.findById(rawQueryId).lean()
+export const deleteRawQuery = async ({ rawQueryId, branchFilter = {} }) => {
+  const rawQuery = await RawQueryModel.findOne({ _id: rawQueryId, ...branchFilter }).lean()
   if (!rawQuery) {
     throw new CustomError(
       statusCodes.notFound,

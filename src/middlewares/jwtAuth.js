@@ -27,6 +27,8 @@ export const authenticateToken = (req, res, next) => {
     // Add user info to request object
     req.user = decoded
     req.token = token
+    // Branch-level data segregation: set branchId from JWT (employee/hod have it; super_admin/admin do not)
+    req.branchId = decoded.branchId || null
 
     next()
   } catch (error) {
@@ -47,6 +49,7 @@ export const optionalAuth = (req, res, next) => {
       const decoded = verifyToken(token)
       req.user = decoded
       req.token = token
+      req.branchId = decoded.branchId || null
     }
 
     next()

@@ -42,12 +42,13 @@ export const listAreas = async ({
   companyId,
   branchId,
   areaType,
+  branchFilter = {},
 }) => {
   const page = Math.max(1, parseInt(pageNumber))
   const limit = Math.min(100, Math.max(1, parseInt(pageSize)))
   const skip = (page - 1) * limit
 
-  const filter = { isDeleted: false }
+  const filter = { isDeleted: false, ...branchFilter }
 
   if (search) {
     filter.$or = [
@@ -60,7 +61,7 @@ export const listAreas = async ({
     filter.companyId = companyId
   }
 
-  if (branchId) {
+  if (branchId && !filter.branchId) {
     filter.branchId = branchId
   }
 
@@ -93,8 +94,8 @@ export const listAreas = async ({
   }
 }
 
-export const getAreaById = async ({ areaId }) => {
-  const area = await AreaModel.findById(areaId)
+export const getAreaById = async ({ areaId, branchFilter = {} }) => {
+  const area = await AreaModel.findOne({ _id: areaId, ...branchFilter })
     .populate('companyId', 'name email')
     .populate('branchId', 'name location branchcode')
     .lean()
@@ -110,8 +111,8 @@ export const getAreaById = async ({ areaId }) => {
   return area
 }
 
-export const updateArea = async ({ areaId, ...updateData }) => {
-  const area = await AreaModel.findById(areaId).lean()
+export const updateArea = async ({ areaId, branchFilter = {}, ...updateData }) => {
+  const area = await AreaModel.findOne({ _id: areaId, ...branchFilter }).lean()
 
   if (!area) {
     throw new CustomError(
@@ -132,8 +133,8 @@ export const updateArea = async ({ areaId, ...updateData }) => {
   return updated
 }
 
-export const deleteArea = async ({ areaId }) => {
-  const area = await AreaModel.findById(areaId).lean()
+export const deleteArea = async ({ areaId, branchFilter = {} }) => {
+  const area = await AreaModel.findOne({ _id: areaId, ...branchFilter }).lean()
 
   if (!area) {
     throw new CustomError(

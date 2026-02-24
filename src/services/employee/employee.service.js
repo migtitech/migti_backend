@@ -30,13 +30,13 @@ export const addEmployee = async (payload) => {
   return employee
 }
 
-export const listEmployees = async ({ pageNumber = 1, pageSize = 10, branchId }) => {
+export const listEmployees = async ({ pageNumber = 1, pageSize = 10, branchId, branchFilter = {} }) => {
   const page = Math.max(1, parseInt(pageNumber))
   const limit = Math.min(100, Math.max(1, parseInt(pageSize)))
   const skip = (page - 1) * limit
 
-  const filter = {}
-  if (branchId) filter.branchId = branchId
+  const filter = { ...branchFilter }
+  if (Object.keys(filter).length === 0 && branchId) filter.branchId = branchId
 
   const totalItems = await EmployeeModel.countDocuments(filter)
 
@@ -64,8 +64,8 @@ export const listEmployees = async ({ pageNumber = 1, pageSize = 10, branchId })
   }
 }
 
-export const getEmployeeById = async ({ employeeId }) => {
-  const employee = await EmployeeModel.findById(employeeId).select('-password').lean()
+export const getEmployeeById = async ({ employeeId, branchFilter = {} }) => {
+  const employee = await EmployeeModel.findOne({ _id: employeeId, ...branchFilter }).select('-password').lean()
 
   if (!employee) {
     throw new CustomError(
@@ -78,8 +78,8 @@ export const getEmployeeById = async ({ employeeId }) => {
   return employee
 }
 
-export const updateEmployee = async ({ employeeId, ...updateData }) => {
-  const employee = await EmployeeModel.findById(employeeId).lean()
+export const updateEmployee = async ({ employeeId, branchFilter = {}, ...updateData }) => {
+  const employee = await EmployeeModel.findOne({ _id: employeeId, ...branchFilter }).lean()
   if (!employee) {
     throw new CustomError(
       statusCodes.notFound,
@@ -126,8 +126,8 @@ export const updateEmployee = async ({ employeeId, ...updateData }) => {
   return updatedEmployee
 }
 
-export const deleteEmployee = async ({ employeeId }) => {
-  const employee = await EmployeeModel.findById(employeeId).lean()
+export const deleteEmployee = async ({ employeeId, branchFilter = {} }) => {
+  const employee = await EmployeeModel.findOne({ _id: employeeId, ...branchFilter }).lean()
   if (!employee) {
     throw new CustomError(
       statusCodes.notFound,

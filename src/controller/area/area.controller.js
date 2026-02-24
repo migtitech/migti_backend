@@ -1,4 +1,5 @@
 import { Message, statusCodes } from '../../core/common/constant.js'
+import { getBranchFilter } from '../../core/helpers/branchFilter.js'
 import {
   createAreaSchema,
   listAreaSchema,
@@ -46,7 +47,8 @@ export const listAreasController = async (req, res) => {
     })
   }
 
-  const result = await listAreas(value)
+  const branchFilter = getBranchFilter(req, { allowQueryBranchId: true })
+  const result = await listAreas({ ...value, branchFilter })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Areas retrieved successfully',
@@ -66,7 +68,8 @@ export const getAreaByIdController = async (req, res) => {
     })
   }
 
-  const result = await getAreaById(value)
+  const branchFilter = getBranchFilter(req)
+  const result = await getAreaById({ ...value, branchFilter })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Area details retrieved successfully',
@@ -87,7 +90,8 @@ export const updateAreaController = async (req, res) => {
     })
   }
 
-  const result = await updateArea(value)
+  const branchFilter = getBranchFilter(req)
+  const result = await updateArea({ ...value, branchFilter })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Area updated successfully',
@@ -107,7 +111,8 @@ export const deleteAreaController = async (req, res) => {
     })
   }
 
-  const result = await deleteArea(value)
+  const branchFilter = getBranchFilter(req)
+  const result = await deleteArea({ ...value, branchFilter })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Area deleted successfully',

@@ -18,14 +18,17 @@ export const addQuery = async ({
   delivery = {},
   status = 'pending',
   created_by,
+  branchId,
 }) => {
   const maxAttempts = 20
   let queryCode = ''
+  const baseFilter = { isDeleted: false }
+  if (branchId) baseFilter.branchId = branchId
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     const candidate = generateQueryCode()
     const exists = await QueryModel.findOne({
+      ...baseFilter,
       queryCode: candidate,
-      isDeleted: false,
     }).lean()
     if (!exists) {
       queryCode = candidate
@@ -48,6 +51,7 @@ export const addQuery = async ({
     products: products || [],
     delivery: delivery || {},
     created_by: created_by || null,
+    branchId: branchId || null,
   })
   return doc.toObject()
 }
@@ -56,12 +60,13 @@ export const listQueries = async ({
   pageNumber = 1,
   pageSize = 10,
   search = '',
+  branchFilter = {},
 }) => {
   const page = Math.max(1, parseInt(pageNumber))
   const limit = Math.min(100, Math.max(1, parseInt(pageSize)))
   const skip = (page - 1) * limit
 
-  const filter = { isDeleted: false }
+  const filter = { isDeleted: false, ...branchFilter }
 
   if (search && search.trim()) {
     const term = search.trim()
@@ -100,8 +105,8 @@ export const listQueries = async ({
   }
 }
 
-export const getQueryById = async ({ queryId }) => {
-  const query = await QueryModel.findOne({ _id: queryId, isDeleted: false })
+export const getQueryById = async ({ queryId, branchFilter = {} }) => {
+  const query = await QueryModel.findOne({ _id: queryId, isDeleted: false, ...branchFilter })
     .populate('industry_id', 'name location address email purchase_manager_name purchase_manager_phone')
     .populate('created_by', 'name email')
     .lean()
@@ -128,7 +133,16 @@ const resolvePerformerName = async (performerId) => {
   return null
 }
 
-export const listQueryActivities = async ({ queryId, pageNumber = 1, pageSize = 10 }) => {
+export const listQueryActivities = async ({ queryId, pageNumber = 1, pageSize = 10, branchFilter = {} }) => {
+  const queryBelongs = await QueryModel.findOne({ _id: queryId, isDeleted: false, ...branchFilter }).lean()
+  if (!queryBelongs) {
+    throw new CustomError(
+      statusCodes.notFound,
+      'Query not found',
+      errorCodes.not_found,
+    )
+  }
+
   const page = Math.max(1, parseInt(pageNumber))
   const limit = Math.min(100, Math.max(1, parseInt(pageSize)))
   const skip = (page - 1) * limit
@@ -176,8 +190,9 @@ export const recordQueryActivity = async ({
   type,
   performedBy,
   meta = {},
+  branchFilter = {},
 }) => {
-  const query = await QueryModel.findOne({ _id: queryId, isDeleted: false }).lean()
+  const query = await QueryModel.findOne({ _id: queryId, isDeleted: false, ...branchFilter }).lean()
   if (!query) {
     throw new CustomError(
       statusCodes.notFound,
@@ -203,8 +218,8 @@ export const recordQueryActivity = async ({
   return populated
 }
 
-export const updateQuery = async ({ queryId, companyInfo, industry_id, products, delivery, status }) => {
-  const existing = await QueryModel.findOne({ _id: queryId, isDeleted: false }).lean()
+export const updateQuery = async ({ queryId, companyInfo, industry_id, products, delivery, status, branchFilter = {} }) => {
+  const existing = await QueryModel.findOne({ _id: queryId, isDeleted: false, ...branchFilter }).lean()
   if (!existing) {
     throw new CustomError(
       statusCodes.notFound,
@@ -231,8 +246,8 @@ export const updateQuery = async ({ queryId, companyInfo, industry_id, products,
   return updated
 }
 
-export const deleteQuery = async ({ queryId }) => {
-  const existing = await QueryModel.findOne({ _id: queryId, isDeleted: false }).lean()
+export const deleteQuery = async ({ queryId, branchFilter = {} }) => {
+  const existing = await QueryModel.findOne({ _id: queryId, isDeleted: false, ...branchFilter }).lean()
   if (!existing) {
     throw new CustomError(
       statusCodes.notFound,
