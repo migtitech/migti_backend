@@ -89,6 +89,10 @@ const variantCombinationSchema = new mongoose.Schema(
       type: SchemaTypes.Boolean,
       default: true,
     },
+    variantCode: {
+      type: SchemaTypes.String,
+      trim: true,
+    },
   },
   { _id: true },
 )
@@ -128,6 +132,12 @@ const productSchema = new mongoose.Schema(
     shortDescription: {
       type: SchemaTypes.String,
       default: '',
+    },
+    productCode: {
+      type: SchemaTypes.String,
+      trim: true,
+      unique: true,
+      sparse: true,
     },
     sku: {
       type: SchemaTypes.String,

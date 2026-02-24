@@ -3,6 +3,15 @@ import { v4 as uuidv4 } from 'uuid'
 import { commonFieldsPlugin } from './plugin/commonFields.plugin.js'
 import { SchemaTypes } from '../core/common/schemaTypes.js'
 
+const purchaseManagerSchema = new mongoose.Schema(
+  {
+    name: { type: SchemaTypes.String, trim: true, default: '' },
+    phone: { type: SchemaTypes.String, trim: true, default: '' },
+    email: { type: SchemaTypes.String, trim: true, lowercase: true, default: '' },
+  },
+  { _id: false },
+)
+
 // Company/industry snapshot stored in query (editable, does not change industry table)
 const companyInfoSchema = new mongoose.Schema(
   {
@@ -10,9 +19,7 @@ const companyInfoSchema = new mongoose.Schema(
     area: { type: SchemaTypes.String, trim: true, default: '' },
     location: { type: SchemaTypes.String, trim: true, default: '' },
     address: { type: SchemaTypes.String, default: '' },
-    purchase_manager_name: { type: SchemaTypes.String, trim: true, default: '' },
-    purchase_manager_phone: { type: SchemaTypes.String, trim: true, default: '' },
-    email: { type: SchemaTypes.String, trim: true, lowercase: true, default: '' },
+    purchaseManagers: { type: [purchaseManagerSchema], default: [] },
   },
   { _id: false },
 )
@@ -36,17 +43,6 @@ const productItemSchema = new mongoose.Schema(
     product_id: { type: SchemaTypes.ObjectId, ref: 'product', default: null },
   },
   { _id: true },
-)
-
-const deliveryInfoSchema = new mongoose.Schema(
-  {
-    location: { type: SchemaTypes.String, trim: true, default: '' },
-    contactPersonName: { type: SchemaTypes.String, trim: true, default: '' },
-    contactPersonPhone: { type: SchemaTypes.String, trim: true, default: '' },
-    expectedDateByCompany: { type: SchemaTypes.Date, default: null },
-    urgent: { type: SchemaTypes.Boolean, default: false },
-  },
-  { _id: false },
 )
 
 const querySchema = new mongoose.Schema(
@@ -89,10 +85,6 @@ const querySchema = new mongoose.Schema(
     products: {
       type: [productItemSchema],
       default: [],
-    },
-    delivery: {
-      type: deliveryInfoSchema,
-      default: () => ({}),
     },
     created_by: {
       type: SchemaTypes.ObjectId,

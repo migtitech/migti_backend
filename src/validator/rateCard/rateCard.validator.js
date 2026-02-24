@@ -5,10 +5,12 @@ export const upsertRateSchema = Joi.object({
   supplierId: Joi.string().required(),
   rate: Joi.number().min(0).required(),
   notes: Joi.string().optional().allow(''),
+  combinationUniqueId: Joi.string().optional().allow('', null),
 })
 
 export const getByProductSchema = Joi.object({
   productId: Joi.string().required(),
+  combinationUniqueId: Joi.string().optional().allow('', null),
 })
 
 export const getBySupplierSchema = Joi.object({
@@ -16,8 +18,9 @@ export const getBySupplierSchema = Joi.object({
 })
 
 export const deleteRateCardSchema = Joi.object({
-  rateCardId: Joi.string().required(),
-})
+  rateCardId: Joi.string().optional(),
+  rateCombinationId: Joi.string().optional(),
+}).or('rateCardId', 'rateCombinationId')
 
 export const searchProductsSchema = Joi.object({
   search: Joi.string().allow('', null).default(''),

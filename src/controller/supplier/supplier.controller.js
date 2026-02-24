@@ -14,7 +14,9 @@ import {
   getSupplierById,
   updateSupplier,
   deleteSupplier,
+  uploadSupplierCatalog,
 } from '../../services/supplier/supplier.service.js'
+import { uploadCatalogSchema } from '../../validator/supplier/supplier.validator.js'
 
 export const createSupplierController = async (req, res) => {
   const { error, value } = createSupplierSchema.validate(req.body, {
@@ -135,6 +137,34 @@ export const deleteSupplierController = async (req, res) => {
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Supplier deleted successfully',
+    data: result,
+  })
+}
+
+export const uploadSupplierCatalogController = async (req, res) => {
+  const { error, value } = uploadCatalogSchema.validate(
+    { supplierId: req.query.supplierId || req.body.supplierId },
+    { abortEarly: false },
+  )
+  if (error) {
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: Message.validationError,
+      error: error.details.map((d) => d.message),
+    })
+  }
+
+  if (!req.file) {
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: 'Catalog file is required. Use field name "catalog".',
+    })
+  }
+
+  const result = await uploadSupplierCatalog(value, req.file)
+  return res.status(statusCodes.ok).json({
+    success: true,
+    message: 'Catalog uploaded successfully',
     data: result,
   })
 }

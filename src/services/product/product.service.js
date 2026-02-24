@@ -4,6 +4,7 @@ import BrandModel from '../../models/brand.model.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 import { generateSlug, generateUniqueSlug } from '../../utils/slugGenerator.js'
+import { generateUniqueProductCode } from '../../utils/productCodeGenerator.js'
 
 export const addProduct = async (data) => {
   const baseSlug = generateSlug(data.name)
@@ -51,9 +52,18 @@ export const addProduct = async (data) => {
     }
   }
 
+  const productCode = await generateUniqueProductCode()
+
+  const variantCombinationsWithCode = (data.variantCombinations || []).map((vc, i) => ({
+    ...vc,
+    variantCode: `${productCode}v${i + 1}`,
+  }))
+
   const product = await ProductModel.create({
     ...data,
     slug,
+    productCode,
+    variantCombinations: variantCombinationsWithCode,
     subcategory: data.subcategory || null,
     brand: data.brand || null,
   })
@@ -69,6 +79,8 @@ export const listProducts = async ({
   subcategory,
   brand,
   status,
+  hsnNumber,
+  modelNumber,
   sortBy = 'createdAt',
   sortOrder = 'desc',
 }) => {
@@ -82,8 +94,32 @@ export const listProducts = async ({
     filter.$or = [
       { name: { $regex: search, $options: 'i' } },
       { sku: { $regex: search, $options: 'i' } },
+      { productCode: { $regex: search, $options: 'i' } },
+      { 'variantCombinations.variantCode': { $regex: search, $options: 'i' } },
       { tags: { $regex: search, $options: 'i' } },
     ]
+  }
+
+  if (hsnNumber && hsnNumber.trim()) {
+    const hsnTerm = hsnNumber.trim()
+    filter.$and = filter.$and || []
+    filter.$and.push({
+      $or: [
+        { hsnNumber: { $regex: hsnTerm, $options: 'i' } },
+        { 'variantCombinations.hsnNumber': { $regex: hsnTerm, $options: 'i' } },
+      ],
+    })
+  }
+
+  if (modelNumber && modelNumber.trim()) {
+    const modelTerm = modelNumber.trim()
+    filter.$and = filter.$and || []
+    filter.$and.push({
+      $or: [
+        { defaultModelNumber: { $regex: modelTerm, $options: 'i' } },
+        { 'variantCombinations.modelNumber': { $regex: modelTerm, $options: 'i' } },
+      ],
+    })
   }
 
   if (category) filter.category = category
@@ -214,6 +250,14 @@ export const updateProduct = async ({ productId, ...updateData }) => {
   }
   if (updateData.group === '') {
     updateData.group = null
+  }
+
+  const productCode = product.productCode || updateData.productCode
+  if (updateData.variantCombinations && updateData.variantCombinations.length > 0 && productCode) {
+    updateData.variantCombinations = updateData.variantCombinations.map((vc, i) => ({
+      ...vc,
+      variantCode: `${productCode}v${i + 1}`,
+    }))
   }
 
   const updated = await ProductModel.findByIdAndUpdate(productId, updateData, {

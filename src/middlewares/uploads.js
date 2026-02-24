@@ -75,3 +75,28 @@ export const uploadAssetsMemory = multer({
   limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: imageFilter,
 })
+
+// Catalog upload: PDF, Excel, images (for supplier catalogs stored in S3)
+const catalogFilter = (_req, file, cb) => {
+  const allowed = [
+    'image/jpeg',
+    'image/jpg',
+    'image/png',
+    'image/gif',
+    'image/webp',
+    'application/pdf',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  ]
+  if (allowed.includes(file.mimetype)) {
+    cb(null, true)
+  } else {
+    cb(new Error(`File type ${file.mimetype} not allowed. Use PDF, Excel, or images.`), false)
+  }
+}
+
+export const uploadCatalogMemory = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 15 * 1024 * 1024 }, // 15MB for catalogs
+  fileFilter: catalogFilter,
+})

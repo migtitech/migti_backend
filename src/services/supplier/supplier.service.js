@@ -2,6 +2,7 @@ import SupplierModel from '../../models/supplier.model.js'
 import CategoryModel from '../../models/category.model.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
+import { uploadToS3 } from '../../core/helpers/s3bucket.js'
 
 const normalizeCategories = (categories = []) => {
   if (!Array.isArray(categories)) return []
@@ -141,6 +142,53 @@ export const getSupplierById = async ({ supplierId }) => {
 }
 
 const ALLOWED_UPDATE_FIELDS = ['address', 'shippingAddress', 'billingAddress', 'phone_1', 'phone_2', 'categories', 'remark']
+
+export const uploadSupplierCatalog = async ({ supplierId }, file) => {
+  const supplier = await SupplierModel.findById(supplierId).lean()
+  if (!supplier) {
+    throw new CustomError(
+      statusCodes.notFound,
+      'Supplier not found',
+      errorCodes.not_found,
+    )
+  }
+
+  if (!file?.buffer) {
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Catalog file is required',
+      errorCodes.invalid_input,
+    )
+  }
+
+  const folder = `supplier-catalogs/${supplierId}`
+  const result = await uploadToS3(file, process.env.AWS_BUCKET_NAME, folder)
+
+  if (!result.success || !result.data?.url) {
+    throw new CustomError(
+      statusCodes.badRequest,
+      result.message || 'Catalog upload failed',
+      errorCodes.invalid_input,
+    )
+  }
+
+  const uploadedAt = new Date()
+  const catalog = {
+    url: result.data.url,
+    fileName: result.data.originalName || result.data.fileName,
+    uploadedAt,
+  }
+
+  const updated = await SupplierModel.findByIdAndUpdate(
+    supplierId,
+    { catalog },
+    { new: true, runValidators: true },
+  )
+    .populate('categories', 'name slug')
+    .lean()
+
+  return updated
+}
 
 export const updateSupplier = async ({ supplierId, ...updateData }) => {
   const supplier = await SupplierModel.findById(supplierId).lean()
