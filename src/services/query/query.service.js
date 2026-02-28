@@ -3,6 +3,7 @@ import QueryActivityModel from '../../models/queryActivity.model.js'
 import EmployeeModel from '../../models/employee.model.js'
 import AdminModel from '../../models/admin.model.js'
 import SuperAdminModel from '../../models/super.admin.js'
+import { transformProductImagesToSigned } from '../document/document.service.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 
@@ -109,6 +110,11 @@ export const getQueryById = async ({ queryId, branchFilter = {} }) => {
   const query = await QueryModel.findOne({ _id: queryId, isDeleted: false, ...branchFilter })
     .populate('industry_id', 'name location address email purchase_manager_name purchase_manager_phone')
     .populate('created_by', 'name email')
+    .populate({
+      path: 'products.product_id',
+      select: 'name images hsnNumber gstPercentage unit',
+      populate: { path: 'images', select: 'path', model: 'document' },
+    })
     .lean()
 
   if (!query) {
@@ -117,6 +123,15 @@ export const getQueryById = async ({ queryId, branchFilter = {} }) => {
       'Query not found',
       errorCodes.not_found,
     )
+  }
+
+  // Transform product images to signed URLs for S3
+  if (query.products?.length) {
+    for (const p of query.products) {
+      if (p.product_id && typeof p.product_id === 'object') {
+        p.product_id = await transformProductImagesToSigned(p.product_id)
+      }
+    }
   }
 
   return query
