@@ -18,6 +18,8 @@ import {
   listQueryActivities,
   recordQueryActivity,
 } from '../../services/query/query.service.js'
+import { convertQueryToQuotationSchema } from '../../validator/query/query.validator.js'
+import { convertQueryToQuotation } from '../../services/query/query.service.js'
 
 export const createQueryController = async (req, res) => {
   const { error, value } = createQuerySchema.validate(req.body, {
@@ -164,6 +166,28 @@ export const recordQueryActivityController = async (req, res) => {
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Activity recorded successfully',
+    data: result,
+  })
+}
+
+export const convertQueryToQuotationController = async (req, res) => {
+  const { error, value } = convertQueryToQuotationSchema.validate(req.query, {
+    abortEarly: false,
+  })
+  if (error) {
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: Message.validationError,
+      error: error.details.map((d) => d.message),
+    })
+  }
+
+  const branchFilter = getBranchFilter(req)
+  const created_by = req.user?.id || req.user?._id
+  const result = await convertQueryToQuotation({ ...value, created_by, branchFilter })
+  return res.status(statusCodes.ok).json({
+    success: true,
+    message: 'Query converted to quotation successfully',
     data: result,
   })
 }

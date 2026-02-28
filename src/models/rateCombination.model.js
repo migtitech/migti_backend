@@ -30,6 +30,16 @@ const rateCombinationSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
+    includeGst: {
+      type: SchemaTypes.Boolean,
+      default: false,
+    },
+    gstPercentage: {
+      type: SchemaTypes.Number,
+      default: 0,
+      min: 0,
+      max: 100,
+    },
   },
   { timestamps: true },
 )

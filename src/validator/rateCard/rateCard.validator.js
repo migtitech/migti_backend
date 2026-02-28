@@ -5,6 +5,8 @@ export const upsertRateSchema = Joi.object({
   supplierId: Joi.string().required(),
   rate: Joi.number().min(0).required(),
   notes: Joi.string().optional().allow(''),
+  includeGst: Joi.boolean().optional(),
+  gstPercentage: Joi.number().min(0).max(100).optional(),
   combinationUniqueId: Joi.string().optional().allow('', null),
 })
 

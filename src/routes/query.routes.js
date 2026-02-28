@@ -10,6 +10,7 @@ import {
   deleteQueryController,
   listQueryActivitiesController,
   recordQueryActivityController,
+  convertQueryToQuotationController,
 } from '../controller/query/query.controller.js'
 
 const queryRouter = Router()
@@ -21,5 +22,11 @@ queryRouter.put('/update', authenticateToken, checkPermission(MODULES.QUERIES, '
 queryRouter.delete('/delete', authenticateToken, checkPermission(MODULES.QUERIES, 'delete'), asyncHandler(deleteQueryController))
 queryRouter.get('/activities', authenticateToken, checkPermission(MODULES.QUERIES, 'read'), asyncHandler(listQueryActivitiesController))
 queryRouter.post('/record-activity', authenticateToken, checkPermission(MODULES.QUERIES, 'create'), asyncHandler(recordQueryActivityController))
+queryRouter.post(
+  '/convert-to-quotation',
+  authenticateToken,
+  checkPermission(MODULES.QUERIES, 'update'),
+  asyncHandler(convertQueryToQuotationController),
+)
 
 export default queryRouter

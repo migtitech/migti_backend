@@ -97,6 +97,11 @@ const employeeSchema = new mongoose.Schema(
       ref: 'companyBranch',
       required: true,
     },
+    zoneId: {
+      type: SchemaTypes.ObjectId,
+      ref: 'area',
+      default: null,
+    },
     permissions: [{ type: String }],
     bankDetails: { type: bankDetailsSchema, default: () => ({}) },
     assets: { type: assetsSchema, default: () => ({}) },

@@ -12,7 +12,6 @@ const purchaseManagerSchema = new mongoose.Schema(
   { _id: false },
 )
 
-// Company/industry snapshot stored in query (editable, does not change industry table)
 const companyInfoSchema = new mongoose.Schema(
   {
     name: { type: SchemaTypes.String, trim: true, default: '' },
@@ -24,7 +23,6 @@ const companyInfoSchema = new mongoose.Schema(
   { _id: false },
 )
 
-// Variant (multiple per product)
 const productVariantSchema = new mongoose.Schema(
   {
     variantName: { type: SchemaTypes.String, trim: true, default: '' },
@@ -32,7 +30,8 @@ const productVariantSchema = new mongoose.Schema(
   { _id: true },
 )
 
-const productItemSchema = new mongoose.Schema(
+// Quotation line item: same as query product + rate (submitted per line)
+const quotationProductItemSchema = new mongoose.Schema(
   {
     productName: { type: SchemaTypes.String, required: true, trim: true },
     quantity: { type: SchemaTypes.Number, required: true, min: 0, default: 1 },
@@ -43,28 +42,49 @@ const productItemSchema = new mongoose.Schema(
     variants: { type: [productVariantSchema], default: [] },
     remark: { type: SchemaTypes.String, default: '' },
     product_id: { type: SchemaTypes.ObjectId, ref: 'product', default: null },
+    rate: { type: SchemaTypes.Number, min: 0, default: null },
   },
   { _id: true },
 )
 
-const querySchema = new mongoose.Schema(
+export const QUOTATION_STATUS = {
+  DRAFT: 'draft',
+  PARTIAL: 'partial',
+  FULFILLED: 'fulfilled',
+  READY: 'ready',
+  SENT_TO_CLIENT: 'sentToClient',
+  PO_RECEIVED: 'poReceived',
+  FOLLOWUP01: 'followup01',
+  FOLLOWUP02: 'followup02',
+  CLOSED: 'closed',
+}
+
+const quotationStatusValues = Object.values(QUOTATION_STATUS)
+
+const quotationSchema = new mongoose.Schema(
   {
     uniqueId: {
       type: String,
       unique: true,
       default: uuidv4,
     },
-    queryCode: {
+    quotationCode: {
       type: SchemaTypes.String,
       trim: true,
       uppercase: true,
       unique: true,
       sparse: true,
     },
+    queryId: {
+      type: SchemaTypes.ObjectId,
+      ref: 'query',
+      required: true,
+      index: true,
+    },
     status: {
       type: SchemaTypes.String,
-      enum: ['drafted', 'convertedToQuotation', 'closed'],
-      default: 'drafted',
+      enum: quotationStatusValues,
+      default: QUOTATION_STATUS.DRAFT,
       trim: true,
     },
     companyInfo: {
@@ -77,7 +97,7 @@ const querySchema = new mongoose.Schema(
       default: null,
     },
     products: {
-      type: [productItemSchema],
+      type: [quotationProductItemSchema],
       default: [],
     },
     created_by: {
@@ -95,8 +115,8 @@ const querySchema = new mongoose.Schema(
   { timestamps: true },
 )
 
-querySchema.plugin(commonFieldsPlugin)
+quotationSchema.plugin(commonFieldsPlugin)
 
-const QueryModel = mongoose.model('query', querySchema)
+const QuotationModel = mongoose.model('quotation', quotationSchema)
 
-export default QueryModel
+export default QuotationModel
