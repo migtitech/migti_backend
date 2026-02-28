@@ -5,6 +5,7 @@ import AdminModel from '../../models/admin.model.js'
 import SuperAdminModel from '../../models/super.admin.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
+import { createQuotationFromQuery, getQuotationByQueryId } from '../quotation/quotation.service.js'
 
 const generateQueryCode = () => {
   const num = Math.floor(10000 + Math.random() * 90000)
@@ -16,7 +17,7 @@ export const addQuery = async ({
   industry_id,
   products = [],
   delivery = {},
-  status = 'pending',
+  status = 'drafted',
   created_by,
   branchId,
 }) => {
@@ -45,7 +46,7 @@ export const addQuery = async ({
 
   const doc = await QueryModel.create({
     queryCode,
-    status: status || 'pending',
+    status: status || 'drafted',
     companyInfo: companyInfo || {},
     industry_id: industry_id || null,
     products: products || [],
@@ -265,4 +266,42 @@ export const deleteQuery = async ({ queryId, branchFilter = {} }) => {
       deletedAt: new Date().toISOString(),
     },
   }
+}
+
+export const convertQueryToQuotation = async ({
+  queryCode,
+  created_by,
+  branchFilter = {},
+}) => {
+  const existing = await QueryModel.findOne({ queryCode, isDeleted: false, ...branchFilter }).lean()
+  if (!existing) {
+    throw new CustomError(
+      statusCodes.notFound,
+      'Query not found',
+      errorCodes.not_found,
+    )
+  }
+
+  let quotation = await getQuotationByQueryId({ queryId: existing._id, branchFilter })
+  if (!quotation) {
+    quotation = await createQuotationFromQuery({
+      queryId: existing._id,
+      created_by,
+      branchId: existing.branchId,
+      branchFilter,
+    })
+  }
+
+  if (existing.status !== 'convertedToQuotation') {
+    await QueryModel.updateOne(
+      { _id: existing._id },
+      { $set: { status: 'convertedToQuotation' } },
+    )
+  }
+
+  const updatedQuery = await QueryModel.findById(existing._id)
+    .populate('industry_id', 'name location address email purchase_manager_name purchase_manager_phone')
+    .lean()
+
+  return { query: updatedQuery, quotation }
 }

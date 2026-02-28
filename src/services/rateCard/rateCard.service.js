@@ -10,6 +10,8 @@ export const upsertRate = async ({
   supplierId,
   rate,
   notes = '',
+  includeGst,
+  gstPercentage,
   combinationUniqueId,
 }) => {
   const product = await ProductModel.findById(productId)
@@ -37,6 +39,15 @@ export const upsertRate = async ({
       )
     }
 
+    // Build update payload for combination
+    const comboUpdate = { rate }
+    if (typeof includeGst === 'boolean') {
+      comboUpdate.includeGst = includeGst
+    }
+    if (typeof gstPercentage === 'number') {
+      comboUpdate.gstPercentage = gstPercentage
+    }
+
     // Upsert rate combination
     await RateCombinationModel.findOneAndUpdate(
       {
@@ -45,7 +56,7 @@ export const upsertRate = async ({
         supplier: supplierId,
         isDeleted: false,
       },
-      { rate },
+      comboUpdate,
       { upsert: true, new: true },
     )
 
@@ -60,10 +71,25 @@ export const upsertRate = async ({
     const productRate =
       allCombos.length > 0 ? Math.min(...allCombos.map((c) => c.rate)) : rate
 
+    // Pick GST info from the combination that has the minimum rate
+    let minComboGst = {}
+    if (allCombos.length > 0) {
+      const minCombo = allCombos.reduce((acc, c) => (c.rate < acc.rate ? c : acc), allCombos[0])
+      minComboGst = {
+        includeGst: !!minCombo.includeGst,
+        gstPercentage:
+          typeof minCombo.gstPercentage === 'number' ? minCombo.gstPercentage : 0,
+      }
+    }
+
     // Upsert rate card with min rate
     rateCardEntry = await RateCardModel.findOneAndUpdate(
       { product: productId, supplier: supplierId },
-      { rate: productRate, notes },
+      {
+        rate: productRate,
+        notes,
+        ...(allCombos.length > 0 ? minComboGst : {}),
+      },
       { upsert: true, new: true },
     )
       .populate('product', 'name sku price')
@@ -73,7 +99,12 @@ export const upsertRate = async ({
     // Product-level rate (no combination) - existing behavior
     rateCardEntry = await RateCardModel.findOneAndUpdate(
       { product: productId, supplier: supplierId },
-      { rate, notes },
+      {
+        rate,
+        notes,
+        ...(typeof includeGst === 'boolean' ? { includeGst } : {}),
+        ...(typeof gstPercentage === 'number' ? { gstPercentage } : {}),
+      },
       { upsert: true, new: true },
     )
       .populate('product', 'name sku price')
@@ -108,6 +139,9 @@ export const getSuppliersByProduct = async ({ productId, combinationUniqueId }) 
     rates = comboRates.map((r) => ({
       _id: r._id,
       rate: r.rate,
+      includeGst: !!r.includeGst,
+      gstPercentage:
+        typeof r.gstPercentage === 'number' ? r.gstPercentage : 0,
       supplier: r.supplier,
       combinationUniqueId: r.combinationUniqueId,
     }))
@@ -121,6 +155,9 @@ export const getSuppliersByProduct = async ({ productId, combinationUniqueId }) 
     rates = cardRates.map((r) => ({
       _id: r._id,
       rate: r.rate,
+      includeGst: !!r.includeGst,
+      gstPercentage:
+        typeof r.gstPercentage === 'number' ? r.gstPercentage : 0,
       supplier: r.supplier,
     }))
 
@@ -151,7 +188,16 @@ export const getProductsBySupplier = async ({ supplierId }) => {
     .sort({ createdAt: -1 })
     .lean()
 
-  return { supplier, rates }
+  const mappedRates = rates.map((r) => ({
+    _id: r._id,
+    rate: r.rate,
+    includeGst: !!r.includeGst,
+    gstPercentage:
+      typeof r.gstPercentage === 'number' ? r.gstPercentage : 0,
+    product: r.product,
+  }))
+
+  return { supplier, rates: mappedRates }
 }
 
 export const deleteRateCard = async ({ rateCardId, rateCombinationId }) => {

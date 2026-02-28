@@ -60,6 +60,7 @@ export const createEmployeeSchema = Joi.object({
   salary: Joi.number().min(0).optional(),
   password: Joi.string().required().min(6),
   branchId: Joi.string().required(),
+  zoneId: Joi.string().optional(),
   permissions: Joi.array().items(Joi.string()).optional(),
   bankDetails: bankDetailsSchema.optional(),
   assets: assetsSchema.optional(),
@@ -106,6 +107,7 @@ export const updateEmployeeSchema = Joi.object({
   salary: Joi.number().min(0).optional(),
   password: Joi.forbidden(), // password cannot be updated via this endpoint
   branchId: Joi.string().optional(),
+  zoneId: Joi.string().optional(),
   permissions: Joi.array().items(Joi.string()).optional(),
   bankDetails: bankDetailsSchema.optional(),
   assets: assetsSchema.optional(),
@@ -119,6 +121,27 @@ export const loginEmployeeSchema = Joi.object({
   email: Joi.string().email().required(),
   password: Joi.string().required(),
   role: Joi.string()
-    .valid('sales', 'hod', 'purchase', 'finance', 'delivery')
+    .valid(
+      // New role codes
+      'head_of_department',
+      'sales_manager',
+      'sales_exicutive',
+      'purchase_manager',
+      'purchase_exicutive',
+      'back_office_exicutive',
+      'administrator',
+      // Legacy role codes (kept for backward compatibility)
+      'hod',
+      'sm',
+      'se',
+      'pm',
+      'pe',
+      'boe',
+      'admin',
+      'sales',
+      'purchase',
+      'finance',
+      'delivery',
+    )
     .required(),
 })

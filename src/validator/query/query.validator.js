@@ -16,33 +16,27 @@ const companyInfoSchema = Joi.object({
 
 const productVariantSchema = Joi.object({
   variantName: Joi.string().allow('').optional(),
-  quantity: Joi.number().integer().min(0).optional().default(1),
 })
 
 const productItemSchema = Joi.object({
   productName: Joi.string().required().trim(),
   quantity: Joi.number().integer().min(0).required(),
   unit: Joi.string().allow('').optional(),
+  hsnNumber: Joi.string().allow('').optional(),
+  modelNumber: Joi.string().allow('').optional(),
+  gstPercentage: Joi.number().min(0).max(100).allow(null).optional(),
   variants: Joi.array().items(productVariantSchema).optional().default([]),
   remark: Joi.string().allow('').optional(),
   product_id: Joi.string().allow(null, '').optional(),
 })
 
-const queryStatusValues = [
-  'pending',
-  'followup01pending',
-  'followup02pending',
-  'followup03pending',
-  'progress',
-  'convertedToQuotation',
-  'closed',
-]
+const queryStatusValues = ['drafted', 'convertedToQuotation', 'closed']
 
 export const createQuerySchema = Joi.object({
   companyInfo: companyInfoSchema.optional().default({}),
   industry_id: Joi.string().allow(null, '').optional(),
   products: Joi.array().items(productItemSchema).optional().default([]),
-  status: Joi.string().valid(...queryStatusValues).optional().default('pending'),
+  status: Joi.string().valid(...queryStatusValues).optional().default('drafted'),
   created_by: Joi.string().allow(null, '').optional(),
 })
 
@@ -84,4 +78,8 @@ export const recordQueryActivitySchema = Joi.object({
 
 export const deleteQuerySchema = Joi.object({
   queryId: Joi.string().required(),
+})
+
+export const convertQueryToQuotationSchema = Joi.object({
+  queryCode: Joi.string().required(),
 })
