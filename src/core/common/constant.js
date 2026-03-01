@@ -370,6 +370,7 @@ export const MODULES = Object.freeze({
   RAW_QUERIES: 'raw_queries',
   QUOTATIONS: 'quotations',
   PURCHASE_ORDERS: 'purchase_orders',
+  PURCHASE_TASKS: 'purchase_tasks',
   FINANCE: 'finance',
   FOLLOW_UP: 'follow_up',
   EMPLOYEES: 'employees',

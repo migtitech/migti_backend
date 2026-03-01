@@ -113,7 +113,7 @@ export const getQueryById = async ({ queryId, branchFilter = {} }) => {
     .populate('created_by', 'name email')
     .populate({
       path: 'products.product_id',
-      select: 'name images hsnNumber gstPercentage unit',
+      select: 'name shortDescription images hsnNumber gstPercentage unit',
       populate: { path: 'images', select: 'path', model: 'document' },
     })
     .lean()
