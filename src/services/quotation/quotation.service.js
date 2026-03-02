@@ -2,6 +2,7 @@ import QuotationModel, { QUOTATION_STATUS } from '../../models/quotation.model.j
 import QueryModel from '../../models/query.model.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
+import { transformProductImagesToSigned } from '../document/document.service.js'
 
 const QUOTATION_CODE_PREFIX = 'QUO'
 
@@ -188,6 +189,11 @@ export const getQuotationById = async ({
     .populate('queryId', 'queryCode status companyInfo industry_id products created_by')
     .populate('industry_id', 'name location address email purchase_manager_name purchase_manager_phone')
     .populate('created_by', 'name email')
+    .populate({
+      path: 'products.product_id',
+      select: 'name shortDescription images hsnNumber gstPercentage unit',
+      populate: { path: 'images', select: 'path', model: 'document' },
+    })
     .lean()
 
   if (!quotation) {
@@ -208,6 +214,15 @@ export const getQuotationById = async ({
         'You do not have access to this quotation',
         errorCodes.access_forbidden,
       )
+    }
+  }
+
+  // Transform product images to signed URLs for S3
+  if (quotation.products?.length) {
+    for (const p of quotation.products) {
+      if (p.product_id && typeof p.product_id === 'object') {
+        p.product_id = await transformProductImagesToSigned(p.product_id)
+      }
     }
   }
 
