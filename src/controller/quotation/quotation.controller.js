@@ -13,6 +13,7 @@ import {
   updateQuotation,
   updateQuotationStatus,
 } from '../../services/quotation/quotation.service.js'
+import { exportQuotationPdf } from '../../services/quotation/quotationPdfExport.service.js'
 
 export const listQuotationsController = async (req, res) => {
   const { error, value } = listQuotationSchema.validate(req.query, {
@@ -112,4 +113,33 @@ export const updateQuotationStatusController = async (req, res) => {
     message: 'Quotation status updated successfully',
     data: result,
   })
+}
+
+export const exportQuotationPdfController = async (req, res) => {
+  const { error, value } = getQuotationByIdSchema.validate(req.query, {
+    abortEarly: false,
+  })
+  if (error) {
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: Message.validationError,
+      error: error.details.map((d) => d.message),
+    })
+  }
+
+  const branchFilter = getBranchFilter(req)
+  const currentUserId = req.user?.id || req.user?._id
+  const isFullAccessRole = req.user?.role && BRANCH_BYPASS_ROLES.includes(req.user.role)
+
+  const { buffer, quotationCode } = await exportQuotationPdf({
+    ...value,
+    branchFilter,
+    currentUserId: currentUserId || null,
+    isFullAccessRole: !!isFullAccessRole,
+  })
+  const fileName = `quotation-${quotationCode || value.quotationId}-${new Date().toISOString().slice(0, 10)}.pdf`
+  res.setHeader('Content-Type', 'application/pdf')
+  res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`)
+  res.setHeader('Content-Length', buffer.length)
+  res.end(buffer, 'binary')
 }

@@ -1,4 +1,5 @@
 import { Message, statusCodes } from '../../core/common/constant.js'
+import { getBranchFilter, getBranchIdForCreate } from '../../core/helpers/branchFilter.js'
 import {
   upsertRateSchema,
   getByProductSchema,
@@ -26,7 +27,8 @@ export const upsertRateController = async (req, res) => {
     })
   }
 
-  const result = await upsertRate(value)
+  const branchId = getBranchIdForCreate(req)
+  const result = await upsertRate({ ...value, branchId })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Rate saved successfully',
@@ -44,7 +46,8 @@ export const getByProductController = async (req, res) => {
     })
   }
 
-  const result = await getSuppliersByProduct(value)
+  const branchFilter = getBranchFilter(req)
+  const result = await getSuppliersByProduct({ ...value, branchFilter })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Suppliers retrieved successfully',
@@ -62,7 +65,8 @@ export const getBySupplierController = async (req, res) => {
     })
   }
 
-  const result = await getProductsBySupplier(value)
+  const branchFilter = getBranchFilter(req)
+  const result = await getProductsBySupplier({ ...value, branchFilter })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Products retrieved successfully',

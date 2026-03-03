@@ -10,7 +10,7 @@ import { fileURLToPath } from 'url'
 import path from 'path'
 
 import ProductModel from '../src/models/product.model.js'
-import { generateUniqueProductCode } from '../src/utils/productCodeGenerator.js'
+import { generateUniqueCode } from '../src/services/codeSequence/codeSequence.service.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -41,7 +41,10 @@ async function backfillProductCodes() {
     let updated = 0
     if (productsWithoutCode.length > 0) {
       for (const p of productsWithoutCode) {
-        const code = await generateUniqueProductCode()
+        const code = await generateUniqueCode('productCode', {
+          model: ProductModel,
+          field: 'productCode',
+        })
         await ProductModel.findByIdAndUpdate(p._id, { productCode: code })
         updated++
         console.log(`[${updated}/${productsWithoutCode.length}] ${p.name} -> ${code}`)

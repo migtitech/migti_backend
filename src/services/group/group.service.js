@@ -2,22 +2,7 @@ import GroupModel from '../../models/group.model.js'
 import CategoryModel from '../../models/category.model.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
-
-const generateGroupCode = async () => {
-  const groups = await GroupModel.find(
-    { isDeleted: false, code: { $exists: true, $ne: '' } },
-    { code: 1 },
-  )
-    .lean()
-  const nums = groups
-    .map((g) => {
-      const m = g.code?.match(/^GRP(\d+)$/i)
-      return m ? parseInt(m[1], 10) : 0
-    })
-    .filter((n) => n > 0)
-  const next = nums.length > 0 ? Math.max(...nums) + 1 : 1
-  return `GRP${String(next).padStart(2, '0')}`
-}
+import { generateUniqueCode } from '../codeSequence/codeSequence.service.js'
 
 export const addGroup = async (data) => {
   const existing = await GroupModel.findOne({
@@ -33,7 +18,10 @@ export const addGroup = async (data) => {
     )
   }
 
-  const code = await generateGroupCode()
+  const code = await generateUniqueCode('groupCode', {
+    model: GroupModel,
+    field: 'code',
+  })
   const { code: _omit, ...rest } = data
   const group = await GroupModel.create({ ...rest, code })
   return group.toObject()

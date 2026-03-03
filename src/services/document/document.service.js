@@ -122,6 +122,24 @@ export const getDocumentById = async (documentId) => {
 }
 
 /**
+ * Get document serve info for authenticated image serving.
+ * Returns { type: 'local', filePath } or { type: 's3', signedUrl }.
+ */
+export const getDocumentServeInfo = async (documentId, signedUrlExpiresIn = 86400) => {
+  const doc = await DocumentModel.findById(documentId).lean()
+  if (!doc?.path) return null
+  const p = doc.path
+  if (typeof p === 'string' && (p.startsWith('http://') || p.startsWith('https://'))) {
+    const signed = await getSignedUrlForPath(p, signedUrlExpiresIn)
+    if (signed) return { type: 's3', signedUrl: signed }
+    return { type: 's3', signedUrl: p }
+  }
+  const filePath = path.join(ASSETS_DIR, p)
+  if (fs.existsSync(filePath)) return { type: 'local', filePath }
+  return null
+}
+
+/**
  * Convert S3 paths to signed URLs for private bucket access.
  * Local paths are returned as-is.
  * @param {string} docPath - path from document (S3 URL or local relative path)

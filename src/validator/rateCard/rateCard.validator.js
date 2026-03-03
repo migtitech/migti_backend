@@ -8,6 +8,7 @@ export const upsertRateSchema = Joi.object({
   includeGst: Joi.boolean().optional(),
   gstPercentage: Joi.number().min(0).max(100).optional(),
   combinationUniqueId: Joi.string().optional().allow('', null),
+  nextDueDate: Joi.date().iso().min('now').optional(),
 })
 
 export const getByProductSchema = Joi.object({

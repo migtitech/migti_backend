@@ -51,6 +51,7 @@ export const listIndustries = async ({
   pageNumber = 1,
   pageSize = 10,
   search = '',
+  category,
 }) => {
   const page = Math.max(1, parseInt(pageNumber))
   const limit = Math.min(1000, Math.max(1, parseInt(pageSize)))
@@ -66,6 +67,10 @@ export const listIndustries = async ({
       { purchase_manager_name: { $regex: search, $options: 'i' } },
       { gstNumber: { $regex: search, $options: 'i' } },
     ]
+  }
+
+  if (category) {
+    filter.category = category
   }
 
   const totalItems = await IndustryModel.countDocuments(filter)

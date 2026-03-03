@@ -43,6 +43,7 @@ const quotationProductItemSchema = new mongoose.Schema(
     remark: { type: SchemaTypes.String, default: '' },
     product_id: { type: SchemaTypes.ObjectId, ref: 'product', default: null },
     rate: { type: SchemaTypes.Number, min: 0, default: null },
+    images: [{ type: SchemaTypes.ObjectId, ref: 'document' }],
   },
   { _id: true },
 )
@@ -52,6 +53,7 @@ export const QUOTATION_STATUS = {
   PARTIAL: 'partial',
   FULFILLED: 'fulfilled',
   READY: 'ready',
+  HOD_APPROVED: 'hod_approved',
   SENT_TO_CLIENT: 'sentToClient',
   PO_RECEIVED: 'poReceived',
   FOLLOWUP01: 'followup01',
@@ -110,6 +112,11 @@ const quotationSchema = new mongoose.Schema(
       ref: 'companyBranch',
       default: null,
       index: true,
+    },
+    remark: {
+      type: SchemaTypes.String,
+      trim: true,
+      default: '',
     },
   },
   { timestamps: true },

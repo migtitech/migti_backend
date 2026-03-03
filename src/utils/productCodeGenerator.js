@@ -1,3 +1,7 @@
+/**
+ * @deprecated Use generateUniqueCode('productCode', { model: ProductModel, field: 'productCode' })
+ * from services/codeSequence/codeSequence.service.js for centralised code generation.
+ */
 import ProductModel from '../models/product.model.js'
 
 const PREFIX = 'mig'

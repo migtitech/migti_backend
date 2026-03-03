@@ -25,6 +25,12 @@ const rateCombinationSchema = new mongoose.Schema(
       ref: 'supplier',
       required: true,
     },
+    branchId: {
+      type: SchemaTypes.ObjectId,
+      ref: 'companyBranch',
+      default: null,
+      index: true,
+    },
     rate: {
       type: SchemaTypes.Number,
       required: true,
@@ -44,8 +50,11 @@ const rateCombinationSchema = new mongoose.Schema(
   { timestamps: true },
 )
 
-rateCombinationSchema.index({ product: 1, combinationUniqueId: 1, supplier: 1 }, { unique: true })
-rateCombinationSchema.index({ product: 1, supplier: 1 })
+rateCombinationSchema.index(
+  { product: 1, combinationUniqueId: 1, supplier: 1, branchId: 1 },
+  { unique: true },
+)
+rateCombinationSchema.index({ product: 1, supplier: 1, branchId: 1 })
 
 rateCombinationSchema.plugin(commonFieldsPlugin)
 

@@ -13,6 +13,8 @@ export const upsertRate = async ({
   includeGst,
   gstPercentage,
   combinationUniqueId,
+  nextDueDate,
+  branchId,
 }) => {
   const product = await ProductModel.findById(productId)
   if (!product) {
@@ -25,6 +27,7 @@ export const upsertRate = async ({
   }
 
   let rateCardEntry
+  const branchIdForDoc = branchId || null
 
   if (combinationUniqueId && combinationUniqueId.trim()) {
     // Validate combination exists in product
@@ -54,6 +57,7 @@ export const upsertRate = async ({
         product: productId,
         combinationUniqueId: combinationUniqueId.trim(),
         supplier: supplierId,
+        branchId: branchIdForDoc,
         isDeleted: false,
       },
       comboUpdate,
@@ -64,6 +68,7 @@ export const upsertRate = async ({
     const allCombos = await RateCombinationModel.find({
       product: productId,
       supplier: supplierId,
+      branchId: branchIdForDoc,
       isDeleted: false,
     }).lean()
 
@@ -84,11 +89,13 @@ export const upsertRate = async ({
 
     // Upsert rate card with min rate
     rateCardEntry = await RateCardModel.findOneAndUpdate(
-      { product: productId, supplier: supplierId },
+      { product: productId, supplier: supplierId, branchId: branchIdForDoc },
       {
         rate: productRate,
         notes,
+        branchId: branchIdForDoc,
         ...(allCombos.length > 0 ? minComboGst : {}),
+        ...(nextDueDate ? { nextDueDate } : {}),
       },
       { upsert: true, new: true },
     )
@@ -98,12 +105,14 @@ export const upsertRate = async ({
   } else {
     // Product-level rate (no combination) - existing behavior
     rateCardEntry = await RateCardModel.findOneAndUpdate(
-      { product: productId, supplier: supplierId },
+      { product: productId, supplier: supplierId, branchId: branchIdForDoc },
       {
         rate,
         notes,
+        branchId: branchIdForDoc,
         ...(typeof includeGst === 'boolean' ? { includeGst } : {}),
         ...(typeof gstPercentage === 'number' ? { gstPercentage } : {}),
+        ...(nextDueDate ? { nextDueDate } : {}),
       },
       { upsert: true, new: true },
     )
@@ -115,7 +124,7 @@ export const upsertRate = async ({
   return rateCardEntry
 }
 
-export const getSuppliersByProduct = async ({ productId, combinationUniqueId }) => {
+export const getSuppliersByProduct = async ({ productId, combinationUniqueId, branchFilter = {} }) => {
   const product = await ProductModel.findById(productId)
     .select('name sku price description hasVariants variantCombinations')
     .lean()
@@ -131,6 +140,7 @@ export const getSuppliersByProduct = async ({ productId, combinationUniqueId }) 
       product: productId,
       combinationUniqueId: combinationUniqueId.trim(),
       isDeleted: false,
+      ...branchFilter,
     })
       .populate('supplier', 'name shopname phone_1 phone_2 email address shop_location')
       .sort({ rate: 1 })
@@ -147,7 +157,7 @@ export const getSuppliersByProduct = async ({ productId, combinationUniqueId }) 
     }))
   } else {
     // Product-level: return from rate card
-    const cardRates = await RateCardModel.find({ product: productId, isDeleted: false })
+    const cardRates = await RateCardModel.find({ product: productId, isDeleted: false, ...branchFilter })
       .populate('supplier', 'name shopname phone_1 phone_2 email address shop_location')
       .sort({ rate: 1 })
       .lean()
@@ -158,6 +168,7 @@ export const getSuppliersByProduct = async ({ productId, combinationUniqueId }) 
       includeGst: !!r.includeGst,
       gstPercentage:
         typeof r.gstPercentage === 'number' ? r.gstPercentage : 0,
+      nextDueDate: r.nextDueDate,
       supplier: r.supplier,
     }))
 
@@ -165,6 +176,7 @@ export const getSuppliersByProduct = async ({ productId, combinationUniqueId }) 
     const combosWithRates = await RateCombinationModel.find({
       product: productId,
       isDeleted: false,
+      ...branchFilter,
     })
       .distinct('combinationUniqueId')
       .lean()
@@ -175,7 +187,7 @@ export const getSuppliersByProduct = async ({ productId, combinationUniqueId }) 
   return { product, rates }
 }
 
-export const getProductsBySupplier = async ({ supplierId }) => {
+export const getProductsBySupplier = async ({ supplierId, branchFilter = {} }) => {
   const supplier = await SupplierModel.findById(supplierId)
     .select('name shopname phone_1 phone_2 email address')
     .lean()
@@ -183,7 +195,7 @@ export const getProductsBySupplier = async ({ supplierId }) => {
     throw new CustomError(statusCodes.notFound, 'Supplier not found', errorCodes.not_found)
   }
 
-  const rates = await RateCardModel.find({ supplier: supplierId, isDeleted: false })
+  const rates = await RateCardModel.find({ supplier: supplierId, isDeleted: false, ...branchFilter })
     .populate('product', 'name sku price description')
     .sort({ createdAt: -1 })
     .lean()
@@ -194,6 +206,7 @@ export const getProductsBySupplier = async ({ supplierId }) => {
     includeGst: !!r.includeGst,
     gstPercentage:
       typeof r.gstPercentage === 'number' ? r.gstPercentage : 0,
+    nextDueDate: r.nextDueDate,
     product: r.product,
   }))
 
@@ -215,6 +228,7 @@ export const deleteRateCard = async ({ rateCardId, rateCombinationId }) => {
     const remaining = await RateCombinationModel.find({
       product: rateCombo.product,
       supplier: rateCombo.supplier,
+      branchId: rateCombo.branchId || null,
       isDeleted: false,
     }).lean()
 
@@ -222,11 +236,12 @@ export const deleteRateCard = async ({ rateCardId, rateCombinationId }) => {
       await RateCardModel.findOneAndDelete({
         product: rateCombo.product,
         supplier: rateCombo.supplier,
+        branchId: rateCombo.branchId || null,
       })
     } else {
       const minRate = Math.min(...remaining.map((r) => r.rate))
       await RateCardModel.findOneAndUpdate(
-        { product: rateCombo.product, supplier: rateCombo.supplier },
+        { product: rateCombo.product, supplier: rateCombo.supplier, branchId: rateCombo.branchId || null },
         { rate: minRate },
       )
     }
@@ -248,6 +263,7 @@ export const deleteRateCard = async ({ rateCardId, rateCombinationId }) => {
   await RateCombinationModel.deleteMany({
     product: rateCard.product,
     supplier: rateCard.supplier,
+    branchId: rateCard.branchId || null,
   })
 
   return {

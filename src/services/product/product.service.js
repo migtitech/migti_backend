@@ -4,7 +4,7 @@ import BrandModel from '../../models/brand.model.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 import { generateSlug, generateUniqueSlug } from '../../utils/slugGenerator.js'
-import { generateUniqueProductCode } from '../../utils/productCodeGenerator.js'
+import { generateUniqueCode } from '../codeSequence/codeSequence.service.js'
 
 export const addProduct = async (data) => {
   const baseSlug = generateSlug(data.name)
@@ -52,7 +52,10 @@ export const addProduct = async (data) => {
     }
   }
 
-  const productCode = await generateUniqueProductCode()
+  const productCode = await generateUniqueCode('productCode', {
+    model: ProductModel,
+    field: 'productCode',
+  })
 
   const variantCombinationsWithCode = (data.variantCombinations || []).map((vc, i) => ({
     ...vc,

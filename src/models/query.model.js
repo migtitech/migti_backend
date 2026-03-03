@@ -43,6 +43,7 @@ const productItemSchema = new mongoose.Schema(
     variants: { type: [productVariantSchema], default: [] },
     remark: { type: SchemaTypes.String, default: '' },
     product_id: { type: SchemaTypes.ObjectId, ref: 'product', default: null },
+    images: [{ type: SchemaTypes.ObjectId, ref: 'document' }],
   },
   { _id: true },
 )

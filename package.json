@@ -16,7 +16,8 @@
     "seed:preferences": "node seed-preferences.js",
     "seed:countries": "node seed-countries.js",
     "seed:superadmin": "node seed-superadmin.js",
-    "backfill:productCode": "node scripts/backfill-product-code.js"
+    "backfill:productCode": "node scripts/backfill-product-code.js",
+    "seed:codeSequence": "node scripts/seed-code-sequence.js"
   },
   "author": "",
   "license": "ISC",
@@ -51,7 +52,7 @@
     "uuid": "^11.1.0",
     "winston": "^3.17.0",
     "winston-daily-rotate-file": "^5.0.0",
-    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
+    "xlsx": "^0.20.3"
   },
   "devDependencies": {
     "@babel/cli": "^7.27.2",

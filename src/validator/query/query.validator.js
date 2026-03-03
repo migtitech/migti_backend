@@ -18,6 +18,12 @@ const productVariantSchema = Joi.object({
   variantName: Joi.string().allow('').optional(),
 })
 
+const objectIdSchema = Joi.string().pattern(/^[a-fA-F0-9]{24}$/)
+const imageItemSchema = Joi.alternatives().try(
+  objectIdSchema,
+  Joi.object({ _id: objectIdSchema.required() }).unknown(true)
+)
+
 const productItemSchema = Joi.object({
   productName: Joi.string().required().trim(),
   quantity: Joi.number().integer().min(0).required(),
@@ -28,6 +34,7 @@ const productItemSchema = Joi.object({
   variants: Joi.array().items(productVariantSchema).optional().default([]),
   remark: Joi.string().allow('').optional(),
   product_id: Joi.string().allow(null, '').optional(),
+  images: Joi.array().items(imageItemSchema).optional().default([]),
 })
 
 const queryStatusValues = ['drafted', 'convertedToQuotation', 'closed']
@@ -82,4 +89,21 @@ export const deleteQuerySchema = Joi.object({
 
 export const convertQueryToQuotationSchema = Joi.object({
   queryCode: Joi.string().required(),
+  remark: Joi.string().allow('', null).optional(),
+  products: Joi.array()
+    .items(
+      Joi.object({
+        productName: Joi.string().required(),
+        quantity: Joi.number().min(0).required(),
+        unit: Joi.string().allow('', null).optional(),
+        hsnNumber: Joi.string().allow('', null).optional(),
+        modelNumber: Joi.string().allow('', null).optional(),
+        gstPercentage: Joi.number().allow(null).optional(),
+        variants: Joi.array().items(Joi.object({ variantName: Joi.string() })).optional(),
+        remark: Joi.string().allow('', null).optional(),
+        product_id: Joi.string().allow(null).optional(),
+        images: Joi.array().items(Joi.alternatives().try(Joi.string(), Joi.object())).optional(),
+      }).unknown(true),
+    )
+    .optional(),
 })

@@ -7,6 +7,7 @@ import {
   getQuotationByIdController,
   updateQuotationController,
   updateQuotationStatusController,
+  exportQuotationPdfController,
 } from '../controller/quotation/quotation.controller.js'
 
 const quotationRouter = Router()
@@ -34,6 +35,12 @@ quotationRouter.put(
   authenticateToken,
   checkPermission(MODULES.QUOTATIONS, 'update'),
   asyncHandler(updateQuotationStatusController),
+)
+quotationRouter.get(
+  '/export-pdf',
+  authenticateToken,
+  checkPermission(MODULES.QUOTATIONS, 'read'),
+  asyncHandler(exportQuotationPdfController),
 )
 
 export default quotationRouter

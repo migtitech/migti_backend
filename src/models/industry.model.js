@@ -15,6 +15,12 @@ const industrySchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    category: {
+      type: SchemaTypes.String,
+      trim: true,
+      enum: ['A', 'B', 'C', 'D', ''],
+      default: '',
+    },
     area: {
       type: SchemaTypes.ObjectId,
       ref: 'area',

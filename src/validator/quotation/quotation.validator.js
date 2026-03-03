@@ -30,6 +30,7 @@ const quotationProductItemSchema = Joi.object({
   remark: Joi.string().allow('').optional(),
   product_id: Joi.string().allow(null, '').optional(),
   rate: Joi.number().min(0).allow(null).optional(),
+  images: Joi.array().items(Joi.string()).optional().default([]),
 })
 
 const quotationStatusValues = Object.values(QUOTATION_STATUS)

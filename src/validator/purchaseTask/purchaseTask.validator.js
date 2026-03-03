@@ -6,10 +6,16 @@ const purchaseTaskStatusValues = Object.values(PURCHASE_TASK_STATUS)
 export const assignPurchaseTaskSchema = Joi.object({
   quotationId: Joi.string().required(),
   assignedTo: Joi.string().required(),
+  type: Joi.string().valid('quotation').optional(),
+  priority: Joi.string().valid('highest', 'high', 'medium', 'low').optional(),
+  quotationNumber: Joi.string().allow('', null).optional(),
+  product: Joi.object().optional(),
   productCategory: Joi.string().allow('', null).optional(),
   productGroup: Joi.string().allow('', null).optional(),
   subCategory: Joi.string().allow('', null).optional(),
   targetRate: Joi.number().min(0).allow(null).optional(),
+  procurementRate: Joi.number().min(0).allow(null).optional(),
+  dueDate: Joi.date().allow(null).optional(),
   supplierRateRemark: Joi.string().allow('', null).optional(),
 })
 

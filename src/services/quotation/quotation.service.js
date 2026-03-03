@@ -31,15 +31,32 @@ const STATUSES_AUTO_UPDATED = [
   QUOTATION_STATUS.FULFILLED,
 ]
 
+/** Compute total amount from products: sum of (quantity * rate) for each line */
+export const computeTotalAmountFromProducts = (products = []) => {
+  if (!Array.isArray(products) || !products.length) return 0
+  return products.reduce((sum, p) => {
+    const qty = Number(p.quantity)
+    const rate = Number(p.rate)
+    if (Number.isNaN(qty) || Number.isNaN(rate) || qty < 0 || rate < 0) return sum
+    return sum + qty * rate
+  }, 0)
+}
+
 /**
  * Create a quotation from an existing query (snapshot products + companyInfo).
  * Called when converting query to quotation.
+ * @param {Object} options
+ * @param {string} options.queryId
+ * @param {string} [options.remark]
+ * @param {Array} [options.productsOverride] - If provided, use instead of query.products
  */
 export const createQuotationFromQuery = async ({
   queryId,
   created_by,
   branchId,
   branchFilter = {},
+  remark = '',
+  productsOverride,
 }) => {
   const query = await QueryModel.findOne({
     _id: queryId,
@@ -65,35 +82,38 @@ export const createQuotationFromQuery = async ({
     return existingQuotation
   }
 
-  const baseFilter = { isDeleted: false }
-  if (branchId) baseFilter.branchId = branchId
+  const quotationBranchFilter = branchId ? { branchId } : {}
+  const quotationCode = await generateUniqueCode('quotationCode', {
+    model: QuotationModel,
+    field: 'quotationCode',
+    branchFilter: quotationBranchFilter,
+  })
 
-  let quotationCode = ''
-  const maxAttempts = 20
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    const candidate = generateQuotationCode()
-    const exists = await QuotationModel.findOne({
-      ...baseFilter,
-      quotationCode: candidate,
-    }).lean()
-    if (!exists) {
-      quotationCode = candidate
-      break
+  const OBJECT_ID_REGEX = /^[a-fA-F0-9]{24}$/
+  const toImageIds = (imgs) => {
+    if (!Array.isArray(imgs)) return []
+    return imgs
+      .map((img) => (typeof img === 'object' && img?._id ? img._id : img))
+      .filter((id) => typeof id === 'string' && OBJECT_ID_REGEX.test(id))
+  }
+
+  const baseProducts = Array.isArray(productsOverride) ? productsOverride : (query.products || [])
+  const products = baseProducts.map((p) => {
+    const obj = typeof p === 'object' && p !== null ? (typeof p.toObject === 'function' ? p.toObject() : p) : {}
+    return {
+      productName: obj.productName || '',
+      quantity: obj.quantity ?? 1,
+      unit: obj.unit || '',
+      hsnNumber: obj.hsnNumber || '',
+      modelNumber: obj.modelNumber || '',
+      gstPercentage: obj.gstPercentage ?? null,
+      variants: Array.isArray(obj.variants) ? obj.variants : [],
+      remark: obj.remark || '',
+      product_id: obj.product_id || null,
+      rate: null,
+      images: toImageIds(obj.images || []),
     }
-  }
-
-  if (!quotationCode) {
-    throw new CustomError(
-      statusCodes.conflict,
-      'Could not generate unique quotation code. Please try again.',
-      errorCodes.already_exist,
-    )
-  }
-
-  const products = (query.products || []).map((p) => ({
-    ...(typeof p.toObject === 'function' ? p.toObject() : p),
-    rate: null,
-  }))
+  })
 
   const doc = await QuotationModel.create({
     quotationCode,
@@ -102,6 +122,7 @@ export const createQuotationFromQuery = async ({
     companyInfo: query.companyInfo || {},
     industry_id: query.industry_id || null,
     products,
+    remark: (remark || '').trim(),
     created_by: created_by || null,
     branchId: branchId || query.branchId || null,
   })
@@ -162,8 +183,13 @@ export const listQuotations = async ({
 
   const totalPages = Math.ceil(totalItems / limit)
 
+  const quotationsWithTotal = quotations.map((q) => ({
+    ...q,
+    totalAmount: computeTotalAmountFromProducts(q.products),
+  }))
+
   return {
-    quotations,
+    quotations: quotationsWithTotal,
     pagination: {
       currentPage: page,
       totalPages,
@@ -271,8 +297,16 @@ export const updateQuotation = async ({
   )
     .populate('queryId', 'queryCode status')
     .populate('industry_id', 'name location email')
+    .populate({ path: 'products.images', select: 'path' })
     .lean()
 
+  if (updated?.products?.length) {
+    for (const p of updated.products) {
+      if (p.images?.length) p.images = await transformPathsToSignedUrls(p.images)
+    }
+  }
+  // Snapshot quoted rates whenever products are updated
+  await upsertQuotedRatesForQuotation({ quotation: updated })
   return updated
 }
 

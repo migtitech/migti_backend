@@ -3,14 +3,29 @@ import QueryActivityModel from '../../models/queryActivity.model.js'
 import EmployeeModel from '../../models/employee.model.js'
 import AdminModel from '../../models/admin.model.js'
 import SuperAdminModel from '../../models/super.admin.js'
-import { transformProductImagesToSigned } from '../document/document.service.js'
+import {
+  transformProductImagesToSigned,
+  transformPathsToSignedUrls,
+} from '../document/document.service.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 import { createQuotationFromQuery, getQuotationByQueryId } from '../quotation/quotation.service.js'
+import { generateUniqueCode } from '../codeSequence/codeSequence.service.js'
 
-const generateQueryCode = () => {
-  const num = Math.floor(10000 + Math.random() * 90000)
-  return `QRY0${num}`
+const OBJECT_ID_REGEX = /^[a-fA-F0-9]{24}$/
+const normalizeImageIds = (images) => {
+  if (!Array.isArray(images)) return []
+  return images
+    .map((img) => (typeof img === 'object' && img?._id ? img._id : img))
+    .filter((id) => typeof id === 'string' && OBJECT_ID_REGEX.test(id))
+}
+
+const mapProductsWithImages = (products) => {
+  if (!Array.isArray(products)) return []
+  return products.map((p) => ({
+    ...p,
+    images: normalizeImageIds(p.images),
+  }))
 }
 
 export const addQuery = async ({
@@ -22,35 +37,21 @@ export const addQuery = async ({
   created_by,
   branchId,
 }) => {
-  const maxAttempts = 20
-  let queryCode = ''
-  const baseFilter = { isDeleted: false }
-  if (branchId) baseFilter.branchId = branchId
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    const candidate = generateQueryCode()
-    const exists = await QueryModel.findOne({
-      ...baseFilter,
-      queryCode: candidate,
-    }).lean()
-    if (!exists) {
-      queryCode = candidate
-      break
-    }
-  }
-  if (!queryCode) {
-    throw new CustomError(
-      statusCodes.conflict,
-      'Could not generate unique query code. Please try again.',
-      errorCodes.already_exist,
-    )
-  }
+  const branchFilter = branchId ? { branchId } : {}
+  const queryCode = await generateUniqueCode('queryCode', {
+    model: QueryModel,
+    field: 'queryCode',
+    branchFilter,
+  })
+
+  const normalizedProducts = mapProductsWithImages(products || [])
 
   const doc = await QueryModel.create({
     queryCode,
     status: status || 'drafted',
     companyInfo: companyInfo || {},
     industry_id: industry_id || null,
-    products: products || [],
+    products: normalizedProducts,
     delivery: delivery || {},
     created_by: created_by || null,
     branchId: branchId || null,
@@ -116,6 +117,11 @@ export const getQueryById = async ({ queryId, branchFilter = {} }) => {
       select: 'name shortDescription images hsnNumber gstPercentage unit',
       populate: { path: 'images', select: 'path', model: 'document' },
     })
+    .populate({
+      path: 'products.images',
+      select: 'path',
+      model: 'document',
+    })
     .lean()
 
   if (!query) {
@@ -126,11 +132,14 @@ export const getQueryById = async ({ queryId, branchFilter = {} }) => {
     )
   }
 
-  // Transform product images to signed URLs for S3
+  // Transform product images (master + snapshot) to signed URLs for S3
   if (query.products?.length) {
     for (const p of query.products) {
       if (p.product_id && typeof p.product_id === 'object') {
         p.product_id = await transformProductImagesToSigned(p.product_id)
+      }
+      if (Array.isArray(p.images) && p.images.length) {
+        p.images = await transformPathsToSignedUrls(p.images)
       }
     }
   }
@@ -247,7 +256,7 @@ export const updateQuery = async ({ queryId, companyInfo, industry_id, products,
   const updatePayload = {}
   if (companyInfo !== undefined) updatePayload.companyInfo = companyInfo
   if (industry_id !== undefined) updatePayload.industry_id = industry_id || null
-  if (products !== undefined) updatePayload.products = products
+  if (products !== undefined) updatePayload.products = mapProductsWithImages(products)
   if (delivery !== undefined) updatePayload.delivery = delivery
   if (status !== undefined) updatePayload.status = status
 
@@ -287,6 +296,8 @@ export const convertQueryToQuotation = async ({
   queryCode,
   created_by,
   branchFilter = {},
+  remark,
+  products,
 }) => {
   const existing = await QueryModel.findOne({ queryCode, isDeleted: false, ...branchFilter }).lean()
   if (!existing) {
@@ -304,6 +315,8 @@ export const convertQueryToQuotation = async ({
       created_by,
       branchId: existing.branchId,
       branchFilter,
+      remark,
+      productsOverride: products,
     })
   }
 

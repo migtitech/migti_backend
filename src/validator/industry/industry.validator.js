@@ -8,6 +8,7 @@ const purchaseManagerItemSchema = Joi.object({
 
 export const createIndustrySchema = Joi.object({
   name: Joi.string().required().min(2).max(100),
+  category: Joi.string().valid('A', 'B', 'C', 'D').optional().allow('', null),
   area: Joi.string().optional().allow(null, ''),
   location: Joi.string().optional().allow(''),
   address: Joi.string().optional().allow(''),
@@ -30,6 +31,7 @@ export const listIndustrySchema = Joi.object({
   pageNumber: Joi.number().integer().min(1).default(1),
   pageSize: Joi.number().integer().min(1).max(1000).default(10),
   search: Joi.string().allow('', null),
+  category: Joi.string().valid('A', 'B', 'C', 'D').optional().allow('', null),
 })
 
 export const getIndustryByIdSchema = Joi.object({

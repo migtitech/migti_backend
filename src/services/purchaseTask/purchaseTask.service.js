@@ -1,5 +1,7 @@
 import PurchaseTaskModel, {
   PURCHASE_TASK_STATUS,
+  PURCHASE_TASK_TYPE,
+  PURCHASE_TASK_PRIORITY,
 } from '../../models/purchaseTask.model.js'
 import QuotationModel from '../../models/quotation.model.js'
 import EmployeeModel from '../../models/employee.model.js'
@@ -12,10 +14,16 @@ export const assignQuotationTask = async ({
   quotationId,
   assignedTo,
   assignedBy,
+  type = PURCHASE_TASK_TYPE.QUOTATION,
+  priority = PURCHASE_TASK_PRIORITY.HIGHEST,
+  quotationNumber,
+  product,
   productCategory,
   productGroup,
   subCategory,
   targetRate,
+  procurementRate,
+  dueDate,
   supplierRateRemark,
   branchIdFromRequest = null,
 }) => {
@@ -59,12 +67,18 @@ export const assignQuotationTask = async ({
     quotationId: quotation._id,
     assignedTo: employee._id,
     assignedBy: assignedBy || null,
+    type: type || PURCHASE_TASK_TYPE.QUOTATION,
+    priority: priority || PURCHASE_TASK_PRIORITY.HIGHEST,
+    quotationNumber: quotationNumber || quotation.quotationCode || '',
+    product: product && typeof product === 'object' ? product : {},
     productCategory: productCategory || '',
     productGroup: productGroup || '',
     subCategory: subCategory || '',
-    targetRate: typeof targetRate === 'number' ? targetRate : null,
+    targetRate: typeof targetRate === 'number' ? targetRate : 0,
+    procurementRate: typeof procurementRate === 'number' ? procurementRate : null,
+    dueDate: dueDate ? new Date(dueDate) : null,
     supplierRateRemark: supplierRateRemark || '',
-    status: PURCHASE_TASK_STATUS.PENDING,
+    status: PURCHASE_TASK_STATUS.ASSIGNED,
     branchId,
   })
 

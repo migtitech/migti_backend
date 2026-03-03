@@ -20,6 +20,12 @@ const rateCardSchema = new mongoose.Schema(
       ref: 'supplier',
       required: true,
     },
+    branchId: {
+      type: SchemaTypes.ObjectId,
+      ref: 'companyBranch',
+      default: null,
+      index: true,
+    },
     rate: {
       type: SchemaTypes.Number,
       required: true,
@@ -39,11 +45,14 @@ const rateCardSchema = new mongoose.Schema(
       type: SchemaTypes.String,
       default: '',
     },
+    nextDueDate: {
+      type: SchemaTypes.Date,
+    },
   },
   { timestamps: true },
 )
 
-rateCardSchema.index({ product: 1, supplier: 1 }, { unique: true })
+rateCardSchema.index({ product: 1, supplier: 1, branchId: 1 }, { unique: true })
 
 rateCardSchema.plugin(commonFieldsPlugin)
 

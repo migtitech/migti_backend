@@ -20,6 +20,7 @@ import {
 } from '../../services/query/query.service.js'
 import { convertQueryToQuotationSchema } from '../../validator/query/query.validator.js'
 import { convertQueryToQuotation } from '../../services/query/query.service.js'
+import { exportQueryPdf } from '../../services/query/queryPdfExport.service.js'
 
 export const createQueryController = async (req, res) => {
   const { error, value } = createQuerySchema.validate(req.body, {
@@ -171,7 +172,8 @@ export const recordQueryActivityController = async (req, res) => {
 }
 
 export const convertQueryToQuotationController = async (req, res) => {
-  const { error, value } = convertQueryToQuotationSchema.validate(req.query, {
+  const payload = { ...req.query, ...req.body }
+  const { error, value } = convertQueryToQuotationSchema.validate(payload, {
     abortEarly: false,
   })
   if (error) {
@@ -184,10 +186,37 @@ export const convertQueryToQuotationController = async (req, res) => {
 
   const branchFilter = getBranchFilter(req)
   const created_by = req.user?.id || req.user?._id
-  const result = await convertQueryToQuotation({ ...value, created_by, branchFilter })
+  const result = await convertQueryToQuotation({
+    queryCode: value.queryCode,
+    remark: value.remark,
+    products: value.products,
+    created_by,
+    branchFilter,
+  })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Query converted to quotation successfully',
     data: result,
   })
+}
+
+export const exportQueryPdfController = async (req, res) => {
+  const { error, value } = getQueryByIdSchema.validate(req.query, {
+    abortEarly: false,
+  })
+  if (error) {
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: Message.validationError,
+      error: error.details.map((d) => d.message),
+    })
+  }
+
+  const branchFilter = getBranchFilter(req)
+  const { buffer, queryCode } = await exportQueryPdf({ ...value, branchFilter })
+  const fileName = `query-${queryCode || value.queryId}-${new Date().toISOString().slice(0, 10)}.pdf`
+  res.setHeader('Content-Type', 'application/pdf')
+  res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`)
+  res.setHeader('Content-Length', buffer.length)
+  res.end(buffer, 'binary')
 }

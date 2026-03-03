@@ -11,6 +11,7 @@ import {
   listQueryActivitiesController,
   recordQueryActivityController,
   convertQueryToQuotationController,
+  exportQueryPdfController,
 } from '../controller/query/query.controller.js'
 
 const queryRouter = Router()
@@ -18,6 +19,7 @@ const queryRouter = Router()
 queryRouter.post('/create', authenticateToken, checkPermission(MODULES.QUERIES, 'create'), asyncHandler(createQueryController))
 queryRouter.get('/list', authenticateToken, checkPermission(MODULES.QUERIES, 'read'), asyncHandler(listQueriesController))
 queryRouter.get('/get-by-id', authenticateToken, checkPermission(MODULES.QUERIES, 'read'), asyncHandler(getQueryByIdController))
+queryRouter.get('/export-pdf', authenticateToken, checkPermission(MODULES.QUERIES, 'read'), asyncHandler(exportQueryPdfController))
 queryRouter.put('/update', authenticateToken, checkPermission(MODULES.QUERIES, 'update'), asyncHandler(updateQueryController))
 queryRouter.delete('/delete', authenticateToken, checkPermission(MODULES.QUERIES, 'delete'), asyncHandler(deleteQueryController))
 queryRouter.get('/activities', authenticateToken, checkPermission(MODULES.QUERIES, 'read'), asyncHandler(listQueryActivitiesController))
