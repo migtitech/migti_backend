@@ -1,6 +1,7 @@
 import QuotationModel, { QUOTATION_STATUS } from '../../models/quotation.model.js'
 import QueryModel from '../../models/query.model.js'
 import CustomError from '../../utils/exception.js'
+import { generateUniqueCode } from '../codeSequence/codeSequence.service.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 import { transformProductImagesToSigned } from '../document/document.service.js'
 

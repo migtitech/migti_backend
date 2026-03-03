@@ -101,7 +101,14 @@ export const convertQueryToQuotationSchema = Joi.object({
         gstPercentage: Joi.number().allow(null).optional(),
         variants: Joi.array().items(Joi.object({ variantName: Joi.string() })).optional(),
         remark: Joi.string().allow('', null).optional(),
-        product_id: Joi.string().allow(null).optional(),
+        product_id: Joi.alternatives()
+          .try(Joi.string().allow(null, ''), Joi.object({ _id: Joi.string() }).unknown(true))
+          .optional()
+          .custom((val) => {
+            if (val == null || val === '') return null
+            if (typeof val === 'object' && val._id) return String(val._id)
+            return String(val)
+          }),
         images: Joi.array().items(Joi.alternatives().try(Joi.string(), Joi.object())).optional(),
       }).unknown(true),
     )
