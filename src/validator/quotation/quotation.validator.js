@@ -1,6 +1,9 @@
 import Joi from 'joi'
 import { QUOTATION_STATUS } from '../../models/quotation.model.js'
 
+// Shared ObjectId pattern to avoid Mongoose cast errors for invalid ids
+const objectIdPattern = /^[0-9a-fA-F]{24}$/
+
 const purchaseManagerSchema = Joi.object({
   name: Joi.string().allow('').optional(),
   phone: Joi.string().allow('').optional(),
@@ -43,17 +46,32 @@ export const listQuotationSchema = Joi.object({
 })
 
 export const getQuotationByIdSchema = Joi.object({
-  quotationId: Joi.string().required(),
+  quotationId: Joi.string()
+    .pattern(objectIdPattern)
+    .required()
+    .messages({
+      'string.pattern.base': 'quotationId must be a valid Mongo ObjectId',
+    }),
 })
 
 export const updateQuotationSchema = Joi.object({
-  quotationId: Joi.string().required(),
+  quotationId: Joi.string()
+    .pattern(objectIdPattern)
+    .required()
+    .messages({
+      'string.pattern.base': 'quotationId must be a valid Mongo ObjectId',
+    }),
   companyInfo: companyInfoSchema.optional(),
   industry_id: Joi.string().allow(null, '').optional(),
   products: Joi.array().items(quotationProductItemSchema).optional(),
 })
 
 export const updateQuotationStatusSchema = Joi.object({
-  quotationId: Joi.string().required(),
+  quotationId: Joi.string()
+    .pattern(objectIdPattern)
+    .required()
+    .messages({
+      'string.pattern.base': 'quotationId must be a valid Mongo ObjectId',
+    }),
   status: Joi.string().valid(...quotationStatusValues).required(),
 })
