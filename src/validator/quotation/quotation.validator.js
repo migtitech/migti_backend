@@ -19,6 +19,7 @@ const companyInfoSchema = Joi.object({
 })
 
 const productVariantSchema = Joi.object({
+  _id: Joi.string().optional(), // MongoDB subdoc _id when variants are loaded from DB
   variantName: Joi.string().allow('').optional(),
 })
 

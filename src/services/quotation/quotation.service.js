@@ -3,7 +3,11 @@ import QueryModel from '../../models/query.model.js'
 import CustomError from '../../utils/exception.js'
 import { generateUniqueCode } from '../codeSequence/codeSequence.service.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
-import { transformProductImagesToSigned } from '../document/document.service.js'
+import {
+  transformProductImagesToSigned,
+  transformPathsToSignedUrls,
+} from '../document/document.service.js'
+import { upsertQuotedRatesForQuotation } from '../quotedProductRate/quotedProductRate.service.js'
 
 const QUOTATION_CODE_PREFIX = 'QUO'
 
@@ -221,6 +225,11 @@ export const getQuotationById = async ({
       select: 'name shortDescription images hsnNumber gstPercentage unit',
       populate: { path: 'images', select: 'path', model: 'document' },
     })
+    .populate({
+      path: 'products.images',
+      select: 'path',
+      model: 'document',
+    })
     .lean()
 
   if (!quotation) {
@@ -244,11 +253,14 @@ export const getQuotationById = async ({
     }
   }
 
-  // Transform product images to signed URLs for S3
+  // Transform product images (master + snapshot) to signed URLs for S3 (same as query)
   if (quotation.products?.length) {
     for (const p of quotation.products) {
       if (p.product_id && typeof p.product_id === 'object') {
         p.product_id = await transformProductImagesToSigned(p.product_id)
+      }
+      if (Array.isArray(p.images) && p.images.length) {
+        p.images = await transformPathsToSignedUrls(p.images)
       }
     }
   }

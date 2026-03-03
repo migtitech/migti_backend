@@ -3,6 +3,10 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { v4 as uuidv4 } from 'uuid'
 import path from 'path'
 
+const DEFAULT_BUCKET_NAME = 'migti-backend-images'
+
+const getBucketName = () => process.env.AWS_BUCKET_NAME || DEFAULT_BUCKET_NAME
+
 const s3Client = new S3Client({
   region: process.env.AWS_REGION || 'eu-north-1',
   credentials: {
@@ -13,7 +17,7 @@ const s3Client = new S3Client({
 
 export const uploadToS3 = async (
   file,
-  bucketName = process.env.AWS_BUCKET_NAME,
+  bucketName = getBucketName(),
   folder = 'general'
 ) => {
   try {
@@ -169,8 +173,8 @@ export const uploadMultipleToS3 = async (
  */
 export const getSignedUrlForPath = async (s3PathOrUrl, expiresIn = 3600) => {
   try {
-    const bucketName = process.env.AWS_BUCKET_NAME
-    if (!bucketName || !process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
+    const bucketName = getBucketName()
+    if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
       return null
     }
     let key = s3PathOrUrl
