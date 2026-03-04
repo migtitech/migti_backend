@@ -14,6 +14,7 @@ const variantDimensionsJoi = Joi.object({
 const variantCombinationJoi = Joi.object({
   _id: Joi.string().pattern(/^[0-9a-fA-F]{24}$/).optional(),
   uniqueId: Joi.string().optional(),
+  variantCode: Joi.string().allow('', null).optional().max(50),
   optionValues: Joi.array().items(variantOptionValueJoi).min(1).required(),
   sku: Joi.string().required(),
   price: Joi.number().min(0).required(),
