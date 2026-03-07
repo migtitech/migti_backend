@@ -29,6 +29,7 @@ export const createSupplierSchema = Joi.object({
   gst: gstRule,
   categories: Joi.array().items(Joi.string()).optional().default([]),
   remark: Joi.string().optional().allow(''),
+  branchId: Joi.string().optional().allow('', null),
 })
 
 export const listSupplierSchema = Joi.object({
@@ -38,6 +39,7 @@ export const listSupplierSchema = Joi.object({
   category: Joi.string().allow('', null),
   subcategory: Joi.string().allow('', null),
   area: Joi.string().allow('', null),
+  branchId: Joi.string().optional().allow('', null),
 })
 
 export const searchSupplierSchema = Joi.object({

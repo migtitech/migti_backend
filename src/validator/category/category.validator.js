@@ -8,6 +8,7 @@ export const createCategorySchema = Joi.object({
   image: Joi.string().optional().allow(''),
   status: Joi.string().valid('active', 'inactive').optional().default('active'),
   categoryCode: Joi.string().optional().default("new"),
+  sortOrder: Joi.number().integer().min(0).optional(),
 })
 
 export const listCategorySchema = Joi.object({
@@ -31,6 +32,7 @@ export const updateCategorySchema = Joi.object({
   parent: Joi.string().optional().allow(null, ''),
   image: Joi.string().optional().allow(''),
   status: Joi.string().valid('active', 'inactive').optional(),
+  sortOrder: Joi.number().integer().min(0).optional(),
 })
 
 export const deleteCategorySchema = Joi.object({

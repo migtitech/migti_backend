@@ -59,7 +59,7 @@ export const createEmployeeSchema = Joi.object({
   salaryType: Joi.string().allow('').max(50).optional(),
   salary: Joi.number().min(0).optional(),
   password: Joi.string().required().min(6),
-  branchId: Joi.string().required(),
+  branchId: Joi.string().optional(), // optional: set from token for branch-scoped users when omitted
   zoneId: Joi.string().optional(),
   permissions: Joi.array().items(Joi.string()).optional(),
   bankDetails: bankDetailsSchema.optional(),

@@ -5,9 +5,11 @@ import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 
 export const addIndustry = async (data) => {
+  const branchFilter = data.branchId ? { branchId: data.branchId } : {}
   const existing = await IndustryModel.findOne({
     name: data.name,
     isDeleted: false,
+    ...branchFilter,
   }).lean()
 
   if (existing) {
@@ -22,8 +24,11 @@ export const addIndustry = async (data) => {
     data.area = null
   }
 
-  const { purchaseManagers = [], ...industryPayload } = data
-  const industry = await IndustryModel.create(industryPayload)
+  const { purchaseManagers = [], branchId, ...industryPayload } = data
+  const industry = await IndustryModel.create({
+    ...industryPayload,
+    branchId: branchId || null,
+  })
   const industryId = industry._id
 
   if (purchaseManagers && purchaseManagers.length > 0) {
@@ -52,12 +57,13 @@ export const listIndustries = async ({
   pageSize = 10,
   search = '',
   category,
+  branchFilter = {},
 }) => {
   const page = Math.max(1, parseInt(pageNumber))
   const limit = Math.min(1000, Math.max(1, parseInt(pageSize)))
   const skip = (page - 1) * limit
 
-  const filter = { isDeleted: false }
+  const filter = { isDeleted: false, ...branchFilter }
 
   if (search) {
     filter.$or = [
@@ -113,8 +119,12 @@ export const listIndustries = async ({
   }
 }
 
-export const getIndustryById = async ({ industryId }) => {
-  const industry = await IndustryModel.findById(industryId)
+export const getIndustryById = async ({ industryId, branchFilter = {} }) => {
+  const industry = await IndustryModel.findOne({
+    _id: industryId,
+    isDeleted: false,
+    ...branchFilter,
+  })
     .populate('area', 'name city areaType')
     .lean()
 
@@ -133,10 +143,14 @@ export const getIndustryById = async ({ industryId }) => {
   return { ...industry, purchaseManagers }
 }
 
-const ALLOWED_UPDATE_FIELDS = ['location', 'address', 'purchase_manager_name', 'purchase_manager_phone']
+const ALLOWED_UPDATE_FIELDS = ['location', 'address', 'purchase_manager_name', 'purchase_manager_phone', 'branchId']
 
-export const updateIndustry = async ({ industryId, purchaseManagers, ...updateData }) => {
-  const industry = await IndustryModel.findById(industryId).lean()
+export const updateIndustry = async ({ industryId, purchaseManagers, branchFilter = {}, ...updateData }) => {
+  const industry = await IndustryModel.findOne({
+    _id: industryId,
+    isDeleted: false,
+    ...branchFilter,
+  }).lean()
   if (!industry) {
     throw new CustomError(
       statusCodes.notFound,
@@ -148,7 +162,7 @@ export const updateIndustry = async ({ industryId, purchaseManagers, ...updateDa
   const allowedUpdate = {}
   for (const key of ALLOWED_UPDATE_FIELDS) {
     if (Object.prototype.hasOwnProperty.call(updateData, key)) {
-      allowedUpdate[key] = updateData[key]
+      allowedUpdate[key] = key === 'branchId' && (updateData[key] === '' || updateData[key] == null) ? null : updateData[key]
     }
   }
 
@@ -183,8 +197,12 @@ export const updateIndustry = async ({ industryId, purchaseManagers, ...updateDa
   return { ...updated, purchaseManagers: managers }
 }
 
-export const deleteIndustry = async ({ industryId }) => {
-  const industry = await IndustryModel.findById(industryId).lean()
+export const deleteIndustry = async ({ industryId, branchFilter = {} }) => {
+  const industry = await IndustryModel.findOne({
+    _id: industryId,
+    isDeleted: false,
+    ...branchFilter,
+  }).lean()
   if (!industry) {
     throw new CustomError(
       statusCodes.notFound,

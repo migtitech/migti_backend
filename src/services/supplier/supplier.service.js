@@ -42,11 +42,13 @@ export const addSupplier = async (data) => {
   const categories = normalizeCategories(data.categories)
   await ensureCategoriesExist(categories)
 
+  const { branchId, ...rest } = data
   const supplier = await SupplierModel.create({
-    ...data,
+    ...rest,
     categories,
     label: data.label || data.labal || '',
     gst: (data.gst || '').trim().toUpperCase(),
+    branchId: branchId || null,
   })
 
   return supplier.toObject()
@@ -59,12 +61,13 @@ export const listSuppliers = async ({
   category,
   subcategory,
   area,
+  branchFilter = {},
 }) => {
   const page = Math.max(1, parseInt(pageNumber))
   const limit = Math.min(100, Math.max(1, parseInt(pageSize)))
   const skip = (page - 1) * limit
 
-  const filter = buildSupplierSearchFilter(search)
+  const filter = { ...buildSupplierSearchFilter(search), ...branchFilter }
 
   if (subcategory) {
     filter.categories = subcategory
@@ -111,9 +114,9 @@ export const listSuppliers = async ({
   }
 }
 
-export const searchSuppliers = async ({ search = '', limit = 5 }) => {
+export const searchSuppliers = async ({ search = '', limit = 5, branchFilter = {} }) => {
   const take = Math.min(20, Math.max(1, parseInt(limit)))
-  const filter = buildSupplierSearchFilter(search)
+  const filter = { ...buildSupplierSearchFilter(search), ...branchFilter }
   const sort = search ? { name: 1 } : { createdAt: -1 }
 
   const suppliers = await SupplierModel.find(filter)
@@ -125,8 +128,12 @@ export const searchSuppliers = async ({ search = '', limit = 5 }) => {
   return { suppliers }
 }
 
-export const getSupplierById = async ({ supplierId }) => {
-  const supplier = await SupplierModel.findById(supplierId)
+export const getSupplierById = async ({ supplierId, branchFilter = {} }) => {
+  const supplier = await SupplierModel.findOne({
+    _id: supplierId,
+    isDeleted: false,
+    ...branchFilter,
+  })
     .populate('categories', 'name slug')
     .lean()
 
@@ -143,8 +150,12 @@ export const getSupplierById = async ({ supplierId }) => {
 
 const ALLOWED_UPDATE_FIELDS = ['address', 'shippingAddress', 'billingAddress', 'phone_1', 'phone_2', 'categories', 'remark']
 
-export const uploadSupplierCatalog = async ({ supplierId }, file) => {
-  const supplier = await SupplierModel.findById(supplierId).lean()
+export const uploadSupplierCatalog = async ({ supplierId, branchFilter = {} }, file) => {
+  const supplier = await SupplierModel.findOne({
+    _id: supplierId,
+    isDeleted: false,
+    ...branchFilter,
+  }).lean()
   if (!supplier) {
     throw new CustomError(
       statusCodes.notFound,
@@ -190,8 +201,12 @@ export const uploadSupplierCatalog = async ({ supplierId }, file) => {
   return updated
 }
 
-export const updateSupplier = async ({ supplierId, ...updateData }) => {
-  const supplier = await SupplierModel.findById(supplierId).lean()
+export const updateSupplier = async ({ supplierId, branchFilter = {}, ...updateData }) => {
+  const supplier = await SupplierModel.findOne({
+    _id: supplierId,
+    isDeleted: false,
+    ...branchFilter,
+  }).lean()
   if (!supplier) {
     throw new CustomError(
       statusCodes.notFound,
@@ -222,8 +237,12 @@ export const updateSupplier = async ({ supplierId, ...updateData }) => {
   return updated
 }
 
-export const deleteSupplier = async ({ supplierId }) => {
-  const supplier = await SupplierModel.findById(supplierId).lean()
+export const deleteSupplier = async ({ supplierId, branchFilter = {} }) => {
+  const supplier = await SupplierModel.findOne({
+    _id: supplierId,
+    isDeleted: false,
+    ...branchFilter,
+  }).lean()
   if (!supplier) {
     throw new CustomError(
       statusCodes.notFound,

@@ -25,6 +25,7 @@ export const createIndustrySchema = Joi.object({
       'string.pattern.base': 'GST number must be valid 15-character GSTIN (e.g. 22AABCU9603R1ZX)',
     }),
   purchaseManagers: Joi.array().items(purchaseManagerItemSchema).optional().default([]),
+  branchId: Joi.string().optional().allow('', null),
 })
 
 export const listIndustrySchema = Joi.object({
@@ -32,13 +33,14 @@ export const listIndustrySchema = Joi.object({
   pageSize: Joi.number().integer().min(1).max(1000).default(10),
   search: Joi.string().allow('', null),
   category: Joi.string().valid('A', 'B', 'C', 'D').optional().allow('', null),
+  branchId: Joi.string().optional().allow('', null),
 })
 
 export const getIndustryByIdSchema = Joi.object({
   industryId: Joi.string().required(),
 })
 
-// Edit mode: only location, purchase manager(s) and address can be updated
+// Edit mode: location, address, purchase manager(s), and branch can be updated
 export const updateIndustrySchema = Joi.object({
   industryId: Joi.string().required(),
   location: Joi.string().optional().allow(''),
@@ -46,6 +48,7 @@ export const updateIndustrySchema = Joi.object({
   purchase_manager_name: Joi.string().optional().allow('', null),
   purchase_manager_phone: Joi.string().optional().allow('', null),
   purchaseManagers: Joi.array().items(purchaseManagerItemSchema).optional(),
+  branchId: Joi.string().optional().allow('', null),
 })
 
 export const deleteIndustrySchema = Joi.object({

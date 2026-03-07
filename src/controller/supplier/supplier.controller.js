@@ -1,4 +1,5 @@
 import { Message, statusCodes } from '../../core/common/constant.js'
+import { getBranchFilter, getBranchIdForCreate } from '../../core/helpers/branchFilter.js'
 import {
   createSupplierSchema,
   listSupplierSchema,
@@ -30,7 +31,8 @@ export const createSupplierController = async (req, res) => {
     })
   }
 
-  const result = await addSupplier(value)
+  const branchId = value.branchId || getBranchIdForCreate(req)
+  const result = await addSupplier({ ...value, branchId })
   return res.status(statusCodes.created).json({
     success: true,
     message: 'Supplier created successfully',
@@ -50,7 +52,8 @@ export const listSuppliersController = async (req, res) => {
     })
   }
 
-  const result = await listSuppliers(value)
+  const branchFilter = getBranchFilter(req, { allowQueryBranchId: true })
+  const result = await listSuppliers({ ...value, branchFilter })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Suppliers retrieved successfully',
@@ -70,7 +73,8 @@ export const searchSuppliersController = async (req, res) => {
     })
   }
 
-  const result = await searchSuppliers(value)
+  const branchFilter = getBranchFilter(req)
+  const result = await searchSuppliers({ ...value, branchFilter })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Suppliers search results retrieved successfully',
@@ -90,7 +94,8 @@ export const getSupplierByIdController = async (req, res) => {
     })
   }
 
-  const result = await getSupplierById(value)
+  const branchFilter = getBranchFilter(req)
+  const result = await getSupplierById({ ...value, branchFilter })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Supplier details retrieved successfully',
@@ -113,7 +118,8 @@ export const updateSupplierController = async (req, res) => {
     })
   }
 
-  const result = await updateSupplier(value)
+  const branchFilter = getBranchFilter(req)
+  const result = await updateSupplier({ ...value, branchFilter })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Supplier updated successfully',
@@ -133,7 +139,8 @@ export const deleteSupplierController = async (req, res) => {
     })
   }
 
-  const result = await deleteSupplier(value)
+  const branchFilter = getBranchFilter(req)
+  const result = await deleteSupplier({ ...value, branchFilter })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Supplier deleted successfully',
@@ -161,7 +168,8 @@ export const uploadSupplierCatalogController = async (req, res) => {
     })
   }
 
-  const result = await uploadSupplierCatalog(value, req.file)
+  const branchFilter = getBranchFilter(req)
+  const result = await uploadSupplierCatalog({ ...value, branchFilter }, req.file)
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Catalog uploaded successfully',

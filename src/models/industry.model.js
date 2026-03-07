@@ -56,6 +56,12 @@ const industrySchema = new mongoose.Schema(
       trim: true,
       default: '',
     },
+    branchId: {
+      type: SchemaTypes.ObjectId,
+      ref: 'companyBranch',
+      default: null,
+      index: true,
+    },
   },
   { timestamps: true },
 )

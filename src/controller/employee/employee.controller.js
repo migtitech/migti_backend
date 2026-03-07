@@ -1,5 +1,5 @@
 import { Message, statusCodes } from '../../core/common/constant.js'
-import { getBranchFilter } from '../../core/helpers/branchFilter.js'
+import { getBranchFilter, getBranchIdForCreate } from '../../core/helpers/branchFilter.js'
 import {
   createEmployeeSchema,
   listEmployeeSchema,
@@ -29,7 +29,8 @@ export const createEmployeeController = async (req, res) => {
     })
   }
 
-  const result = await addEmployee(value)
+  const branchId = value.branchId || getBranchIdForCreate(req)
+  const result = await addEmployee({ ...value, branchId })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Employee created successfully',

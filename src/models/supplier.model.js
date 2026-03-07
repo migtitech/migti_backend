@@ -84,6 +84,12 @@ const supplierSchema = new mongoose.Schema(
       fileName: { type: SchemaTypes.String, default: '' },
       uploadedAt: { type: Date, default: null },
     },
+    branchId: {
+      type: SchemaTypes.ObjectId,
+      ref: 'companyBranch',
+      default: null,
+      index: true,
+    },
   },
   { timestamps: true },
 )

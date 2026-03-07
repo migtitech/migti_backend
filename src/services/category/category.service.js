@@ -165,10 +165,17 @@ export const getCategoryById = async ({ categoryId }) => {
     )
   }
 
-  const subcategories = await CategoryModel.find({
+  const subcategoriesRaw = await CategoryModel.find({
     parent: categoryId,
     isDeleted: false,
-  }).lean()
+  })
+    .select('_id name categoryCode description status sortOrder group parent createdAt')
+    .lean()
+
+  const subcategories = subcategoriesRaw.map((s) => ({
+    ...s,
+    name: s.name ?? '',
+  }))
 
   return { ...category, subcategories }
 }

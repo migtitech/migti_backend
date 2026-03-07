@@ -1,4 +1,5 @@
 import { Message, statusCodes } from '../../core/common/constant.js'
+import { getBranchFilter, getBranchIdForCreate } from '../../core/helpers/branchFilter.js'
 import {
   createIndustrySchema,
   listIndustrySchema,
@@ -26,7 +27,8 @@ export const createIndustryController = async (req, res) => {
     })
   }
 
-  const result = await addIndustry(value)
+  const branchId = value.branchId || getBranchIdForCreate(req)
+  const result = await addIndustry({ ...value, branchId })
   return res.status(statusCodes.created).json({
     success: true,
     message: 'Industry created successfully',
@@ -46,7 +48,8 @@ export const listIndustriesController = async (req, res) => {
     })
   }
 
-  const result = await listIndustries(value)
+  const branchFilter = getBranchFilter(req, { allowQueryBranchId: true })
+  const result = await listIndustries({ ...value, branchFilter })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Industries retrieved successfully',
@@ -66,7 +69,8 @@ export const getIndustryByIdController = async (req, res) => {
     })
   }
 
-  const result = await getIndustryById(value)
+  const branchFilter = getBranchFilter(req)
+  const result = await getIndustryById({ ...value, branchFilter })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Industry details retrieved successfully',
@@ -89,7 +93,8 @@ export const updateIndustryController = async (req, res) => {
     })
   }
 
-  const result = await updateIndustry(value)
+  const branchFilter = getBranchFilter(req)
+  const result = await updateIndustry({ ...value, branchFilter })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Industry updated successfully',
@@ -109,7 +114,8 @@ export const deleteIndustryController = async (req, res) => {
     })
   }
 
-  const result = await deleteIndustry(value)
+  const branchFilter = getBranchFilter(req)
+  const result = await deleteIndustry({ ...value, branchFilter })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Industry deleted successfully',
