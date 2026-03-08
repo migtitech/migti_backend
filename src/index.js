@@ -47,8 +47,9 @@ app.use(express.urlencoded({ extended: true }))
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')))
 app.use('/assets', express.static(path.join(process.cwd(), 'assets')))
 
-// Routes
+// Routes: mount at /api (full path) and at / (when proxy strips /api)
 app.use('/api', mainRoutes)
+app.use('/', mainRoutes)
 
 // Global error handler (must be after routes)
 app.use((err, req, res, next) => {
@@ -90,3 +91,4 @@ process.on('SIGTERM', async () => {
 app.listen(PORT, '0.0.0.0', () => {
   logger.info(`Server is running at port ${PORT}`)
 })
+
