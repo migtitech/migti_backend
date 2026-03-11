@@ -64,11 +64,11 @@ const buildHtml = (quotation, orgContext = {}) => {
 
   // Fixed Migti header for PDF
   const migtiCompanyName = 'Migti Industrial Pvt Ltd'
-  const migtiGstNumber = '22XXXXX0000X1XX'
+  const migtiGstNumber = '23AARCM4143L1Z6'
   const migtiAddress = '3rd Floor, M.S.-1, B-304, New Siyaganj, Indore, Madhya Pradesh 452003'
   const migtiEmail = 'info@migti.co.in'
-  const migtiPhone1 = '+91 9220199533'
-  const migtiPhone2 = '+91 9971117391'
+  const migtiPhone1 = '+91 7898611052'
+  const migtiPhone2 = ''
 
   // Customer & shipping information
   const industry = quotation.industry_id || {}
@@ -104,11 +104,6 @@ const buildHtml = (quotation, orgContext = {}) => {
 
   const shippingAddress = customerAddress
   const shippingContactPerson = customerContactPerson
-
-  const queryCode = quotation.queryId?.queryCode || ''
-  const queryDate = quotation.queryId?.createdAt
-    ? new Date(quotation.queryId.createdAt).toLocaleDateString()
-    : ''
 
   const productRows = prods
     .map((p, index) => {
@@ -187,38 +182,53 @@ const buildHtml = (quotation, orgContext = {}) => {
     html, body { width: 100%; margin: 0; padding: 0; }
     body {
       font-family: Arial, sans-serif;
-      font-size: 11px;
+      font-size: 12.5px;
       color: #222;
       padding: 14px 16px;
     }
     .pdf-header-row {
-      display: table;
+      position: relative;
       width: 100%;
       border-bottom: 2px solid #444;
       padding-bottom: 8px;
       margin-bottom: 10px;
+      min-height: 62px;
     }
     .pdf-header-logo-cell {
-      display: table-cell;
+      position: absolute;
+      left: 0;
+      top: 0;
       width: 120px;
-      vertical-align: top;
       padding-right: 12px;
+      display: block;
     }
     .pdf-header-center-cell {
-      display: table-cell;
-      vertical-align: top;
+      width: 100%;
       text-align: center;
-      width: auto;
+      padding: 0 130px;
+    }
+    .pdf-header-doc-meta {
+      position: absolute;
+      right: 0;
+      top: 0;
+      text-align: right;
+      font-size: 11px;
+      line-height: 1.35;
+      max-width: 220px;
+      padding-left: 8px;
+    }
+    .pdf-header-doc-meta .label {
+      font-weight: 600;
     }
     .pdf-header-company-name {
-      font-size: 16px;
+      font-size: 17px;
       font-weight: 700;
       margin-bottom: 6px;
     }
     .pdf-header-line {
-      font-size: 10px;
+      font-size: 11px;
       margin: 2px 0;
-      line-height: 1.3;
+      line-height: 1.35;
     }
     .pdf-header-gst-label {
       font-weight: 600;
@@ -253,7 +263,7 @@ const buildHtml = (quotation, orgContext = {}) => {
       color: #222;
       border: 1px solid #bbb;
       padding: 5px 4px;
-      font-size: 9px;
+      font-size: 10px;
       font-weight: 600;
       text-align: center;
       white-space: nowrap;
@@ -261,7 +271,7 @@ const buildHtml = (quotation, orgContext = {}) => {
     .cell {
       border: 1px solid #ddd;
       padding: 4px 4px;
-      font-size: 9px;
+      font-size: 10px;
       vertical-align: top;
     }
     .text-center { text-align: center; }
@@ -271,7 +281,7 @@ const buildHtml = (quotation, orgContext = {}) => {
       margin-bottom: 2px;
     }
     .product-remark {
-      font-size: 8px;
+      font-size: 9px;
       color: #666;
     }
     .image-cell {
@@ -282,23 +292,28 @@ const buildHtml = (quotation, orgContext = {}) => {
       width: 100%;
       border-collapse: collapse;
       margin-bottom: 6px;
+      table-layout: fixed;
     }
     .details-grid td {
       vertical-align: top;
       padding: 0;
     }
     .details-block {
-      padding-right: 6px;
+      padding: 0 8px;
+    }
+    .details-grid td.details-block + td.details-block {
+      padding-left: 16px;
+      border-left: 1px solid #eee;
     }
     .block-title {
       font-weight: 600;
-      font-size: 11px;
+      font-size: 12px;
       margin-bottom: 3px;
     }
     .info-table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 9.5px;
+      font-size: 10.5px;
     }
     .info-table td {
       padding: 2px 3px;
@@ -325,7 +340,7 @@ const buildHtml = (quotation, orgContext = {}) => {
     }
     .terms {
       width: 55%;
-      font-size: 9.5px;
+      font-size: 10.5px;
     }
     .terms-title {
       font-weight: 600;
@@ -343,12 +358,12 @@ const buildHtml = (quotation, orgContext = {}) => {
       display: flex;
       flex-direction: column;
       align-items: flex-end;
-      font-size: 9.5px;
+      font-size: 10.5px;
     }
     .summary-table {
       border-collapse: collapse;
       min-width: 230px;
-      font-size: 9.5px;
+      font-size: 10.5px;
     }
     .summary-table td {
       padding: 3px 5px;
@@ -373,7 +388,7 @@ const buildHtml = (quotation, orgContext = {}) => {
     .signature {
       margin-top: 10px;
       text-align: right;
-      font-size: 10px;
+      font-size: 11px;
     }
     .signature-name {
       font-weight: 600;
@@ -381,7 +396,7 @@ const buildHtml = (quotation, orgContext = {}) => {
     }
     .muted {
       color: #666;
-      font-size: 8px;
+      font-size: 9px;
     }
   </style>
 </head>
@@ -390,12 +405,14 @@ const buildHtml = (quotation, orgContext = {}) => {
     <div class="pdf-header-logo-cell">
       <img src="https://migti.co.in/assets/images/logo.png" alt="" class="pdf-logo-header" onerror="this.style.display='none'">
     </div>
+    <div class="pdf-header-doc-meta">
+      ${quotationCode ? `<div><span class="label">Quotation No:</span> ${escapeHtml(quotationCode)}</div>` : ''}
+      ${createdDate ? `<div><span class="label">Quotation Date:</span> ${escapeHtml(createdDate)}</div>` : ''}
+    </div>
     <div class="pdf-header-center-cell">
       <div class="pdf-header-company-name">${escapeHtml(migtiCompanyName)}</div>
-      <div class="pdf-header-line"><span class="pdf-header-gst-label">GST No.</span> ${escapeHtml(migtiGstNumber)}</div>
-      <div class="pdf-header-line">${escapeHtml(migtiAddress)}</div>
-      <div class="pdf-header-line"><span class="pdf-header-gst-label">Email</span><br>${escapeHtml(migtiEmail)}</div>
-      <div class="pdf-header-line"><span class="pdf-header-gst-label">Phone</span><br>${escapeHtml(migtiPhone1)}<br>${escapeHtml(migtiPhone2)}</div>
+      <div class="pdf-header-line"><span class="pdf-header-gst-label">GST No.</span> ${escapeHtml(migtiGstNumber)} &nbsp;|&nbsp; ${escapeHtml(migtiAddress)}</div>
+      <div class="pdf-header-line"><span class="pdf-header-gst-label">Contact:</span> ${escapeHtml(migtiPhone1)}${migtiPhone2 ? `, ${escapeHtml(migtiPhone2)}` : ''} &nbsp;|&nbsp; ${escapeHtml(migtiEmail)}</div>
     </div>
   </div>
 
@@ -439,26 +456,6 @@ const buildHtml = (quotation, orgContext = {}) => {
             <td class="info-value">${escapeHtml(shippingContactPerson || '')}</td>
           </tr>
         </table>
-        <div class="meta-small">
-          ${queryCode ? `<div><strong>Query No:</strong> ${escapeHtml(queryCode)}</div>` : ''}
-          ${
-            queryDate
-              ? `<div><strong>Query Date:</strong> ${escapeHtml(queryDate)}</div>`
-              : ''
-          }
-          ${
-            quotationCode
-              ? `<div><strong>Quotation No:</strong> ${escapeHtml(quotationCode)}</div>`
-              : ''
-          }
-          ${
-            createdDate
-              ? `<div><strong>Quotation Date:</strong> ${escapeHtml(
-                  createdDate,
-                )}</div>`
-              : ''
-          }
-        </div>
       </td>
     </tr>
   </table>
@@ -489,7 +486,7 @@ const buildHtml = (quotation, orgContext = {}) => {
     <div class="terms">
       <div class="terms-title">Terms And Conditions</div>
       <ul>
-        <li>Validity – Offer valid for 7 days from quotation date.</li>
+        <li>Validity – Offer valid for 2 days from quotation date.</li>
         <li>Once delivered material will not be returned or exchanged.</li>
         <li>Warranty as per company policy.</li>
         <li>Payment terms – 100% advance with purchase order.</li>
