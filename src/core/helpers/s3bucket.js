@@ -7,13 +7,24 @@ const DEFAULT_BUCKET_NAME = 'migti-backend-images'
 
 const getBucketName = () => process.env.AWS_BUCKET_NAME || DEFAULT_BUCKET_NAME
 
-const s3Client = new S3Client({
-  region: process.env.AWS_REGION || 'eu-north-1',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  },
-})
+const region = process.env.AWS_REGION || 'eu-north-1'
+const hasStaticCreds =
+  Boolean(process.env.AWS_ACCESS_KEY_ID) &&
+  Boolean(process.env.AWS_SECRET_ACCESS_KEY)
+
+// If creds are not explicitly provided, allow the AWS SDK default credential chain:
+// IAM role (EC2/ECS/EKS), ~/.aws credentials, web identity, etc.
+const s3Client = new S3Client(
+  hasStaticCreds
+    ? {
+        region,
+        credentials: {
+          accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+          secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+        },
+      }
+    : { region }
+)
 
 export const uploadToS3 = async (
   file,
@@ -41,15 +52,6 @@ export const uploadToS3 = async (
       return {
         success: false,
         message: 'Bucket name is required',
-        data: null,
-      }
-    }
-
-    // Check AWS credentials
-    if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
-      return {
-        success: false,
-        message: 'AWS credentials not configured',
         data: null,
       }
     }
@@ -82,7 +84,6 @@ export const uploadToS3 = async (
 
     const result = await Promise.race([uploadPromise, timeoutPromise])
 
-    const region = process.env.AWS_REGION || 'us-east-1'
     const fileUrl = `https://${bucketName}.s3.${region}.amazonaws.com/${key}`
 
     console.log('S3 upload completed successfully for:', file.originalname)
@@ -174,9 +175,6 @@ export const uploadMultipleToS3 = async (
 export const getSignedUrlForPath = async (s3PathOrUrl, expiresIn = 3600) => {
   try {
     const bucketName = getBucketName()
-    if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
-      return null
-    }
     let key = s3PathOrUrl
     if (typeof s3PathOrUrl === 'string' && s3PathOrUrl.startsWith('http')) {
       const match = s3PathOrUrl.match(/\.amazonaws\.com\/(.+)$/)

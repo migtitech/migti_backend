@@ -14,15 +14,15 @@ const gstRule = Joi.string()
 
 export const createCompanySchema = Joi.object({
   name: Joi.string().required().min(2).max(100),
-  logoUrl: Joi.string().uri().optional().allow(''),
+  logoUrl: Joi.string().uri().optional().allow('', null),
   email: Joi.string().email().required(),
   brandName: Joi.string().required().min(2).max(100),
   gst: gstRule,
-  mobile: Joi.string().optional().allow('').max(20),
-  address: Joi.string().optional().allow('').max(500),
-  shippingAddress: Joi.string().optional().allow('').max(500),
-  billingAddress: Joi.string().optional().allow('').max(500),
-  website: Joi.string().uri().optional().allow('').max(200),
+  mobile: Joi.string().optional().allow('', null).max(20),
+  address: Joi.string().optional().allow('', null).max(500),
+  shippingAddress: Joi.string().optional().allow('', null).max(500),
+  billingAddress: Joi.string().optional().allow('', null).max(500),
+  website: Joi.string().uri().optional().allow('', null).max(200),
   isActive: Joi.boolean().optional(),
 })
 
@@ -39,15 +39,15 @@ export const getCompanyByIdSchema = Joi.object({
 export const updateCompanySchema = Joi.object({
   companyId: Joi.string().required(),
   name: Joi.string().min(2).max(100).optional(),
-  logoUrl: Joi.string().uri().optional().allow(''),
+  logoUrl: Joi.string().uri().optional().allow('', null),
   email: Joi.string().email().optional(),
   brandName: Joi.string().min(2).max(100).optional(),
   gst: gstRule,
-  mobile: Joi.string().optional().allow('').max(20),
-  address: Joi.string().optional().allow('').max(500),
-  shippingAddress: Joi.string().optional().allow('').max(500),
-  billingAddress: Joi.string().optional().allow('').max(500),
-  website: Joi.string().uri().optional().allow('').max(200),
+  mobile: Joi.string().optional().allow('', null).max(20),
+  address: Joi.string().optional().allow('', null).max(500),
+  shippingAddress: Joi.string().optional().allow('', null).max(500),
+  billingAddress: Joi.string().optional().allow('', null).max(500),
+  website: Joi.string().uri().optional().allow('', null).max(200),
   isActive: Joi.boolean().optional(),
 })
 

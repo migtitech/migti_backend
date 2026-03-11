@@ -49,8 +49,7 @@ const buildHtml = (quotation, orgContext = {}) => {
   const prods = allProducts.filter(hasRate)
 
   let totalTaxable = 0
-  let totalCgst = 0
-  let totalSgst = 0
+  let totalGstAmount = 0
 
   // Dates
   const createdDate = quotation.createdAt
@@ -63,16 +62,13 @@ const buildHtml = (quotation, orgContext = {}) => {
   const quotationCode =
     quotation.quotationCode || `QT-${String(quotation._id || quotation.id).slice(-6)}`
 
-  // Header (company / branch) information
-  const gstNumber = branch?.gstNumber || company?.gst || ''
-  const companyDisplayName =
-    company?.brandName || company?.name || branch?.name || ''
-  const companyAddress =
-    branch?.fullAddress || branch?.address || company?.address || ''
-  const companyPhone = branch?.phone || company?.mobile || ''
-  const companyEmail = branch?.email || company?.email || ''
-  const companyTagline =
-    company?.website || ''
+  // Fixed Migti header for PDF
+  const migtiCompanyName = 'Migti Industrial Pvt Ltd'
+  const migtiGstNumber = '22XXXXX0000X1XX'
+  const migtiAddress = '3rd Floor, M.S.-1, B-304, New Siyaganj, Indore, Madhya Pradesh 452003'
+  const migtiEmail = 'info@migti.co.in'
+  const migtiPhone1 = '+91 9220199533'
+  const migtiPhone2 = '+91 9971117391'
 
   // Customer & shipping information
   const industry = quotation.industry_id || {}
@@ -120,22 +116,18 @@ const buildHtml = (quotation, orgContext = {}) => {
       const rate = Number(p.rate) || 0
       const taxable = qty * rate
 
+      const productRef = typeof p.product_id === 'object' ? p.product_id : null
       const gstPercent =
         typeof p.gstPercentage === 'number' && !Number.isNaN(p.gstPercentage)
           ? p.gstPercentage
-          : 0
-      const cgstPercent = gstPercent / 2
-      const sgstPercent = gstPercent - cgstPercent
-
-      const cgstAmount = taxable * (cgstPercent / 100)
-      const sgstAmount = taxable * (sgstPercent / 100)
-      const lineTotal = taxable + cgstAmount + sgstAmount
+          : (productRef != null && typeof productRef.gstPercentage === 'number' && !Number.isNaN(productRef.gstPercentage))
+            ? productRef.gstPercentage
+            : 0
+      const gstAmount = taxable * (gstPercent / 100)
 
       totalTaxable += taxable
-      totalCgst += cgstAmount
-      totalSgst += sgstAmount
+      totalGstAmount += gstAmount
 
-      const productRef = typeof p.product_id === 'object' ? p.product_id : null
       const imageSources =
         (Array.isArray(p.images) && p.images.length && p.images) ||
         (Array.isArray(productRef?.images) && productRef.images.length && productRef.images) ||
@@ -169,28 +161,21 @@ const buildHtml = (quotation, orgContext = {}) => {
           <td class="cell text-center">${escapeHtml(p.unit || '')}</td>
           <td class="cell text-right">${rate ? formatCurrency(rate) : ''}</td>
           <td class="cell text-right">${taxable ? formatCurrency(taxable) : ''}</td>
+          <td class="cell text-center">${gstPercent ? gstPercent.toFixed(2) + '%' : '—'}</td>
+          <td class="cell text-right">${gstAmount ? formatCurrency(gstAmount) : '—'}</td>
         </tr>
       `
     })
     .join('')
 
-  const effectiveCgstPercent =
-    totalTaxable > 0 ? (totalCgst / totalTaxable) * 100 : 0
-  const effectiveSgstPercent =
-    totalTaxable > 0 ? (totalSgst / totalTaxable) * 100 : 0
-
   const freightCharge = 0
   const packingCharge = 0
   const taxableAfterCharges = totalTaxable + freightCharge + packingCharge
-
-  const igstAmount = 0
-  const effectiveIgstPercent = 0
-
-  const grossAmount = taxableAfterCharges + totalCgst + totalSgst + igstAmount
+  const totalAmount = taxableAfterCharges + totalGstAmount
 
   const productsBody =
     productRows ||
-    '<tr><td class="cell text-center" colspan="9">No products with rate.</td></tr>'
+    '<tr><td class="cell text-center" colspan="11">No products with rate.</td></tr>'
 
   return `
 <!DOCTYPE html>
@@ -206,42 +191,44 @@ const buildHtml = (quotation, orgContext = {}) => {
       color: #222;
       padding: 14px 16px;
     }
-    .header-grid {
+    .pdf-header-row {
       display: table;
       width: 100%;
       border-bottom: 2px solid #444;
-      padding-bottom: 6px;
-      margin-bottom: 8px;
+      padding-bottom: 8px;
+      margin-bottom: 10px;
     }
-    .header-cell {
+    .pdf-header-logo-cell {
+      display: table-cell;
+      width: 120px;
+      vertical-align: top;
+      padding-right: 12px;
+    }
+    .pdf-header-center-cell {
       display: table-cell;
       vertical-align: top;
+      text-align: center;
+      width: auto;
     }
-    .header-left {
-      width: 35%;
-      padding-right: 8px;
+    .pdf-header-company-name {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .pdf-header-line {
       font-size: 10px;
+      margin: 2px 0;
+      line-height: 1.3;
     }
-    .header-right {
-      width: 65%;
-      text-align: right;
-      font-size: 10px;
-    }
-    .gst-label {
+    .pdf-header-gst-label {
       font-weight: 600;
     }
-    .company-name {
-      font-size: 14px;
-      font-weight: 700;
-      margin-bottom: 2px;
-    }
-    .company-line {
-      margin: 1px 0;
-    }
-    .company-tagline {
-      margin-top: 3px;
-      font-style: italic;
-      color: #555;
+    .pdf-logo-header {
+      width: 100px;
+      height: auto;
+      max-height: 50px;
+      object-fit: contain;
+      display: block;
     }
     .section-title {
       font-size: 12px;
@@ -396,50 +383,19 @@ const buildHtml = (quotation, orgContext = {}) => {
       color: #666;
       font-size: 8px;
     }
-    .pdf-logo-wrap {
-      text-align: center;
-      margin-bottom: 14px;
-    }
-    .pdf-logo {
-      width: 135px;
-      height: auto;
-      max-height: 60px;
-      object-fit: contain;
-      display: inline-block;
-    }
   </style>
 </head>
 <body>
-  <div class="pdf-logo-wrap">
-    <img src="https://migti.co.in/assets/images/logo.png" alt="" class="pdf-logo" onerror="this.style.display='none'">
-  </div>
-  <div class="header-grid">
-    <div class="header-cell header-left">
-      <div class="gst-label">GST No.</div>
-      <div>${escapeHtml(gstNumber || '')}</div>
+  <div class="pdf-header-row">
+    <div class="pdf-header-logo-cell">
+      <img src="https://migti.co.in/assets/images/logo.png" alt="" class="pdf-logo-header" onerror="this.style.display='none'">
     </div>
-    <div class="header-cell header-right">
-      <div class="company-name">${escapeHtml(companyDisplayName || '')}</div>
-      ${
-        companyAddress
-          ? `<div class="company-line">${escapeHtml(companyAddress)}</div>`
-          : ''
-      }
-      ${
-        companyPhone
-          ? `<div class="company-line">Mobile: ${escapeHtml(companyPhone)}</div>`
-          : ''
-      }
-      ${
-        companyEmail
-          ? `<div class="company-line">Email: ${escapeHtml(companyEmail)}</div>`
-          : ''
-      }
-      ${
-        companyTagline
-          ? `<div class="company-tagline">${escapeHtml(companyTagline)}</div>`
-          : ''
-      }
+    <div class="pdf-header-center-cell">
+      <div class="pdf-header-company-name">${escapeHtml(migtiCompanyName)}</div>
+      <div class="pdf-header-line"><span class="pdf-header-gst-label">GST No.</span> ${escapeHtml(migtiGstNumber)}</div>
+      <div class="pdf-header-line">${escapeHtml(migtiAddress)}</div>
+      <div class="pdf-header-line"><span class="pdf-header-gst-label">Email</span><br>${escapeHtml(migtiEmail)}</div>
+      <div class="pdf-header-line"><span class="pdf-header-gst-label">Phone</span><br>${escapeHtml(migtiPhone1)}<br>${escapeHtml(migtiPhone2)}</div>
     </div>
   </div>
 
@@ -520,6 +476,8 @@ const buildHtml = (quotation, orgContext = {}) => {
         <th>Unit</th>
         <th>Unit Price</th>
         <th>Total</th>
+        <th>GST %</th>
+        <th>GST Amount</th>
       </tr>
     </thead>
     <tbody>
@@ -558,34 +516,16 @@ const buildHtml = (quotation, orgContext = {}) => {
           <td class="summary-value">₹${formatCurrency(taxableAfterCharges)}</td>
         </tr>
         <tr>
-          <td class="summary-label">
-            CGST (${effectiveCgstPercent ? effectiveCgstPercent.toFixed(2) : '0.00'}%)
-          </td>
-          <td class="summary-value">₹${formatCurrency(totalCgst)}</td>
-        </tr>
-        <tr>
-          <td class="summary-label">
-            SGST (${effectiveSgstPercent ? effectiveSgstPercent.toFixed(2) : '0.00'}%)
-          </td>
-          <td class="summary-value">₹${formatCurrency(totalSgst)}</td>
-        </tr>
-        <tr>
-          <td class="summary-label">
-            IGST (${effectiveIgstPercent.toFixed(2)}%)
-          </td>
-          <td class="summary-value">₹${formatCurrency(igstAmount)}</td>
+          <td class="summary-label">GST Amount</td>
+          <td class="summary-value">₹${formatCurrency(totalGstAmount)}</td>
         </tr>
         <tr class="grand-total-row">
-          <td class="summary-label">Total Gross Amount</td>
-          <td class="summary-value">₹${formatCurrency(grossAmount)}</td>
+          <td class="summary-label">Total Amount</td>
+          <td class="summary-value">₹${formatCurrency(totalAmount)}</td>
         </tr>
       </table>
       <div class="signature">
-        ${
-          companyDisplayName
-            ? `<div class="signature-name">For ${escapeHtml(companyDisplayName)}</div>`
-            : ''
-        }
+        <div class="signature-name">For ${escapeHtml(migtiCompanyName)}</div>
         <div>Authorised Signatory</div>
       </div>
     </div>
