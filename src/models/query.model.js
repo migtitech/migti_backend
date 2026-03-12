@@ -42,6 +42,7 @@ const productItemSchema = new mongoose.Schema(
     gstPercentage: { type: SchemaTypes.Number, min: 0, max: 100, default: null },
     variants: { type: [productVariantSchema], default: [] },
     remark: { type: SchemaTypes.String, default: '' },
+    description: { type: SchemaTypes.String, default: '' },
     product_id: { type: SchemaTypes.ObjectId, ref: 'product', default: null },
     images: [{ type: SchemaTypes.ObjectId, ref: 'document' }],
   },

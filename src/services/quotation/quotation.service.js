@@ -1,7 +1,7 @@
 import QuotationModel, { QUOTATION_STATUS } from '../../models/quotation.model.js'
 import QueryModel from '../../models/query.model.js'
 import CustomError from '../../utils/exception.js'
-import { generateUniqueCode } from '../codeSequence/codeSequence.service.js'
+import { getNextSequence } from '../codeSequence/codeSequence.service.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 import {
   transformProductImagesToSigned,
@@ -11,9 +11,23 @@ import { upsertQuotedRatesForQuotation } from '../quotedProductRate/quotedProduc
 
 const QUOTATION_CODE_PREFIX = 'QUO'
 
-const generateQuotationCode = () => {
-  const num = Math.floor(10000 + Math.random() * 90000)
-  return `${QUOTATION_CODE_PREFIX}0${num}`
+/** Company name to first 5 chars (alphanumeric, uppercase). Fallback if empty. */
+const companyFirst5 = (name) => {
+  const s = (name || '')
+    .toString()
+    .replace(/\s+/g, '')
+    .replace(/[^A-Za-z0-9]/g, '')
+    .toUpperCase()
+    .slice(0, 5)
+  return s || 'NA'
+}
+
+/** Quotation code format: QTO-MIG-IND-DD-MM-QUOTATIONCODE-COMPANYFIRST5CHAR */
+const formatQuotationCode = (numericCode, companyName) => {
+  const now = new Date()
+  const DD = String(now.getDate()).padStart(2, '0')
+  const MM = String(now.getMonth() + 1).padStart(2, '0')
+  return `QTO-MIG-IND-${DD}-${MM}-${numericCode}-${companyFirst5(companyName)}`
 }
 
 /**
@@ -88,11 +102,9 @@ export const createQuotationFromQuery = async ({
   }
 
   const quotationBranchFilter = branchId ? { branchId } : {}
-  const quotationCode = await generateUniqueCode('quotationCode', {
-    model: QuotationModel,
-    field: 'quotationCode',
-    branchFilter: quotationBranchFilter,
-  })
+  const numericCode = await getNextSequence('quotationCode')
+  const companyName = query.companyInfo?.name
+  const quotationCode = formatQuotationCode(numericCode, companyName)
 
   const OBJECT_ID_REGEX = /^[a-fA-F0-9]{24}$/
   const toImageIds = (imgs) => {
@@ -107,6 +119,7 @@ export const createQuotationFromQuery = async ({
     const obj = typeof p === 'object' && p !== null ? (typeof p.toObject === 'function' ? p.toObject() : p) : {}
     return {
       productName: obj.productName || '',
+      description: obj.description || '',
       quantity: obj.quantity ?? 1,
       unit: obj.unit || '',
       hsnNumber: obj.hsnNumber || '',
@@ -130,6 +143,9 @@ export const createQuotationFromQuery = async ({
     remark: (remark || '').trim(),
     created_by: created_by || null,
     branchId: branchId || query.branchId || null,
+    freightCharge: 0,
+    packingCharge: 0,
+    expectedDeliveryDate: null,
   })
 
   return doc.toObject()
@@ -277,6 +293,9 @@ export const updateQuotation = async ({
   products,
   companyInfo,
   industry_id,
+  freightCharge,
+  packingCharge,
+  expectedDeliveryDate,
   branchFilter = {},
 }) => {
   const existing = await QuotationModel.findOne({
@@ -296,6 +315,9 @@ export const updateQuotation = async ({
   const updatePayload = {}
   if (companyInfo !== undefined) updatePayload.companyInfo = companyInfo
   if (industry_id !== undefined) updatePayload.industry_id = industry_id || null
+  if (freightCharge !== undefined) updatePayload.freightCharge = Number(freightCharge) >= 0 ? Number(freightCharge) : 0
+  if (packingCharge !== undefined) updatePayload.packingCharge = Number(packingCharge) >= 0 ? Number(packingCharge) : 0
+  if (expectedDeliveryDate !== undefined) updatePayload.expectedDeliveryDate = expectedDeliveryDate || null
   if (products !== undefined) {
     updatePayload.products = products
     if (STATUSES_AUTO_UPDATED.includes(existing.status)) {

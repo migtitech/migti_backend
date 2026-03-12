@@ -34,6 +34,7 @@ const productVariantSchema = new mongoose.Schema(
 const quotationProductItemSchema = new mongoose.Schema(
   {
     productName: { type: SchemaTypes.String, required: true, trim: true },
+    description: { type: SchemaTypes.String, default: '' },
     quantity: { type: SchemaTypes.Number, required: true, min: 0, default: 1 },
     unit: { type: SchemaTypes.String, trim: true, default: '' },
     hsnNumber: { type: SchemaTypes.String, trim: true, default: '' },
@@ -118,6 +119,9 @@ const quotationSchema = new mongoose.Schema(
       trim: true,
       default: '',
     },
+    freightCharge: { type: SchemaTypes.Number, min: 0, default: 0 },
+    packingCharge: { type: SchemaTypes.Number, min: 0, default: 0 },
+    expectedDeliveryDate: { type: SchemaTypes.Date, default: null },
   },
   { timestamps: true },
 )

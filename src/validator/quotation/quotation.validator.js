@@ -25,6 +25,7 @@ const productVariantSchema = Joi.object({
 
 const quotationProductItemSchema = Joi.object({
   productName: Joi.string().required().trim(),
+  description: Joi.string().allow('').optional(),
   quantity: Joi.number().integer().min(0).required(),
   unit: Joi.string().allow('').optional(),
   hsnNumber: Joi.string().allow('').optional(),
@@ -65,6 +66,9 @@ export const updateQuotationSchema = Joi.object({
   companyInfo: companyInfoSchema.optional(),
   industry_id: Joi.string().allow(null, '').optional(),
   products: Joi.array().items(quotationProductItemSchema).optional(),
+  freightCharge: Joi.number().min(0).optional(),
+  packingCharge: Joi.number().min(0).optional(),
+  expectedDeliveryDate: Joi.date().allow(null).optional(),
 })
 
 export const updateQuotationStatusSchema = Joi.object({

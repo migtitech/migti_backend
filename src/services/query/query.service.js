@@ -10,9 +10,28 @@ import {
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 import { createQuotationFromQuery, getQuotationByQueryId } from '../quotation/quotation.service.js'
-import { generateUniqueCode } from '../codeSequence/codeSequence.service.js'
+import { getNextSequence } from '../codeSequence/codeSequence.service.js'
 
 const OBJECT_ID_REGEX = /^[a-fA-F0-9]{24}$/
+
+/** Company name to first 5 chars (alphanumeric, uppercase). Fallback if empty. */
+const companyFirst5 = (name) => {
+  const s = (name || '')
+    .toString()
+    .replace(/\s+/g, '')
+    .replace(/[^A-Za-z0-9]/g, '')
+    .toUpperCase()
+    .slice(0, 5)
+  return s || 'NA'
+}
+
+/** Query code format: QRY-MIG-IND-DD-MM-QUERYCODE-COMPANYFIRST5CHAR */
+const formatQueryCode = (numericCode, companyName) => {
+  const now = new Date()
+  const DD = String(now.getDate()).padStart(2, '0')
+  const MM = String(now.getMonth() + 1).padStart(2, '0')
+  return `QRY-MIG-IND-${DD}-${MM}-${numericCode}-${companyFirst5(companyName)}`
+}
 const normalizeImageIds = (images) => {
   if (!Array.isArray(images)) return []
   return images
@@ -38,11 +57,8 @@ export const addQuery = async ({
   branchId,
 }) => {
   const branchFilter = branchId ? { branchId } : {}
-  const queryCode = await generateUniqueCode('queryCode', {
-    model: QueryModel,
-    field: 'queryCode',
-    branchFilter,
-  })
+  const numericCode = await getNextSequence('queryCode')
+  const queryCode = formatQueryCode(numericCode, companyInfo?.name)
 
   const normalizedProducts = mapProductsWithImages(products || [])
 

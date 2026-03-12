@@ -33,6 +33,7 @@ const productItemSchema = Joi.object({
   gstPercentage: Joi.number().min(0).max(100).allow(null).optional(),
   variants: Joi.array().items(productVariantSchema).optional().default([]),
   remark: Joi.string().allow('').optional(),
+  description: Joi.string().allow('').optional(),
   product_id: Joi.string().allow(null, '').optional(),
   images: Joi.array().items(imageItemSchema).optional().default([]),
 })
@@ -101,6 +102,7 @@ export const convertQueryToQuotationSchema = Joi.object({
         gstPercentage: Joi.number().allow(null).optional(),
         variants: Joi.array().items(Joi.object({ variantName: Joi.string() })).optional(),
         remark: Joi.string().allow('', null).optional(),
+        description: Joi.string().allow('', null).optional(),
         product_id: Joi.alternatives()
           .try(Joi.string().allow(null, ''), Joi.object({ _id: Joi.string() }).unknown(true))
           .optional()

@@ -51,13 +51,20 @@ const buildHtml = (quotation, orgContext = {}) => {
   let totalTaxable = 0
   let totalGstAmount = 0
 
-  // Dates
+  // Dates – quotation date with time HH:MM:SS
   const createdDate = quotation.createdAt
-    ? new Date(quotation.createdAt).toLocaleDateString()
+    ? (() => {
+        const d = new Date(quotation.createdAt)
+        const dateStr = d.toLocaleDateString()
+        const h = String(d.getHours()).padStart(2, '0')
+        const m = String(d.getMinutes()).padStart(2, '0')
+        const s = String(d.getSeconds()).padStart(2, '0')
+        return `${dateStr} ${h}:${m}:${s}`
+      })()
     : ''
-  const validUntil = quotation.validUntil
-    ? new Date(quotation.validUntil).toLocaleDateString()
-    : ''
+  const expectedDeliveryDisplay = quotation.expectedDeliveryDate
+    ? new Date(quotation.expectedDeliveryDate).toLocaleDateString()
+    : 'NA'
 
   const quotationCode =
     quotation.quotationCode || `QT-${String(quotation._id || quotation.id).slice(-6)}`
@@ -66,7 +73,7 @@ const buildHtml = (quotation, orgContext = {}) => {
   const migtiCompanyName = 'Migti Industrial Pvt Ltd'
   const migtiGstNumber = '23AARCM4143L1Z6'
   const migtiAddress = '3rd Floor, M.S.-1, B-304, New Siyaganj, Indore, Madhya Pradesh 452003'
-  const migtiEmail = 'info@migti.co.in'
+  const migtiEmail = 'sale.migtiindore@gmail.com'
   const migtiPhone1 = '+91 7898611052'
   const migtiPhone2 = ''
 
@@ -136,13 +143,18 @@ const buildHtml = (quotation, orgContext = {}) => {
         : '—'
 
       const hsn = p.hsnNumber || productRef?.hsnNumber || '—'
-      const expDelivery = validUntil || '—'
+      const descriptionText = (p.description || productRef?.shortDescription || '').trim()
 
       return `
         <tr>
           <td class="cell text-center">${index + 1}</td>
           <td class="cell">
             <div class="product-name">${escapeHtml(p.productName || '—')}</div>
+            ${
+              descriptionText
+                ? `<div class="product-description">${escapeHtml(descriptionText)}</div>`
+                : ''
+            }
             ${
               p.remark
                 ? `<div class="product-remark">${escapeHtml(String(p.remark))}</div>`
@@ -151,26 +163,24 @@ const buildHtml = (quotation, orgContext = {}) => {
           </td>
           <td class="cell text-center">${escapeHtml(hsn)}</td>
           <td class="cell text-center image-cell">${imgHtml}</td>
-          <td class="cell text-center">${escapeHtml(expDelivery)}</td>
           <td class="cell text-center">${qty || ''}</td>
           <td class="cell text-center">${escapeHtml(p.unit || '')}</td>
           <td class="cell text-right">${rate ? formatCurrency(rate) : ''}</td>
-          <td class="cell text-right">${taxable ? formatCurrency(taxable) : ''}</td>
           <td class="cell text-center">${gstPercent ? gstPercent.toFixed(2) + '%' : '—'}</td>
-          <td class="cell text-right">${gstAmount ? formatCurrency(gstAmount) : '—'}</td>
+          <td class="cell text-right">${taxable ? formatCurrency(taxable) : ''}</td>
         </tr>
       `
     })
     .join('')
 
-  const freightCharge = 0
-  const packingCharge = 0
+  const freightCharge = Number(quotation.freightCharge) >= 0 ? Number(quotation.freightCharge) : 0
+  const packingCharge = Number(quotation.packingCharge) >= 0 ? Number(quotation.packingCharge) : 0
   const taxableAfterCharges = totalTaxable + freightCharge + packingCharge
   const totalAmount = taxableAfterCharges + totalGstAmount
 
   const productsBody =
     productRows ||
-    '<tr><td class="cell text-center" colspan="11">No products with rate.</td></tr>'
+    '<tr><td class="cell text-center" colspan="9">No products with rate.</td></tr>'
 
   return `
 <!DOCTYPE html>
@@ -182,7 +192,7 @@ const buildHtml = (quotation, orgContext = {}) => {
     html, body { width: 100%; margin: 0; padding: 0; }
     body {
       font-family: Arial, sans-serif;
-      font-size: 12.5px;
+      font-size: 14px;
       color: #222;
       padding: 14px 16px;
     }
@@ -212,7 +222,7 @@ const buildHtml = (quotation, orgContext = {}) => {
       right: 0;
       top: 0;
       text-align: right;
-      font-size: 11px;
+      font-size: 12px;
       line-height: 1.35;
       max-width: 220px;
       padding-left: 8px;
@@ -221,12 +231,12 @@ const buildHtml = (quotation, orgContext = {}) => {
       font-weight: 600;
     }
     .pdf-header-company-name {
-      font-size: 17px;
+      font-size: 18px;
       font-weight: 700;
       margin-bottom: 6px;
     }
     .pdf-header-line {
-      font-size: 11px;
+      font-size: 12px;
       margin: 2px 0;
       line-height: 1.35;
     }
@@ -241,7 +251,7 @@ const buildHtml = (quotation, orgContext = {}) => {
       display: block;
     }
     .section-title {
-      font-size: 12px;
+      font-size: 14px;
       font-weight: 600;
       margin: 8px 0 4px;
     }
@@ -262,26 +272,32 @@ const buildHtml = (quotation, orgContext = {}) => {
       background: #f7ecd4;
       color: #222;
       border: 1px solid #bbb;
-      padding: 5px 4px;
-      font-size: 10px;
+      padding: 6px 5px;
+      font-size: 12px;
       font-weight: 600;
       text-align: center;
       white-space: nowrap;
     }
     .cell {
       border: 1px solid #ddd;
-      padding: 4px 4px;
-      font-size: 10px;
+      padding: 5px 5px;
+      font-size: 12px;
       vertical-align: top;
     }
     .text-center { text-align: center; }
     .text-right { text-align: right; }
     .product-name {
+      font-size: 13px;
       font-weight: 600;
       margin-bottom: 2px;
     }
+    .product-description {
+      font-size: 11px;
+      color: #444;
+      margin-bottom: 2px;
+    }
     .product-remark {
-      font-size: 9px;
+      font-size: 10px;
       color: #666;
     }
     .image-cell {
@@ -307,13 +323,13 @@ const buildHtml = (quotation, orgContext = {}) => {
     }
     .block-title {
       font-weight: 600;
-      font-size: 12px;
+      font-size: 13px;
       margin-bottom: 3px;
     }
     .info-table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 10.5px;
+      font-size: 12px;
     }
     .info-table td {
       padding: 2px 3px;
@@ -330,7 +346,7 @@ const buildHtml = (quotation, orgContext = {}) => {
     }
     .meta-small {
       margin-top: 4px;
-      font-size: 9px;
+      font-size: 10px;
     }
     .summary-signature-wrapper {
       margin-top: 8px;
@@ -340,7 +356,7 @@ const buildHtml = (quotation, orgContext = {}) => {
     }
     .terms {
       width: 55%;
-      font-size: 10.5px;
+      font-size: 12px;
     }
     .terms-title {
       font-weight: 600;
@@ -358,12 +374,12 @@ const buildHtml = (quotation, orgContext = {}) => {
       display: flex;
       flex-direction: column;
       align-items: flex-end;
-      font-size: 10.5px;
+      font-size: 12px;
     }
     .summary-table {
       border-collapse: collapse;
       min-width: 230px;
-      font-size: 10.5px;
+      font-size: 12px;
     }
     .summary-table td {
       padding: 3px 5px;
@@ -388,7 +404,7 @@ const buildHtml = (quotation, orgContext = {}) => {
     .signature {
       margin-top: 10px;
       text-align: right;
-      font-size: 11px;
+      font-size: 12px;
     }
     .signature-name {
       font-weight: 600;
@@ -460,6 +476,24 @@ const buildHtml = (quotation, orgContext = {}) => {
     </tr>
   </table>
 
+  <table class="details-grid">
+    <tr>
+      <td class="details-block" style="width: 55%;"></td>
+      <td class="details-block" style="width: 45%;">
+        <table class="info-table">
+          <tr>
+            <td class="info-label">Quotation No.</td>
+            <td class="info-value">${escapeHtml(quotationCode || '')}</td>
+          </tr>
+          <tr>
+            <td class="info-label">Quotation Date</td>
+            <td class="info-value">${escapeHtml(createdDate || '')}</td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+
   <div class="section-title">Quotation Details</div>
   <table>
     <thead>
@@ -468,13 +502,11 @@ const buildHtml = (quotation, orgContext = {}) => {
         <th>Item Name &amp; Description</th>
         <th>HSN Code</th>
         <th>Photo</th>
-        <th>Expected Delivery</th>
         <th>Qty.</th>
         <th>Unit</th>
         <th>Unit Price</th>
-        <th>Total</th>
         <th>GST %</th>
-        <th>GST Amount</th>
+        <th>Total</th>
       </tr>
     </thead>
     <tbody>
@@ -507,6 +539,10 @@ const buildHtml = (quotation, orgContext = {}) => {
         <tr>
           <td class="summary-label">Packing Charge</td>
           <td class="summary-value">₹${formatCurrency(packingCharge)}</td>
+        </tr>
+        <tr>
+          <td class="summary-label">Expected Delivery Date</td>
+          <td class="summary-value">${escapeHtml(expectedDeliveryDisplay)}</td>
         </tr>
         <tr>
           <td class="summary-label">Total Taxable Amount</td>
