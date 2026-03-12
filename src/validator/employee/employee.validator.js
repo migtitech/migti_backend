@@ -16,11 +16,11 @@ const assetItemSchema = Joi.object({
 }).unknown(true)
 
 const bankDetailsSchema = Joi.object({
-  accountNumber: Joi.string().allow('').optional(),
-  ifscCode: Joi.string().allow('').optional(),
-  bankName: Joi.string().allow('').optional(),
-  accountHolderName: Joi.string().allow('').optional(),
-  upiDetails: Joi.string().allow('').optional(),
+  accountNumber: Joi.string().allow('', null).optional(),
+  ifscCode: Joi.string().allow('', null).optional(),
+  bankName: Joi.string().allow('', null).optional(),
+  accountHolderName: Joi.string().allow('', null).optional(),
+  upiDetails: Joi.string().allow('', null).optional(),
 }).unknown(true)
 
 const assetsSchema = Joi.object({
@@ -44,10 +44,10 @@ export const createEmployeeSchema = Joi.object({
   pincode: Joi.string().allow('').max(20).optional(),
   hasBike: Joi.string().allow('yes', 'no', '').optional(),
   hasDrivingLicense: Joi.string().allow('yes', 'no', '').optional(),
-  companyEmail: Joi.string().email().allow('').optional(),
+  companyEmail: Joi.string().email().allow('', null).optional(),
   companyPhone: Joi.string()
     .pattern(/^\d{5,20}$/)
-    .allow('')
+    .allow('', null)
     .optional()
     .messages({
       'string.pattern.base': 'companyPhone must contain only digits',
@@ -91,10 +91,10 @@ export const updateEmployeeSchema = Joi.object({
   pincode: Joi.string().allow('').max(20).optional(),
   hasBike: Joi.string().allow('yes', 'no', '').optional(),
   hasDrivingLicense: Joi.string().allow('yes', 'no', '').optional(),
-  companyEmail: Joi.string().email().allow('').optional(),
+  companyEmail: Joi.string().email().allow('', null).optional(),
   companyPhone: Joi.string()
     .pattern(/^\d{5,20}$/)
-    .allow('')
+    .allow('', null)
     .optional()
     .messages({
       'string.pattern.base': 'companyPhone must contain only digits',

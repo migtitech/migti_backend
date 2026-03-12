@@ -8,6 +8,26 @@ export const addEmployee = async (payload) => {
   const { password, ...rest } = payload
   const { email, idnumber } = rest
 
+  // Normalize optional company contact fields
+  if (rest.companyEmail == null) {
+    rest.companyEmail = ''
+  }
+  if (rest.companyPhone == null) {
+    rest.companyPhone = ''
+  }
+
+  // Normalize optional bank details to strings to avoid type issues
+  if (rest.bankDetails) {
+    rest.bankDetails = {
+      accountNumber: typeof rest.bankDetails.accountNumber === 'string' ? rest.bankDetails.accountNumber : '',
+      ifscCode: typeof rest.bankDetails.ifscCode === 'string' ? rest.bankDetails.ifscCode : '',
+      bankName: typeof rest.bankDetails.bankName === 'string' ? rest.bankDetails.bankName : '',
+      accountHolderName:
+        typeof rest.bankDetails.accountHolderName === 'string' ? rest.bankDetails.accountHolderName : '',
+      upiDetails: typeof rest.bankDetails.upiDetails === 'string' ? rest.bankDetails.upiDetails : '',
+    }
+  }
+
   const existingEmployee = await EmployeeModel.findOne({
     $or: [{ email }, { idnumber }],
   }).lean()
@@ -92,6 +112,31 @@ export const updateEmployee = async ({ employeeId, branchFilter = {}, ...updateD
     updateData.password = encrypt(updateData.password)
   } else {
     delete updateData.password
+  }
+
+  // Normalize optional company contact fields on update
+  if (Object.prototype.hasOwnProperty.call(updateData, 'companyEmail') && updateData.companyEmail == null) {
+    updateData.companyEmail = ''
+  }
+  if (Object.prototype.hasOwnProperty.call(updateData, 'companyPhone') && updateData.companyPhone == null) {
+    updateData.companyPhone = ''
+  }
+
+  // Normalize optional bank details to strings on update as well
+  if (updateData.bankDetails) {
+    updateData.bankDetails = {
+      accountNumber:
+        typeof updateData.bankDetails.accountNumber === 'string' ? updateData.bankDetails.accountNumber : '',
+      ifscCode:
+        typeof updateData.bankDetails.ifscCode === 'string' ? updateData.bankDetails.ifscCode : '',
+      bankName: typeof updateData.bankDetails.bankName === 'string' ? updateData.bankDetails.bankName : '',
+      accountHolderName:
+        typeof updateData.bankDetails.accountHolderName === 'string'
+          ? updateData.bankDetails.accountHolderName
+          : '',
+      upiDetails:
+        typeof updateData.bankDetails.upiDetails === 'string' ? updateData.bankDetails.upiDetails : '',
+    }
   }
 
   if (updateData.email || updateData.idnumber) {
