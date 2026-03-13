@@ -105,6 +105,11 @@ const employeeSchema = new mongoose.Schema(
     permissions: [{ type: String }],
     bankDetails: { type: bankDetailsSchema, default: () => ({}) },
     assets: { type: assetsSchema, default: () => ({}) },
+    categories: {
+      type: SchemaTypes.String,
+      default: '',
+      trim: true,
+    },
   },
   { timestamps: true }
 )

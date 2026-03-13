@@ -8,6 +8,7 @@ import {
   transformPathsToSignedUrls,
 } from '../document/document.service.js'
 import { upsertQuotedRatesForQuotation } from '../quotedProductRate/quotedProductRate.service.js'
+import { autoAssignPurchaseTasksForQuotation } from '../purchaseTask/purchaseTask.service.js'
 
 const QUOTATION_CODE_PREFIX = 'QUO'
 
@@ -148,7 +149,17 @@ export const createQuotationFromQuery = async ({
     expectedDeliveryDate: null,
   })
 
-  return doc.toObject()
+  const created = doc.toObject()
+
+  // Automatically assign purchase tasks based on product categories & employee categories.
+  // Errors are swallowed inside the helper to avoid impacting quotation creation.
+  await autoAssignPurchaseTasksForQuotation({
+    quotation: created,
+    branchId: created.branchId || branchId || null,
+    assignedBy: created_by || null,
+  })
+
+  return created
 }
 
 export const listQuotations = async ({

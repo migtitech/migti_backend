@@ -64,6 +64,7 @@ export const createEmployeeSchema = Joi.object({
   permissions: Joi.array().items(Joi.string()).optional(),
   bankDetails: bankDetailsSchema.optional(),
   assets: assetsSchema.optional(),
+  categories: Joi.string().allow('', null).optional(),
 }).unknown(true)
 
 export const listEmployeeSchema = Joi.object({
@@ -111,6 +112,7 @@ export const updateEmployeeSchema = Joi.object({
   permissions: Joi.array().items(Joi.string()).optional(),
   bankDetails: bankDetailsSchema.optional(),
   assets: assetsSchema.optional(),
+  categories: Joi.string().allow('', null).optional(),
 }).unknown(true)
 
 export const deleteEmployeeSchema = Joi.object({

@@ -5,6 +5,8 @@ import PurchaseTaskModel, {
 } from '../../models/purchaseTask.model.js'
 import QuotationModel from '../../models/quotation.model.js'
 import EmployeeModel from '../../models/employee.model.js'
+import ProductModel from '../../models/product.model.js'
+import CategoryModel from '../../models/category.model.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 
@@ -83,6 +85,138 @@ export const assignQuotationTask = async ({
   })
 
   return doc.toObject()
+}
+
+const escapeRegex = (value = '') =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+/**
+ * Automatically assign purchase tasks for a quotation based on product categories
+ * and employee category strings.
+ *
+ * - Matches employees in the same branch.
+ * - Matches when employee.categories contains the category name (comma-separated list).
+ * - Avoids duplicate tasks per employee per quotation.
+ * - Swallows errors so quotation/query flows are never broken.
+ */
+export const autoAssignPurchaseTasksForQuotation = async ({
+  quotation,
+  branchId,
+  assignedBy,
+}) => {
+  try {
+    if (!quotation?._id) {
+      return
+    }
+
+    const effectiveBranchId = branchId || quotation.branchId || null
+    if (!effectiveBranchId) {
+      return
+    }
+
+    const products = Array.isArray(quotation.products) ? quotation.products : []
+    const productIds = [
+      ...new Set(
+        products
+          .map((p) => {
+            if (!p?.product_id) return null
+            return typeof p.product_id === 'object' ? p.product_id._id || p.product_id.id : p.product_id
+          })
+          .filter(Boolean),
+      ),
+    ]
+
+    if (!productIds.length) {
+      return
+    }
+
+    const productDocs = await ProductModel.find({ _id: { $in: productIds } })
+      .select('category')
+      .populate('category', 'name')
+      .lean()
+
+    const categoryNames = [
+      ...new Set(
+        productDocs
+          .map((pd) => pd?.category && (pd.category.name || '').trim())
+          .filter((name) => typeof name === 'string' && name.trim().length > 0)
+          .map((name) => name.trim()),
+      ),
+    ]
+
+    if (!categoryNames.length) {
+      return
+    }
+
+    // Build OR conditions for category match in employee.categories
+    const orConditions = categoryNames.map((name) => ({
+      categories: {
+        $regex: new RegExp(`(^|,\\s*)${escapeRegex(name)}(\\s*,|$)`, 'i'),
+      },
+    }))
+
+    const matchingEmployees = await EmployeeModel.find({
+      isDeleted: false,
+      branchId: effectiveBranchId,
+      categories: { $ne: null, $ne: '' },
+      ...(orConditions.length ? { $or: orConditions } : {}),
+    })
+      .select('_id categories branchId')
+      .lean()
+
+    if (!matchingEmployees.length) {
+      // Fallback: leave unassigned (no tasks created) – do not alter existing assignment flow
+      return
+    }
+
+    const existingTasks = await PurchaseTaskModel.find({
+      isDeleted: false,
+      quotationId: quotation._id,
+    })
+      .select('assignedTo')
+      .lean()
+
+    const alreadyAssigned = new Set(
+      existingTasks.map((t) => String(t.assignedTo)).filter(Boolean),
+    )
+
+    const categoryLabel = categoryNames.join(', ')
+
+    const docsToCreate = []
+    for (const emp of matchingEmployees) {
+      const empId = String(emp._id)
+      if (alreadyAssigned.has(empId)) {
+        continue
+      }
+
+      docsToCreate.push({
+        quotationId: quotation._id,
+        assignedTo: emp._id,
+        assignedBy: assignedBy || quotation.created_by || null,
+        type: PURCHASE_TASK_TYPE.QUOTATION,
+        priority: PURCHASE_TASK_PRIORITY.HIGHEST,
+        quotationNumber: quotation.quotationCode || '',
+        product: {},
+        productCategory: categoryLabel,
+        productGroup: '',
+        subCategory: '',
+        targetRate: 0,
+        procurementRate: null,
+        dueDate: null,
+        supplierRateRemark: '',
+        status: PURCHASE_TASK_STATUS.ASSIGNED,
+        branchId: effectiveBranchId,
+      })
+    }
+
+    if (!docsToCreate.length) {
+      return
+    }
+
+    await PurchaseTaskModel.insertMany(docsToCreate)
+  } catch {
+    // Never block query/quotation flows because of auto-assignment issues
+  }
 }
 
 const buildBaseTaskFilter = ({ status, branchFilter = {} }) => {
