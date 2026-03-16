@@ -30,7 +30,7 @@ taskManagementRouter.get(
 taskManagementRouter.get(
   '/my-tasks',
   authenticateToken,
-  checkPermission(MODULES.TASK_MANAGEMENT, 'read'),
+  checkPermission(MODULES.TASK_BUCKET, 'read'),
   asyncHandler(listMyTasksController),
 )
 taskManagementRouter.get(
@@ -49,7 +49,7 @@ taskManagementRouter.put(
 taskManagementRouter.put(
   '/update-supplier',
   authenticateToken,
-  checkPermission(MODULES.TASK_MANAGEMENT, 'update'),
+  checkPermission(MODULES.TASK_BUCKET, 'update'),
   asyncHandler(updateTaskSupplierController),
 )
 

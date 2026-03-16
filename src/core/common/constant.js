@@ -372,6 +372,7 @@ export const MODULES = Object.freeze({
   PURCHASE_ORDERS: 'purchase_orders',
   PURCHASE_TASKS: 'purchase_tasks',
   TASK_MANAGEMENT: 'task_management',
+  TASK_BUCKET: 'task_bucket',
   FINANCE: 'finance',
   FOLLOW_UP: 'follow_up',
   EMPLOYEES: 'employees',
