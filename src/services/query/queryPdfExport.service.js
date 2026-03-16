@@ -95,14 +95,15 @@ const buildHtml = (query, orgContext = {}) => {
           : 0
     const descriptionText = (p.description || ref?.shortDescription || '').trim()
 
+    const remarkText = (p.remark && String(p.remark).trim()) ? escapeHtml(String(p.remark).trim()) : '—'
     return `
       <tr>
         <td class="cell text-center">${index + 1}</td>
         <td class="cell">
           <div class="product-name">${escapeHtml(p.productName || '—')}</div>
           ${descriptionText ? `<div class="product-description">${escapeHtml(descriptionText)}</div>` : ''}
-          ${p.remark ? `<div class="product-remark">${escapeHtml(String(p.remark))}</div>` : ''}
         </td>
+        <td class="cell product-remark-cell">${remarkText}</td>
         <td class="cell text-center">${escapeHtml(hsn)}</td>
         <td class="cell text-center image-cell">${imgHtml}</td>
         <td class="cell text-center">${qty || ''}</td>
@@ -115,7 +116,7 @@ const buildHtml = (query, orgContext = {}) => {
   const productsBody =
     productRows.length > 0
       ? productRows
-      : '<tr><td class="cell text-center" colspan="7">No products.</td></tr>'
+      : '<tr><td class="cell text-center" colspan="8">No products.</td></tr>'
 
   return `
 <!DOCTYPE html>
@@ -142,7 +143,7 @@ const buildHtml = (query, orgContext = {}) => {
     .pdf-header-logo-cell {
       position: absolute;
       left: 0;
-      top: 0;
+      top: -16px;
       width: 120px;
       padding-right: 12px;
       display: block;
@@ -151,28 +152,6 @@ const buildHtml = (query, orgContext = {}) => {
       width: 100%;
       text-align: center;
       padding: 0 130px;
-    }
-    .pdf-header-doc-meta {
-      position: absolute;
-      right: 0;
-      top: 0;
-      text-align: right;
-      font-size: 11px;
-      line-height: 1.35;
-      max-width: 220px;
-      padding-left: 8px;
-    }
-    .pdf-header-doc-meta .label {
-      font-weight: 600;
-    }
-    .query-no-top {
-      font-size: 14px;
-      font-weight: 700;
-      margin-bottom: 4px;
-    }
-    .query-date-time {
-      font-size: 11px;
-      line-height: 1.4;
     }
     .pdf-header-company-name {
       font-size: 17px;
@@ -198,6 +177,19 @@ const buildHtml = (query, orgContext = {}) => {
       font-size: 12px;
       font-weight: 600;
       margin: 8px 0 4px;
+    }
+    .query-meta-below-details {
+      font-size: 11px;
+      margin-top: 8px;
+      padding-top: 6px;
+      border-top: 1px solid #e8e8e8;
+    }
+    .query-meta-date {
+      margin-top: 6px;
+    }
+    .query-meta-label {
+      font-weight: 600;
+      color: #444;
     }
     table {
       border-collapse: collapse;
@@ -243,6 +235,12 @@ const buildHtml = (query, orgContext = {}) => {
     .product-remark {
       font-size: 11px;
       color: #666;
+    }
+    .product-remark-cell {
+      font-size: 11px;
+      color: #444;
+      max-width: 180px;
+      word-wrap: break-word;
     }
     .image-cell {
       width: 70px;
@@ -310,10 +308,6 @@ const buildHtml = (query, orgContext = {}) => {
     <div class="pdf-header-logo-cell">
       <img src="https://migti.co.in/assets/images/logo.png" alt="" class="pdf-logo-header" onerror="this.style.display='none'">
     </div>
-    <div class="pdf-header-doc-meta">
-      <div class="query-no-top">${escapeHtml(queryCode)}</div>
-      ${queryDateWithTime ? `<div class="query-date-time"><span class="label">Query Date:</span> ${escapeHtml(queryDateWithTime)}</div>` : ''}
-    </div>
     <div class="pdf-header-center-cell">
       <div class="pdf-header-company-name">${escapeHtml(MIGTI_COMPANY_NAME)}</div>
       <div class="pdf-header-line"><span class="pdf-header-gst-label">GST No.</span> ${escapeHtml(MIGTI_GST_NUMBER)} &nbsp;|&nbsp; ${escapeHtml(MIGTI_ADDRESS)}</div>
@@ -361,6 +355,10 @@ const buildHtml = (query, orgContext = {}) => {
             <td class="info-value">${escapeHtml(shippingContactPerson || '')}</td>
           </tr>
         </table>
+        <div class="query-meta-below-details">
+          <div><span class="query-meta-label">Query Code:</span> ${escapeHtml(queryCode)}</div>
+          ${queryDateWithTime ? `<div class="query-meta-date"><span class="query-meta-label">Query Date:</span> ${escapeHtml(queryDateWithTime)}</div>` : ''}
+        </div>
       </td>
     </tr>
   </table>
@@ -371,6 +369,7 @@ const buildHtml = (query, orgContext = {}) => {
       <tr>
         <th>S.N.</th>
         <th>Item Name &amp; Description</th>
+        <th>Remark</th>
         <th>HSN Code</th>
         <th>Photo</th>
         <th>Qty.</th>

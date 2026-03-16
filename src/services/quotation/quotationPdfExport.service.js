@@ -27,9 +27,6 @@ const escapeHtml = (str) => {
     .replace(/"/g, '&quot;')
 }
 
-const hasRate = (p) =>
-  p.rate != null && !Number.isNaN(Number(p.rate)) && Number(p.rate) >= 0
-
 const formatCurrency = (value) => {
   if (typeof value !== 'number' || Number.isNaN(value)) return '0.00'
   return value.toLocaleString('en-IN', {
@@ -46,13 +43,17 @@ const buildHtml = (quotation, orgContext = {}) => {
   const { branch, company } = orgContext || {}
   const ci = quotation.companyInfo || {}
   const allProducts = Array.isArray(quotation.products) ? quotation.products : []
-  const prods = allProducts.filter(hasRate)
 
   let totalTaxable = 0
   let totalGstAmount = 0
 
-  // Dates – quotation date with time HH:MM:SS
-  const createdDate = quotation.createdAt
+  const expectedDeliveryDisplay = quotation.expectedDeliveryDate
+    ? new Date(quotation.expectedDeliveryDate).toLocaleDateString()
+    : 'NA'
+
+  const quotationCode =
+    quotation.quotationCode || `QT-${String(quotation._id || quotation.id).slice(-6)}`
+  const quotationDate = quotation.createdAt
     ? (() => {
         const d = new Date(quotation.createdAt)
         const dateStr = d.toLocaleDateString()
@@ -62,12 +63,14 @@ const buildHtml = (quotation, orgContext = {}) => {
         return `${dateStr} ${h}:${m}:${s}`
       })()
     : ''
-  const expectedDeliveryDisplay = quotation.expectedDeliveryDate
-    ? new Date(quotation.expectedDeliveryDate).toLocaleDateString()
-    : 'NA'
 
-  const quotationCode =
-    quotation.quotationCode || `QT-${String(quotation._id || quotation.id).slice(-6)}`
+  // Whether to show Discount column (at least one available product has discount)
+  const hasDiscount = allProducts.some(
+    (p) =>
+      !p.notAvailable &&
+      p.applyDiscount &&
+      (p.discountPercentage != null || p.discountAmount != null),
+  )
 
   // Fixed Migti header for PDF
   const migtiCompanyName = 'Migti Industrial Pvt Ltd'
@@ -112,24 +115,9 @@ const buildHtml = (quotation, orgContext = {}) => {
   const shippingAddress = customerAddress
   const shippingContactPerson = customerContactPerson
 
-  const productRows = prods
+  const productRows = allProducts
     .map((p, index) => {
-      const qty = Number(p.quantity) || 0
-      const rate = Number(p.rate) || 0
-      const taxable = qty * rate
-
       const productRef = typeof p.product_id === 'object' ? p.product_id : null
-      const gstPercent =
-        typeof p.gstPercentage === 'number' && !Number.isNaN(p.gstPercentage)
-          ? p.gstPercentage
-          : (productRef != null && typeof productRef.gstPercentage === 'number' && !Number.isNaN(productRef.gstPercentage))
-            ? productRef.gstPercentage
-            : 0
-      const gstAmount = taxable * (gstPercent / 100)
-
-      totalTaxable += taxable
-      totalGstAmount += gstAmount
-
       const imageSources =
         (Array.isArray(p.images) && p.images.length && p.images) ||
         (Array.isArray(productRef?.images) && productRef.images.length && productRef.images) ||
@@ -144,30 +132,71 @@ const buildHtml = (quotation, orgContext = {}) => {
 
       const hsn = p.hsnNumber || productRef?.hsnNumber || '—'
       const descriptionText = (p.description || productRef?.shortDescription || '').trim()
+      const reasonCell = escapeHtml(String(p.notAvailableRemark || (p.notAvailable ? 'Not available' : '')).trim())
+
+      if (p.notAvailable) {
+        return `
+        <tr>
+          <td class="cell text-center">${index + 1}</td>
+          <td class="cell">
+            <div class="product-name">${escapeHtml(p.productName || '—')}</div>
+            ${descriptionText ? `<div class="product-description">${escapeHtml(descriptionText)}</div>` : ''}
+            ${p.remark ? `<div class="product-remark">${escapeHtml(String(p.remark))}</div>` : ''}
+          </td>
+          <td class="cell text-center">${escapeHtml(hsn)}</td>
+          <td class="cell text-center image-cell">${imgHtml}</td>
+          <td class="cell text-center">${Number(p.quantity) || ''}</td>
+          <td class="cell text-center">${escapeHtml(p.unit || '')}</td>
+          <td class="cell text-right">—</td>
+          ${hasDiscount ? '<td class="cell text-right">—</td>' : ''}
+          <td class="cell text-center">—</td>
+          <td class="cell text-right">—</td>
+          <td class="cell">${reasonCell || '—'}</td>
+        </tr>
+      `
+      }
+
+      const qty = Number(p.quantity) || 0
+      const rate = Number(p.rate) || 0
+      const beforeDiscount = qty * rate
+      const discountAmount =
+        p.applyDiscount && p.discountPercentage != null
+          ? beforeDiscount * (Number(p.discountPercentage) / 100)
+          : Number(p.discountAmount) || 0
+      const taxable = Math.max(0, beforeDiscount - discountAmount)
+
+      const gstPercent =
+        typeof p.gstPercentage === 'number' && !Number.isNaN(p.gstPercentage)
+          ? p.gstPercentage
+          : (productRef != null && typeof productRef.gstPercentage === 'number' && !Number.isNaN(productRef.gstPercentage))
+            ? productRef.gstPercentage
+            : 0
+      const gstAmount = taxable * (gstPercent / 100)
+
+      totalTaxable += taxable
+      totalGstAmount += gstAmount
+
+      const discountCell = hasDiscount
+        ? (discountAmount > 0 ? formatCurrency(discountAmount) : '—')
+        : ''
 
       return `
         <tr>
           <td class="cell text-center">${index + 1}</td>
           <td class="cell">
             <div class="product-name">${escapeHtml(p.productName || '—')}</div>
-            ${
-              descriptionText
-                ? `<div class="product-description">${escapeHtml(descriptionText)}</div>`
-                : ''
-            }
-            ${
-              p.remark
-                ? `<div class="product-remark">${escapeHtml(String(p.remark))}</div>`
-                : ''
-            }
+            ${descriptionText ? `<div class="product-description">${escapeHtml(descriptionText)}</div>` : ''}
+            ${p.remark ? `<div class="product-remark">${escapeHtml(String(p.remark))}</div>` : ''}
           </td>
           <td class="cell text-center">${escapeHtml(hsn)}</td>
           <td class="cell text-center image-cell">${imgHtml}</td>
           <td class="cell text-center">${qty || ''}</td>
           <td class="cell text-center">${escapeHtml(p.unit || '')}</td>
           <td class="cell text-right">${rate ? formatCurrency(rate) : ''}</td>
+          ${hasDiscount ? `<td class="cell text-right">${discountCell}</td>` : ''}
           <td class="cell text-center">${gstPercent ? gstPercent.toFixed(2) + '%' : '—'}</td>
           <td class="cell text-right">${taxable ? formatCurrency(taxable) : ''}</td>
+          <td class="cell">—</td>
         </tr>
       `
     })
@@ -178,9 +207,10 @@ const buildHtml = (quotation, orgContext = {}) => {
   const taxableAfterCharges = totalTaxable + freightCharge + packingCharge
   const totalAmount = taxableAfterCharges + totalGstAmount
 
+  const colCount = 10 + (hasDiscount ? 1 : 0)
   const productsBody =
     productRows ||
-    '<tr><td class="cell text-center" colspan="9">No products with rate.</td></tr>'
+    `<tr><td class="cell text-center" colspan="${colCount}">No products.</td></tr>`
 
   return `
 <!DOCTYPE html>
@@ -207,7 +237,7 @@ const buildHtml = (quotation, orgContext = {}) => {
     .pdf-header-logo-cell {
       position: absolute;
       left: 0;
-      top: 0;
+      top: -16px;
       width: 120px;
       padding-right: 12px;
       display: block;
@@ -215,20 +245,7 @@ const buildHtml = (quotation, orgContext = {}) => {
     .pdf-header-center-cell {
       width: 100%;
       text-align: center;
-      padding: 0 130px;
-    }
-    .pdf-header-doc-meta {
-      position: absolute;
-      right: 0;
-      top: 0;
-      text-align: right;
-      font-size: 12px;
-      line-height: 1.35;
-      max-width: 220px;
-      padding-left: 8px;
-    }
-    .pdf-header-doc-meta .label {
-      font-weight: 600;
+      padding: 0 20px;
     }
     .pdf-header-company-name {
       font-size: 18px;
@@ -254,6 +271,19 @@ const buildHtml = (quotation, orgContext = {}) => {
       font-size: 14px;
       font-weight: 600;
       margin: 8px 0 4px;
+    }
+    .quotation-meta-below-details {
+      font-size: 11px;
+      margin-top: 8px;
+      padding-top: 6px;
+      border-top: 1px solid #e8e8e8;
+    }
+    .quotation-meta-date {
+      margin-top: 6px;
+    }
+    .quotation-meta-label {
+      font-weight: 600;
+      color: #444;
     }
     table {
       border-collapse: collapse;
@@ -421,10 +451,6 @@ const buildHtml = (quotation, orgContext = {}) => {
     <div class="pdf-header-logo-cell">
       <img src="https://migti.co.in/assets/images/logo.png" alt="" class="pdf-logo-header" onerror="this.style.display='none'">
     </div>
-    <div class="pdf-header-doc-meta">
-      ${quotationCode ? `<div><span class="label">Quotation No:</span> ${escapeHtml(quotationCode)}</div>` : ''}
-      ${createdDate ? `<div><span class="label">Quotation Date:</span> ${escapeHtml(createdDate)}</div>` : ''}
-    </div>
     <div class="pdf-header-center-cell">
       <div class="pdf-header-company-name">${escapeHtml(migtiCompanyName)}</div>
       <div class="pdf-header-line"><span class="pdf-header-gst-label">GST No.</span> ${escapeHtml(migtiGstNumber)} &nbsp;|&nbsp; ${escapeHtml(migtiAddress)}</div>
@@ -472,24 +498,10 @@ const buildHtml = (quotation, orgContext = {}) => {
             <td class="info-value">${escapeHtml(shippingContactPerson || '')}</td>
           </tr>
         </table>
-      </td>
-    </tr>
-  </table>
-
-  <table class="details-grid">
-    <tr>
-      <td class="details-block" style="width: 55%;"></td>
-      <td class="details-block" style="width: 45%;">
-        <table class="info-table">
-          <tr>
-            <td class="info-label">Quotation No.</td>
-            <td class="info-value">${escapeHtml(quotationCode || '')}</td>
-          </tr>
-          <tr>
-            <td class="info-label">Quotation Date</td>
-            <td class="info-value">${escapeHtml(createdDate || '')}</td>
-          </tr>
-        </table>
+        <div class="quotation-meta-below-details">
+          <div><span class="quotation-meta-label">Quotation Code:</span> ${escapeHtml(quotationCode)}</div>
+          ${quotationDate ? `<div class="quotation-meta-date"><span class="quotation-meta-label">Quotation Date:</span> ${escapeHtml(quotationDate)}</div>` : ''}
+        </div>
       </td>
     </tr>
   </table>
@@ -505,8 +517,10 @@ const buildHtml = (quotation, orgContext = {}) => {
         <th>Qty.</th>
         <th>Unit</th>
         <th>Unit Price</th>
+        ${hasDiscount ? '<th>Discount</th>' : ''}
         <th>GST %</th>
         <th>Total</th>
+        <th>Reason</th>
       </tr>
     </thead>
     <tbody>

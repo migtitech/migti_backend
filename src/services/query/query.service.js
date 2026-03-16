@@ -10,6 +10,7 @@ import {
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 import { createQuotationFromQuery, getQuotationByQueryId } from '../quotation/quotation.service.js'
+import { createDraftTasksForQueryProducts } from '../taskManagement/taskManagement.service.js'
 import { getNextSequence } from '../codeSequence/codeSequence.service.js'
 
 const OBJECT_ID_REGEX = /^[a-fA-F0-9]{24}$/
@@ -25,12 +26,12 @@ const companyFirst5 = (name) => {
   return s || 'NA'
 }
 
-/** Query code format: QRY-MIG-IND-DD-MM-QUERYCODE-COMPANYFIRST5CHAR */
+/** Query code format: COMPANYFIRST5-QRY-MIG-IND-DD-MM-QUERYCODE (company first, rest same) */
 const formatQueryCode = (numericCode, companyName) => {
   const now = new Date()
   const DD = String(now.getDate()).padStart(2, '0')
   const MM = String(now.getMonth() + 1).padStart(2, '0')
-  return `QRY-MIG-IND-${DD}-${MM}-${numericCode}-${companyFirst5(companyName)}`
+  return `${companyFirst5(companyName)}-QRY-MIG-IND-${DD}-${MM}-${numericCode}`
 }
 const normalizeImageIds = (images) => {
   if (!Array.isArray(images)) return []
@@ -72,7 +73,18 @@ export const addQuery = async ({
     created_by: created_by || null,
     branchId: branchId || null,
   })
-  return doc.toObject()
+  const queryObj = doc.toObject()
+
+  // Automatically create draft tasks (one per product) in task management.
+  // Errors are swallowed so query creation is not blocked.
+  try {
+    await createDraftTasksForQueryProducts({ query: queryObj })
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error('Failed to create draft tasks for query products', err)
+  }
+
+  return queryObj
 }
 
 export const listQueries = async ({

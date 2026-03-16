@@ -23,12 +23,12 @@ const companyFirst5 = (name) => {
   return s || 'NA'
 }
 
-/** Quotation code format: QTO-MIG-IND-DD-MM-QUOTATIONCODE-COMPANYFIRST5CHAR */
+/** Quotation code format: COMPANYFIRST5-QTO-MIG-IND-DD-MM-QUOTATIONCODE (company first, rest same) */
 const formatQuotationCode = (numericCode, companyName) => {
   const now = new Date()
   const DD = String(now.getDate()).padStart(2, '0')
   const MM = String(now.getMonth() + 1).padStart(2, '0')
-  return `QTO-MIG-IND-${DD}-${MM}-${numericCode}-${companyFirst5(companyName)}`
+  return `${companyFirst5(companyName)}-QTO-MIG-IND-${DD}-${MM}-${numericCode}`
 }
 
 /**
@@ -38,10 +38,11 @@ const formatQuotationCode = (numericCode, companyName) => {
 export const computeStatusFromProducts = (products = []) => {
   if (!products.length) return QUOTATION_STATUS.DRAFT
   const withRate = products.filter(
-    (p) => typeof p.rate === 'number' && p.rate >= 0,
+    (p) => !p.notAvailable && typeof p.rate === 'number' && p.rate >= 0,
   ).length
-  if (withRate === 0) return QUOTATION_STATUS.DRAFT
-  if (withRate < products.length) return QUOTATION_STATUS.PARTIAL
+  const totalLines = products.filter((p) => !p.notAvailable).length
+  if (totalLines === 0 || withRate === 0) return QUOTATION_STATUS.DRAFT
+  if (withRate < totalLines) return QUOTATION_STATUS.PARTIAL
   return QUOTATION_STATUS.FULFILLED
 }
 
@@ -51,14 +52,20 @@ const STATUSES_AUTO_UPDATED = [
   QUOTATION_STATUS.FULFILLED,
 ]
 
-/** Compute total amount from products: sum of (quantity * rate) for each line */
+/** Compute total amount from products: sum of (quantity * rate - discount) for each line; excludes notAvailable */
 export const computeTotalAmountFromProducts = (products = []) => {
   if (!Array.isArray(products) || !products.length) return 0
   return products.reduce((sum, p) => {
+    if (p.notAvailable) return sum
     const qty = Number(p.quantity)
     const rate = Number(p.rate)
     if (Number.isNaN(qty) || Number.isNaN(rate) || qty < 0 || rate < 0) return sum
-    return sum + qty * rate
+    let lineTotal = qty * rate
+    if (p.applyDiscount && p.discountPercentage != null) {
+      const discountAmt = lineTotal * (Number(p.discountPercentage) / 100)
+      lineTotal = Math.max(0, lineTotal - discountAmt)
+    }
+    return sum + lineTotal
   }, 0)
 }
 

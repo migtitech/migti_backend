@@ -36,6 +36,11 @@ const quotationProductItemSchema = Joi.object({
   product_id: Joi.string().allow(null, '').optional(),
   rate: Joi.number().min(0).allow(null).optional(),
   images: Joi.array().items(Joi.string()).optional().default([]),
+  applyDiscount: Joi.boolean().optional().default(false),
+  discountPercentage: Joi.number().min(0).max(100).allow(null).optional(),
+  discountAmount: Joi.number().min(0).allow(null).optional(),
+  notAvailable: Joi.boolean().optional().default(false),
+  notAvailableRemark: Joi.string().allow('').optional(),
 })
 
 const quotationStatusValues = Object.values(QUOTATION_STATUS)

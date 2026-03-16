@@ -45,6 +45,13 @@ const quotationProductItemSchema = new mongoose.Schema(
     product_id: { type: SchemaTypes.ObjectId, ref: 'product', default: null },
     rate: { type: SchemaTypes.Number, min: 0, default: null },
     images: [{ type: SchemaTypes.ObjectId, ref: 'document' }],
+    // Discount: when applyDiscount true, discountPercentage applied to line total
+    applyDiscount: { type: SchemaTypes.Boolean, default: false },
+    discountPercentage: { type: SchemaTypes.Number, min: 0, max: 100, default: null },
+    discountAmount: { type: SchemaTypes.Number, min: 0, default: null },
+    // Not available: product without rate, remark stored
+    notAvailable: { type: SchemaTypes.Boolean, default: false },
+    notAvailableRemark: { type: SchemaTypes.String, default: '' },
   },
   { _id: true },
 )

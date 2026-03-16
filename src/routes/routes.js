@@ -17,6 +17,7 @@ import queryRouter from './query.routes.js'
 import quotationRouter from './quotation.routes.js'
 import documentRouter from './document.routes.js'
 import purchaseTaskRouter from './purchaseTask.routes.js'
+import taskManagementRouter from './taskManagement.routes.js'
 import queryNewProductRouter from './queryNewProduct.routes.js'
 
 const mainRoutes = express.Router()
@@ -54,6 +55,7 @@ mainRoutes.use('/v1/queries', queryRouter)
 mainRoutes.use('/v1/quotations', quotationRouter)
 mainRoutes.use('/v1/documents', documentRouter)
 mainRoutes.use('/v1/purchase-tasks', purchaseTaskRouter)
+mainRoutes.use('/v1/task-management', taskManagementRouter)
 mainRoutes.use('/v1/query-new-products', queryNewProductRouter)
 
 export default mainRoutes

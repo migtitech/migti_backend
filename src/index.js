@@ -1,4 +1,6 @@
+import http from 'http'
 import express from 'express'
+import { Server } from 'socket.io'
 import corsConfig from './core/config/cors.js'
 import globalExceptionHandler from './utils/globalException.js'
 import logger from './core/config/logger.js'
@@ -13,12 +15,33 @@ import { seedPreferences } from './core/helpers/preferenceData.js'
 import { ensureAssetsDir } from './models/document.model.js'
 import { fileURLToPath } from 'url'
 
-
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 const app = express()
-const PORT =  process.env.PORT || 7200
+const PORT = process.env.PORT || 7200
+const httpServer = http.createServer(app)
+
+const io = new Server(httpServer, {
+  cors: {
+    origin: process.env.CORS_ORIGIN || '*',
+    methods: ['GET', 'POST'],
+  },
+})
+
+app.set('io', io)
+
+io.on('connection', (socket) => {
+  socket.on('register', (payload) => {
+    const userId = payload?.userId || payload?.user_id
+    if (userId) {
+      const room = `user:${String(userId)}`
+      socket.join(room)
+      logger.info(`Socket joined room: ${room}`)
+    }
+  })
+  socket.on('disconnect', () => {})
+})
 app.use(express.static(path.join(__dirname, 'public')));
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -88,7 +111,7 @@ process.on('SIGTERM', async () => {
   process.exit(0)
 })
 
-app.listen(PORT, '0.0.0.0', () => {
+httpServer.listen(PORT, '0.0.0.0', () => {
   logger.info(`Server is running at port ${PORT}`)
 })
 
