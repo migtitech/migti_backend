@@ -36,5 +36,6 @@ jobs:
             git checkout prod
             git stash 
             git pull origin prod --rebase 
+            npm install -f 
             git stash pop
             pm2 restart all
