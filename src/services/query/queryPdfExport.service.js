@@ -55,11 +55,17 @@ const buildHtml = (query, orgContext = {}) => {
   let queryDateWithTime = ''
   if (query.createdAt) {
     const d = new Date(query.createdAt)
-    const dateStr = d.toLocaleDateString()
-    const h = String(d.getHours()).padStart(2, '0')
-    const m = String(d.getMinutes()).padStart(2, '0')
-    const s = String(d.getSeconds()).padStart(2, '0')
-    queryDateWithTime = `${dateStr} ${h}:${m}:${s}`
+    // Format created date/time explicitly in IST with 12-hour clock and AM/PM
+    queryDateWithTime = d.toLocaleString('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true,
+    })
   }
 
   const customerName = ci.name || (industry && industry.name) || ''

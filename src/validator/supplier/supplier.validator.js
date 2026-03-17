@@ -6,7 +6,7 @@ const gstRule = Joi.string()
   .trim()
   .uppercase()
   .optional()
-  .allow('')
+  .allow('', null)
   .pattern(GSTIN_REGEX)
   .messages({
     'string.pattern.base':

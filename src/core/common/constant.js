@@ -395,8 +395,15 @@ export const FULL_ACCESS_ROLES = Object.freeze([
   'hod',
 ])
 
-// Roles that are not restricted to a single branch (see all branches). Super_admin and admin only.
-export const BRANCH_BYPASS_ROLES = Object.freeze(['super_admin', 'admin'])
+// Roles that are not restricted to a single branch (see all branches).
+// Super_admin, admin and HOD (head_of_department/hod) can view/manage all branches.
+export const BRANCH_BYPASS_ROLES = Object.freeze([
+  'super_admin',
+  'admin',
+  'head_of_department',
+  // legacy short code
+  'hod',
+])
 
 // All available modules with labels (for the frontend permissions UI)
 export const MODULE_LIST = Object.freeze(
