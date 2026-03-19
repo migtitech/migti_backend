@@ -2,6 +2,7 @@ import puppeteer from 'puppeteer'
 import { getQuotationById } from './quotation.service.js'
 import CompanyBranchModel from '../../models/companyBranch.model.js'
 import CompanyModel from '../../models/company.model.js'
+import { getDocumentById, toDisplayPath } from '../document/document.service.js'
 
 const getAssetsBaseUrl = () => {
   const port = process.env.PORT || 7200
@@ -114,6 +115,7 @@ const buildHtml = (quotation, orgContext = {}) => {
 
   const shippingAddress = customerAddress
   const shippingContactPerson = customerContactPerson
+  const signatureUrl = orgContext?.signatureUrl || ''
 
   const productRows = allProducts
     .map((p, index) => {
@@ -436,6 +438,14 @@ const buildHtml = (quotation, orgContext = {}) => {
       text-align: right;
       font-size: 12px;
     }
+    .signature-image {
+      display: block;
+      max-width: 170px;
+      max-height: 70px;
+      margin-left: auto;
+      margin-bottom: 6px;
+      object-fit: contain;
+    }
     .signature-name {
       font-weight: 600;
       margin-top: 18px;
@@ -572,6 +582,7 @@ const buildHtml = (quotation, orgContext = {}) => {
         </tr>
       </table>
       <div class="signature">
+        ${signatureUrl ? `<img src="${escapeHtml(signatureUrl)}" alt="Authorised signature" class="signature-image" onerror="this.style.display='none'">` : ''}
         <div class="signature-name">For ${escapeHtml(migtiCompanyName)}</div>
         <div>Authorised Signatory</div>
       </div>
@@ -600,14 +611,22 @@ export const exportQuotationPdf = async ({
 
   let branch = null
   let company = null
+  let signatureUrl = ''
   if (quotation.branchId) {
     branch = await CompanyBranchModel.findById(quotation.branchId).lean()
     if (branch?.companyId) {
       company = await CompanyModel.findById(branch.companyId).lean()
     }
+    if (branch?.signature) {
+      const signatureDoc = await getDocumentById(branch.signature)
+      if (signatureDoc?.path) {
+        const displayPath = await toDisplayPath(signatureDoc.path)
+        signatureUrl = toImageUrl(displayPath)
+      }
+    }
   }
 
-  const html = buildHtml(quotation, { branch, company })
+  const html = buildHtml(quotation, { branch, company, signatureUrl })
 
   const browser = await puppeteer.launch({
     headless: true,

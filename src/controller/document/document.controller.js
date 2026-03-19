@@ -20,6 +20,12 @@ export const uploadDocumentsController = async (req, res) => {
   }
 
   const documents = await createDocumentsForUploadedFiles(req.files)
+  if (!documents || documents.length === 0) {
+    return res.status(statusCodes.internalServerError).json({
+      success: false,
+      message: 'Upload failed: no document records were created',
+    })
+  }
   const documentsWithSignedUrls = await transformPathsToSignedUrls(documents)
   return res.status(statusCodes.ok).json({
     success: true,

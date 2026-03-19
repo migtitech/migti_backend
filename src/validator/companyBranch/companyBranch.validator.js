@@ -28,6 +28,9 @@ export const createCompanyBranchSchema = Joi.object({
   gstNumber: gstNumberRule,
   fullAddress: Joi.string().required().min(5).max(500),
   mapLocationUrl: Joi.string().optional().empty('').uri().max(500),
+  signature: Joi.string().optional().allow('').pattern(/^[0-9a-fA-F]{24}$/).messages({
+    'string.pattern.base': 'signature must be a valid document id',
+  }),
 })
 
 export const listCompanyBranchSchema = Joi.object({
@@ -66,6 +69,9 @@ export const updateCompanyBranchSchema = Joi.object({
     }),
   fullAddress: Joi.string().min(5).max(500).optional(),
   mapLocationUrl: Joi.string().optional().empty('').uri().max(500),
+  signature: Joi.string().optional().allow('').pattern(/^[0-9a-fA-F]{24}$/).messages({
+    'string.pattern.base': 'signature must be a valid document id',
+  }),
 })
 
 export const deleteCompanyBranchSchema = Joi.object({

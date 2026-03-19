@@ -6,6 +6,7 @@ import {
   createQueryNewProductController,
   listQueryNewProductsController,
   getQueryNewProductByIdController,
+  deleteQueryNewProductController,
 } from '../controller/queryNewProduct/queryNewProduct.controller.js'
 
 const queryNewProductRouter = Router()
@@ -29,6 +30,13 @@ queryNewProductRouter.get(
   authenticateToken,
   checkPermission(MODULES.PRODUCTS, 'read'),
   asyncHandler(getQueryNewProductByIdController),
+)
+
+queryNewProductRouter.delete(
+  '/delete',
+  authenticateToken,
+  checkPermission(MODULES.PRODUCTS, 'delete'),
+  asyncHandler(deleteQueryNewProductController),
 )
 
 export default queryNewProductRouter

@@ -80,3 +80,19 @@ export const getQueryNewProductById = async ({ productId }) => {
   return product
 }
 
+export const deleteQueryNewProduct = async ({ productId }) => {
+  const product = await QueryNewProductModel.findOneAndUpdate(
+    { _id: productId, isDeleted: false },
+    { $set: { isDeleted: true } },
+    { new: true },
+  ).lean()
+
+  if (!product) {
+    const err = new Error('Product not found')
+    err.statusCode = 404
+    throw err
+  }
+
+  return { _id: product._id }
+}
+

@@ -60,16 +60,29 @@ export const createDocumentsFromS3Uploads = async (files) => {
   const folder = `images/products/${timestamp}`
   const bucketName = process.env.AWS_BUCKET_NAME
   const docs = []
+  const failures = []
   for (const file of files) {
     if (!file?.buffer) continue
     const result = await uploadToS3(file, bucketName, folder)
-    if (!result.success || !result.data?.url) continue
+    if (!result.success || !result.data?.url) {
+      failures.push({
+        fileName: file.originalname || 'unknown',
+        reason: result?.message || 'S3 upload failed',
+      })
+      continue
+    }
     const doc = await DocumentModel.create({
       path: result.data.url,
       originalName: file.originalname || '',
       mimeType: file.mimetype || '',
     })
     docs.push({ _id: doc._id, path: doc.path })
+  }
+  if (docs.length === 0) {
+    const reason =
+      failures[0]?.reason ||
+      'No files could be uploaded to S3'
+    throw new Error(reason)
   }
   return docs
 }
@@ -110,7 +123,7 @@ export const createDocumentsForUploadedFiles = async (files) => {
   const withPaths = files.filter((f) => f && f.path)
   if (withPaths.length === files.length) return createDocumentsForFiles(files)
 
-  return []
+  throw new Error('Uploaded files are missing expected buffer/path data')
 }
 
 /**

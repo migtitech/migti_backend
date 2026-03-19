@@ -3,11 +3,13 @@ import {
   createQueryNewProductSchema,
   listQueryNewProductSchema,
   getQueryNewProductByIdSchema,
+  deleteQueryNewProductSchema,
 } from '../../validator/queryNewProduct/queryNewProduct.validator.js'
 import {
   addQueryNewProduct,
   listQueryNewProducts,
   getQueryNewProductById,
+  deleteQueryNewProduct,
 } from '../../services/queryNewProduct/queryNewProduct.service.js'
 
 export const createQueryNewProductController = async (req, res) => {
@@ -72,6 +74,28 @@ export const getQueryNewProductByIdController = async (req, res) => {
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Product details retrieved successfully',
+    data: result,
+  })
+}
+
+export const deleteQueryNewProductController = async (req, res) => {
+  const { error, value } = deleteQueryNewProductSchema.validate(req.query, {
+    abortEarly: false,
+  })
+
+  if (error) {
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: Message.validationError,
+      error: error.details.map((d) => d.message),
+    })
+  }
+
+  const result = await deleteQueryNewProduct(value)
+
+  return res.status(statusCodes.ok).json({
+    success: true,
+    message: 'Product deleted successfully',
     data: result,
   })
 }

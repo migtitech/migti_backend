@@ -19,3 +19,7 @@ export const getQueryNewProductByIdSchema = Joi.object({
   productId: Joi.string().required(),
 })
 
+export const deleteQueryNewProductSchema = Joi.object({
+  productId: Joi.string().required(),
+})
+

@@ -14,6 +14,7 @@ export const addCompanyBranch = async ({
   gstNumber,
   fullAddress,
   mapLocationUrl,
+  signature,
 }) => {
   const existingBranch = await CompanyBranchModel.findOne({
     companyId,
@@ -39,6 +40,7 @@ export const addCompanyBranch = async ({
     gstNumber,
     fullAddress,
     ...(mapLocationUrl ? { mapLocationUrl } : {}),
+    ...(signature ? { signature } : {}),
   })
 
   return branchDoc.toObject()

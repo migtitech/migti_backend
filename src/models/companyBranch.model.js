@@ -52,6 +52,11 @@ const companyBranchSchema = new mongoose.Schema(
       type: SchemaTypes.String,
       required: false,
     },
+    signature: {
+      type: SchemaTypes.ObjectId,
+      ref: 'document',
+      required: false,
+    },
   },
   { timestamps: true }
 )

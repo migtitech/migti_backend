@@ -9,6 +9,8 @@ import {
 } from '../document/document.service.js'
 import { upsertQuotedRatesForQuotation } from '../quotedProductRate/quotedProductRate.service.js'
 import { autoAssignPurchaseTasksForQuotation } from '../purchaseTask/purchaseTask.service.js'
+import CompanyBranchModel from '../../models/companyBranch.model.js'
+import { getDocumentById, toDisplayPath } from '../document/document.service.js'
 
 const QUOTATION_CODE_PREFIX = 'QUO'
 
@@ -295,6 +297,23 @@ export const getQuotationById = async ({
       }
       if (Array.isArray(p.images) && p.images.length) {
         p.images = await transformPathsToSignedUrls(p.images)
+      }
+    }
+  }
+
+  // Attach branch signature (if configured) for quotation preview.
+  if (quotation.branchId) {
+    const branch = await CompanyBranchModel.findById(quotation.branchId)
+      .select('signature')
+      .lean()
+    const signatureId = branch?.signature ? String(branch.signature) : ''
+    if (signatureId) {
+      const signatureDoc = await getDocumentById(signatureId)
+      if (signatureDoc?._id && signatureDoc?.path) {
+        quotation.branchSignature = {
+          _id: signatureDoc._id,
+          path: await toDisplayPath(signatureDoc.path),
+        }
       }
     }
   }
