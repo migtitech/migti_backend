@@ -49,7 +49,10 @@ export const listQuotationSchema = Joi.object({
   pageNumber: Joi.number().integer().min(1).default(1),
   pageSize: Joi.number().integer().min(1).max(100).default(10),
   search: Joi.string().allow('').optional(),
-  status: Joi.string().valid(...quotationStatusValues).allow('').optional(),
+  status: Joi.string()
+    .valid(...quotationStatusValues, 'drafted', 'hod approved', 'hod-approved')
+    .allow('')
+    .optional(),
 })
 
 export const getQuotationByIdSchema = Joi.object({
@@ -74,6 +77,7 @@ export const updateQuotationSchema = Joi.object({
   freightCharge: Joi.number().min(0).optional(),
   packingCharge: Joi.number().min(0).optional(),
   expectedDeliveryDate: Joi.date().allow(null).optional(),
+  expectedDeliveryWithinDays: Joi.number().integer().min(0).allow(null).optional(),
 })
 
 export const updateQuotationStatusSchema = Joi.object({

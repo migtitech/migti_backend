@@ -156,6 +156,7 @@ export const createQuotationFromQuery = async ({
     freightCharge: 0,
     packingCharge: 0,
     expectedDeliveryDate: null,
+    expectedDeliveryWithinDays: null,
   })
 
   const created = doc.toObject()
@@ -185,8 +186,15 @@ export const listQuotations = async ({
   const skip = (page - 1) * limit
 
   const filter = { isDeleted: false, ...branchFilter }
+  const normalizeStatusFilter = (rawStatus = '') => {
+    const val = String(rawStatus || '').trim().toLowerCase()
+    if (!val) return ''
+    if (val === 'drafted') return QUOTATION_STATUS.DRAFT
+    if (val === 'hod approved' || val === 'hod-approved') return QUOTATION_STATUS.HOD_APPROVED
+    return val
+  }
   if (status && status.trim()) {
-    filter.status = status.trim()
+    filter.status = normalizeStatusFilter(status)
   }
 
   // For employees (non-admin): show only quotations that came from queries they created
@@ -333,6 +341,7 @@ export const updateQuotation = async ({
   freightCharge,
   packingCharge,
   expectedDeliveryDate,
+  expectedDeliveryWithinDays,
   branchFilter = {},
 }) => {
   const existing = await QuotationModel.findOne({
@@ -355,6 +364,14 @@ export const updateQuotation = async ({
   if (freightCharge !== undefined) updatePayload.freightCharge = Number(freightCharge) >= 0 ? Number(freightCharge) : 0
   if (packingCharge !== undefined) updatePayload.packingCharge = Number(packingCharge) >= 0 ? Number(packingCharge) : 0
   if (expectedDeliveryDate !== undefined) updatePayload.expectedDeliveryDate = expectedDeliveryDate || null
+  if (expectedDeliveryWithinDays !== undefined) {
+    updatePayload.expectedDeliveryWithinDays =
+      expectedDeliveryWithinDays === null || expectedDeliveryWithinDays === ''
+        ? null
+        : (Number(expectedDeliveryWithinDays) >= 0
+            ? Number(expectedDeliveryWithinDays)
+            : null)
+  }
   if (products !== undefined) {
     updatePayload.products = products
     if (STATUSES_AUTO_UPDATED.includes(existing.status)) {

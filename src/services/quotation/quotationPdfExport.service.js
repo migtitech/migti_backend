@@ -1,8 +1,13 @@
 import puppeteer from 'puppeteer'
+import fs from 'fs/promises'
 import { getQuotationById } from './quotation.service.js'
 import CompanyBranchModel from '../../models/companyBranch.model.js'
 import CompanyModel from '../../models/company.model.js'
-import { getDocumentById, toDisplayPath } from '../document/document.service.js'
+import {
+  getDocumentById,
+  getDocumentServeInfo,
+  toDisplayPath,
+} from '../document/document.service.js'
 
 const getAssetsBaseUrl = () => {
   const port = process.env.PORT || 7200
@@ -16,6 +21,46 @@ const toImageUrl = (img) => {
   if (typeof p === 'string' && (p.startsWith('http://') || p.startsWith('https://'))) return p
   const base = getAssetsBaseUrl()
   return `${base}/assets/${p.startsWith('/') ? p.slice(1) : p}`
+}
+
+const toDataUriFromBuffer = (buffer, mimeType = 'image/png') => {
+  if (!buffer) return ''
+  return `data:${mimeType};base64,${buffer.toString('base64')}`
+}
+
+const toSignatureDataUri = async (documentId) => {
+  if (!documentId) return ''
+  try {
+    const info = await getDocumentServeInfo(documentId)
+    if (!info) return ''
+
+    if (info.type === 'local' && info.filePath) {
+      const fileBuffer = await fs.readFile(info.filePath)
+      const ext = String(info.filePath).toLowerCase()
+      const mimeType =
+        ext.endsWith('.jpg') || ext.endsWith('.jpeg')
+          ? 'image/jpeg'
+          : ext.endsWith('.gif')
+            ? 'image/gif'
+            : ext.endsWith('.webp')
+              ? 'image/webp'
+              : ext.endsWith('.svg')
+                ? 'image/svg+xml'
+                : 'image/png'
+      return toDataUriFromBuffer(fileBuffer, mimeType)
+    }
+
+    if (info.type === 's3' && info.signedUrl) {
+      const response = await fetch(info.signedUrl)
+      if (!response.ok) return ''
+      const mimeType = response.headers.get('content-type') || 'image/png'
+      const arrayBuffer = await response.arrayBuffer()
+      return toDataUriFromBuffer(Buffer.from(arrayBuffer), mimeType)
+    }
+  } catch (_err) {
+    return ''
+  }
+  return ''
 }
 
 const escapeHtml = (str) => {
@@ -48,9 +93,10 @@ const buildHtml = (quotation, orgContext = {}) => {
   let totalTaxable = 0
   let totalGstAmount = 0
 
-  const expectedDeliveryDisplay = quotation.expectedDeliveryDate
-    ? new Date(quotation.expectedDeliveryDate).toLocaleDateString()
-    : 'NA'
+  const expectedDeliveryWithinDaysDisplay =
+    quotation.expectedDeliveryWithinDays != null && !Number.isNaN(Number(quotation.expectedDeliveryWithinDays))
+      ? `${Number(quotation.expectedDeliveryWithinDays)} Days`
+      : 'NA'
 
   const quotationCode =
     quotation.quotationCode || `QT-${String(quotation._id || quotation.id).slice(-6)}`
@@ -565,8 +611,8 @@ const buildHtml = (quotation, orgContext = {}) => {
           <td class="summary-value">₹${formatCurrency(packingCharge)}</td>
         </tr>
         <tr>
-          <td class="summary-label">Expected Delivery Date</td>
-          <td class="summary-value">${escapeHtml(expectedDeliveryDisplay)}</td>
+          <td class="summary-label">Expected Delivery Within</td>
+          <td class="summary-value">${escapeHtml(expectedDeliveryWithinDaysDisplay)}</td>
         </tr>
         <tr>
           <td class="summary-label">Total Taxable Amount</td>
@@ -612,12 +658,34 @@ export const exportQuotationPdf = async ({
   let branch = null
   let company = null
   let signatureUrl = ''
-  if (quotation.branchId) {
-    branch = await CompanyBranchModel.findById(quotation.branchId).lean()
+
+  // 1) Prefer signature already resolved by quotation service.
+  if (quotation?.branchSignature?.path) {
+    signatureUrl = toImageUrl(quotation.branchSignature.path)
+  }
+  if (quotation?.branchSignature?._id && !signatureUrl.startsWith('data:')) {
+    const inlineSignature = await toSignatureDataUri(quotation.branchSignature._id)
+    if (inlineSignature) signatureUrl = inlineSignature
+  }
+
+  // 2) Resolve branch context from quotation branch, else query branch.
+  const resolvedBranchId =
+    quotation?.branchId ||
+    quotation?.queryId?.branchId ||
+    null
+
+  if (resolvedBranchId) {
+    branch = await CompanyBranchModel.findById(resolvedBranchId).lean()
     if (branch?.companyId) {
       company = await CompanyModel.findById(branch.companyId).lean()
     }
-    if (branch?.signature) {
+    if (!signatureUrl && branch?.signature) {
+      const inlineSignature = await toSignatureDataUri(branch.signature)
+      if (inlineSignature) {
+        signatureUrl = inlineSignature
+      }
+    }
+    if (!signatureUrl && branch?.signature) {
       const signatureDoc = await getDocumentById(branch.signature)
       if (signatureDoc?.path) {
         const displayPath = await toDisplayPath(signatureDoc.path)

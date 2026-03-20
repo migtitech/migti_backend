@@ -129,6 +129,7 @@ const quotationSchema = new mongoose.Schema(
     freightCharge: { type: SchemaTypes.Number, min: 0, default: 0 },
     packingCharge: { type: SchemaTypes.Number, min: 0, default: 0 },
     expectedDeliveryDate: { type: SchemaTypes.Date, default: null },
+    expectedDeliveryWithinDays: { type: SchemaTypes.Number, min: 0, default: null },
   },
   { timestamps: true },
 )

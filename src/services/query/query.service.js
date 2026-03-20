@@ -91,6 +91,7 @@ export const listQueries = async ({
   pageNumber = 1,
   pageSize = 10,
   search = '',
+  status = '',
   branchFilter = {},
 }) => {
   const page = Math.max(1, parseInt(pageNumber))
@@ -98,6 +99,9 @@ export const listQueries = async ({
   const skip = (page - 1) * limit
 
   const filter = { isDeleted: false, ...branchFilter }
+  if (status && status.trim()) {
+    filter.status = status.trim()
+  }
 
   if (search && search.trim()) {
     const term = search.trim()

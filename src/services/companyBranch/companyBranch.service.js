@@ -59,6 +59,7 @@ export const listCompanyBranches = async ({ pageNumber = 1, pageSize = 10, compa
   const totalItems = await CompanyBranchModel.countDocuments(filter)
 
   const branches = await CompanyBranchModel.find(filter)
+    .populate('signature', 'path')
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit)
@@ -82,7 +83,9 @@ export const listCompanyBranches = async ({ pageNumber = 1, pageSize = 10, compa
 }
 
 export const getCompanyBranchById = async ({ companyBranchId }) => {
-  const branch = await CompanyBranchModel.findById(companyBranchId).lean()
+  const branch = await CompanyBranchModel.findById(companyBranchId)
+    .populate('signature', 'path')
+    .lean()
 
   if (!branch) {
     throw new CustomError(
@@ -115,7 +118,9 @@ export const updateCompanyBranch = async ({
       new: true,
       runValidators: true,
     }
-  ).lean()
+  )
+    .populate('signature', 'path')
+    .lean()
 
   return updatedBranch
 }
