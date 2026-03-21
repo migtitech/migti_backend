@@ -81,6 +81,15 @@ const formatCurrency = (value) => {
   })
 }
 
+const formatVariants = (variants) => {
+  if (!Array.isArray(variants) || variants.length === 0) return '—'
+  return variants
+    .map((v) => (typeof v === 'object' ? (v?.variantName || '') : String(v || '')))
+    .map((v) => v.trim())
+    .filter(Boolean)
+    .join(', ') || '—'
+}
+
 /**
  * Build HTML for quotation PDF to match structured design.
  * Uses existing quotation data plus branch/company (for header).
@@ -179,6 +188,7 @@ const buildHtml = (quotation, orgContext = {}) => {
         : '—'
 
       const hsn = p.hsnNumber || productRef?.hsnNumber || '—'
+      const variantsText = formatVariants(p.variants || [])
       const descriptionText = (p.description || productRef?.shortDescription || '').trim()
       const reasonCell = escapeHtml(String(p.notAvailableRemark || (p.notAvailable ? 'Not available' : '')).trim())
 
@@ -191,6 +201,7 @@ const buildHtml = (quotation, orgContext = {}) => {
             ${descriptionText ? `<div class="product-description">${escapeHtml(descriptionText)}</div>` : ''}
             ${p.remark ? `<div class="product-remark">${escapeHtml(String(p.remark))}</div>` : ''}
           </td>
+          <td class="cell text-center">${escapeHtml(variantsText)}</td>
           <td class="cell text-center">${escapeHtml(hsn)}</td>
           <td class="cell text-center image-cell">${imgHtml}</td>
           <td class="cell text-center">${Number(p.quantity) || ''}</td>
@@ -225,7 +236,11 @@ const buildHtml = (quotation, orgContext = {}) => {
       totalGstAmount += gstAmount
 
       const discountCell = hasDiscount
-        ? (discountAmount > 0 ? formatCurrency(discountAmount) : '—')
+        ? (
+            p.applyDiscount && p.discountPercentage != null
+              ? `${Number(p.discountPercentage).toFixed(2)}%`
+              : '—'
+          )
         : ''
 
       return `
@@ -236,6 +251,7 @@ const buildHtml = (quotation, orgContext = {}) => {
             ${descriptionText ? `<div class="product-description">${escapeHtml(descriptionText)}</div>` : ''}
             ${p.remark ? `<div class="product-remark">${escapeHtml(String(p.remark))}</div>` : ''}
           </td>
+          <td class="cell text-center">${escapeHtml(variantsText)}</td>
           <td class="cell text-center">${escapeHtml(hsn)}</td>
           <td class="cell text-center image-cell">${imgHtml}</td>
           <td class="cell text-center">${qty || ''}</td>
@@ -255,7 +271,7 @@ const buildHtml = (quotation, orgContext = {}) => {
   const taxableAfterCharges = totalTaxable + freightCharge + packingCharge
   const totalAmount = taxableAfterCharges + totalGstAmount
 
-  const colCount = 10 + (hasDiscount ? 1 : 0)
+  const colCount = 11 + (hasDiscount ? 1 : 0)
   const productsBody =
     productRows ||
     `<tr><td class="cell text-center" colspan="${colCount}">No products.</td></tr>`
@@ -568,6 +584,7 @@ const buildHtml = (quotation, orgContext = {}) => {
       <tr>
         <th>S.N.</th>
         <th>Item Name &amp; Description</th>
+        <th>Variants</th>
         <th>HSN Code</th>
         <th>Photo</th>
         <th>Qty.</th>

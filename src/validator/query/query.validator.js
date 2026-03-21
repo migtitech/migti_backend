@@ -90,6 +90,7 @@ export const deleteQuerySchema = Joi.object({
 
 export const convertQueryToQuotationSchema = Joi.object({
   queryCode: Joi.string().required(),
+  forceNewQuotation: Joi.boolean().optional().default(false),
   remark: Joi.string().allow('', null).optional(),
   products: Joi.array()
     .items(

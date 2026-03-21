@@ -100,6 +100,7 @@ const buildHtml = (query, orgContext = {}) => {
           ? ref.gstPercentage
           : 0
     const descriptionText = (p.description || ref?.shortDescription || '').trim()
+    const variantsText = formatVariants(p.variants || [])
 
     const remarkText = (p.remark && String(p.remark).trim()) ? escapeHtml(String(p.remark).trim()) : '—'
     return `
@@ -109,6 +110,7 @@ const buildHtml = (query, orgContext = {}) => {
           <div class="product-name">${escapeHtml(p.productName || '—')}</div>
           ${descriptionText ? `<div class="product-description">${escapeHtml(descriptionText)}</div>` : ''}
         </td>
+        <td class="cell">${escapeHtml(variantsText)}</td>
         <td class="cell product-remark-cell">${remarkText}</td>
         <td class="cell text-center">${escapeHtml(hsn)}</td>
         <td class="cell text-center image-cell">${imgHtml}</td>
@@ -122,7 +124,7 @@ const buildHtml = (query, orgContext = {}) => {
   const productsBody =
     productRows.length > 0
       ? productRows
-      : '<tr><td class="cell text-center" colspan="8">No products.</td></tr>'
+      : '<tr><td class="cell text-center" colspan="9">No products.</td></tr>'
 
   return `
 <!DOCTYPE html>
@@ -375,6 +377,7 @@ const buildHtml = (query, orgContext = {}) => {
       <tr>
         <th>S.N.</th>
         <th>Item Name &amp; Description</th>
+        <th>Variants</th>
         <th>Remark</th>
         <th>HSN Code</th>
         <th>Photo</th>

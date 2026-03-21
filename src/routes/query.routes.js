@@ -12,12 +12,14 @@ import {
   recordQueryActivityController,
   convertQueryToQuotationController,
   exportQueryPdfController,
+  getTodayDashboardStatsController,
 } from '../controller/query/query.controller.js'
 
 const queryRouter = Router()
 
 queryRouter.post('/create', authenticateToken, checkPermission(MODULES.QUERIES, 'create'), asyncHandler(createQueryController))
 queryRouter.get('/list', authenticateToken, checkPermission(MODULES.QUERIES, 'read'), asyncHandler(listQueriesController))
+queryRouter.get('/today-stats', authenticateToken, checkPermission(MODULES.QUERIES, 'read'), asyncHandler(getTodayDashboardStatsController))
 queryRouter.get('/get-by-id', authenticateToken, checkPermission(MODULES.QUERIES, 'read'), asyncHandler(getQueryByIdController))
 queryRouter.get('/export-pdf', authenticateToken, checkPermission(MODULES.QUERIES, 'read'), asyncHandler(exportQueryPdfController))
 queryRouter.put('/update', authenticateToken, checkPermission(MODULES.QUERIES, 'update'), asyncHandler(updateQueryController))

@@ -14,6 +14,8 @@ import {
   updateQuotationStatus,
 } from '../../services/quotation/quotation.service.js'
 import { exportQuotationPdf } from '../../services/quotation/quotationPdfExport.service.js'
+import { listRateLogsSchema } from '../../validator/rateLog/rateLog.validator.js'
+import { listRateLogs } from '../../services/rateLog/rateLog.service.js'
 
 export const listQuotationsController = async (req, res) => {
   const { error, value } = listQuotationSchema.validate(req.query, {
@@ -156,4 +158,29 @@ export const exportQuotationPdfController = async (req, res) => {
   res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`)
   res.setHeader('Content-Length', buffer.length)
   res.end(buffer, 'binary')
+}
+
+export const listRateLogsController = async (req, res) => {
+  const { error, value } = listRateLogsSchema.validate(req.query, {
+    abortEarly: false,
+  })
+  if (error) {
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: Message.validationError,
+      error: error.details.map((d) => d.message),
+    })
+  }
+
+  const branchFilter = getBranchFilter(req, { allowQueryBranchId: true })
+  const result = await listRateLogs({
+    ...value,
+    branchFilter,
+  })
+
+  return res.status(statusCodes.ok).json({
+    success: true,
+    message: 'Rate logs retrieved successfully',
+    data: result,
+  })
 }

@@ -1,4 +1,5 @@
 import QueryModel from '../../models/query.model.js'
+import QuotationModel from '../../models/quotation.model.js'
 import QueryActivityModel from '../../models/queryActivity.model.js'
 import EmployeeModel from '../../models/employee.model.js'
 import AdminModel from '../../models/admin.model.js'
@@ -373,6 +374,7 @@ export const deleteQuery = async ({
 
 export const convertQueryToQuotation = async ({
   queryCode,
+  forceNewQuotation = false,
   created_by,
   branchFilter = {},
   remark,
@@ -397,7 +399,10 @@ export const convertQueryToQuotation = async ({
     )
   }
 
-  let quotation = await getQuotationByQueryId({ queryId: existing._id, branchFilter })
+  let quotation = null
+  if (!forceNewQuotation) {
+    quotation = await getQuotationByQueryId({ queryId: existing._id, branchFilter })
+  }
   if (!quotation) {
     quotation = await createQuotationFromQuery({
       queryId: existing._id,
@@ -406,6 +411,7 @@ export const convertQueryToQuotation = async ({
       branchFilter,
       remark,
       productsOverride: products,
+      reuseExisting: !forceNewQuotation,
     })
   }
 
@@ -421,4 +427,85 @@ export const convertQueryToQuotation = async ({
     .lean()
 
   return { query: updatedQuery, quotation }
+}
+
+const getDayRange = () => {
+  const start = new Date()
+  start.setHours(0, 0, 0, 0)
+  const end = new Date(start)
+  end.setDate(end.getDate() + 1)
+  return { start, end }
+}
+
+const computeQuotationAmount = (products = []) => {
+  if (!Array.isArray(products) || !products.length) return 0
+  return products.reduce((sum, item) => {
+    if (item?.notAvailable) return sum
+    const qty = Number(item?.quantity)
+    const rate = Number(item?.rate)
+    if (Number.isNaN(qty) || Number.isNaN(rate) || qty < 0 || rate < 0) return sum
+
+    let lineTotal = qty * rate
+    if (item?.applyDiscount && item?.discountPercentage != null) {
+      const discount = lineTotal * (Number(item.discountPercentage) / 100)
+      lineTotal = Math.max(0, lineTotal - discount)
+    }
+    return sum + lineTotal
+  }, 0)
+}
+
+export const getTodayDashboardStats = async ({
+  branchFilter = {},
+  currentUserId = null,
+  isFullAccessRole = true,
+}) => {
+  const { start, end } = getDayRange()
+  const ownershipFilter = getQueryOwnershipFilter({ currentUserId, isFullAccessRole })
+
+  const queryFilter = {
+    isDeleted: false,
+    ...branchFilter,
+    ...ownershipFilter,
+    createdAt: { $gte: start, $lt: end },
+  }
+
+  const todayQueryCount = await QueryModel.countDocuments(queryFilter)
+
+  let quotationFilter = {
+    isDeleted: false,
+    ...branchFilter,
+    createdAt: { $gte: start, $lt: end },
+  }
+
+  if (currentUserId && !isFullAccessRole) {
+    const ownQueryIds = await QueryModel.find({
+      isDeleted: false,
+      ...branchFilter,
+      created_by: currentUserId,
+    })
+      .select('_id')
+      .lean()
+
+    const ids = ownQueryIds.map((q) => q._id)
+    quotationFilter = {
+      ...quotationFilter,
+      queryId: { $in: ids },
+    }
+  }
+
+  const todayQuotationCount = await QuotationModel.countDocuments(quotationFilter)
+  const todayQuotations = await QuotationModel.find(quotationFilter)
+    .select('products')
+    .lean()
+
+  const todayQuotedAmount = todayQuotations.reduce(
+    (sum, q) => sum + computeQuotationAmount(q?.products || []),
+    0,
+  )
+
+  return {
+    todayQueryCount,
+    todayQuotationCount,
+    todayQuotedAmount,
+  }
 }

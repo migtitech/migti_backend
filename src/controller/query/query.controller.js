@@ -18,6 +18,7 @@ import {
   deleteQuery,
   listQueryActivities,
   recordQueryActivity,
+  getTodayDashboardStats,
 } from '../../services/query/query.service.js'
 import { convertQueryToQuotationSchema } from '../../validator/query/query.validator.js'
 import { convertQueryToQuotation } from '../../services/query/query.service.js'
@@ -232,6 +233,7 @@ export const convertQueryToQuotationController = async (req, res) => {
   const isFullAccessRole = req.user?.role && BRANCH_BYPASS_ROLES.includes(req.user.role)
   const result = await convertQueryToQuotation({
     queryCode: value.queryCode,
+    forceNewQuotation: !!value.forceNewQuotation,
     remark: value.remark,
     products: value.products,
     created_by,
@@ -271,4 +273,22 @@ export const exportQueryPdfController = async (req, res) => {
   res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`)
   res.setHeader('Content-Length', buffer.length)
   res.end(buffer, 'binary')
+}
+
+export const getTodayDashboardStatsController = async (req, res) => {
+  const branchFilter = getBranchFilter(req, { allowQueryBranchId: true })
+  const currentUserId = req.user?.id || req.user?._id
+  const isFullAccessRole = req.user?.role && BRANCH_BYPASS_ROLES.includes(req.user.role)
+
+  const result = await getTodayDashboardStats({
+    branchFilter,
+    currentUserId: currentUserId || null,
+    isFullAccessRole: !!isFullAccessRole,
+  })
+
+  return res.status(statusCodes.ok).json({
+    success: true,
+    message: 'Today dashboard stats retrieved successfully',
+    data: result,
+  })
 }

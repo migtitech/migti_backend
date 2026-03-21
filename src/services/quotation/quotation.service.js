@@ -11,6 +11,7 @@ import { upsertQuotedRatesForQuotation } from '../quotedProductRate/quotedProduc
 import { autoAssignPurchaseTasksForQuotation } from '../purchaseTask/purchaseTask.service.js'
 import CompanyBranchModel from '../../models/companyBranch.model.js'
 import { getDocumentById, toDisplayPath } from '../document/document.service.js'
+import { captureRateLogsForProductChanges } from '../rateLog/rateLog.service.js'
 
 const QUOTATION_CODE_PREFIX = 'QUO'
 
@@ -86,6 +87,7 @@ export const createQuotationFromQuery = async ({
   branchFilter = {},
   remark = '',
   productsOverride,
+  reuseExisting = true,
 }) => {
   const query = await QueryModel.findOne({
     _id: queryId,
@@ -101,14 +103,16 @@ export const createQuotationFromQuery = async ({
     )
   }
 
-  const existingQuotation = await QuotationModel.findOne({
-    queryId: query._id,
-    isDeleted: false,
-    ...(branchId ? { branchId } : {}),
-  }).lean()
+  if (reuseExisting) {
+    const existingQuotation = await QuotationModel.findOne({
+      queryId: query._id,
+      isDeleted: false,
+      ...(branchId ? { branchId } : {}),
+    }).lean()
 
-  if (existingQuotation) {
-    return existingQuotation
+    if (existingQuotation) {
+      return existingQuotation
+    }
   }
 
   const quotationBranchFilter = branchId ? { branchId } : {}
@@ -405,6 +409,20 @@ export const updateQuotation = async ({
   if (updated?.products?.length) {
     for (const p of updated.products) {
       if (p.images?.length) p.images = await transformPathsToSignedUrls(p.images)
+    }
+  }
+  if (products !== undefined) {
+    try {
+      await captureRateLogsForProductChanges({
+        previousProducts: existing?.products || [],
+        updatedProducts: updated?.products || [],
+        quotationId: updated?._id || quotationId,
+        industry_id: updated?.industry_id || existing?.industry_id || null,
+        created_by: currentUserId || null,
+        branchId: updated?.branchId || existing?.branchId || null,
+      })
+    } catch (err) {
+      console.error('Failed to capture rate logs:', err?.message || err)
     }
   }
   // Snapshot quoted rates whenever products are updated
