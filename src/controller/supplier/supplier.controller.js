@@ -1,5 +1,5 @@
 import { Message, statusCodes } from '../../core/common/constant.js'
-import { getBranchFilter, getBranchIdForCreate } from '../../core/helpers/branchFilter.js'
+import { getBranchFilter, getEffectiveBranchIdForCreate } from '../../core/helpers/branchFilter.js'
 import {
   createSupplierSchema,
   listSupplierSchema,
@@ -31,7 +31,7 @@ export const createSupplierController = async (req, res) => {
     })
   }
 
-  const branchId = value.branchId || getBranchIdForCreate(req)
+  const branchId = getEffectiveBranchIdForCreate(req, value.branchId)
   const result = await addSupplier({ ...value, branchId })
   return res.status(statusCodes.created).json({
     success: true,

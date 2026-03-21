@@ -1,6 +1,8 @@
 import IndustryModel from '../../models/industry.model.js'
 import IndustryPurchaseManagerModel from '../../models/industryPurchaseManager.model.js'
 import IndustryBranchModel from '../../models/industryBranch.model.js'
+import QueryModel from '../../models/query.model.js'
+import QuotationModel from '../../models/quotation.model.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 
@@ -219,7 +221,22 @@ export const deleteIndustry = async ({ industryId, branchFilter = {} }) => {
     { industryId },
     { $set: { isDeleted: true } },
   )
-  await IndustryModel.findByIdAndDelete(industryId)
+  // Keep industry row (soft-delete) to avoid hard dangling references.
+  await IndustryModel.findByIdAndUpdate(
+    industryId,
+    { $set: { isDeleted: true, isActive: false } },
+    { new: true },
+  )
+
+  // Detach deleted industry from historical query/quotation rows.
+  await QueryModel.updateMany(
+    { industry_id: industryId },
+    { $set: { industry_id: null } },
+  )
+  await QuotationModel.updateMany(
+    { industry_id: industryId },
+    { $set: { industry_id: null } },
+  )
 
   return {
     deletedIndustry: {

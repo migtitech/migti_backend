@@ -48,6 +48,11 @@ const mapProductsWithImages = (products) => {
   }))
 }
 
+const getQueryOwnershipFilter = ({ currentUserId = null, isFullAccessRole = true }) => {
+  if (!currentUserId || isFullAccessRole) return {}
+  return { created_by: currentUserId }
+}
+
 export const addQuery = async ({
   companyInfo = {},
   industry_id,
@@ -93,12 +98,15 @@ export const listQueries = async ({
   search = '',
   status = '',
   branchFilter = {},
+  currentUserId = null,
+  isFullAccessRole = true,
 }) => {
   const page = Math.max(1, parseInt(pageNumber))
   const limit = Math.min(100, Math.max(1, parseInt(pageSize)))
   const skip = (page - 1) * limit
 
-  const filter = { isDeleted: false, ...branchFilter }
+  const ownershipFilter = getQueryOwnershipFilter({ currentUserId, isFullAccessRole })
+  const filter = { isDeleted: false, ...branchFilter, ...ownershipFilter }
   if (status && status.trim()) {
     filter.status = status.trim()
   }
@@ -140,8 +148,14 @@ export const listQueries = async ({
   }
 }
 
-export const getQueryById = async ({ queryId, branchFilter = {} }) => {
-  const query = await QueryModel.findOne({ _id: queryId, isDeleted: false, ...branchFilter })
+export const getQueryById = async ({
+  queryId,
+  branchFilter = {},
+  currentUserId = null,
+  isFullAccessRole = true,
+}) => {
+  const ownershipFilter = getQueryOwnershipFilter({ currentUserId, isFullAccessRole })
+  const query = await QueryModel.findOne({ _id: queryId, isDeleted: false, ...branchFilter, ...ownershipFilter })
     .populate('industry_id', 'name location address email purchase_manager_name purchase_manager_phone')
     .populate('created_by', 'name email')
     .populate({
@@ -190,8 +204,21 @@ const resolvePerformerName = async (performerId) => {
   return null
 }
 
-export const listQueryActivities = async ({ queryId, pageNumber = 1, pageSize = 10, branchFilter = {} }) => {
-  const queryBelongs = await QueryModel.findOne({ _id: queryId, isDeleted: false, ...branchFilter }).lean()
+export const listQueryActivities = async ({
+  queryId,
+  pageNumber = 1,
+  pageSize = 10,
+  branchFilter = {},
+  currentUserId = null,
+  isFullAccessRole = true,
+}) => {
+  const ownershipFilter = getQueryOwnershipFilter({ currentUserId, isFullAccessRole })
+  const queryBelongs = await QueryModel.findOne({
+    _id: queryId,
+    isDeleted: false,
+    ...branchFilter,
+    ...ownershipFilter,
+  }).lean()
   if (!queryBelongs) {
     throw new CustomError(
       statusCodes.notFound,
@@ -248,8 +275,11 @@ export const recordQueryActivity = async ({
   performedBy,
   meta = {},
   branchFilter = {},
+  currentUserId = null,
+  isFullAccessRole = true,
 }) => {
-  const query = await QueryModel.findOne({ _id: queryId, isDeleted: false, ...branchFilter }).lean()
+  const ownershipFilter = getQueryOwnershipFilter({ currentUserId, isFullAccessRole })
+  const query = await QueryModel.findOne({ _id: queryId, isDeleted: false, ...branchFilter, ...ownershipFilter }).lean()
   if (!query) {
     throw new CustomError(
       statusCodes.notFound,
@@ -275,8 +305,19 @@ export const recordQueryActivity = async ({
   return populated
 }
 
-export const updateQuery = async ({ queryId, companyInfo, industry_id, products, delivery, status, branchFilter = {} }) => {
-  const existing = await QueryModel.findOne({ _id: queryId, isDeleted: false, ...branchFilter }).lean()
+export const updateQuery = async ({
+  queryId,
+  companyInfo,
+  industry_id,
+  products,
+  delivery,
+  status,
+  branchFilter = {},
+  currentUserId = null,
+  isFullAccessRole = true,
+}) => {
+  const ownershipFilter = getQueryOwnershipFilter({ currentUserId, isFullAccessRole })
+  const existing = await QueryModel.findOne({ _id: queryId, isDeleted: false, ...branchFilter, ...ownershipFilter }).lean()
   if (!existing) {
     throw new CustomError(
       statusCodes.notFound,
@@ -303,8 +344,14 @@ export const updateQuery = async ({ queryId, companyInfo, industry_id, products,
   return updated
 }
 
-export const deleteQuery = async ({ queryId, branchFilter = {} }) => {
-  const existing = await QueryModel.findOne({ _id: queryId, isDeleted: false, ...branchFilter }).lean()
+export const deleteQuery = async ({
+  queryId,
+  branchFilter = {},
+  currentUserId = null,
+  isFullAccessRole = true,
+}) => {
+  const ownershipFilter = getQueryOwnershipFilter({ currentUserId, isFullAccessRole })
+  const existing = await QueryModel.findOne({ _id: queryId, isDeleted: false, ...branchFilter, ...ownershipFilter }).lean()
   if (!existing) {
     throw new CustomError(
       statusCodes.notFound,
@@ -330,8 +377,18 @@ export const convertQueryToQuotation = async ({
   branchFilter = {},
   remark,
   products,
+  isFullAccessRole = true,
 }) => {
-  const existing = await QueryModel.findOne({ queryCode, isDeleted: false, ...branchFilter }).lean()
+  const ownershipFilter = getQueryOwnershipFilter({
+    currentUserId: created_by,
+    isFullAccessRole,
+  })
+  const existing = await QueryModel.findOne({
+    queryCode,
+    isDeleted: false,
+    ...branchFilter,
+    ...ownershipFilter,
+  }).lean()
   if (!existing) {
     throw new CustomError(
       statusCodes.notFound,

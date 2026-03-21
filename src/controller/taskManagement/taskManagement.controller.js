@@ -1,5 +1,5 @@
 import { Message, statusCodes } from '../../core/common/constant.js'
-import { getBranchFilter, getBranchIdForCreate } from '../../core/helpers/branchFilter.js'
+import { getBranchFilter, getEffectiveBranchIdForCreate } from '../../core/helpers/branchFilter.js'
 import {
   createTaskSchema,
   listTasksSchema,
@@ -28,7 +28,7 @@ export const createTaskController = async (req, res) => {
       error: error.details.map((d) => d.message),
     })
   }
-  const branchId = value.branchId || getBranchIdForCreate(req)
+  const branchId = getEffectiveBranchIdForCreate(req, value.branchId)
   const result = await createTask({ ...value, branchId })
   return res.status(statusCodes.created).json({
     success: true,

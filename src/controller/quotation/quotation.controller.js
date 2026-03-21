@@ -85,7 +85,14 @@ export const updateQuotationController = async (req, res) => {
   }
 
   const branchFilter = getBranchFilter(req)
-  const result = await updateQuotation({ ...value, branchFilter })
+  const currentUserId = req.user?.id || req.user?._id
+  const isFullAccessRole = req.user?.role && BRANCH_BYPASS_ROLES.includes(req.user.role)
+  const result = await updateQuotation({
+    ...value,
+    branchFilter,
+    currentUserId: currentUserId || null,
+    isFullAccessRole: !!isFullAccessRole,
+  })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Quotation updated successfully',
@@ -107,7 +114,14 @@ export const updateQuotationStatusController = async (req, res) => {
   }
 
   const branchFilter = getBranchFilter(req)
-  const result = await updateQuotationStatus({ ...value, branchFilter })
+  const currentUserId = req.user?.id || req.user?._id
+  const isFullAccessRole = req.user?.role && BRANCH_BYPASS_ROLES.includes(req.user.role)
+  const result = await updateQuotationStatus({
+    ...value,
+    branchFilter,
+    currentUserId: currentUserId || null,
+    isFullAccessRole: !!isFullAccessRole,
+  })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Quotation status updated successfully',

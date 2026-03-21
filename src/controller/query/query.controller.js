@@ -1,4 +1,5 @@
 import { Message, statusCodes } from '../../core/common/constant.js'
+import { BRANCH_BYPASS_ROLES } from '../../core/common/constant.js'
 import { getBranchFilter, getBranchIdForCreate } from '../../core/helpers/branchFilter.js'
 import {
   createQuerySchema,
@@ -57,7 +58,14 @@ export const listQueriesController = async (req, res) => {
   }
 
   const branchFilter = getBranchFilter(req, { allowQueryBranchId: true })
-  const result = await listQueries({ ...value, branchFilter })
+  const currentUserId = req.user?.id || req.user?._id
+  const isFullAccessRole = req.user?.role && BRANCH_BYPASS_ROLES.includes(req.user.role)
+  const result = await listQueries({
+    ...value,
+    branchFilter,
+    currentUserId: currentUserId || null,
+    isFullAccessRole: !!isFullAccessRole,
+  })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Queries retrieved successfully',
@@ -78,7 +86,14 @@ export const getQueryByIdController = async (req, res) => {
   }
 
   const branchFilter = getBranchFilter(req)
-  const result = await getQueryById({ ...value, branchFilter })
+  const currentUserId = req.user?.id || req.user?._id
+  const isFullAccessRole = req.user?.role && BRANCH_BYPASS_ROLES.includes(req.user.role)
+  const result = await getQueryById({
+    ...value,
+    branchFilter,
+    currentUserId: currentUserId || null,
+    isFullAccessRole: !!isFullAccessRole,
+  })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Query details retrieved successfully',
@@ -100,7 +115,14 @@ export const updateQueryController = async (req, res) => {
   }
 
   const branchFilter = getBranchFilter(req)
-  const result = await updateQuery({ ...value, branchFilter })
+  const currentUserId = req.user?.id || req.user?._id
+  const isFullAccessRole = req.user?.role && BRANCH_BYPASS_ROLES.includes(req.user.role)
+  const result = await updateQuery({
+    ...value,
+    branchFilter,
+    currentUserId: currentUserId || null,
+    isFullAccessRole: !!isFullAccessRole,
+  })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Query updated successfully',
@@ -121,7 +143,14 @@ export const deleteQueryController = async (req, res) => {
   }
 
   const branchFilter = getBranchFilter(req)
-  const result = await deleteQuery({ ...value, branchFilter })
+  const currentUserId = req.user?.id || req.user?._id
+  const isFullAccessRole = req.user?.role && BRANCH_BYPASS_ROLES.includes(req.user.role)
+  const result = await deleteQuery({
+    ...value,
+    branchFilter,
+    currentUserId: currentUserId || null,
+    isFullAccessRole: !!isFullAccessRole,
+  })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Query deleted successfully',
@@ -142,7 +171,14 @@ export const listQueryActivitiesController = async (req, res) => {
   }
 
   const branchFilter = getBranchFilter(req)
-  const result = await listQueryActivities({ ...value, branchFilter })
+  const currentUserId = req.user?.id || req.user?._id
+  const isFullAccessRole = req.user?.role && BRANCH_BYPASS_ROLES.includes(req.user.role)
+  const result = await listQueryActivities({
+    ...value,
+    branchFilter,
+    currentUserId: currentUserId || null,
+    isFullAccessRole: !!isFullAccessRole,
+  })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Query activities retrieved successfully',
@@ -163,7 +199,14 @@ export const recordQueryActivityController = async (req, res) => {
   }
 
   const branchFilter = getBranchFilter(req)
-  const result = await recordQueryActivity({ ...value, branchFilter })
+  const currentUserId = req.user?.id || req.user?._id
+  const isFullAccessRole = req.user?.role && BRANCH_BYPASS_ROLES.includes(req.user.role)
+  const result = await recordQueryActivity({
+    ...value,
+    branchFilter,
+    currentUserId: currentUserId || null,
+    isFullAccessRole: !!isFullAccessRole,
+  })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Activity recorded successfully',
@@ -186,12 +229,14 @@ export const convertQueryToQuotationController = async (req, res) => {
 
   const branchFilter = getBranchFilter(req)
   const created_by = req.user?.id || req.user?._id
+  const isFullAccessRole = req.user?.role && BRANCH_BYPASS_ROLES.includes(req.user.role)
   const result = await convertQueryToQuotation({
     queryCode: value.queryCode,
     remark: value.remark,
     products: value.products,
     created_by,
     branchFilter,
+    isFullAccessRole: !!isFullAccessRole,
   })
   return res.status(statusCodes.ok).json({
     success: true,
@@ -213,7 +258,14 @@ export const exportQueryPdfController = async (req, res) => {
   }
 
   const branchFilter = getBranchFilter(req)
-  const { buffer, queryCode } = await exportQueryPdf({ ...value, branchFilter })
+  const currentUserId = req.user?.id || req.user?._id
+  const isFullAccessRole = req.user?.role && BRANCH_BYPASS_ROLES.includes(req.user.role)
+  const { buffer, queryCode } = await exportQueryPdf({
+    ...value,
+    branchFilter,
+    currentUserId: currentUserId || null,
+    isFullAccessRole: !!isFullAccessRole,
+  })
   const fileName = `query-${queryCode || value.queryId}-${new Date().toISOString().slice(0, 10)}.pdf`
   res.setHeader('Content-Type', 'application/pdf')
   res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`)

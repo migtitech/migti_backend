@@ -61,6 +61,50 @@ export const getBranchIdForCreate = (req) => {
 }
 
 /**
+ * Resolves branchId for create operations in a safe and consistent way.
+ *
+ * Rules:
+ * - Branch-scoped users (employee, etc.) are always forced to their token branch.
+ * - Bypass roles (super_admin/admin/hod) can optionally create for requested branchId.
+ * - If requestedBranchId is invalid, it is ignored.
+ *
+ * @param {Object} req - Express request
+ * @param {string|mongoose.Types.ObjectId|null|undefined} requestedBranchId - branchId from body/query
+ * @returns {mongoose.Types.ObjectId|null}
+ */
+export const getEffectiveBranchIdForCreate = (req, requestedBranchId) => {
+  if (!req?.user) return null
+
+  const role = req.user.role
+  const userBranchId = getBranchIdForCreate(req)
+  const isBypassRole = Array.from(BRANCH_BYPASS_ROLES).includes(role)
+
+  // Non-bypass users cannot override branch from payload.
+  if (!isBypassRole) {
+    return userBranchId
+  }
+
+  // Bypass users may create for a specific requested branch.
+  if (
+    typeof requestedBranchId === 'string'
+    && requestedBranchId
+    && mongoose.Types.ObjectId.isValid(requestedBranchId)
+  ) {
+    return new mongoose.Types.ObjectId(requestedBranchId)
+  }
+
+  if (
+    requestedBranchId
+    && typeof requestedBranchId === 'object'
+    && mongoose.Types.ObjectId.isValid(requestedBranchId)
+  ) {
+    return requestedBranchId
+  }
+
+  return userBranchId
+}
+
+/**
  * Ensures the request has a branch context when the route requires it.
  * Use for routes where only branch-scoped users can create (e.g. queries).
  * Super_admin/admin may still be allowed to create but must pass branchId in body/query if we require it;

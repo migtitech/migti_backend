@@ -401,8 +401,18 @@ const buildHtml = (query, orgContext = {}) => {
   `.trim()
 }
 
-export const exportQueryPdf = async ({ queryId, branchFilter }) => {
-  const query = await getQueryById({ queryId, branchFilter })
+export const exportQueryPdf = async ({
+  queryId,
+  branchFilter,
+  currentUserId = null,
+  isFullAccessRole = true,
+}) => {
+  const query = await getQueryById({
+    queryId,
+    branchFilter,
+    currentUserId,
+    isFullAccessRole,
+  })
 
   let branch = null
   let company = null
@@ -429,7 +439,12 @@ export const exportQueryPdf = async ({ queryId, branchFilter }) => {
     }
   }
   try {
-    quotation = await getQuotationByQueryId({ queryId: query._id, branchFilter })
+    quotation = await getQuotationByQueryId({
+      queryId: query._id,
+      branchFilter,
+      currentUserId,
+      isFullAccessRole,
+    })
   } catch {
     quotation = null
   }

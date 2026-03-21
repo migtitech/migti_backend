@@ -197,7 +197,7 @@ export const listQuotations = async ({
     filter.status = normalizeStatusFilter(status)
   }
 
-  // For employees (non-admin): show only quotations that came from queries they created
+  // For employees (non-admin): show only quotations that came from queries they created.
   if (currentUserId && !isFullAccessRole) {
     const queryIds = await QueryModel.find({
       isDeleted: false,
@@ -343,6 +343,8 @@ export const updateQuotation = async ({
   expectedDeliveryDate,
   expectedDeliveryWithinDays,
   branchFilter = {},
+  currentUserId = null,
+  isFullAccessRole = true,
 }) => {
   const existing = await QuotationModel.findOne({
     _id: quotationId,
@@ -356,6 +358,17 @@ export const updateQuotation = async ({
       'Quotation not found',
       errorCodes.not_found,
     )
+  }
+  if (currentUserId && !isFullAccessRole && existing.queryId) {
+    const sourceQuery = await QueryModel.findById(existing.queryId).select('created_by').lean()
+    const queryCreatedBy = sourceQuery?.created_by
+    if (!queryCreatedBy || String(queryCreatedBy) !== String(currentUserId)) {
+      throw new CustomError(
+        statusCodes.forbidden,
+        'You do not have access to this quotation',
+        errorCodes.access_forbidden,
+      )
+    }
   }
 
   const updatePayload = {}
@@ -406,6 +419,8 @@ export const updateQuotationStatus = async ({
   quotationId,
   status,
   branchFilter = {},
+  currentUserId = null,
+  isFullAccessRole = true,
 }) => {
   const existing = await QuotationModel.findOne({
     _id: quotationId,
@@ -420,6 +435,17 @@ export const updateQuotationStatus = async ({
       errorCodes.not_found,
     )
   }
+  if (currentUserId && !isFullAccessRole && existing.queryId) {
+    const sourceQuery = await QueryModel.findById(existing.queryId).select('created_by').lean()
+    const queryCreatedBy = sourceQuery?.created_by
+    if (!queryCreatedBy || String(queryCreatedBy) !== String(currentUserId)) {
+      throw new CustomError(
+        statusCodes.forbidden,
+        'You do not have access to this quotation',
+        errorCodes.access_forbidden,
+      )
+    }
+  }
 
   const updated = await QuotationModel.findByIdAndUpdate(
     quotationId,
@@ -433,7 +459,23 @@ export const updateQuotationStatus = async ({
   return updated
 }
 
-export const getQuotationByQueryId = async ({ queryId, branchFilter = {} }) => {
+export const getQuotationByQueryId = async ({
+  queryId,
+  branchFilter = {},
+  currentUserId = null,
+  isFullAccessRole = true,
+}) => {
+  if (currentUserId && !isFullAccessRole) {
+    const sourceQuery = await QueryModel.findOne({
+      _id: queryId,
+      isDeleted: false,
+      ...branchFilter,
+      created_by: currentUserId,
+    })
+      .select('_id')
+      .lean()
+    if (!sourceQuery) return null
+  }
   const quotation = await QuotationModel.findOne({
     queryId,
     isDeleted: false,
