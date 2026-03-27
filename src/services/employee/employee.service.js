@@ -50,13 +50,25 @@ export const addEmployee = async (payload) => {
   return employee
 }
 
-export const listEmployees = async ({ pageNumber = 1, pageSize = 10, branchId, branchFilter = {} }) => {
+export const listEmployees = async ({
+  pageNumber = 1,
+  pageSize = 10,
+  branchId,
+  branchFilter = {},
+  rolePrefix = '',
+}) => {
   const page = Math.max(1, parseInt(pageNumber))
   const limit = Math.min(100, Math.max(1, parseInt(pageSize)))
   const skip = (page - 1) * limit
 
   const filter = { ...branchFilter }
   if (Object.keys(filter).length === 0 && branchId) filter.branchId = branchId
+
+  const rp = String(rolePrefix || '').trim()
+  if (rp) {
+    const escaped = rp.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    filter.role = new RegExp(`^${escaped}`, 'i')
+  }
 
   const totalItems = await EmployeeModel.countDocuments(filter)
 

@@ -14,6 +14,7 @@ const DEFAULT_FORMATTERS = {
   productCode: (n) => `mig${n}`,
   queryCode: (n) => `QRY0${n}`,
   quotationCode: (n) => `QUO0${n}`,
+  purchaseOrderCode: (n) => `PO0${n}`,
 }
 
 /** Initial values for upsert so first generated code is 1000 */
@@ -26,6 +27,7 @@ const SET_ON_INSERT = {
   productCode: INITIAL_VALUE,
   queryCode: INITIAL_VALUE,
   quotationCode: INITIAL_VALUE,
+  purchaseOrderCode: INITIAL_VALUE,
 }
 
 const MAX_ATTEMPTS = 10000
@@ -33,7 +35,7 @@ const MAX_ATTEMPTS = 10000
 /**
  * Atomically increment the sequence for codeType and return the new value.
  * Ensures the code_sequence document exists (create with 999 if missing, then $inc only to avoid MongoDB conflict).
- * @param {string} codeType - One of: companyCode, branchCode, zoneCode, groupCode, categoryCode, productCode, queryCode, quotationCode
+ * @param {string} codeType - One of: companyCode, branchCode, zoneCode, groupCode, categoryCode, productCode, queryCode, quotationCode, purchaseOrderCode
  * @returns {Promise<number>} Next sequence number (starts from 1000)
  */
 export const getNextSequence = async (codeType) => {
@@ -50,6 +52,12 @@ export const getNextSequence = async (codeType) => {
   } catch (err) {
     if (err.code !== 11000) throw err
   }
+
+  // New sequence fields on existing singleton docs (Mongo $inc would start from 0 otherwise)
+  await CodeSequenceModel.updateOne(
+    { _id: CODE_SEQUENCE_ID, [codeType]: { $exists: false } },
+    { $set: { [codeType]: INITIAL_VALUE } },
+  )
 
   const doc = await CodeSequenceModel.findByIdAndUpdate(
     CODE_SEQUENCE_ID,
@@ -75,7 +83,7 @@ export const getNextSequence = async (codeType) => {
  * 3. If checkModel is provided, check if that code already exists in the entity table; if yes, increment again and repeat until unique.
  * 4. Return the unique code. The common table is updated so the next call gets the next number.
  *
- * @param {string} codeType - companyCode | branchCode | zoneCode | groupCode | categoryCode | productCode | queryCode | quotationCode
+ * @param {string} codeType - companyCode | branchCode | zoneCode | groupCode | categoryCode | productCode | queryCode | quotationCode | purchaseOrderCode
  * @param {Object} [options]
  * @param {import('mongoose').Model} [options.model] - Mongoose model to check for existing code (e.g. QueryModel)
  * @param {string} [options.field] - Field name on the model that stores the code (e.g. 'queryCode'). Defaults to codeType.

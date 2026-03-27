@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { asyncHandler } from '../utils/asyncWrapper.js'
-import { authenticateToken, checkPermission } from '../middlewares/jwtAuth.js'
+import { authenticateToken, checkPermission, authorizeRoles } from '../middlewares/jwtAuth.js'
 import { MODULES } from '../core/common/constant.js'
 import {
   listQuotationsController,
@@ -9,6 +9,7 @@ import {
   updateQuotationStatusController,
   exportQuotationPdfController,
   listRateLogsController,
+  deleteQuotationController,
 } from '../controller/quotation/quotation.controller.js'
 
 const quotationRouter = Router()
@@ -48,6 +49,12 @@ quotationRouter.get(
   authenticateToken,
   checkPermission(MODULES.QUOTATIONS, 'read'),
   asyncHandler(listRateLogsController),
+)
+quotationRouter.delete(
+  '/delete',
+  authenticateToken,
+  authorizeRoles(['admin']),
+  asyncHandler(deleteQuotationController),
 )
 
 export default quotationRouter

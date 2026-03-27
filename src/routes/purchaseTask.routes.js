@@ -13,7 +13,6 @@ import {
 
 const purchaseTaskRouter = Router()
 
-// Assign quotation as a purchase task (uses quotation update permission)
 purchaseTaskRouter.post(
   '/assign',
   authenticateToken,
@@ -21,7 +20,6 @@ purchaseTaskRouter.post(
   asyncHandler(assignPurchaseTaskController),
 )
 
-// My tasks (role-based filter: purchase_exicutive, purchase_manager, etc.)
 purchaseTaskRouter.get(
   '/my-tasks',
   authenticateToken,
@@ -29,7 +27,6 @@ purchaseTaskRouter.get(
   asyncHandler(listMyPurchaseTasksController),
 )
 
-// Update task status
 purchaseTaskRouter.put(
   '/update-status',
   authenticateToken,
@@ -37,7 +34,6 @@ purchaseTaskRouter.put(
   asyncHandler(updatePurchaseTaskStatusController),
 )
 
-// Update supplier rate remark
 purchaseTaskRouter.put(
   '/update-remark',
   authenticateToken,
@@ -45,7 +41,6 @@ purchaseTaskRouter.put(
   asyncHandler(updatePurchaseTaskRemarkController),
 )
 
-// Rate bucket data (task-based rate view)
 purchaseTaskRouter.get(
   '/rate-bucket',
   authenticateToken,
@@ -53,7 +48,6 @@ purchaseTaskRouter.get(
   asyncHandler(listRateBucketController),
 )
 
-// Admin tracking view (full visibility with filters)
 purchaseTaskRouter.get(
   '/admin-list',
   authenticateToken,

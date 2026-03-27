@@ -1,7 +1,6 @@
 import Joi from 'joi'
-import { QUOTATION_STATUS } from '../../models/quotation.model.js'
+import { PURCHASE_ORDER_STATUS } from '../../models/purchaseOrder.model.js'
 
-// Shared ObjectId pattern to avoid Mongoose cast errors for invalid ids
 const objectIdPattern = /^[0-9a-fA-F]{24}$/
 
 const purchaseManagerSchema = Joi.object({
@@ -19,11 +18,11 @@ const companyInfoSchema = Joi.object({
 })
 
 const productVariantSchema = Joi.object({
-  _id: Joi.string().optional(), // MongoDB subdoc _id when variants are loaded from DB
+  _id: Joi.string().optional(),
   variantName: Joi.string().allow('').optional(),
 })
 
-const quotationProductItemSchema = Joi.object({
+const purchaseOrderProductItemSchema = Joi.object({
   productName: Joi.string().required().trim(),
   description: Joi.string().allow('').optional(),
   quantity: Joi.number().integer().min(0).required(),
@@ -43,19 +42,28 @@ const quotationProductItemSchema = Joi.object({
   notAvailableRemark: Joi.string().allow('').optional(),
 })
 
-const quotationStatusValues = Object.values(QUOTATION_STATUS)
+const purchaseOrderStatusValues = Object.values(PURCHASE_ORDER_STATUS)
 
-export const listQuotationSchema = Joi.object({
+export const listPurchaseOrderSchema = Joi.object({
   pageNumber: Joi.number().integer().min(1).default(1),
   pageSize: Joi.number().integer().min(1).max(100).default(10),
   search: Joi.string().allow('').optional(),
   status: Joi.string()
-    .valid(...quotationStatusValues, 'drafted', 'hod approved', 'hod-approved')
+    .valid(...purchaseOrderStatusValues)
     .allow('')
     .optional(),
 })
 
-export const getQuotationByIdSchema = Joi.object({
+export const getPurchaseOrderByIdSchema = Joi.object({
+  purchaseOrderId: Joi.string()
+    .pattern(objectIdPattern)
+    .required()
+    .messages({
+      'string.pattern.base': 'purchaseOrderId must be a valid Mongo ObjectId',
+    }),
+})
+
+export const getPurchaseOrderByQuotationIdSchema = Joi.object({
   quotationId: Joi.string()
     .pattern(objectIdPattern)
     .required()
@@ -64,30 +72,52 @@ export const getQuotationByIdSchema = Joi.object({
     }),
 })
 
-export const deleteQuotationSchema = getQuotationByIdSchema
-
-export const updateQuotationSchema = Joi.object({
+export const createPurchaseOrderFromQuotationSchema = Joi.object({
   quotationId: Joi.string()
     .pattern(objectIdPattern)
     .required()
     .messages({
       'string.pattern.base': 'quotationId must be a valid Mongo ObjectId',
     }),
+  reuseExisting: Joi.boolean().optional().default(true),
+})
+
+export const updatePurchaseOrderSchema = Joi.object({
+  purchaseOrderId: Joi.string()
+    .pattern(objectIdPattern)
+    .required()
+    .messages({
+      'string.pattern.base': 'purchaseOrderId must be a valid Mongo ObjectId',
+    }),
   companyInfo: companyInfoSchema.optional(),
   industry_id: Joi.string().allow(null, '').optional(),
-  products: Joi.array().items(quotationProductItemSchema).optional(),
+  products: Joi.array().items(purchaseOrderProductItemSchema).optional(),
   freightCharge: Joi.number().min(0).optional(),
   packingCharge: Joi.number().min(0).optional(),
   expectedDeliveryDate: Joi.date().allow(null).optional(),
   expectedDeliveryWithinDays: Joi.number().integer().min(0).allow(null).optional(),
+  remark: Joi.string().allow('').optional(),
+  salesEmployeeId: Joi.string().allow(null, '').optional(),
 })
 
-export const updateQuotationStatusSchema = Joi.object({
-  quotationId: Joi.string()
+export const appendPurchaseOrderPaymentSchema = Joi.object({
+  purchaseOrderId: Joi.string()
     .pattern(objectIdPattern)
     .required()
     .messages({
-      'string.pattern.base': 'quotationId must be a valid Mongo ObjectId',
+      'string.pattern.base': 'purchaseOrderId must be a valid Mongo ObjectId',
     }),
-  status: Joi.string().valid(...quotationStatusValues).required(),
+  amount: Joi.number().positive().required(),
+  paidAt: Joi.date().optional(),
+  remark: Joi.string().allow('').optional(),
+})
+
+export const updatePurchaseOrderStatusSchema = Joi.object({
+  purchaseOrderId: Joi.string()
+    .pattern(objectIdPattern)
+    .required()
+    .messages({
+      'string.pattern.base': 'purchaseOrderId must be a valid Mongo ObjectId',
+    }),
+  status: Joi.string().valid(...purchaseOrderStatusValues).required(),
 })

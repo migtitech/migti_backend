@@ -6,7 +6,29 @@ import QuotationModel from '../../models/quotation.model.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 
+const normalizeGstNumber = (gst) => (gst || '').trim().toUpperCase()
+export const findActiveIndustryByGstNumber = async (gstNumber) => {
+  const normalized = normalizeGstNumber(gstNumber)
+  if (!normalized) return null
+  const escaped = normalized.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return IndustryModel.findOne({
+    isDeleted: false,
+    gstNumber: new RegExp(`^${escaped}$`, 'i'),
+  }).lean()
+}
+
 export const addIndustry = async (data) => {
+  const normalizedGst = normalizeGstNumber(data.gstNumber)
+  data.gstNumber = normalizedGst
+  const existingByGst = await findActiveIndustryByGstNumber(normalizedGst)
+  if (existingByGst) {
+    throw new CustomError(
+      statusCodes.conflict,
+      'Industry already present',
+      errorCodes.already_exist,
+    )
+  }
+
   const branchFilter = data.branchId ? { branchId: data.branchId } : {}
   const existing = await IndustryModel.findOne({
     name: data.name,

@@ -18,6 +18,7 @@ const codeSequenceSchema = new mongoose.Schema(
     productCode: { type: Number, default: INITIAL_VALUE, required: true },
     queryCode: { type: Number, default: INITIAL_VALUE, required: true },
     quotationCode: { type: Number, default: INITIAL_VALUE, required: true },
+    purchaseOrderCode: { type: Number, default: INITIAL_VALUE, required: true },
   },
   { timestamps: true, collection: 'codesequences' }
 )

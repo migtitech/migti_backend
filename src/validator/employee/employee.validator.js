@@ -71,6 +71,8 @@ export const listEmployeeSchema = Joi.object({
   pageNumber: Joi.number().integer().min(1).default(1),
   pageSize: Joi.number().integer().min(1).max(100).default(10),
   branchId: Joi.string().optional().allow('', null),
+  /** Case-insensitive: role must start with this string (e.g. "sales" → sales_executive, sales_manager) */
+  rolePrefix: Joi.string().trim().allow('', null).optional(),
 })
 
 export const getEmployeeByIdSchema = Joi.object({

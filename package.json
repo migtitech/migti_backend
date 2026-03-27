@@ -17,6 +17,7 @@
     "seed:countries": "node seed-countries.js",
     "seed:superadmin": "node seed-superadmin.js",
     "backfill:productCode": "node scripts/backfill-product-code.js",
+    "backfill:queryConvertedQuotations": "node scripts/backfill-query-converted-quotations.js",
     "seed:codeSequence": "node scripts/seed-code-sequence.js"
   },
   "author": "",

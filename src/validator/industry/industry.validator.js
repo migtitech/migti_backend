@@ -18,10 +18,11 @@ export const createIndustrySchema = Joi.object({
   gstNumber: Joi.string()
     .trim()
     .uppercase()
-    .optional()
-    .allow('')
-    .pattern(/^(|[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z])$/)
+    .required()
+    .pattern(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/)
     .messages({
+      'any.required': 'GST number is required',
+      'string.empty': 'GST number is required',
       'string.pattern.base': 'GST number must be valid 15-character GSTIN (e.g. 22AABCU9603R1ZX)',
     }),
   purchaseManagers: Joi.array().items(purchaseManagerItemSchema).optional().default([]),

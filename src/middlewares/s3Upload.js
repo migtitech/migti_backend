@@ -1,11 +1,8 @@
 import multer from 'multer'
 
-// Memory storage for S3 uploads (no need to save to disk)
 const storage = multer.memoryStorage()
 
-// File filter function
 const fileFilter = (req, file, cb) => {
-  // Allow common file types including videos
   const allowedTypes = [
     'image/jpeg',
     'image/jpg',
@@ -35,30 +32,26 @@ const fileFilter = (req, file, cb) => {
   }
 }
 
-// Multer configuration for single file upload
 export const uploadSingle = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB limit
+    fileSize: 10 * 1024 * 1024, 
   },
 })
 
-// Multer configuration for multiple file upload
 export const uploadMultiple = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB limit per file
-    files: 5, // Maximum 5 files
+    fileSize: 10 * 1024 * 1024, 
+    files: 5, 
   },
 })
 
-// Multer configuration for chunked uploads (larger file size limit)
 export const uploadChunk = multer({
   storage: storage,
   fileFilter: (req, file, cb) => {
-    // Only allow video files for chunked uploads
     const allowedVideoTypes = [
       'video/mp4',
       'video/avi',
@@ -77,11 +70,10 @@ export const uploadChunk = multer({
     }
   },
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB per chunk (5MB recommended, but allowing buffer)
+    fileSize: 10 * 1024 * 1024,
   },
 })
 
-// Error handling middleware for multer
 export const handleMulterError = (error, req, res, next) => {
   if (error instanceof multer.MulterError) {
     if (error.code === 'LIMIT_FILE_SIZE') {

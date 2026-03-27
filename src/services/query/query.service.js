@@ -10,7 +10,11 @@ import {
 } from '../document/document.service.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
-import { createQuotationFromQuery, getQuotationByQueryId } from '../quotation/quotation.service.js'
+import {
+  appendConvertedQuotationOnQuery,
+  createQuotationFromQuery,
+  getQuotationByQueryId,
+} from '../quotation/quotation.service.js'
 import { createDraftTasksForQueryProducts } from '../taskManagement/taskManagement.service.js'
 import { getNextSequence } from '../codeSequence/codeSequence.service.js'
 
@@ -54,6 +58,48 @@ const getQueryOwnershipFilter = ({ currentUserId = null, isFullAccessRole = true
   return { created_by: currentUserId }
 }
 
+const dedupeConvertedQuotationRefs = (refs = []) => {
+  const seen = new Set()
+  const out = []
+  for (const ref of refs) {
+    const id = String(ref?.quotationId ?? ref?._id ?? '')
+    if (!id || seen.has(id)) continue
+    seen.add(id)
+    out.push({
+      quotationId: ref.quotationId ?? ref._id,
+      quotationCode: String(ref?.quotationCode ?? '').trim(),
+    })
+  }
+  return out
+}
+
+export const mergeQuotationRefsForQueries = async (queries = []) => {
+  if (!queries?.length) return queries
+  const ids = queries.map((q) => q._id).filter(Boolean)
+  if (!ids.length) return queries
+  const rows = await QuotationModel.find({
+    queryId: { $in: ids },
+    isDeleted: false,
+  })
+    .select('queryId quotationCode')
+    .lean()
+  const byQuery = new Map()
+  for (const r of rows) {
+    const k = String(r.queryId)
+    if (!byQuery.has(k)) byQuery.set(k, [])
+    byQuery.get(k).push({
+      quotationId: r._id,
+      quotationCode: r.quotationCode || '',
+    })
+  }
+  return queries.map((q) => {
+    const fromDb = byQuery.get(String(q._id)) || []
+    const stored = Array.isArray(q.convertedQuotations) ? q.convertedQuotations : []
+    const merged = dedupeConvertedQuotationRefs([...stored, ...fromDb])
+    return { ...q, convertedQuotations: merged }
+  })
+}
+
 export const addQuery = async ({
   companyInfo = {},
   industry_id,
@@ -80,13 +126,9 @@ export const addQuery = async ({
     branchId: branchId || null,
   })
   const queryObj = doc.toObject()
-
-  // Automatically create draft tasks (one per product) in task management.
-  // Errors are swallowed so query creation is not blocked.
   try {
     await createDraftTasksForQueryProducts({ query: queryObj })
   } catch (err) {
-    // eslint-disable-next-line no-console
     console.error('Failed to create draft tasks for query products', err)
   }
 
@@ -179,7 +221,6 @@ export const getQueryById = async ({
     )
   }
 
-  // Transform product images (master + snapshot) to signed URLs for S3
   if (query.products?.length) {
     for (const p of query.products) {
       if (p.product_id && typeof p.product_id === 'object') {
@@ -191,7 +232,8 @@ export const getQueryById = async ({
     }
   }
 
-  return query
+  const [withRefs] = await mergeQuotationRefsForQueries([query])
+  return withRefs
 }
 
 const resolvePerformerName = async (performerId) => {
@@ -414,6 +456,12 @@ export const convertQueryToQuotation = async ({
       reuseExisting: !forceNewQuotation,
     })
   }
+
+  await appendConvertedQuotationOnQuery(
+    existing._id,
+    quotation._id,
+    quotation.quotationCode,
+  )
 
   if (existing.status !== 'convertedToQuotation') {
     await QueryModel.updateOne(

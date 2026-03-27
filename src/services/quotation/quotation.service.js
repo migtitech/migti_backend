@@ -21,6 +21,32 @@ const isBackOfficeRole = (role) => {
   return normalized.replace(/_/g, '').includes('backoffice')
 }
 
+/** Persist quotation ref on the source query (deduped by quotationId). */
+export const appendConvertedQuotationOnQuery = async (queryId, quotationId, quotationCode = '') => {
+  if (!queryId || !quotationId) return
+  await QueryModel.updateOne(
+    {
+      _id: queryId,
+      convertedQuotations: { $not: { $elemMatch: { quotationId } } },
+    },
+    {
+      $push: {
+        convertedQuotations: {
+          quotationId,
+          quotationCode: String(quotationCode || '').trim(),
+        },
+      },
+    },
+  )
+}
+
+const normalizeRole = (role) => String(role || '').trim().toLowerCase().replace(/[\s-]+/g, '_')
+const isBackOfficeRole = (role) => {
+  const normalized = normalizeRole(role)
+  if (['back_office_exicutive', 'back_office_executive', 'boe'].includes(normalized)) return true
+  return normalized.replace(/_/g, '').includes('backoffice')
+}
+
 /** Company name to first 5 chars (alphanumeric, uppercase). Fallback if empty. */
 const companyFirst5 = (name) => {
   const s = (name || '')
@@ -519,4 +545,37 @@ export const getQuotationByQueryId = async ({
     .lean()
 
   return quotation || null
+}
+
+export const deleteQuotation = async ({ quotationId, branchFilter = {} }) => {
+  const existing = await QuotationModel.findOne({
+    _id: quotationId,
+    isDeleted: false,
+    ...branchFilter,
+  }).lean()
+
+  if (!existing) {
+    throw new CustomError(
+      statusCodes.notFound,
+      'Quotation not found',
+      errorCodes.not_found,
+    )
+  }
+
+  await QuotationModel.findByIdAndUpdate(quotationId, { isDeleted: true }, { new: true })
+
+  if (existing.queryId) {
+    await QueryModel.updateOne(
+      { _id: existing.queryId },
+      { $pull: { convertedQuotations: { quotationId: existing._id } } },
+    )
+  }
+
+  return {
+    deletedQuotation: {
+      id: existing._id,
+      quotationCode: existing.quotationCode,
+      deletedAt: new Date().toISOString(),
+    },
+  }
 }

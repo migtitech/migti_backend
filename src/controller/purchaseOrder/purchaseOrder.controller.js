@@ -2,22 +2,23 @@ import { Message, statusCodes } from '../../core/common/constant.js'
 import { BRANCH_BYPASS_ROLES } from '../../core/common/constant.js'
 import { getBranchFilter } from '../../core/helpers/branchFilter.js'
 import {
-  listQuotationSchema,
-  getQuotationByIdSchema,
-  updateQuotationSchema,
-  updateQuotationStatusSchema,
-  deleteQuotationSchema,
-} from '../../validator/quotation/quotation.validator.js'
+  listPurchaseOrderSchema,
+  getPurchaseOrderByIdSchema,
+  getPurchaseOrderByQuotationIdSchema,
+  createPurchaseOrderFromQuotationSchema,
+  updatePurchaseOrderSchema,
+  updatePurchaseOrderStatusSchema,
+  appendPurchaseOrderPaymentSchema,
+} from '../../validator/purchaseOrder/purchaseOrder.validator.js'
 import {
-  listQuotations,
-  getQuotationById,
-  updateQuotation,
-  updateQuotationStatus,
-  deleteQuotation,
-} from '../../services/quotation/quotation.service.js'
-import { exportQuotationPdf } from '../../services/quotation/quotationPdfExport.service.js'
-import { listRateLogsSchema } from '../../validator/rateLog/rateLog.validator.js'
-import { listRateLogs } from '../../services/rateLog/rateLog.service.js'
+  listPurchaseOrders,
+  getPurchaseOrderById,
+  getPurchaseOrderByQuotationId,
+  createPurchaseOrderFromQuotation,
+  updatePurchaseOrder,
+  updatePurchaseOrderStatus,
+  appendPurchaseOrderPayment,
+} from '../../services/purchaseOrder/purchaseOrder.service.js'
 
 const normalizeRole = (role) => String(role || '').trim().toLowerCase().replace(/[\s-]+/g, '_')
 const isBackOfficeRole = (role) => {
@@ -30,14 +31,65 @@ const hasOwnershipBypass = (role) => {
   if (BRANCH_BYPASS_ROLES.includes(normalized)) return true
   return isBackOfficeRole(normalized)
 }
-const resolveQuotationBranchFilter = (req, options = {}) => {
-  // Back office can view/manage query/quotation data across all employees.
+const resolvePoBranchFilter = (req, options = {}) => {
   if (isBackOfficeRole(req?.user?.role)) return {}
   return getBranchFilter(req, options)
 }
 
-export const listQuotationsController = async (req, res) => {
-  const { error, value } = listQuotationSchema.validate(req.query, {
+export const listPurchaseOrdersController = async (req, res) => {
+  const { error, value } = listPurchaseOrderSchema.validate(req.query, { abortEarly: false })
+  if (error) {
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: Message.validationError,
+      error: error.details.map((d) => d.message),
+    })
+  }
+
+  const branchFilter = resolvePoBranchFilter(req, { allowQueryBranchId: true })
+  const currentUserId = req.user?.id || req.user?._id
+  const isFullAccessRole = hasOwnershipBypass(req.user?.role)
+  const result = await listPurchaseOrders({
+    ...value,
+    branchFilter,
+    currentUserId: currentUserId || null,
+    isFullAccessRole: !!isFullAccessRole,
+  })
+  return res.status(statusCodes.ok).json({
+    success: true,
+    message: 'Purchase orders retrieved successfully',
+    data: result,
+  })
+}
+
+export const getPurchaseOrderByIdController = async (req, res) => {
+  const { error, value } = getPurchaseOrderByIdSchema.validate(req.query, { abortEarly: false })
+  if (error) {
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: Message.validationError,
+      error: error.details.map((d) => d.message),
+    })
+  }
+
+  const branchFilter = resolvePoBranchFilter(req)
+  const currentUserId = req.user?.id || req.user?._id
+  const isFullAccessRole = hasOwnershipBypass(req.user?.role)
+  const result = await getPurchaseOrderById({
+    ...value,
+    branchFilter,
+    currentUserId: currentUserId || null,
+    isFullAccessRole: !!isFullAccessRole,
+  })
+  return res.status(statusCodes.ok).json({
+    success: true,
+    message: 'Purchase order retrieved successfully',
+    data: result,
+  })
+}
+
+export const getPurchaseOrderByQuotationIdController = async (req, res) => {
+  const { error, value } = getPurchaseOrderByQuotationIdSchema.validate(req.query, {
     abortEarly: false,
   })
   if (error) {
@@ -48,10 +100,10 @@ export const listQuotationsController = async (req, res) => {
     })
   }
 
-  const branchFilter = resolveQuotationBranchFilter(req, { allowQueryBranchId: true })
+  const branchFilter = resolvePoBranchFilter(req)
   const currentUserId = req.user?.id || req.user?._id
   const isFullAccessRole = hasOwnershipBypass(req.user?.role)
-  const result = await listQuotations({
+  const result = await getPurchaseOrderByQuotationId({
     ...value,
     branchFilter,
     currentUserId: currentUserId || null,
@@ -59,13 +111,13 @@ export const listQuotationsController = async (req, res) => {
   })
   return res.status(statusCodes.ok).json({
     success: true,
-    message: 'Quotations retrieved successfully',
+    message: result ? 'Purchase order found' : 'No purchase order for this quotation',
     data: result,
   })
 }
 
-export const getQuotationByIdController = async (req, res) => {
-  const { error, value } = getQuotationByIdSchema.validate(req.query, {
+export const createPurchaseOrderFromQuotationController = async (req, res) => {
+  const { error, value } = createPurchaseOrderFromQuotationSchema.validate(req.body, {
     abortEarly: false,
   })
   if (error) {
@@ -76,138 +128,29 @@ export const getQuotationByIdController = async (req, res) => {
     })
   }
 
-  const branchFilter = resolveQuotationBranchFilter(req)
+  const branchFilter = resolvePoBranchFilter(req)
   const currentUserId = req.user?.id || req.user?._id
   const isFullAccessRole = hasOwnershipBypass(req.user?.role)
-  const result = await getQuotationById({
-    ...value,
-    branchFilter,
-    currentUserId: currentUserId || null,
-    isFullAccessRole: !!isFullAccessRole,
-  })
-  return res.status(statusCodes.ok).json({
-    success: true,
-    message: 'Quotation details retrieved successfully',
-    data: result,
-  })
-}
-
-export const updateQuotationController = async (req, res) => {
-  const { error, value } = updateQuotationSchema.validate(
-    { ...req.body, ...req.query },
-    { abortEarly: false },
-  )
-  if (error) {
-    return res.status(statusCodes.badRequest).json({
-      success: false,
-      message: Message.validationError,
-      error: error.details.map((d) => d.message),
-    })
-  }
-
-  const branchFilter = resolveQuotationBranchFilter(req)
-  const currentUserId = req.user?.id || req.user?._id
-  const isFullAccessRole = hasOwnershipBypass(req.user?.role)
-  const result = await updateQuotation({
-    ...value,
-    branchFilter,
-    currentUserId: currentUserId || null,
-    isFullAccessRole: !!isFullAccessRole,
-  })
-  return res.status(statusCodes.ok).json({
-    success: true,
-    message: 'Quotation updated successfully',
-    data: result,
-  })
-}
-
-export const updateQuotationStatusController = async (req, res) => {
-  const { error, value } = updateQuotationStatusSchema.validate(
-    { ...req.body, ...req.query },
-    { abortEarly: false },
-  )
-  if (error) {
-    return res.status(statusCodes.badRequest).json({
-      success: false,
-      message: Message.validationError,
-      error: error.details.map((d) => d.message),
-    })
-  }
-
-  const branchFilter = resolveQuotationBranchFilter(req)
-  const currentUserId = req.user?.id || req.user?._id
-  const isFullAccessRole = hasOwnershipBypass(req.user?.role)
-  const result = await updateQuotationStatus({
-    ...value,
-    branchFilter,
-    currentUserId: currentUserId || null,
-    currentUserRole: req.user?.role || '',
-    isFullAccessRole: !!isFullAccessRole,
-  })
-  return res.status(statusCodes.ok).json({
-    success: true,
-    message: 'Quotation status updated successfully',
-    data: result,
-  })
-}
-
-export const exportQuotationPdfController = async (req, res) => {
-  const { error, value } = getQuotationByIdSchema.validate(req.query, {
-    abortEarly: false,
-  })
-  if (error) {
-    return res.status(statusCodes.badRequest).json({
-      success: false,
-      message: Message.validationError,
-      error: error.details.map((d) => d.message),
-    })
-  }
-
-  const branchFilter = resolveQuotationBranchFilter(req)
-  const currentUserId = req.user?.id || req.user?._id
-  const isFullAccessRole = hasOwnershipBypass(req.user?.role)
-
-  const { buffer, quotationCode } = await exportQuotationPdf({
-    ...value,
-    branchFilter,
-    currentUserId: currentUserId || null,
-    isFullAccessRole: !!isFullAccessRole,
-  })
-  const fileName = `quotation-${quotationCode || value.quotationId}-${new Date().toISOString().slice(0, 10)}.pdf`
-  res.setHeader('Content-Type', 'application/pdf')
-  res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`)
-  res.setHeader('Content-Length', buffer.length)
-  res.end(buffer, 'binary')
-}
-
-export const deleteQuotationController = async (req, res) => {
-  const { error, value } = deleteQuotationSchema.validate(req.query, {
-    abortEarly: false,
-  })
-  if (error) {
-    return res.status(statusCodes.badRequest).json({
-      success: false,
-      message: Message.validationError,
-      error: error.details.map((d) => d.message),
-    })
-  }
-
-  const branchFilter = resolveQuotationBranchFilter(req, { allowQueryBranchId: true })
-  const result = await deleteQuotation({
+  const result = await createPurchaseOrderFromQuotation({
     quotationId: value.quotationId,
+    reuseExisting: value.reuseExisting,
     branchFilter,
+    currentUserId: currentUserId || null,
+    isFullAccessRole: !!isFullAccessRole,
+    created_by: currentUserId || null,
   })
   return res.status(statusCodes.ok).json({
     success: true,
-    message: 'Quotation deleted successfully',
+    message: 'Purchase order ready',
     data: result,
   })
 }
 
-export const listRateLogsController = async (req, res) => {
-  const { error, value } = listRateLogsSchema.validate(req.query, {
-    abortEarly: false,
-  })
+export const updatePurchaseOrderController = async (req, res) => {
+  const { error, value } = updatePurchaseOrderSchema.validate(
+    { ...req.body, ...req.query },
+    { abortEarly: false },
+  )
   if (error) {
     return res.status(statusCodes.badRequest).json({
       success: false,
@@ -216,15 +159,81 @@ export const listRateLogsController = async (req, res) => {
     })
   }
 
-  const branchFilter = getBranchFilter(req, { allowQueryBranchId: true })
-  const result = await listRateLogs({
-    ...value,
+  const branchFilter = resolvePoBranchFilter(req)
+  const currentUserId = req.user?.id || req.user?._id
+  const isFullAccessRole = hasOwnershipBypass(req.user?.role)
+  const { purchaseOrderId, ...rest } = value
+  const result = await updatePurchaseOrder({
+    purchaseOrderId,
+    ...rest,
     branchFilter,
+    currentUserId: currentUserId || null,
+    isFullAccessRole: !!isFullAccessRole,
   })
-
   return res.status(statusCodes.ok).json({
     success: true,
-    message: 'Rate logs retrieved successfully',
+    message: 'Purchase order updated successfully',
+    data: result,
+  })
+}
+
+export const appendPurchaseOrderPaymentController = async (req, res) => {
+  const { error, value } = appendPurchaseOrderPaymentSchema.validate(
+    { ...req.body, ...req.query },
+    { abortEarly: false },
+  )
+  if (error) {
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: Message.validationError,
+      error: error.details.map((d) => d.message),
+    })
+  }
+
+  const branchFilter = resolvePoBranchFilter(req)
+  const currentUserId = req.user?.id || req.user?._id
+  const isFullAccessRole = hasOwnershipBypass(req.user?.role)
+  const result = await appendPurchaseOrderPayment({
+    purchaseOrderId: value.purchaseOrderId,
+    amount: value.amount,
+    paidAt: value.paidAt,
+    remark: value.remark,
+    branchFilter,
+    currentUserId: currentUserId || null,
+    isFullAccessRole: !!isFullAccessRole,
+  })
+  return res.status(statusCodes.ok).json({
+    success: true,
+    message: 'Payment recorded',
+    data: result,
+  })
+}
+
+export const updatePurchaseOrderStatusController = async (req, res) => {
+  const { error, value } = updatePurchaseOrderStatusSchema.validate(
+    { ...req.body, ...req.query },
+    { abortEarly: false },
+  )
+  if (error) {
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: Message.validationError,
+      error: error.details.map((d) => d.message),
+    })
+  }
+
+  const branchFilter = resolvePoBranchFilter(req)
+  const currentUserId = req.user?.id || req.user?._id
+  const isFullAccessRole = hasOwnershipBypass(req.user?.role)
+  const result = await updatePurchaseOrderStatus({
+    ...value,
+    branchFilter,
+    currentUserId: currentUserId || null,
+    isFullAccessRole: !!isFullAccessRole,
+  })
+  return res.status(statusCodes.ok).json({
+    success: true,
+    message: 'Purchase order status updated successfully',
     data: result,
   })
 }

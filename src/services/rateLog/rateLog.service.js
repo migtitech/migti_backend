@@ -7,6 +7,62 @@ const normalizeVariants = (variants = []) =>
     .map((v) => String(v || '').trim())
     .filter(Boolean)
 
+const extractProductId = (p) => {
+  if (!p?.product_id) return null
+  const pid = p.product_id
+  return String(typeof pid === 'object' && pid?._id ? pid._id : pid)
+}
+
+const multisetRatesSignature = (products) => {
+  const tokens = (products || []).map((p) => {
+    if (p?.notAvailable) return 'na'
+    const r = p?.rate
+    const rNum = r == null || r === '' ? null : Number(r)
+    if (rNum == null || Number.isNaN(rNum) || rNum < 0) return 'inv'
+    const id = extractProductId(p) ?? 'noid'
+    return `${id}\t${rNum}`
+  })
+  tokens.sort()
+  return tokens.join('|')
+}
+
+const findPrevProduct = (previousProducts, nextProduct, index) => {
+  const prevArr = Array.isArray(previousProducts) ? previousProducts : []
+  const atIdx = prevArr[index]
+  const nextId = extractProductId(nextProduct)
+  if (nextId) {
+    if (extractProductId(atIdx) === nextId) return atIdx || {}
+    const byId = prevArr.find((p) => extractProductId(p) === nextId)
+    return byId || {}
+  }
+  return atIdx || {}
+}
+
+const rateLogFingerprint = (doc) => {
+  const qid = doc.quotationId != null ? String(doc.quotationId) : ''
+  const variants = Array.isArray(doc.variants) ? doc.variants : []
+  return [
+    qid,
+    String(doc.product_title ?? '').trim(),
+    String(doc.description ?? ''),
+    variants.join('\u0001'),
+    Number(doc.amount),
+    String(doc.unit ?? '').trim(),
+    String(doc.industry_name ?? '').trim(),
+  ].join('\u0002')
+}
+
+const buildExactMatchFilter = (doc) => ({
+  quotationId: doc.quotationId ?? null,
+  product_title: String(doc.product_title ?? '').trim(),
+  description: doc.description ?? '',
+  variants: Array.isArray(doc.variants) ? doc.variants : [],
+  amount: Number(doc.amount),
+  unit: String(doc.unit ?? '').trim(),
+  industry_name: String(doc.industry_name ?? '').trim(),
+  isDeleted: false,
+})
+
 const resolveIndustryName = async ({ industry_id, fallbackName = '' }) => {
   if (fallbackName && String(fallbackName).trim()) return String(fallbackName).trim()
   if (!industry_id) return ''
@@ -27,6 +83,9 @@ export const captureRateLogsForProductChanges = async ({
 }) => {
   if (!Array.isArray(updatedProducts) || updatedProducts.length === 0) return
 
+  // No rate-relevant change at all (same rates / notAvailable pattern, order-independent).
+  if (multisetRatesSignature(previousProducts) === multisetRatesSignature(updatedProducts)) return
+
   const resolvedIndustryName = await resolveIndustryName({ industry_id, fallbackName: industry_name })
   const docsToCreate = []
 
@@ -35,7 +94,7 @@ export const captureRateLogsForProductChanges = async ({
     const nextRate = Number(nextProduct?.rate)
     if (Number.isNaN(nextRate) || nextRate < 0) return
 
-    const prevProduct = previousProducts[index] || {}
+    const prevProduct = findPrevProduct(previousProducts, nextProduct, index)
     const prevRate = prevProduct?.rate
     const prevRateNum = prevRate == null || prevRate === '' ? null : Number(prevRate)
 
@@ -56,7 +115,28 @@ export const captureRateLogsForProductChanges = async ({
   })
 
   if (!docsToCreate.length) return
-  await RateLogModel.insertMany(docsToCreate, { ordered: false })
+
+  const seen = new Set()
+  const uniqueDocs = []
+  for (const doc of docsToCreate) {
+    const fp = rateLogFingerprint(doc)
+    if (seen.has(fp)) continue
+    seen.add(fp)
+    uniqueDocs.push(doc)
+  }
+  if (!uniqueDocs.length) return
+
+  const existing = await RateLogModel.find({
+    $or: uniqueDocs.map((doc) => buildExactMatchFilter(doc)),
+  })
+    .select('quotationId product_title description variants amount unit industry_name')
+    .lean()
+
+  const existingFp = new Set(existing.map(rateLogFingerprint))
+  const novel = uniqueDocs.filter((doc) => !existingFp.has(rateLogFingerprint(doc)))
+  if (!novel.length) return
+
+  await RateLogModel.insertMany(novel, { ordered: false })
 }
 
 export const listRateLogs = async ({
