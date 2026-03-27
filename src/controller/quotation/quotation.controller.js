@@ -17,6 +17,23 @@ import { exportQuotationPdf } from '../../services/quotation/quotationPdfExport.
 import { listRateLogsSchema } from '../../validator/rateLog/rateLog.validator.js'
 import { listRateLogs } from '../../services/rateLog/rateLog.service.js'
 
+const normalizeRole = (role) => String(role || '').trim().toLowerCase().replace(/[\s-]+/g, '_')
+const isBackOfficeRole = (role) => {
+  const normalized = normalizeRole(role)
+  if (['back_office_exicutive', 'back_office_executive', 'boe'].includes(normalized)) return true
+  return normalized.replace(/_/g, '').includes('backoffice')
+}
+const hasOwnershipBypass = (role) => {
+  const normalized = normalizeRole(role)
+  if (BRANCH_BYPASS_ROLES.includes(normalized)) return true
+  return isBackOfficeRole(normalized)
+}
+const resolveQuotationBranchFilter = (req, options = {}) => {
+  // Back office can view/manage query/quotation data across all employees.
+  if (isBackOfficeRole(req?.user?.role)) return {}
+  return getBranchFilter(req, options)
+}
+
 export const listQuotationsController = async (req, res) => {
   const { error, value } = listQuotationSchema.validate(req.query, {
     abortEarly: false,
@@ -29,9 +46,9 @@ export const listQuotationsController = async (req, res) => {
     })
   }
 
-  const branchFilter = getBranchFilter(req, { allowQueryBranchId: true })
+  const branchFilter = resolveQuotationBranchFilter(req, { allowQueryBranchId: true })
   const currentUserId = req.user?.id || req.user?._id
-  const isFullAccessRole = req.user?.role && BRANCH_BYPASS_ROLES.includes(req.user.role)
+  const isFullAccessRole = hasOwnershipBypass(req.user?.role)
   const result = await listQuotations({
     ...value,
     branchFilter,
@@ -57,9 +74,9 @@ export const getQuotationByIdController = async (req, res) => {
     })
   }
 
-  const branchFilter = getBranchFilter(req)
+  const branchFilter = resolveQuotationBranchFilter(req)
   const currentUserId = req.user?.id || req.user?._id
-  const isFullAccessRole = req.user?.role && BRANCH_BYPASS_ROLES.includes(req.user.role)
+  const isFullAccessRole = hasOwnershipBypass(req.user?.role)
   const result = await getQuotationById({
     ...value,
     branchFilter,
@@ -86,9 +103,9 @@ export const updateQuotationController = async (req, res) => {
     })
   }
 
-  const branchFilter = getBranchFilter(req)
+  const branchFilter = resolveQuotationBranchFilter(req)
   const currentUserId = req.user?.id || req.user?._id
-  const isFullAccessRole = req.user?.role && BRANCH_BYPASS_ROLES.includes(req.user.role)
+  const isFullAccessRole = hasOwnershipBypass(req.user?.role)
   const result = await updateQuotation({
     ...value,
     branchFilter,
@@ -115,13 +132,14 @@ export const updateQuotationStatusController = async (req, res) => {
     })
   }
 
-  const branchFilter = getBranchFilter(req)
+  const branchFilter = resolveQuotationBranchFilter(req)
   const currentUserId = req.user?.id || req.user?._id
-  const isFullAccessRole = req.user?.role && BRANCH_BYPASS_ROLES.includes(req.user.role)
+  const isFullAccessRole = hasOwnershipBypass(req.user?.role)
   const result = await updateQuotationStatus({
     ...value,
     branchFilter,
     currentUserId: currentUserId || null,
+    currentUserRole: req.user?.role || '',
     isFullAccessRole: !!isFullAccessRole,
   })
   return res.status(statusCodes.ok).json({
@@ -143,9 +161,9 @@ export const exportQuotationPdfController = async (req, res) => {
     })
   }
 
-  const branchFilter = getBranchFilter(req)
+  const branchFilter = resolveQuotationBranchFilter(req)
   const currentUserId = req.user?.id || req.user?._id
-  const isFullAccessRole = req.user?.role && BRANCH_BYPASS_ROLES.includes(req.user.role)
+  const isFullAccessRole = hasOwnershipBypass(req.user?.role)
 
   const { buffer, quotationCode } = await exportQuotationPdf({
     ...value,

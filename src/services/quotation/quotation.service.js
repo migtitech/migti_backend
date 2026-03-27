@@ -14,6 +14,12 @@ import { getDocumentById, toDisplayPath } from '../document/document.service.js'
 import { captureRateLogsForProductChanges } from '../rateLog/rateLog.service.js'
 
 const QUOTATION_CODE_PREFIX = 'QUO'
+const normalizeRole = (role) => String(role || '').trim().toLowerCase().replace(/[\s-]+/g, '_')
+const isBackOfficeRole = (role) => {
+  const normalized = normalizeRole(role)
+  if (['back_office_exicutive', 'back_office_executive', 'boe'].includes(normalized)) return true
+  return normalized.replace(/_/g, '').includes('backoffice')
+}
 
 /** Company name to first 5 chars (alphanumeric, uppercase). Fallback if empty. */
 const companyFirst5 = (name) => {
@@ -438,6 +444,7 @@ export const updateQuotationStatus = async ({
   status,
   branchFilter = {},
   currentUserId = null,
+  currentUserRole = '',
   isFullAccessRole = true,
 }) => {
   const existing = await QuotationModel.findOne({
@@ -463,6 +470,14 @@ export const updateQuotationStatus = async ({
         errorCodes.access_forbidden,
       )
     }
+  }
+
+  if (isBackOfficeRole(currentUserRole) && status === QUOTATION_STATUS.HOD_APPROVED) {
+    throw new CustomError(
+      statusCodes.forbidden,
+      'Back office role cannot approve quotations',
+      errorCodes.access_forbidden,
+    )
   }
 
   const updated = await QuotationModel.findByIdAndUpdate(

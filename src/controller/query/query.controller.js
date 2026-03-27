@@ -24,6 +24,23 @@ import { convertQueryToQuotationSchema } from '../../validator/query/query.valid
 import { convertQueryToQuotation } from '../../services/query/query.service.js'
 import { exportQueryPdf } from '../../services/query/queryPdfExport.service.js'
 
+const normalizeRole = (role) => String(role || '').trim().toLowerCase().replace(/[\s-]+/g, '_')
+const isBackOfficeRole = (role) => {
+  const normalized = normalizeRole(role)
+  if (['back_office_exicutive', 'back_office_executive', 'boe'].includes(normalized)) return true
+  return normalized.replace(/_/g, '').includes('backoffice')
+}
+const hasOwnershipBypass = (role) => {
+  const normalized = normalizeRole(role)
+  if (BRANCH_BYPASS_ROLES.includes(normalized)) return true
+  return isBackOfficeRole(normalized)
+}
+const resolveQueryBranchFilter = (req, options = {}) => {
+  // Back office can view/manage query/quotation data across all employees.
+  if (isBackOfficeRole(req?.user?.role)) return {}
+  return getBranchFilter(req, options)
+}
+
 export const createQueryController = async (req, res) => {
   const { error, value } = createQuerySchema.validate(req.body, {
     abortEarly: false,
@@ -58,9 +75,9 @@ export const listQueriesController = async (req, res) => {
     })
   }
 
-  const branchFilter = getBranchFilter(req, { allowQueryBranchId: true })
+  const branchFilter = resolveQueryBranchFilter(req, { allowQueryBranchId: true })
   const currentUserId = req.user?.id || req.user?._id
-  const isFullAccessRole = req.user?.role && BRANCH_BYPASS_ROLES.includes(req.user.role)
+  const isFullAccessRole = hasOwnershipBypass(req.user?.role)
   const result = await listQueries({
     ...value,
     branchFilter,
@@ -86,9 +103,9 @@ export const getQueryByIdController = async (req, res) => {
     })
   }
 
-  const branchFilter = getBranchFilter(req)
+  const branchFilter = resolveQueryBranchFilter(req)
   const currentUserId = req.user?.id || req.user?._id
-  const isFullAccessRole = req.user?.role && BRANCH_BYPASS_ROLES.includes(req.user.role)
+  const isFullAccessRole = hasOwnershipBypass(req.user?.role)
   const result = await getQueryById({
     ...value,
     branchFilter,
@@ -115,9 +132,9 @@ export const updateQueryController = async (req, res) => {
     })
   }
 
-  const branchFilter = getBranchFilter(req)
+  const branchFilter = resolveQueryBranchFilter(req)
   const currentUserId = req.user?.id || req.user?._id
-  const isFullAccessRole = req.user?.role && BRANCH_BYPASS_ROLES.includes(req.user.role)
+  const isFullAccessRole = hasOwnershipBypass(req.user?.role)
   const result = await updateQuery({
     ...value,
     branchFilter,
@@ -143,9 +160,9 @@ export const deleteQueryController = async (req, res) => {
     })
   }
 
-  const branchFilter = getBranchFilter(req)
+  const branchFilter = resolveQueryBranchFilter(req)
   const currentUserId = req.user?.id || req.user?._id
-  const isFullAccessRole = req.user?.role && BRANCH_BYPASS_ROLES.includes(req.user.role)
+  const isFullAccessRole = hasOwnershipBypass(req.user?.role)
   const result = await deleteQuery({
     ...value,
     branchFilter,
@@ -171,9 +188,9 @@ export const listQueryActivitiesController = async (req, res) => {
     })
   }
 
-  const branchFilter = getBranchFilter(req)
+  const branchFilter = resolveQueryBranchFilter(req)
   const currentUserId = req.user?.id || req.user?._id
-  const isFullAccessRole = req.user?.role && BRANCH_BYPASS_ROLES.includes(req.user.role)
+  const isFullAccessRole = hasOwnershipBypass(req.user?.role)
   const result = await listQueryActivities({
     ...value,
     branchFilter,
@@ -199,9 +216,9 @@ export const recordQueryActivityController = async (req, res) => {
     })
   }
 
-  const branchFilter = getBranchFilter(req)
+  const branchFilter = resolveQueryBranchFilter(req)
   const currentUserId = req.user?.id || req.user?._id
-  const isFullAccessRole = req.user?.role && BRANCH_BYPASS_ROLES.includes(req.user.role)
+  const isFullAccessRole = hasOwnershipBypass(req.user?.role)
   const result = await recordQueryActivity({
     ...value,
     branchFilter,
@@ -228,9 +245,9 @@ export const convertQueryToQuotationController = async (req, res) => {
     })
   }
 
-  const branchFilter = getBranchFilter(req)
+  const branchFilter = resolveQueryBranchFilter(req)
   const created_by = req.user?.id || req.user?._id
-  const isFullAccessRole = req.user?.role && BRANCH_BYPASS_ROLES.includes(req.user.role)
+  const isFullAccessRole = hasOwnershipBypass(req.user?.role)
   const result = await convertQueryToQuotation({
     queryCode: value.queryCode,
     forceNewQuotation: !!value.forceNewQuotation,
@@ -259,9 +276,9 @@ export const exportQueryPdfController = async (req, res) => {
     })
   }
 
-  const branchFilter = getBranchFilter(req)
+  const branchFilter = resolveQueryBranchFilter(req)
   const currentUserId = req.user?.id || req.user?._id
-  const isFullAccessRole = req.user?.role && BRANCH_BYPASS_ROLES.includes(req.user.role)
+  const isFullAccessRole = hasOwnershipBypass(req.user?.role)
   const { buffer, queryCode } = await exportQueryPdf({
     ...value,
     branchFilter,
@@ -276,9 +293,9 @@ export const exportQueryPdfController = async (req, res) => {
 }
 
 export const getTodayDashboardStatsController = async (req, res) => {
-  const branchFilter = getBranchFilter(req, { allowQueryBranchId: true })
+  const branchFilter = resolveQueryBranchFilter(req, { allowQueryBranchId: true })
   const currentUserId = req.user?.id || req.user?._id
-  const isFullAccessRole = req.user?.role && BRANCH_BYPASS_ROLES.includes(req.user.role)
+  const isFullAccessRole = hasOwnershipBypass(req.user?.role)
 
   const result = await getTodayDashboardStats({
     branchFilter,
