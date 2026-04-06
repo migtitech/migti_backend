@@ -13,6 +13,7 @@ import { startAgenda, stopAgenda } from './core/queue/loyaltyPoints.js'
 import { startEmailQueue, stopEmailQueue } from './core/queue/emailQueue.js'
 import { seedPreferences } from './core/helpers/preferenceData.js'
 import { ensureAssetsDir } from './models/document.model.js'
+import { startTargetAnalyticsCron, stopTargetAnalyticsCron } from './services/targetAnalytics/targetAnalytics.cron.js'
 import { fileURLToPath } from 'url'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -96,11 +97,14 @@ startEmailQueue().catch((error) => {
   logger.error('Failed to start email queue:', error)
 })
 
+startTargetAnalyticsCron()
+
 // Graceful shutdown
 process.on('SIGINT', async () => {
   logger.info('Received SIGINT, shutting down gracefully...')
   await stopAgenda()
   await stopEmailQueue()
+  await stopTargetAnalyticsCron()
   process.exit(0)
 })
 
@@ -108,6 +112,7 @@ process.on('SIGTERM', async () => {
   logger.info('Received SIGTERM, shutting down gracefully...')
   await stopAgenda()
   await stopEmailQueue()
+  await stopTargetAnalyticsCron()
   process.exit(0)
 })
 

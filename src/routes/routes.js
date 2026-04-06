@@ -15,11 +15,12 @@ import industryRouter from './industry.routes.js'
 import industryBranchRouter from './industryBranch.routes.js'
 import queryRouter from './query.routes.js'
 import quotationRouter from './quotation.routes.js'
-import purchaseOrderRouter from './purchaseOrder.routes.js'
 import documentRouter from './document.routes.js'
 import purchaseTaskRouter from './purchaseTask.routes.js'
 import taskManagementRouter from './taskManagement.routes.js'
 import queryNewProductRouter from './queryNewProduct.routes.js'
+import poBillingRouter from './poBilling.routes.js'
+import visitRouter from './visit.routes.js'
 
 const mainRoutes = express.Router()
 mainRoutes.use((req, res, next) => {
@@ -54,10 +55,11 @@ mainRoutes.use('/v1/industries', industryRouter)
 mainRoutes.use('/v1/industry-branches', industryBranchRouter)
 mainRoutes.use('/v1/queries', queryRouter)
 mainRoutes.use('/v1/quotations', quotationRouter)
-mainRoutes.use('/v1/purchase-orders', purchaseOrderRouter)
 mainRoutes.use('/v1/documents', documentRouter)
 mainRoutes.use('/v1/purchase-tasks', purchaseTaskRouter)
 mainRoutes.use('/v1/task-management', taskManagementRouter)
 mainRoutes.use('/v1/query-new-products', queryNewProductRouter)
+mainRoutes.use('/v1/po-billing', poBillingRouter)
+mainRoutes.use('/v1/visits', visitRouter)
 
 export default mainRoutes

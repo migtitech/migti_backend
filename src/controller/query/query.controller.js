@@ -9,6 +9,12 @@ import {
   deleteQuerySchema,
   listQueryActivitiesSchema,
   recordQueryActivitySchema,
+  linkConvertedQuotationSchema,
+  convertQueryToQuotationSchema,
+  branchAnalyticsSchema,
+  targetAnalyticsSchema,
+  listTargetAnalyticsSchema,
+  targetSummarySchema,
 } from '../../validator/query/query.validator.js'
 import {
   addQuery,
@@ -19,9 +25,14 @@ import {
   listQueryActivities,
   recordQueryActivity,
   getTodayDashboardStats,
+  convertQueryToQuotation,
+  linkConvertedQuotationToQuery,
+  getBranchAnalytics,
+  getTargetAnalytics,
+  upsertTargetAnalytics,
+  getTargetSummary,
 } from '../../services/query/query.service.js'
-import { convertQueryToQuotationSchema } from '../../validator/query/query.validator.js'
-import { convertQueryToQuotation } from '../../services/query/query.service.js'
+import { archiveExpiredTargets } from '../../services/targetAnalytics/targetAnalytics.service.js'
 import { exportQueryPdf } from '../../services/query/queryPdfExport.service.js'
 
 const normalizeRole = (role) => String(role || '').trim().toLowerCase().replace(/[\s-]+/g, '_')
@@ -232,6 +243,36 @@ export const recordQueryActivityController = async (req, res) => {
   })
 }
 
+export const linkConvertedQuotationController = async (req, res) => {
+  const { error, value } = linkConvertedQuotationSchema.validate(req.body, {
+    abortEarly: false,
+  })
+  if (error) {
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: Message.validationError,
+      error: error.details.map((d) => d.message),
+    })
+  }
+
+  const branchFilter = resolveQueryBranchFilter(req)
+  const currentUserId = req.user?.id || req.user?._id
+  const isFullAccessRole = hasOwnershipBypass(req.user?.role)
+  const result = await linkConvertedQuotationToQuery({
+    queryId: value.queryId,
+    quotationId: value.quotationId,
+    quotationCode: value.quotationCode,
+    branchFilter,
+    currentUserId: currentUserId || null,
+    isFullAccessRole: !!isFullAccessRole,
+  })
+  return res.status(statusCodes.ok).json({
+    success: true,
+    message: 'Quotation linked to query successfully',
+    data: result,
+  })
+}
+
 export const convertQueryToQuotationController = async (req, res) => {
   const payload = { ...req.query, ...req.body }
   const { error, value } = convertQueryToQuotationSchema.validate(payload, {
@@ -306,6 +347,121 @@ export const getTodayDashboardStatsController = async (req, res) => {
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Today dashboard stats retrieved successfully',
+    data: result,
+  })
+}
+
+export const getBranchAnalyticsController = async (req, res) => {
+  const { error, value } = branchAnalyticsSchema.validate(req.query, {
+    abortEarly: false,
+  })
+  if (error) {
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: Message.validationError,
+      error: error.details.map((d) => d.message),
+    })
+  }
+
+  const branchFilter = resolveQueryBranchFilter(req, { allowQueryBranchId: true })
+  const currentUserId = req.user?.id || req.user?._id
+  const isFullAccessRole = hasOwnershipBypass(req.user?.role)
+  const result = await getBranchAnalytics({
+    ...value,
+    branchFilter,
+    currentUserId: currentUserId || null,
+    isFullAccessRole: !!isFullAccessRole,
+  })
+
+  return res.status(statusCodes.ok).json({
+    success: true,
+    message: 'Branch analytics retrieved successfully',
+    data: result,
+  })
+}
+
+export const getTargetAnalyticsController = async (req, res) => {
+  const { error, value } = listTargetAnalyticsSchema.validate(req.query, {
+    abortEarly: false,
+  })
+  if (error) {
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: Message.validationError,
+      error: error.details.map((d) => d.message),
+    })
+  }
+
+  const branchFilter = resolveQueryBranchFilter(req, { allowQueryBranchId: true })
+  const result = await getTargetAnalytics({
+    ...value,
+    branchFilter,
+  })
+
+  return res.status(statusCodes.ok).json({
+    success: true,
+    message: 'Target analytics retrieved successfully',
+    data: result,
+  })
+}
+
+export const upsertTargetAnalyticsController = async (req, res) => {
+  const { error, value } = targetAnalyticsSchema.validate(req.body, {
+    abortEarly: false,
+  })
+  if (error) {
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: Message.validationError,
+      error: error.details.map((d) => d.message),
+    })
+  }
+
+  const branchFilter = resolveQueryBranchFilter(req, { allowQueryBranchId: true })
+  const userId = req.user?.id || req.user?._id
+  const result = await upsertTargetAnalytics({
+    ...value,
+    userId,
+    branchFilter,
+  })
+
+  return res.status(statusCodes.ok).json({
+    success: true,
+    message: 'Target analytics updated successfully',
+    data: result,
+  })
+}
+
+export const runTargetAnalyticsArchiveController = async (req, res) => {
+  const result = await archiveExpiredTargets()
+  return res.status(statusCodes.ok).json({
+    success: true,
+    message: 'Target analytics archive run completed',
+    data: result,
+  })
+}
+
+export const getTargetSummaryController = async (req, res) => {
+  const { error, value } = targetSummarySchema.validate(req.query, {
+    abortEarly: false,
+  })
+  if (error) {
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: Message.validationError,
+      error: error.details.map((d) => d.message),
+    })
+  }
+
+  const branchFilter = resolveQueryBranchFilter(req, { allowQueryBranchId: true })
+  const result = await getTargetSummary({
+    ...value,
+    branchFilter,
+  })
+
+  return res.status(statusCodes.ok).json({
+    success: true,
+    message: 'Target summary retrieved successfully',
     data: result,
   })
 }

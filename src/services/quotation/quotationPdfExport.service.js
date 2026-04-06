@@ -90,6 +90,13 @@ const formatVariants = (variants) => {
     .join(', ') || '—'
 }
 
+const parseChargeNumeric = (value) => {
+  if (value == null || value === '') return 0
+  const compact = String(value).replace(/,/g, '').replace(/\s/g, '')
+  const num = parseFloat(compact)
+  return Number.isFinite(num) && num >= 0 ? num : 0
+}
+
 /**
  * Build HTML for quotation PDF to match structured design.
  * Uses existing quotation data plus branch/company (for header).
@@ -167,6 +174,11 @@ const buildHtml = (quotation, orgContext = {}) => {
     queryCompanyInfo.email ||
     industry.email ||
     ''
+  const customerGstNumber =
+    ci.gstNumber ||
+    queryCompanyInfo.gstNumber ||
+    industry.gstNumber ||
+    ''
 
   const shippingAddress = customerAddress
   const shippingContactPerson = customerContactPerson
@@ -203,13 +215,13 @@ const buildHtml = (quotation, orgContext = {}) => {
           </td>
           <td class="cell text-center">${escapeHtml(variantsText)}</td>
           <td class="cell text-center">${escapeHtml(hsn)}</td>
-          <td class="cell text-center image-cell">${imgHtml}</td>
-          <td class="cell text-center">${Number(p.quantity) || ''}</td>
-          <td class="cell text-center">${escapeHtml(p.unit || '')}</td>
           <td class="cell text-right">—</td>
           ${hasDiscount ? '<td class="cell text-right">—</td>' : ''}
+          <td class="cell text-center">${Number(p.quantity) || ''}</td>
+          <td class="cell text-center">${escapeHtml(p.unit || '')}</td>
           <td class="cell text-center">—</td>
           <td class="cell text-right">—</td>
+          <td class="cell text-center image-cell">${imgHtml}</td>
           <td class="cell">${reasonCell || '—'}</td>
         </tr>
       `
@@ -253,21 +265,33 @@ const buildHtml = (quotation, orgContext = {}) => {
           </td>
           <td class="cell text-center">${escapeHtml(variantsText)}</td>
           <td class="cell text-center">${escapeHtml(hsn)}</td>
-          <td class="cell text-center image-cell">${imgHtml}</td>
-          <td class="cell text-center">${qty || ''}</td>
-          <td class="cell text-center">${escapeHtml(p.unit || '')}</td>
           <td class="cell text-right">${rate ? formatCurrency(rate) : ''}</td>
           ${hasDiscount ? `<td class="cell text-right">${discountCell}</td>` : ''}
+          <td class="cell text-center">${qty || ''}</td>
+          <td class="cell text-center">${escapeHtml(p.unit || '')}</td>
           <td class="cell text-center">${gstPercent ? gstPercent.toFixed(2) + '%' : '—'}</td>
           <td class="cell text-right">${taxable ? formatCurrency(taxable) : ''}</td>
+          <td class="cell text-center image-cell">${imgHtml}</td>
           <td class="cell">—</td>
         </tr>
       `
     })
     .join('')
 
-  const freightCharge = Number(quotation.freightCharge) >= 0 ? Number(quotation.freightCharge) : 0
+  const freightCharge = parseChargeNumeric(quotation.freightCharge)
   const packingCharge = Number(quotation.packingCharge) >= 0 ? Number(quotation.packingCharge) : 0
+  const freightChargePdfCell = (() => {
+    const raw = quotation.freightCharge
+    if (raw == null || raw === '') return '—'
+    const str = String(raw).trim()
+    if (str === '') return '—'
+    const compact = str.replace(/,/g, '').replace(/\s/g, '')
+    if (/^\d*\.?\d+$/.test(compact)) {
+      const num = parseFloat(compact)
+      return `₹${formatCurrency(Number.isFinite(num) && num >= 0 ? num : 0)}`
+    }
+    return escapeHtml(str)
+  })()
   const taxableAfterCharges = totalTaxable + freightCharge + packingCharge
   const totalAmount = taxableAfterCharges + totalGstAmount
 
@@ -556,6 +580,10 @@ const buildHtml = (quotation, orgContext = {}) => {
             <td class="info-label">Email</td>
             <td class="info-value">${escapeHtml(customerEmail || '')}</td>
           </tr>
+          <tr>
+            <td class="info-label">GST Number</td>
+            <td class="info-value">${escapeHtml(customerGstNumber || '')}</td>
+          </tr>
         </table>
       </td>
       <td class="details-block" style="width: 45%;">
@@ -586,13 +614,13 @@ const buildHtml = (quotation, orgContext = {}) => {
         <th>Item Name &amp; Description</th>
         <th>Variants</th>
         <th>HSN Code</th>
-        <th>Photo</th>
-        <th>Qty.</th>
-        <th>Unit</th>
         <th>Unit Price</th>
         ${hasDiscount ? '<th>Discount</th>' : ''}
+        <th>Qty.</th>
+        <th>Unit</th>
         <th>GST %</th>
         <th>Total</th>
+        <th>Photo</th>
         <th>Reason</th>
       </tr>
     </thead>
@@ -621,7 +649,7 @@ const buildHtml = (quotation, orgContext = {}) => {
         </tr>
         <tr>
           <td class="summary-label">Freight Charge</td>
-          <td class="summary-value">₹${formatCurrency(freightCharge)}</td>
+          <td class="summary-value">${freightChargePdfCell}</td>
         </tr>
         <tr>
           <td class="summary-label">Packing Charge</td>

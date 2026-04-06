@@ -11,8 +11,14 @@ import {
   listQueryActivitiesController,
   recordQueryActivityController,
   convertQueryToQuotationController,
+  linkConvertedQuotationController,
   exportQueryPdfController,
   getTodayDashboardStatsController,
+  getBranchAnalyticsController,
+  getTargetAnalyticsController,
+  upsertTargetAnalyticsController,
+  runTargetAnalyticsArchiveController,
+  getTargetSummaryController,
 } from '../controller/query/query.controller.js'
 
 const queryRouter = Router()
@@ -20,6 +26,11 @@ const queryRouter = Router()
 queryRouter.post('/create', authenticateToken, checkPermission(MODULES.QUERIES, 'create'), asyncHandler(createQueryController))
 queryRouter.get('/list', authenticateToken, checkPermission(MODULES.QUERIES, 'read'), asyncHandler(listQueriesController))
 queryRouter.get('/today-stats', authenticateToken, checkPermission(MODULES.QUERIES, 'read'), asyncHandler(getTodayDashboardStatsController))
+queryRouter.get('/branch-analytics', authenticateToken, checkPermission(MODULES.QUERIES, 'read'), asyncHandler(getBranchAnalyticsController))
+queryRouter.get('/target-analytics', authenticateToken, checkPermission(MODULES.QUERIES, 'read'), asyncHandler(getTargetAnalyticsController))
+queryRouter.get('/target-analytics/summary', authenticateToken, checkPermission(MODULES.QUERIES, 'read'), asyncHandler(getTargetSummaryController))
+queryRouter.post('/target-analytics', authenticateToken, checkPermission(MODULES.QUERIES, 'update'), asyncHandler(upsertTargetAnalyticsController))
+queryRouter.post('/target-analytics/archive', authenticateToken, checkPermission(MODULES.QUERIES, 'update'), asyncHandler(runTargetAnalyticsArchiveController))
 queryRouter.get('/get-by-id', authenticateToken, checkPermission(MODULES.QUERIES, 'read'), asyncHandler(getQueryByIdController))
 queryRouter.get('/export-pdf', authenticateToken, checkPermission(MODULES.QUERIES, 'read'), asyncHandler(exportQueryPdfController))
 queryRouter.put('/update', authenticateToken, checkPermission(MODULES.QUERIES, 'update'), asyncHandler(updateQueryController))
@@ -31,6 +42,12 @@ queryRouter.post(
   authenticateToken,
   checkPermission(MODULES.QUERIES, 'update'),
   asyncHandler(convertQueryToQuotationController),
+)
+queryRouter.post(
+  '/link-converted-quotation',
+  authenticateToken,
+  checkPermission(MODULES.QUERIES, 'update'),
+  asyncHandler(linkConvertedQuotationController),
 )
 
 export default queryRouter

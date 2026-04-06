@@ -1,5 +1,7 @@
 import QueryModel from '../../models/query.model.js'
 import QuotationModel from '../../models/quotation.model.js'
+import PoEntryModel from '../../models/poEntry.model.js'
+import BillingEntryModel from '../../models/billingEntry.model.js'
 import QueryActivityModel from '../../models/queryActivity.model.js'
 import EmployeeModel from '../../models/employee.model.js'
 import AdminModel from '../../models/admin.model.js'
@@ -17,6 +19,11 @@ import {
 } from '../quotation/quotation.service.js'
 import { createDraftTasksForQueryProducts } from '../taskManagement/taskManagement.service.js'
 import { getNextSequence } from '../codeSequence/codeSequence.service.js'
+import {
+  getTargetAnalytics as getTargetAnalyticsData,
+  upsertTargetAnalytics as upsertTargetAnalyticsData,
+  getTargetSummary as getTargetSummaryData,
+} from '../targetAnalytics/targetAnalytics.service.js'
 
 const OBJECT_ID_REGEX = /^[a-fA-F0-9]{24}$/
 
@@ -135,11 +142,25 @@ export const addQuery = async ({
   return queryObj
 }
 
+const startOfUtcDay = (yyyyMmDd) => {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(yyyyMmDd || '').trim())
+  if (!m) return null
+  return new Date(`${m[1]}-${m[2]}-${m[3]}T00:00:00.000Z`)
+}
+
+const endOfUtcDay = (yyyyMmDd) => {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(yyyyMmDd || '').trim())
+  if (!m) return null
+  return new Date(`${m[1]}-${m[2]}-${m[3]}T23:59:59.999Z`)
+}
+
 export const listQueries = async ({
   pageNumber = 1,
   pageSize = 10,
   search = '',
   status = '',
+  dateFrom = '',
+  dateTo = '',
   branchFilter = {},
   currentUserId = null,
   isFullAccessRole = true,
@@ -152,6 +173,21 @@ export const listQueries = async ({
   const filter = { isDeleted: false, ...branchFilter, ...ownershipFilter }
   if (status && status.trim()) {
     filter.status = status.trim()
+  }
+
+  let fromD = dateFrom && String(dateFrom).trim() ? startOfUtcDay(dateFrom) : null
+  let toD = dateTo && String(dateTo).trim() ? endOfUtcDay(dateTo) : null
+  if (fromD && toD && fromD > toD) {
+    throw new CustomError(
+      statusCodes.badRequest,
+      'dateFrom must be on or before dateTo',
+      errorCodes.bad_request,
+    )
+  }
+  if (fromD || toD) {
+    filter.createdAt = {}
+    if (fromD) filter.createdAt.$gte = fromD
+    if (toD) filter.createdAt.$lte = toD
   }
 
   if (search && search.trim()) {
@@ -176,10 +212,12 @@ export const listQueries = async ({
     .limit(limit)
     .lean()
 
+  const queriesWithRefs = await mergeQuotationRefsForQueries(queries)
+
   const totalPages = Math.ceil(totalItems / limit)
 
   return {
-    queries,
+    queries: queriesWithRefs,
     pagination: {
       currentPage: page,
       totalPages,
@@ -355,6 +393,7 @@ export const updateQuery = async ({
   products,
   delivery,
   status,
+  close_remark,
   branchFilter = {},
   currentUserId = null,
   isFullAccessRole = true,
@@ -369,12 +408,21 @@ export const updateQuery = async ({
     )
   }
 
+  if (existing.status === 'closed') {
+    throw new CustomError(
+      statusCodes.badRequest,
+      'This query is closed and cannot be updated',
+      errorCodes.bad_request,
+    )
+  }
+
   const updatePayload = {}
   if (companyInfo !== undefined) updatePayload.companyInfo = companyInfo
   if (industry_id !== undefined) updatePayload.industry_id = industry_id || null
   if (products !== undefined) updatePayload.products = mapProductsWithImages(products)
   if (delivery !== undefined) updatePayload.delivery = delivery
   if (status !== undefined) updatePayload.status = status
+  if (close_remark !== undefined) updatePayload.close_remark = close_remark
 
   const updated = await QueryModel.findByIdAndUpdate(
     queryId,
@@ -414,6 +462,38 @@ export const deleteQuery = async ({
   }
 }
 
+export const linkConvertedQuotationToQuery = async ({
+  queryId,
+  quotationId,
+  quotationCode = '',
+  branchFilter = {},
+  currentUserId = null,
+  isFullAccessRole = true,
+}) => {
+  const ownershipFilter = getQueryOwnershipFilter({ currentUserId, isFullAccessRole })
+  const existing = await QueryModel.findOne({
+    _id: queryId,
+    isDeleted: false,
+    ...branchFilter,
+    ...ownershipFilter,
+  }).lean()
+  if (!existing) {
+    throw new CustomError(
+      statusCodes.notFound,
+      'Query not found',
+      errorCodes.not_found,
+    )
+  }
+
+  await appendConvertedQuotationOnQuery(queryId, quotationId, quotationCode)
+
+  return {
+    queryId: String(queryId),
+    quotationId: String(quotationId),
+    quotationCode: String(quotationCode || '').trim(),
+  }
+}
+
 export const convertQueryToQuotation = async ({
   queryCode,
   forceNewQuotation = false,
@@ -438,6 +518,14 @@ export const convertQueryToQuotation = async ({
       statusCodes.notFound,
       'Query not found',
       errorCodes.not_found,
+    )
+  }
+
+  if (existing.status === 'closed') {
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Cannot convert a closed query to quotation',
+      errorCodes.bad_request,
     )
   }
 
@@ -556,4 +644,248 @@ export const getTodayDashboardStats = async ({
     todayQuotationCount,
     todayQuotedAmount,
   }
+}
+
+const getRangeFromPeriod = (period = 'all') => {
+  const now = new Date()
+  const end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999))
+  let start = null
+  if (period === 'daily') {
+    start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0))
+  } else if (period === 'weekly') {
+    start = new Date(end)
+    start.setUTCDate(start.getUTCDate() - 6)
+    start.setUTCHours(0, 0, 0, 0)
+  } else if (period === 'monthly') {
+    start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0))
+  } else if (period === 'yearly') {
+    start = new Date(Date.UTC(now.getUTCFullYear(), 0, 1, 0, 0, 0, 0))
+  }
+  return { start, end }
+}
+
+const asObjectIdString = (value) => {
+  if (!value) return ''
+  if (typeof value === 'object' && value._id) return String(value._id)
+  return String(value)
+}
+
+export const getBranchAnalytics = async ({
+  branchId = '',
+  period = 'all',
+  dateFrom = '',
+  dateTo = '',
+  tab = 'queries',
+  pageNumber = 1,
+  pageSize = 10,
+  branchFilter = {},
+  currentUserId = null,
+  isFullAccessRole = true,
+}) => {
+  const page = Math.max(1, parseInt(pageNumber))
+  const limit = Math.min(100, Math.max(1, parseInt(pageSize)))
+  const skip = (page - 1) * limit
+  const ownershipFilter = getQueryOwnershipFilter({ currentUserId, isFullAccessRole })
+
+  const queryBaseFilter = { isDeleted: false, ...ownershipFilter, ...branchFilter }
+  const quotationBaseFilter = { isDeleted: false, ...branchFilter }
+  const poBaseFilter = { isDeleted: false, ...branchFilter }
+  const billingBaseFilter = { isDeleted: false, ...branchFilter }
+
+  if (branchId && String(branchId).trim() && !queryBaseFilter.branchId) {
+    queryBaseFilter.branchId = branchId
+  }
+  if (branchId && String(branchId).trim() && !quotationBaseFilter.branchId) {
+    quotationBaseFilter.branchId = branchId
+  }
+  if (branchId && String(branchId).trim() && !poBaseFilter.branchId) {
+    poBaseFilter.branchId = branchId
+  }
+  if (branchId && String(branchId).trim() && !billingBaseFilter.branchId) {
+    billingBaseFilter.branchId = branchId
+  }
+
+  let fromD = dateFrom && String(dateFrom).trim() ? startOfUtcDay(dateFrom) : null
+  let toD = dateTo && String(dateTo).trim() ? endOfUtcDay(dateTo) : null
+  if (!fromD && !toD && period && period !== 'all') {
+    const range = getRangeFromPeriod(period)
+    fromD = range.start
+    toD = range.end
+  }
+  if (fromD && toD && fromD > toD) {
+    throw new CustomError(
+      statusCodes.badRequest,
+      'dateFrom must be on or before dateTo',
+      errorCodes.bad_request,
+    )
+  }
+  if (fromD || toD) {
+    queryBaseFilter.createdAt = {}
+    quotationBaseFilter.createdAt = {}
+    poBaseFilter.entryDate = {}
+    billingBaseFilter.entryDate = {}
+    if (fromD) {
+      queryBaseFilter.createdAt.$gte = fromD
+      quotationBaseFilter.createdAt.$gte = fromD
+      poBaseFilter.entryDate.$gte = fromD
+      billingBaseFilter.entryDate.$gte = fromD
+    }
+    if (toD) {
+      queryBaseFilter.createdAt.$lte = toD
+      quotationBaseFilter.createdAt.$lte = toD
+      poBaseFilter.entryDate.$lte = toD
+      billingBaseFilter.entryDate.$lte = toD
+    }
+  }
+
+  if (currentUserId && !isFullAccessRole) {
+    const ownQueryIds = await QueryModel.find({
+      isDeleted: false,
+      ...branchFilter,
+      created_by: currentUserId,
+    })
+      .select('_id')
+      .lean()
+    quotationBaseFilter.queryId = { $in: ownQueryIds.map((q) => q._id) }
+  }
+
+  const [totalQueries, totalQuotation, totalPo, totalBilling, poAmountAgg, billingAmountAgg] = await Promise.all([
+    QueryModel.countDocuments(queryBaseFilter),
+    QuotationModel.countDocuments(quotationBaseFilter),
+    PoEntryModel.countDocuments(poBaseFilter),
+    BillingEntryModel.countDocuments(billingBaseFilter),
+    PoEntryModel.aggregate([
+      { $match: poBaseFilter },
+      { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]),
+    BillingEntryModel.aggregate([
+      { $match: billingBaseFilter },
+      { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]),
+  ])
+
+  const quotedAmountDocs = await QuotationModel.find(quotationBaseFilter)
+    .select('products')
+    .lean()
+  const quotedAmount = quotedAmountDocs.reduce(
+    (sum, q) => sum + computeQuotationAmount(q?.products || []),
+    0,
+  )
+  const poAmount = poAmountAgg?.[0]?.total || 0
+  const billingAmount = billingAmountAgg?.[0]?.total || 0
+
+  let rows = []
+  let totalItems = 0
+  if (tab === 'queries') {
+    totalItems = totalQueries
+    rows = await QueryModel.find(queryBaseFilter)
+      .select('queryCode status companyInfo createdAt branchId')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean()
+    rows = rows.map((item) => ({
+      _id: item._id,
+      queryCode: item.queryCode || '',
+      status: item.status || '',
+      companyInfo: item.companyInfo || {},
+      branchId: asObjectIdString(item.branchId),
+      createdAt: item.createdAt,
+    }))
+  } else if (tab === 'quotations') {
+    totalItems = totalQuotation
+    rows = await QuotationModel.find(quotationBaseFilter)
+      .select('quotationCode status companyInfo createdAt branchId totalAmount products')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean()
+    rows = rows.map((item) => ({
+      _id: item._id,
+      quotationCode: item.quotationCode || '',
+      status: item.status || '',
+      companyInfo: item.companyInfo || {},
+      branchId: asObjectIdString(item.branchId),
+      totalAmount: typeof item.totalAmount === 'number'
+        ? item.totalAmount
+        : computeQuotationAmount(item?.products || []),
+      createdAt: item.createdAt,
+    }))
+  } else if (tab === 'po') {
+    totalItems = totalPo
+    rows = await PoEntryModel.find(poBaseFilter)
+      .select('poNumber amount entryDate remark companyId salespersonId createdAt')
+      .populate('companyId', 'name')
+      .populate('salespersonId', 'name')
+      .sort({ entryDate: -1, createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean()
+    rows = rows.map((item) => ({
+      _id: item._id,
+      poNumber: item.poNumber || '',
+      companyName: item.companyId?.name || '-',
+      salespersonName: item.salespersonId?.name || '-',
+      amount: Number(item.amount) || 0,
+      entryDate: item.entryDate || item.createdAt,
+      remark: item.remark || '',
+    }))
+  } else if (tab === 'billing') {
+    totalItems = totalBilling
+    rows = await BillingEntryModel.find(billingBaseFilter)
+      .select('billingNumber amount entryDate remark companyId salespersonId createdAt')
+      .populate('companyId', 'name')
+      .populate('salespersonId', 'name')
+      .sort({ entryDate: -1, createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean()
+    rows = rows.map((item) => ({
+      _id: item._id,
+      billingNumber: item.billingNumber || '',
+      companyName: item.companyId?.name || '-',
+      salespersonName: item.salespersonId?.name || '-',
+      amount: Number(item.amount) || 0,
+      entryDate: item.entryDate || item.createdAt,
+      remark: item.remark || '',
+    }))
+  }
+
+  const totalPages = Math.max(1, Math.ceil(totalItems / limit))
+
+  return {
+    metrics: {
+      totalQueries,
+      totalQuotation,
+      quotedAmount,
+      totalPo,
+      poAmount,
+      totalBilling,
+      billingAmount,
+    },
+    table: {
+      tab,
+      rows,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalItems,
+        itemsPerPage: limit,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      },
+    },
+  }
+}
+
+export const getTargetAnalytics = async (params = {}) => {
+  return getTargetAnalyticsData(params)
+}
+
+export const upsertTargetAnalytics = async (params = {}) => {
+  return upsertTargetAnalyticsData(params)
+}
+
+export const getTargetSummary = async (params = {}) => {
+  return getTargetSummaryData(params)
 }

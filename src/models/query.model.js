@@ -105,6 +105,11 @@ const querySchema = new mongoose.Schema(
       type: [convertedQuotationRefSchema],
       default: [],
     },
+    close_remark: {
+      type: SchemaTypes.String,
+      trim: true,
+      default: '',
+    },
   },
   { timestamps: true },
 )

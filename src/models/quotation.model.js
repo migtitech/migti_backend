@@ -126,7 +126,7 @@ const quotationSchema = new mongoose.Schema(
       trim: true,
       default: '',
     },
-    freightCharge: { type: SchemaTypes.Number, min: 0, default: 0 },
+    freightCharge: { type: SchemaTypes.String, trim: true, default: '' },
     packingCharge: { type: SchemaTypes.Number, min: 0, default: 0 },
     expectedDeliveryDate: { type: SchemaTypes.Date, default: null },
     expectedDeliveryWithinDays: { type: SchemaTypes.Number, min: 0, default: null },

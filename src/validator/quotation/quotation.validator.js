@@ -45,6 +45,10 @@ const quotationProductItemSchema = Joi.object({
 
 const quotationStatusValues = Object.values(QUOTATION_STATUS)
 
+const dateOnlySchema = Joi.string()
+  .pattern(/^\d{4}-\d{2}-\d{2}$/)
+  .messages({ 'string.pattern.base': 'Date must be YYYY-MM-DD' })
+
 export const listQuotationSchema = Joi.object({
   pageNumber: Joi.number().integer().min(1).default(1),
   pageSize: Joi.number().integer().min(1).max(100).default(10),
@@ -53,6 +57,8 @@ export const listQuotationSchema = Joi.object({
     .valid(...quotationStatusValues, 'drafted', 'hod approved', 'hod-approved')
     .allow('')
     .optional(),
+  dateFrom: Joi.alternatives().try(Joi.string().valid(''), dateOnlySchema).optional(),
+  dateTo: Joi.alternatives().try(Joi.string().valid(''), dateOnlySchema).optional(),
 })
 
 export const getQuotationByIdSchema = Joi.object({
@@ -76,7 +82,13 @@ export const updateQuotationSchema = Joi.object({
   companyInfo: companyInfoSchema.optional(),
   industry_id: Joi.string().allow(null, '').optional(),
   products: Joi.array().items(quotationProductItemSchema).optional(),
-  freightCharge: Joi.number().min(0).optional(),
+  freightCharge: Joi.any()
+    .optional()
+    .custom((v) => {
+      if (v === undefined) return undefined
+      if (v == null || v === '') return ''
+      return String(v).trim()
+    }),
   packingCharge: Joi.number().min(0).optional(),
   expectedDeliveryDate: Joi.date().allow(null).optional(),
   expectedDeliveryWithinDays: Joi.number().integer().min(0).allow(null).optional(),

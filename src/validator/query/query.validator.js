@@ -48,11 +48,47 @@ export const createQuerySchema = Joi.object({
   created_by: Joi.string().allow(null, '').optional(),
 })
 
+const dateOnlySchema = Joi.string()
+  .pattern(/^\d{4}-\d{2}-\d{2}$/)
+  .messages({ 'string.pattern.base': 'Date must be YYYY-MM-DD' })
+
 export const listQuerySchema = Joi.object({
   pageNumber: Joi.number().integer().min(1).default(1),
   pageSize: Joi.number().integer().min(1).max(100).default(10),
   search: Joi.string().allow('').optional(),
   status: Joi.string().valid(...queryStatusValues).allow('').optional(),
+  dateFrom: Joi.alternatives().try(Joi.string().valid(''), dateOnlySchema).optional(),
+  dateTo: Joi.alternatives().try(Joi.string().valid(''), dateOnlySchema).optional(),
+})
+
+export const branchAnalyticsSchema = Joi.object({
+  branchId: Joi.string().pattern(/^[a-fA-F0-9]{24}$/).allow('').optional(),
+  period: Joi.string().valid('all', 'daily', 'weekly', 'monthly', 'yearly').default('all'),
+  dateFrom: Joi.alternatives().try(Joi.string().valid(''), dateOnlySchema).optional(),
+  dateTo: Joi.alternatives().try(Joi.string().valid(''), dateOnlySchema).optional(),
+  tab: Joi.string().valid('queries', 'quotations', 'po', 'billing').default('queries'),
+  pageNumber: Joi.number().integer().min(1).default(1),
+  pageSize: Joi.number().integer().min(1).max(100).default(10),
+})
+
+export const targetAnalyticsSchema = Joi.object({
+  branchId: Joi.string().pattern(/^[a-fA-F0-9]{24}$/).required(),
+  period: Joi.string().valid('weekly', 'monthly').required(),
+  dateFrom: dateOnlySchema.required(),
+  dateTo: dateOnlySchema.required(),
+  targetAmount: Joi.number().min(0).required(),
+})
+
+export const listTargetAnalyticsSchema = Joi.object({
+  branchId: Joi.string().pattern(/^[a-fA-F0-9]{24}$/).allow('').optional(),
+  period: Joi.string().valid('', 'weekly', 'monthly').optional(),
+  dateFrom: Joi.alternatives().try(Joi.string().valid(''), dateOnlySchema).optional(),
+  dateTo: Joi.alternatives().try(Joi.string().valid(''), dateOnlySchema).optional(),
+})
+
+export const targetSummarySchema = Joi.object({
+  branchId: Joi.string().pattern(/^[a-fA-F0-9]{24}$/).required(),
+  period: Joi.string().valid('weekly', 'monthly').required(),
 })
 
 export const getQueryByIdSchema = Joi.object({
@@ -65,6 +101,7 @@ export const updateQuerySchema = Joi.object({
   industry_id: Joi.string().allow(null, '').optional(),
   products: Joi.array().items(productItemSchema).optional(),
   status: Joi.string().valid(...queryStatusValues).optional(),
+  close_remark: Joi.string().allow('').optional(),
 })
 
 export const listQueryActivitiesSchema = Joi.object({
@@ -86,6 +123,12 @@ export const recordQueryActivitySchema = Joi.object({
 
 export const deleteQuerySchema = Joi.object({
   queryId: Joi.string().required(),
+})
+
+export const linkConvertedQuotationSchema = Joi.object({
+  queryId: objectIdSchema.required(),
+  quotationId: objectIdSchema.required(),
+  quotationCode: Joi.string().allow('').optional().default(''),
 })
 
 export const convertQueryToQuotationSchema = Joi.object({

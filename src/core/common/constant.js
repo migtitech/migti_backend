@@ -376,6 +376,7 @@ export const MODULES = Object.freeze({
   FINANCE: 'finance',
   FOLLOW_UP: 'follow_up',
   EMPLOYEES: 'employees',
+  VISITS: 'visits',
 })
 
 // RBAC Actions

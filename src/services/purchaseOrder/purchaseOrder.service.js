@@ -173,7 +173,7 @@ export const createPurchaseOrderFromQuotation = async ({
     remark: (quotation.remark || '').trim(),
     created_by: created_by || quotation.created_by || null,
     branchId: quotation.branchId || null,
-    freightCharge: quotation.freightCharge ?? 0,
+    freightCharge: quotationFreightToPoNumber(quotation.freightCharge),
     packingCharge: quotation.packingCharge ?? 0,
     expectedDeliveryDate: quotation.expectedDeliveryDate ?? null,
     expectedDeliveryWithinDays: quotation.expectedDeliveryWithinDays ?? null,

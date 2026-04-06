@@ -40,13 +40,6 @@ export const appendConvertedQuotationOnQuery = async (queryId, quotationId, quot
   )
 }
 
-const normalizeRole = (role) => String(role || '').trim().toLowerCase().replace(/[\s-]+/g, '_')
-const isBackOfficeRole = (role) => {
-  const normalized = normalizeRole(role)
-  if (['back_office_exicutive', 'back_office_executive', 'boe'].includes(normalized)) return true
-  return normalized.replace(/_/g, '').includes('backoffice')
-}
-
 /** Company name to first 5 chars (alphanumeric, uppercase). Fallback if empty. */
 const companyFirst5 = (name) => {
   const s = (name || '')
@@ -189,7 +182,7 @@ export const createQuotationFromQuery = async ({
     remark: (remark || '').trim(),
     created_by: created_by || null,
     branchId: branchId || query.branchId || null,
-    freightCharge: 0,
+    freightCharge: '',
     packingCharge: 0,
     expectedDeliveryDate: null,
     expectedDeliveryWithinDays: null,
@@ -208,11 +201,25 @@ export const createQuotationFromQuery = async ({
   return created
 }
 
+const startOfUtcDay = (yyyyMmDd) => {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(yyyyMmDd || '').trim())
+  if (!m) return null
+  return new Date(`${m[1]}-${m[2]}-${m[3]}T00:00:00.000Z`)
+}
+
+const endOfUtcDay = (yyyyMmDd) => {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(yyyyMmDd || '').trim())
+  if (!m) return null
+  return new Date(`${m[1]}-${m[2]}-${m[3]}T23:59:59.999Z`)
+}
+
 export const listQuotations = async ({
   pageNumber = 1,
   pageSize = 10,
   search = '',
   status = '',
+  dateFrom = '',
+  dateTo = '',
   branchFilter = {},
   currentUserId = null,
   isFullAccessRole = true,
@@ -231,6 +238,21 @@ export const listQuotations = async ({
   }
   if (status && status.trim()) {
     filter.status = normalizeStatusFilter(status)
+  }
+
+  let fromD = dateFrom && String(dateFrom).trim() ? startOfUtcDay(dateFrom) : null
+  let toD = dateTo && String(dateTo).trim() ? endOfUtcDay(dateTo) : null
+  if (fromD && toD && fromD > toD) {
+    throw new CustomError(
+      statusCodes.badRequest,
+      'dateFrom must be on or before dateTo',
+      errorCodes.bad_request,
+    )
+  }
+  if (fromD || toD) {
+    filter.createdAt = {}
+    if (fromD) filter.createdAt.$gte = fromD
+    if (toD) filter.createdAt.$lte = toD
   }
 
   // For employees (non-admin): show only quotations that came from queries they created.
@@ -298,7 +320,7 @@ export const getQuotationById = async ({
     ...branchFilter,
   })
     .populate('queryId', 'queryCode status companyInfo industry_id products created_by')
-    .populate('industry_id', 'name location address email purchase_manager_name purchase_manager_phone')
+    .populate('industry_id', 'name location address email purchase_manager_name purchase_manager_phone gstNumber')
     .populate('created_by', 'name email')
     .populate({
       path: 'products.product_id',
@@ -410,7 +432,10 @@ export const updateQuotation = async ({
   const updatePayload = {}
   if (companyInfo !== undefined) updatePayload.companyInfo = companyInfo
   if (industry_id !== undefined) updatePayload.industry_id = industry_id || null
-  if (freightCharge !== undefined) updatePayload.freightCharge = Number(freightCharge) >= 0 ? Number(freightCharge) : 0
+  if (freightCharge !== undefined) {
+    updatePayload.freightCharge =
+      freightCharge == null ? '' : String(freightCharge).trim()
+  }
   if (packingCharge !== undefined) updatePayload.packingCharge = Number(packingCharge) >= 0 ? Number(packingCharge) : 0
   if (expectedDeliveryDate !== undefined) updatePayload.expectedDeliveryDate = expectedDeliveryDate || null
   if (expectedDeliveryWithinDays !== undefined) {
