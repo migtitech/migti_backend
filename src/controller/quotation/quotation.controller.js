@@ -3,6 +3,7 @@ import { BRANCH_BYPASS_ROLES } from '../../core/common/constant.js'
 import { getBranchFilter } from '../../core/helpers/branchFilter.js'
 import {
   listQuotationSchema,
+  listQuotationsByIndustrySchema,
   getQuotationByIdSchema,
   updateQuotationSchema,
   updateQuotationStatusSchema,
@@ -60,6 +61,34 @@ export const listQuotationsController = async (req, res) => {
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Quotations retrieved successfully',
+    data: result,
+  })
+}
+
+export const listQuotationsByIndustryController = async (req, res) => {
+  const { error, value } = listQuotationsByIndustrySchema.validate(req.query, {
+    abortEarly: false,
+  })
+  if (error) {
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: Message.validationError,
+      error: error.details.map((d) => d.message),
+    })
+  }
+
+  const branchFilter = resolveQuotationBranchFilter(req, { allowQueryBranchId: true })
+  const currentUserId = req.user?.id || req.user?._id
+  const isFullAccessRole = hasOwnershipBypass(req.user?.role)
+  const result = await listQuotations({
+    ...value,
+    branchFilter,
+    currentUserId: currentUserId || null,
+    isFullAccessRole: !!isFullAccessRole,
+  })
+  return res.status(statusCodes.ok).json({
+    success: true,
+    message: 'Quotations by industry retrieved successfully',
     data: result,
   })
 }

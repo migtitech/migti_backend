@@ -6,7 +6,7 @@ export const createVisitSchema = Joi.object({
   branchId: Joi.string().pattern(objectIdPattern).optional(),
   zoneId: Joi.string().pattern(objectIdPattern).required(),
   employeeId: Joi.string().pattern(objectIdPattern).required(),
-  industryIds: Joi.array().items(Joi.string().pattern(objectIdPattern)).min(1).required(),
+  industryIds: Joi.array().items(Joi.string().pattern(objectIdPattern)).optional().default([]),
   instructions: Joi.string().allow('').optional(),
   status: Joi.string().valid('active', 'completed').optional(),
 })

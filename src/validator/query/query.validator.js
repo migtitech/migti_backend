@@ -59,6 +59,19 @@ export const listQuerySchema = Joi.object({
   status: Joi.string().valid(...queryStatusValues).allow('').optional(),
   dateFrom: Joi.alternatives().try(Joi.string().valid(''), dateOnlySchema).optional(),
   dateTo: Joi.alternatives().try(Joi.string().valid(''), dateOnlySchema).optional(),
+  industryId: Joi.string()
+    .pattern(/^[a-fA-F0-9]{24}$/)
+    .optional()
+    .messages({ 'string.pattern.base': 'industryId must be a valid Mongo ObjectId' }),
+})
+
+export const listQueriesByIndustrySchema = Joi.object({
+  industryId: Joi.string()
+    .pattern(/^[a-fA-F0-9]{24}$/)
+    .required()
+    .messages({ 'string.pattern.base': 'industryId must be a valid Mongo ObjectId' }),
+  pageNumber: Joi.number().integer().min(1).default(1),
+  pageSize: Joi.number().integer().min(1).max(100).default(10),
 })
 
 export const branchAnalyticsSchema = Joi.object({
@@ -89,6 +102,49 @@ export const listTargetAnalyticsSchema = Joi.object({
 export const targetSummarySchema = Joi.object({
   branchId: Joi.string().pattern(/^[a-fA-F0-9]{24}$/).required(),
   period: Joi.string().valid('weekly', 'monthly').required(),
+})
+
+export const zoneTargetAnalyticsSchema = Joi.object({
+  branchId: Joi.string().pattern(/^[a-fA-F0-9]{24}$/).required(),
+  zoneId: Joi.string().pattern(/^[a-fA-F0-9]{24}$/).required(),
+  period: Joi.string().valid('weekly', 'monthly').required(),
+  dateFrom: dateOnlySchema.required(),
+  dateTo: dateOnlySchema.required(),
+  targetAmount: Joi.number().min(0).required(),
+})
+
+export const zoneTargetSummarySchema = Joi.object({
+  branchId: Joi.string().pattern(/^[a-fA-F0-9]{24}$/).required(),
+  zoneId: Joi.string().pattern(/^[a-fA-F0-9]{24}$/).required(),
+  period: Joi.string().valid('weekly', 'monthly').required(),
+})
+
+export const listZoneTargetAnalyticsSchema = Joi.object({
+  branchId: Joi.string().pattern(/^[a-fA-F0-9]{24}$/).allow('').optional(),
+  zoneId: Joi.string().pattern(/^[a-fA-F0-9]{24}$/).allow('').optional(),
+  period: Joi.string().valid('', 'weekly', 'monthly').optional(),
+})
+
+export const employeeTargetAnalyticsSchema = Joi.object({
+  branchId: Joi.string().pattern(/^[a-fA-F0-9]{24}$/).required(),
+  zoneId: Joi.string().pattern(/^[a-fA-F0-9]{24}$/).allow('', null).optional(),
+  employeeId: Joi.string().pattern(/^[a-fA-F0-9]{24}$/).required(),
+  period: Joi.string().valid('weekly', 'monthly').required(),
+  dateFrom: dateOnlySchema.required(),
+  dateTo: dateOnlySchema.required(),
+  targetAmount: Joi.number().min(0).required(),
+})
+
+export const employeeTargetSummarySchema = Joi.object({
+  branchId: Joi.string().pattern(/^[a-fA-F0-9]{24}$/).required(),
+  employeeId: Joi.string().pattern(/^[a-fA-F0-9]{24}$/).required(),
+  period: Joi.string().valid('weekly', 'monthly').required(),
+})
+
+export const listEmployeeTargetAnalyticsSchema = Joi.object({
+  branchId: Joi.string().pattern(/^[a-fA-F0-9]{24}$/).allow('').optional(),
+  employeeId: Joi.string().pattern(/^[a-fA-F0-9]{24}$/).allow('').optional(),
+  period: Joi.string().valid('', 'weekly', 'monthly').optional(),
 })
 
 export const getQueryByIdSchema = Joi.object({

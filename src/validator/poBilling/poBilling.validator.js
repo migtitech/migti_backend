@@ -9,6 +9,7 @@ export const createPoEntrySchema = Joi.object({
   entryDate: Joi.date().optional(),
   remark: Joi.string().allow('').optional(),
   branchId: Joi.string().pattern(objectIdPattern).optional(),
+  attachmentDocumentId: Joi.string().pattern(objectIdPattern).optional().allow(null, ''),
 })
 
 export const createBillingEntrySchema = Joi.object({
@@ -18,6 +19,7 @@ export const createBillingEntrySchema = Joi.object({
   entryDate: Joi.date().optional(),
   remark: Joi.string().allow('').optional(),
   branchId: Joi.string().pattern(objectIdPattern).optional(),
+  attachmentDocumentId: Joi.string().pattern(objectIdPattern).optional().allow(null, ''),
 })
 
 export const poBillingAnalyticsSchema = Joi.object({

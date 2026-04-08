@@ -1,3 +1,4 @@
+import mongoose from 'mongoose'
 import QueryModel from '../../models/query.model.js'
 import QuotationModel from '../../models/quotation.model.js'
 import PoEntryModel from '../../models/poEntry.model.js'
@@ -23,7 +24,15 @@ import {
   getTargetAnalytics as getTargetAnalyticsData,
   upsertTargetAnalytics as upsertTargetAnalyticsData,
   getTargetSummary as getTargetSummaryData,
+  getZoneTargetAnalytics as getZoneTargetAnalyticsData,
+  upsertZoneTargetAnalytics as upsertZoneTargetAnalyticsData,
+  getZoneTargetSummary as getZoneTargetSummaryData,
+  getEmployeeTargetAnalytics as getEmployeeTargetAnalyticsData,
+  upsertEmployeeTargetAnalytics as upsertEmployeeTargetAnalyticsData,
+  getEmployeeTargetSummary as getEmployeeTargetSummaryData,
 } from '../targetAnalytics/targetAnalytics.service.js'
+import BranchEmployeeTargetModel from '../../models/branchEmployeeTarget.model.js'
+import TargetAnalyticsModel from '../../models/targetAnalytics.model.js'
 
 const OBJECT_ID_REGEX = /^[a-fA-F0-9]{24}$/
 
@@ -161,6 +170,7 @@ export const listQueries = async ({
   status = '',
   dateFrom = '',
   dateTo = '',
+  industryId = '',
   branchFilter = {},
   currentUserId = null,
   isFullAccessRole = true,
@@ -171,6 +181,9 @@ export const listQueries = async ({
 
   const ownershipFilter = getQueryOwnershipFilter({ currentUserId, isFullAccessRole })
   const filter = { isDeleted: false, ...branchFilter, ...ownershipFilter }
+  if (industryId && String(industryId).trim() && mongoose.Types.ObjectId.isValid(industryId)) {
+    filter.industry_id = new mongoose.Types.ObjectId(String(industryId).trim())
+  }
   if (status && status.trim()) {
     filter.status = status.trim()
   }
@@ -888,4 +901,230 @@ export const upsertTargetAnalytics = async (params = {}) => {
 
 export const getTargetSummary = async (params = {}) => {
   return getTargetSummaryData(params)
+}
+
+export const getZoneTargetAnalytics = async (params = {}) => getZoneTargetAnalyticsData(params)
+export const upsertZoneTargetAnalytics = async (params = {}) => upsertZoneTargetAnalyticsData(params)
+export const getZoneTargetSummary = async (params = {}) => getZoneTargetSummaryData(params)
+export const getEmployeeTargetAnalytics = async (params = {}) => getEmployeeTargetAnalyticsData(params)
+export const upsertEmployeeTargetAnalytics = async (params = {}) => upsertEmployeeTargetAnalyticsData(params)
+export const getEmployeeTargetSummary = async (params = {}) => getEmployeeTargetSummaryData(params)
+
+const getWeeklyMonthlyRanges = () => {
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+
+  const weeklyFrom = new Date(today)
+  weeklyFrom.setDate(today.getDate() - 6)
+  weeklyFrom.setHours(0, 0, 0, 0)
+  const weeklyTo = new Date(today)
+  weeklyTo.setHours(23, 59, 59, 999)
+
+  const monthlyFrom = new Date(today.getFullYear(), today.getMonth(), 1, 0, 0, 0, 0)
+  const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate()
+  const monthlyTo = new Date(today.getFullYear(), today.getMonth(), Math.min(30, lastDay), 23, 59, 59, 999)
+
+  return { weeklyFrom, weeklyTo, monthlyFrom, monthlyTo }
+}
+
+const getEmployeeTargetAmountForPeriod = async ({
+  employeeId,
+  branchId = null,
+  period,
+  rangeFrom,
+  rangeTo,
+}) => {
+  const filter = {
+    isDeleted: false,
+    employeeId,
+    period,
+    dateFrom: { $lte: rangeTo },
+    dateTo: { $gte: rangeFrom },
+  }
+  if (branchId) filter.branchId = branchId
+  const targetDoc = await BranchEmployeeTargetModel.findOne(filter)
+    .sort({ createdAt: -1 })
+    .lean()
+  return Number(targetDoc?.targetAmount || 0)
+}
+
+/** Billings for sales cards: salespersonId + entryDate window only (no branch filter — billing.branchId may differ from JWT branch). */
+const getEmployeeBillingForRange = async ({ employeeId, rangeFrom, rangeTo }) => {
+  if (!employeeId || !mongoose.Types.ObjectId.isValid(String(employeeId))) {
+    return 0
+  }
+  const spId = new mongoose.Types.ObjectId(String(employeeId))
+  const billingFilter = {
+    isDeleted: false,
+    entryDate: { $gte: rangeFrom, $lte: rangeTo },
+    salespersonId: spId,
+  }
+
+  const agg = await BillingEntryModel.aggregate([
+    { $match: billingFilter },
+    { $group: { _id: null, total: { $sum: '$amount' } } },
+  ])
+  return Number(agg?.[0]?.total || 0)
+}
+
+/** Same calendar windows as branch target analytics (targetAnalytics.service getCurrentPeriodRange). */
+const getBranchTargetCalendarRange = (period) => {
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  let start = new Date(today)
+  let end = new Date(today)
+
+  if (period === 'weekly') {
+    start.setDate(today.getDate() - 6)
+  } else {
+    start = new Date(today.getFullYear(), today.getMonth(), 1, 0, 0, 0, 0)
+    const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate()
+    end = new Date(today.getFullYear(), today.getMonth(), Math.min(30, lastDay), 23, 59, 59, 999)
+  }
+
+  start.setHours(0, 0, 0, 0)
+  if (period === 'weekly') end.setHours(23, 59, 59, 999)
+
+  return { start, end }
+}
+
+const getBranchTargetDocForCurrentWindow = async (branchId, period, start, end) => {
+  return TargetAnalyticsModel.findOne({
+    isDeleted: false,
+    branchId,
+    period,
+    dateFrom: { $lte: end },
+    dateTo: { $gte: start },
+  })
+    .sort({ createdAt: -1 })
+    .lean()
+}
+
+/** Billing total for branch: strict branchId on billingentries, entryDate in range. */
+const getBranchBillingTotalByEntryDate = async (branchId, rangeFrom, rangeTo) => {
+  if (!branchId || !mongoose.Types.ObjectId.isValid(String(branchId))) return 0
+  const bid = new mongoose.Types.ObjectId(String(branchId))
+  const match = {
+    isDeleted: false,
+    branchId: bid,
+    entryDate: { $gte: rangeFrom, $lte: rangeTo },
+  }
+  const agg = await BillingEntryModel.aggregate([
+    { $match: match },
+    { $group: { _id: null, total: { $sum: '$amount' } } },
+  ])
+  return Number(agg?.[0]?.total || 0)
+}
+
+const resolveHodPeriod = async (branchId, period) => {
+  const { start, end } = getBranchTargetCalendarRange(period)
+  const targetDoc = await getBranchTargetDocForCurrentWindow(branchId, period, start, end)
+  const rangeFrom = targetDoc?.dateFrom ? new Date(targetDoc.dateFrom) : start
+  const rangeTo = targetDoc?.dateTo ? new Date(targetDoc.dateTo) : end
+  const targetAmount = Number(targetDoc?.targetAmount || 0)
+  return { targetAmount, rangeFrom, rangeTo }
+}
+
+/** HOD dashboard: branch targets from targetAnalytics; billing sums from billingentries by branchId + entryDate. */
+export const getHodDashboardCards = async ({ branchId }) => {
+  if (!branchId || !mongoose.Types.ObjectId.isValid(String(branchId))) {
+    return {
+      weeklyTarget: 0,
+      weeklyBilling: 0,
+      monthlyTarget: 0,
+      monthlyBilling: 0,
+      weeklyFrom: null,
+      weeklyTo: null,
+      monthlyFrom: null,
+      monthlyTo: null,
+      branchId: '',
+    }
+  }
+
+  const [weekly, monthly] = await Promise.all([
+    resolveHodPeriod(branchId, 'weekly'),
+    resolveHodPeriod(branchId, 'monthly'),
+  ])
+
+  const [weeklyBilling, monthlyBilling] = await Promise.all([
+    getBranchBillingTotalByEntryDate(branchId, weekly.rangeFrom, weekly.rangeTo),
+    getBranchBillingTotalByEntryDate(branchId, monthly.rangeFrom, monthly.rangeTo),
+  ])
+
+  return {
+    weeklyTarget: weekly.targetAmount,
+    weeklyBilling,
+    monthlyTarget: monthly.targetAmount,
+    monthlyBilling,
+    weeklyFrom: weekly.rangeFrom.toISOString(),
+    weeklyTo: weekly.rangeTo.toISOString(),
+    monthlyFrom: monthly.rangeFrom.toISOString(),
+    monthlyTo: monthly.rangeTo.toISOString(),
+    branchId: String(branchId),
+  }
+}
+
+export const getSalesDashboardCards = async ({ employeeId, branchId = null }) => {
+  const { weeklyFrom, weeklyTo, monthlyFrom, monthlyTo } = getWeeklyMonthlyRanges()
+  const [weeklyTarget, monthlyTarget, weeklyBilling, monthlyBilling] = await Promise.all([
+    getEmployeeTargetAmountForPeriod({
+      employeeId,
+      branchId,
+      period: 'weekly',
+      rangeFrom: weeklyFrom,
+      rangeTo: weeklyTo,
+    }),
+    getEmployeeTargetAmountForPeriod({
+      employeeId,
+      branchId,
+      period: 'monthly',
+      rangeFrom: monthlyFrom,
+      rangeTo: monthlyTo,
+    }),
+    getEmployeeBillingForRange({ employeeId, rangeFrom: weeklyFrom, rangeTo: weeklyTo }),
+    getEmployeeBillingForRange({ employeeId, rangeFrom: monthlyFrom, rangeTo: monthlyTo }),
+  ])
+
+  return {
+    weeklyTarget,
+    weeklyBilling,
+    monthlyTarget,
+    monthlyBilling,
+    weeklyFrom: weeklyFrom.toISOString(),
+    weeklyTo: weeklyTo.toISOString(),
+    monthlyFrom: monthlyFrom.toISOString(),
+    monthlyTo: monthlyTo.toISOString(),
+    /** Matches billingentries.salespersonId used for queries below */
+    employeeId: employeeId != null ? String(employeeId) : '',
+    /** Branch on JWT (targets still use this); billing totals ignore branch */
+    branchIdFromToken: branchId != null ? String(branchId) : null,
+  }
+}
+
+/** Latest billing rows for sales dashboard (company from industry ref on companyId). */
+export const getRecentSalesBillings = async ({ employeeId, limit = 5 }) => {
+  const take = Math.min(Math.max(Number(limit) || 5, 1), 20)
+  if (!employeeId || !mongoose.Types.ObjectId.isValid(String(employeeId))) {
+    return []
+  }
+  const filter = {
+    isDeleted: false,
+    salespersonId: new mongoose.Types.ObjectId(String(employeeId)),
+  }
+
+  const rows = await BillingEntryModel.find(filter)
+    .sort({ entryDate: -1, createdAt: -1 })
+    .limit(take)
+    .populate('companyId', 'name')
+    .lean()
+
+  return rows.map((row) => {
+    const d = row.entryDate || row.createdAt
+    return {
+      id: String(row._id),
+      amount: Number(row.amount || 0),
+      companyName: row.companyId?.name || '—',
+      date: d ? new Date(d).toISOString() : null,
+    }
+  })
 }

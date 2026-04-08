@@ -373,10 +373,14 @@ export const MODULES = Object.freeze({
   PURCHASE_TASKS: 'purchase_tasks',
   TASK_MANAGEMENT: 'task_management',
   TASK_BUCKET: 'task_bucket',
+  BRANCH_ANALYTICS: 'branch_analytics',
+  TARGET_ANALYTICS: 'target_analytics',
   FINANCE: 'finance',
   FOLLOW_UP: 'follow_up',
   EMPLOYEES: 'employees',
   VISITS: 'visits',
+  VISIT_MANAGEMENT: 'visit_management',
+  MY_VISITS: 'my_visits',
 })
 
 // RBAC Actions

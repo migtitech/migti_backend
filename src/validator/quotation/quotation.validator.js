@@ -59,6 +59,29 @@ export const listQuotationSchema = Joi.object({
     .optional(),
   dateFrom: Joi.alternatives().try(Joi.string().valid(''), dateOnlySchema).optional(),
   dateTo: Joi.alternatives().try(Joi.string().valid(''), dateOnlySchema).optional(),
+  industryId: Joi.string()
+    .pattern(objectIdPattern)
+    .optional()
+    .messages({ 'string.pattern.base': 'industryId must be a valid Mongo ObjectId' }),
+  includeTotalAmountSum: Joi.alternatives()
+    .try(Joi.boolean(), Joi.string().valid('true', 'false', '1', '0'))
+    .optional(),
+})
+
+export const listQuotationsByIndustrySchema = Joi.object({
+  industryId: Joi.string()
+    .pattern(objectIdPattern)
+    .required()
+    .messages({ 'string.pattern.base': 'industryId must be a valid Mongo ObjectId' }),
+  pageNumber: Joi.number().integer().min(1).default(1),
+  pageSize: Joi.number().integer().min(1).max(100).default(10),
+  status: Joi.string()
+    .valid(...quotationStatusValues, 'drafted', 'hod approved', 'hod-approved')
+    .allow('')
+    .optional(),
+  includeTotalAmountSum: Joi.alternatives()
+    .try(Joi.boolean(), Joi.string().valid('true', 'false', '1', '0'))
+    .optional(),
 })
 
 export const getQuotationByIdSchema = Joi.object({

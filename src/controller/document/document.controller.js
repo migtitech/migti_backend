@@ -12,14 +12,21 @@ import {
  * Returns: { documents: [{ _id, path }] } - path is signed URL for S3 (private bucket) or relative path for local
  */
 export const uploadDocumentsController = async (req, res) => {
-  if (!req.files || req.files.length === 0) {
+  const files =
+    Array.isArray(req.files) && req.files.length > 0
+      ? req.files
+      : req.file
+        ? [req.file]
+        : []
+
+  if (!files.length) {
     return res.status(statusCodes.badRequest).json({
       success: false,
       message: 'No files uploaded',
     })
   }
 
-  const documents = await createDocumentsForUploadedFiles(req.files)
+  const documents = await createDocumentsForUploadedFiles(files)
   if (!documents || documents.length === 0) {
     return res.status(statusCodes.internalServerError).json({
       success: false,
@@ -29,7 +36,7 @@ export const uploadDocumentsController = async (req, res) => {
   const documentsWithSignedUrls = await transformPathsToSignedUrls(documents)
   return res.status(statusCodes.ok).json({
     success: true,
-    message: 'Images uploaded successfully',
+    message: 'Files uploaded successfully',
     data: { documents: documentsWithSignedUrls },
   })
 }

@@ -57,6 +57,11 @@ const billingEntrySchema = new mongoose.Schema(
       trim: true,
       default: '',
     },
+    attachmentDocumentId: {
+      type: SchemaTypes.ObjectId,
+      ref: 'document',
+      default: null,
+    },
   },
   { timestamps: true },
 )

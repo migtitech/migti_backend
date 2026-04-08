@@ -1,3 +1,4 @@
+import mongoose from 'mongoose'
 import QuotationModel, { QUOTATION_STATUS } from '../../models/quotation.model.js'
 import QueryModel from '../../models/query.model.js'
 import CustomError from '../../utils/exception.js'
@@ -220,6 +221,8 @@ export const listQuotations = async ({
   status = '',
   dateFrom = '',
   dateTo = '',
+  industryId = '',
+  includeTotalAmountSum = false,
   branchFilter = {},
   currentUserId = null,
   isFullAccessRole = true,
@@ -228,7 +231,15 @@ export const listQuotations = async ({
   const limit = Math.min(100, Math.max(1, parseInt(pageSize)))
   const skip = (page - 1) * limit
 
+  const wantTotalAmountSum =
+    includeTotalAmountSum === true
+    || includeTotalAmountSum === 'true'
+    || includeTotalAmountSum === '1'
+
   const filter = { isDeleted: false, ...branchFilter }
+  if (industryId && String(industryId).trim() && mongoose.Types.ObjectId.isValid(industryId)) {
+    filter.industry_id = new mongoose.Types.ObjectId(String(industryId).trim())
+  }
   const normalizeStatusFilter = (rawStatus = '') => {
     const val = String(rawStatus || '').trim().toLowerCase()
     if (!val) return ''
@@ -278,6 +289,20 @@ export const listQuotations = async ({
     ]
   }
 
+  let totalAmountSum
+  if (
+    wantTotalAmountSum
+    && industryId
+    && String(industryId).trim()
+    && mongoose.Types.ObjectId.isValid(industryId)
+  ) {
+    const forSum = await QuotationModel.find(filter).select('products').lean()
+    totalAmountSum = forSum.reduce(
+      (sum, q) => sum + computeTotalAmountFromProducts(q.products),
+      0,
+    )
+  }
+
   const totalItems = await QuotationModel.countDocuments(filter)
 
   const quotations = await QuotationModel.find(filter)
@@ -305,6 +330,7 @@ export const listQuotations = async ({
       hasNextPage: page < totalPages,
       hasPrevPage: page > 1,
     },
+    ...(totalAmountSum !== undefined && { totalAmountSum }),
   }
 }
 

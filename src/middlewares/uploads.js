@@ -100,3 +100,18 @@ export const uploadCatalogMemory = multer({
   limits: { fileSize: 15 * 1024 * 1024 }, // 15MB for catalogs
   fileFilter: catalogFilter,
 })
+
+// PO / billing entry attachments: images and PDF only (same S3 flow as document upload)
+const poBillingAttachmentFilter = (_req, file, cb) => {
+  if (/^image\//i.test(file.mimetype) || file.mimetype === 'application/pdf') {
+    cb(null, true)
+  } else {
+    cb(new Error('Only images and PDF files are allowed'), false)
+  }
+}
+
+export const uploadPoBillingAttachmentMemory = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 15 * 1024 * 1024 },
+  fileFilter: poBillingAttachmentFilter,
+})

@@ -1,9 +1,9 @@
-import { Message, statusCodes } from '../../core/common/constant.js'
-import { BRANCH_BYPASS_ROLES } from '../../core/common/constant.js'
+import { Message, statusCodes, BRANCH_BYPASS_ROLES, FULL_ACCESS_ROLES } from '../../core/common/constant.js'
 import { getBranchFilter, getBranchIdForCreate } from '../../core/helpers/branchFilter.js'
 import {
   createQuerySchema,
   listQuerySchema,
+  listQueriesByIndustrySchema,
   getQueryByIdSchema,
   updateQuerySchema,
   deleteQuerySchema,
@@ -15,6 +15,12 @@ import {
   targetAnalyticsSchema,
   listTargetAnalyticsSchema,
   targetSummarySchema,
+  zoneTargetAnalyticsSchema,
+  zoneTargetSummarySchema,
+  listZoneTargetAnalyticsSchema,
+  employeeTargetAnalyticsSchema,
+  employeeTargetSummarySchema,
+  listEmployeeTargetAnalyticsSchema,
 } from '../../validator/query/query.validator.js'
 import {
   addQuery,
@@ -31,11 +37,37 @@ import {
   getTargetAnalytics,
   upsertTargetAnalytics,
   getTargetSummary,
+  getZoneTargetAnalytics,
+  upsertZoneTargetAnalytics,
+  getZoneTargetSummary,
+  getEmployeeTargetAnalytics,
+  upsertEmployeeTargetAnalytics,
+  getEmployeeTargetSummary,
+  getSalesDashboardCards,
+  getRecentSalesBillings,
+  getHodDashboardCards,
 } from '../../services/query/query.service.js'
 import { archiveExpiredTargets } from '../../services/targetAnalytics/targetAnalytics.service.js'
 import { exportQueryPdf } from '../../services/query/queryPdfExport.service.js'
 
 const normalizeRole = (role) => String(role || '').trim().toLowerCase().replace(/[\s-]+/g, '_')
+
+const roleHasFullAccess = (role) => {
+  const n = normalizeRole(role)
+  return FULL_ACCESS_ROLES.some((r) => normalizeRole(r) === n)
+}
+
+const isLikelyObjectId = (s) => /^[a-fA-F0-9]{24}$/.test(String(s || ''))
+
+/** Token employee id, or ?employeeId= for admin / HOD / super_admin (QUERIES read still required). */
+const resolveSalesDashboardEmployeeId = (req) => {
+  const tokenId = req.user?.id || req.user?._id
+  const q = req.query?.employeeId
+  if (q && roleHasFullAccess(req.user?.role) && isLikelyObjectId(q)) {
+    return String(q)
+  }
+  return tokenId != null ? String(tokenId) : ''
+}
 const isBackOfficeRole = (role) => {
   const normalized = normalizeRole(role)
   if (['back_office_exicutive', 'back_office_executive', 'boe'].includes(normalized)) return true
@@ -98,6 +130,34 @@ export const listQueriesController = async (req, res) => {
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Queries retrieved successfully',
+    data: result,
+  })
+}
+
+export const listQueriesByIndustryController = async (req, res) => {
+  const { error, value } = listQueriesByIndustrySchema.validate(req.query, {
+    abortEarly: false,
+  })
+  if (error) {
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: Message.validationError,
+      error: error.details.map((d) => d.message),
+    })
+  }
+
+  const branchFilter = resolveQueryBranchFilter(req, { allowQueryBranchId: true })
+  const currentUserId = req.user?.id || req.user?._id
+  const isFullAccessRole = hasOwnershipBypass(req.user?.role)
+  const result = await listQueries({
+    ...value,
+    branchFilter,
+    currentUserId: currentUserId || null,
+    isFullAccessRole: !!isFullAccessRole,
+  })
+  return res.status(statusCodes.ok).json({
+    success: true,
+    message: 'Queries by industry retrieved successfully',
     data: result,
   })
 }
@@ -462,6 +522,89 @@ export const getTargetSummaryController = async (req, res) => {
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Target summary retrieved successfully',
+    data: result,
+  })
+}
+
+export const getZoneTargetAnalyticsController = async (req, res) => {
+  const { error, value } = listZoneTargetAnalyticsSchema.validate(req.query, { abortEarly: false })
+  if (error) return res.status(statusCodes.badRequest).json({ success: false, message: Message.validationError, error: error.details.map((d) => d.message) })
+  const branchFilter = resolveQueryBranchFilter(req, { allowQueryBranchId: true })
+  const result = await getZoneTargetAnalytics({ ...value, branchFilter })
+  return res.status(statusCodes.ok).json({ success: true, message: 'Zone target analytics retrieved successfully', data: result })
+}
+
+export const upsertZoneTargetAnalyticsController = async (req, res) => {
+  const { error, value } = zoneTargetAnalyticsSchema.validate(req.body, { abortEarly: false })
+  if (error) return res.status(statusCodes.badRequest).json({ success: false, message: Message.validationError, error: error.details.map((d) => d.message) })
+  const branchFilter = resolveQueryBranchFilter(req, { allowQueryBranchId: true })
+  const userId = req.user?.id || req.user?._id
+  const result = await upsertZoneTargetAnalytics({ ...value, userId, branchFilter })
+  return res.status(statusCodes.ok).json({ success: true, message: 'Zone target updated successfully', data: result })
+}
+
+export const getZoneTargetSummaryController = async (req, res) => {
+  const { error, value } = zoneTargetSummarySchema.validate(req.query, { abortEarly: false })
+  if (error) return res.status(statusCodes.badRequest).json({ success: false, message: Message.validationError, error: error.details.map((d) => d.message) })
+  const branchFilter = resolveQueryBranchFilter(req, { allowQueryBranchId: true })
+  const result = await getZoneTargetSummary({ ...value, branchFilter })
+  return res.status(statusCodes.ok).json({ success: true, message: 'Zone target summary retrieved successfully', data: result })
+}
+
+export const getEmployeeTargetAnalyticsController = async (req, res) => {
+  const { error, value } = listEmployeeTargetAnalyticsSchema.validate(req.query, { abortEarly: false })
+  if (error) return res.status(statusCodes.badRequest).json({ success: false, message: Message.validationError, error: error.details.map((d) => d.message) })
+  const branchFilter = resolveQueryBranchFilter(req, { allowQueryBranchId: true })
+  const result = await getEmployeeTargetAnalytics({ ...value, branchFilter })
+  return res.status(statusCodes.ok).json({ success: true, message: 'Employee target analytics retrieved successfully', data: result })
+}
+
+export const upsertEmployeeTargetAnalyticsController = async (req, res) => {
+  const { error, value } = employeeTargetAnalyticsSchema.validate(req.body, { abortEarly: false })
+  if (error) return res.status(statusCodes.badRequest).json({ success: false, message: Message.validationError, error: error.details.map((d) => d.message) })
+  const branchFilter = resolveQueryBranchFilter(req, { allowQueryBranchId: true })
+  const userId = req.user?.id || req.user?._id
+  const result = await upsertEmployeeTargetAnalytics({ ...value, userId, branchFilter })
+  return res.status(statusCodes.ok).json({ success: true, message: 'Employee target updated successfully', data: result })
+}
+
+export const getEmployeeTargetSummaryController = async (req, res) => {
+  const { error, value } = employeeTargetSummarySchema.validate(req.query, { abortEarly: false })
+  if (error) return res.status(statusCodes.badRequest).json({ success: false, message: Message.validationError, error: error.details.map((d) => d.message) })
+  const branchFilter = resolveQueryBranchFilter(req, { allowQueryBranchId: true })
+  const result = await getEmployeeTargetSummary({ ...value, branchFilter })
+  return res.status(statusCodes.ok).json({ success: true, message: 'Employee target summary retrieved successfully', data: result })
+}
+
+export const getSalesDashboardCardsController = async (req, res) => {
+  const employeeId = resolveSalesDashboardEmployeeId(req)
+  const branchId = req.user?.branchId || null
+  const result = await getSalesDashboardCards({ employeeId, branchId })
+  return res.status(statusCodes.ok).json({
+    success: true,
+    message: 'Sales dashboard cards retrieved successfully',
+    data: result,
+  })
+}
+
+export const getRecentSalesBillingsController = async (req, res) => {
+  const employeeId = resolveSalesDashboardEmployeeId(req)
+  const limit = req.query?.limit
+  const result = await getRecentSalesBillings({ employeeId, limit })
+  return res.status(statusCodes.ok).json({
+    success: true,
+    message: 'Recent billings retrieved successfully',
+    data: result,
+  })
+}
+
+export const getHodDashboardCardsController = async (req, res) => {
+  const raw = req.user?.branchId
+  const branchId = raw && typeof raw === 'object' && raw._id != null ? raw._id : raw || null
+  const result = await getHodDashboardCards({ branchId })
+  return res.status(statusCodes.ok).json({
+    success: true,
+    message: 'HOD dashboard cards retrieved successfully',
     data: result,
   })
 }

@@ -4,6 +4,7 @@ import { authenticateToken, checkPermission, authorizeRoles } from '../middlewar
 import { MODULES } from '../core/common/constant.js'
 import {
   listQuotationsController,
+  listQuotationsByIndustryController,
   getQuotationByIdController,
   updateQuotationController,
   updateQuotationStatusController,
@@ -19,6 +20,12 @@ quotationRouter.get(
   authenticateToken,
   checkPermission(MODULES.QUOTATIONS, 'read'),
   asyncHandler(listQuotationsController),
+)
+quotationRouter.get(
+  '/by-industry',
+  authenticateToken,
+  checkPermission(MODULES.QUOTATIONS, 'read'),
+  asyncHandler(listQuotationsByIndustryController),
 )
 quotationRouter.get(
   '/get-by-id',

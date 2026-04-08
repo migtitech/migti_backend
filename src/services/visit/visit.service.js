@@ -69,7 +69,7 @@ export const createVisit = async ({
 }) => {
   const [zone, employee] = await Promise.all([
     AreaModel.findOne({ _id: zoneId, branchId, isDeleted: false, areaType: 'industry' }).lean(),
-    EmployeeModel.findOne({ _id: employeeId, branchId, zoneId, isDeleted: false }).lean(),
+    EmployeeModel.findOne({ _id: employeeId, branchId, isDeleted: false }).lean(),
   ])
 
   if (!zone) {
@@ -77,20 +77,12 @@ export const createVisit = async ({
   }
 
   if (!employee) {
-    throw new CustomError(
-      statusCodes.badRequest,
-      'Employee not found for selected branch and zone',
-      errorCodes.not_found,
-    )
+    throw new CustomError(statusCodes.badRequest, 'Employee not found for selected branch', errorCodes.not_found)
   }
 
   const uniqueIndustryIds = Array.from(new Set((industryIds || []).map((id) => String(id))))
     .filter((id) => mongoose.Types.ObjectId.isValid(id))
     .map((id) => new mongoose.Types.ObjectId(id))
-
-  if (!uniqueIndustryIds.length) {
-    throw new CustomError(statusCodes.badRequest, 'At least one industry is required', errorCodes.bad_request)
-  }
 
   const doc = await VisitModel.create({
     branchId,

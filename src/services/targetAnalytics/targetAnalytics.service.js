@@ -6,6 +6,10 @@ import BillingEntryModel from '../../models/billingEntry.model.js'
 import EmployeeModel from '../../models/employee.model.js'
 import TargetAnalyticsModel from '../../models/targetAnalytics.model.js'
 import TargetAnalyticsHistoryModel from '../../models/targetAnalyticsHistory.model.js'
+import BranchZoneTargetModel from '../../models/branchZoneTarget.model.js'
+import BranchZoneTargetHistoryModel from '../../models/branchZoneTargetHistory.model.js'
+import BranchEmployeeTargetModel from '../../models/branchEmployeeTarget.model.js'
+import BranchEmployeeTargetHistoryModel from '../../models/branchEmployeeTargetHistory.model.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 
@@ -283,4 +287,179 @@ export const getTargetSummary = async ({ branchId, period = 'weekly', branchFilt
     remainingAmount,
     targetId: targetDoc?._id || null,
   }
+}
+
+export const getZoneTargetAnalytics = async ({ branchId = '', zoneId = '', period = '', branchFilter = {} }) => {
+  const filter = { isDeleted: false, ...branchFilter }
+  if (branchId && !filter.branchId) filter.branchId = branchId
+  if (zoneId) filter.zoneId = zoneId
+  if (period) filter.period = period
+  const [activeTargets, history] = await Promise.all([
+    BranchZoneTargetModel.find(filter)
+      .populate('branchId', 'name branchcode')
+      .populate('zoneId', 'name city')
+      .sort({ dateFrom: -1 })
+      .lean(),
+    BranchZoneTargetHistoryModel.find(filter)
+      .populate('branchId', 'name branchcode')
+      .populate('zoneId', 'name city')
+      .sort({ archivedAt: -1 })
+      .limit(200)
+      .lean(),
+  ])
+  return { activeTargets, history }
+}
+
+export const upsertZoneTargetAnalytics = async ({
+  branchId,
+  zoneId,
+  period,
+  dateFrom,
+  dateTo,
+  targetAmount,
+  userId,
+  branchFilter = {},
+}) => {
+  const from = startOfUtcDay(dateFrom)
+  const to = endOfUtcDay(dateTo)
+  if (!from || !to || from > to) {
+    throw new CustomError(statusCodes.badRequest, 'dateFrom must be on or before dateTo', errorCodes.bad_request)
+  }
+  if (branchFilter?.branchId && String(branchFilter.branchId) !== String(branchId)) {
+    throw new CustomError(statusCodes.forbidden, 'Branch access denied', errorCodes.forbidden)
+  }
+  const existing = await BranchZoneTargetModel.findOne({ isDeleted: false, branchId, zoneId, period, dateFrom: from, dateTo: to })
+  if (existing) {
+    existing.targetAmount = Number(targetAmount) || 0
+    existing.updated_by = userId || null
+    await existing.save()
+    return existing.toObject()
+  }
+  const created = await BranchZoneTargetModel.create({
+    branchId, zoneId, period, dateFrom: from, dateTo: to, targetAmount: Number(targetAmount) || 0, created_by: userId || null, updated_by: userId || null,
+  })
+  return created.toObject()
+}
+
+export const getZoneTargetSummary = async ({ branchId, zoneId, period = 'weekly', branchFilter = {} }) => {
+  if (!branchId || !zoneId) throw new CustomError(statusCodes.badRequest, 'branchId and zoneId are required', errorCodes.bad_request)
+  if (branchFilter?.branchId && String(branchFilter.branchId) !== String(branchId)) {
+    throw new CustomError(statusCodes.forbidden, 'Branch access denied', errorCodes.forbidden)
+  }
+  const branchObjectId = new mongoose.Types.ObjectId(branchId)
+  const zoneObjectId = new mongoose.Types.ObjectId(zoneId)
+  const { start, end } = getCurrentPeriodRange(period)
+  const targetDoc = await BranchZoneTargetModel.findOne({
+    isDeleted: false, branchId: branchObjectId, zoneId: zoneObjectId, period, dateFrom: { $lte: end }, dateTo: { $gte: start },
+  }).sort({ createdAt: -1 }).lean()
+  const rangeFrom = targetDoc?.dateFrom || start
+  const rangeTo = targetDoc?.dateTo || end
+  const zoneEmployees = await EmployeeModel.find({ isDeleted: false, branchId: branchObjectId, zoneId: zoneObjectId }).select('_id').lean()
+  const employeeIds = zoneEmployees.map((e) => e._id)
+  const match = {
+    isDeleted: false,
+    createdAt: { $gte: rangeFrom, $lte: rangeTo },
+    ...(employeeIds.length ? { $or: [{ salespersonId: { $in: employeeIds } }, { created_by: { $in: employeeIds } }] } : { salespersonId: null }),
+  }
+  const agg = await BillingEntryModel.aggregate([{ $match: match }, { $group: { _id: null, total: { $sum: '$amount' } } }])
+  const targetAmount = Number(targetDoc?.targetAmount || 0)
+  const achievedAmount = Number(agg?.[0]?.total || 0)
+  return { period, dateFrom: rangeFrom, dateTo: rangeTo, targetAmount, achievedAmount, remainingAmount: Math.max(0, targetAmount - achievedAmount), targetId: targetDoc?._id || null }
+}
+
+export const getEmployeeTargetAnalytics = async ({ branchId = '', employeeId = '', period = '', branchFilter = {} }) => {
+  const filter = { isDeleted: false, ...branchFilter }
+  if (branchId && !filter.branchId) filter.branchId = branchId
+  if (employeeId) filter.employeeId = employeeId
+  if (period) filter.period = period
+  const [activeTargets, history] = await Promise.all([
+    BranchEmployeeTargetModel.find(filter)
+      .populate('branchId', 'name branchcode')
+      .populate('zoneId', 'name city')
+      .populate('employeeId', 'name email')
+      .sort({ dateFrom: -1 })
+      .lean(),
+    BranchEmployeeTargetHistoryModel.find(filter)
+      .populate('branchId', 'name branchcode')
+      .populate('zoneId', 'name city')
+      .populate('employeeId', 'name email')
+      .sort({ archivedAt: -1 })
+      .limit(200)
+      .lean(),
+  ])
+  return { activeTargets, history }
+}
+
+export const upsertEmployeeTargetAnalytics = async ({
+  branchId, zoneId = null, employeeId, period, dateFrom, dateTo, targetAmount, userId, branchFilter = {},
+}) => {
+  const from = startOfUtcDay(dateFrom)
+  const to = endOfUtcDay(dateTo)
+  if (!from || !to || from > to) {
+    throw new CustomError(statusCodes.badRequest, 'dateFrom must be on or before dateTo', errorCodes.bad_request)
+  }
+  if (branchFilter?.branchId && String(branchFilter.branchId) !== String(branchId)) {
+    throw new CustomError(statusCodes.forbidden, 'Branch access denied', errorCodes.forbidden)
+  }
+  const existing = await BranchEmployeeTargetModel.findOne({ isDeleted: false, branchId, employeeId, period, dateFrom: from, dateTo: to })
+  if (existing) {
+    existing.targetAmount = Number(targetAmount) || 0
+    existing.zoneId = zoneId || existing.zoneId || null
+    existing.updated_by = userId || null
+    await existing.save()
+    return existing.toObject()
+  }
+  const created = await BranchEmployeeTargetModel.create({
+    branchId, zoneId: zoneId || null, employeeId, period, dateFrom: from, dateTo: to, targetAmount: Number(targetAmount) || 0, created_by: userId || null, updated_by: userId || null,
+  })
+  return created.toObject()
+}
+
+export const getEmployeeTargetSummary = async ({ branchId, employeeId, period = 'weekly', branchFilter = {} }) => {
+  if (!branchId || !employeeId) throw new CustomError(statusCodes.badRequest, 'branchId and employeeId are required', errorCodes.bad_request)
+  if (branchFilter?.branchId && String(branchFilter.branchId) !== String(branchId)) {
+    throw new CustomError(statusCodes.forbidden, 'Branch access denied', errorCodes.forbidden)
+  }
+  const branchObjectId = new mongoose.Types.ObjectId(branchId)
+  const employeeObjectId = new mongoose.Types.ObjectId(employeeId)
+  const { start, end } = getCurrentPeriodRange(period)
+  const targetDoc = await BranchEmployeeTargetModel.findOne({
+    isDeleted: false, branchId: branchObjectId, employeeId: employeeObjectId, period, dateFrom: { $lte: end }, dateTo: { $gte: start },
+  }).sort({ createdAt: -1 }).lean()
+  const rangeFrom = targetDoc?.dateFrom || start
+  const rangeTo = targetDoc?.dateTo || end
+  const agg = await BillingEntryModel.aggregate([
+    { $match: { isDeleted: false, createdAt: { $gte: rangeFrom, $lte: rangeTo }, $or: [{ salespersonId: employeeObjectId }, { created_by: employeeObjectId }] } },
+    { $group: { _id: null, total: { $sum: '$amount' } } },
+  ])
+  const targetAmount = Number(targetDoc?.targetAmount || 0)
+  const achievedAmount = Number(agg?.[0]?.total || 0)
+  return { period, dateFrom: rangeFrom, dateTo: rangeTo, targetAmount, achievedAmount, remainingAmount: Math.max(0, targetAmount - achievedAmount), targetId: targetDoc?._id || null }
+}
+
+export const archiveExpiredZoneAndEmployeeTargets = async () => {
+  const now = new Date()
+  const expiredZone = await BranchZoneTargetModel.find({ isDeleted: false, dateTo: { $lt: now } }).lean()
+  for (const target of expiredZone) {
+    const snapshot = await getZoneTargetSummary({ branchId: String(target.branchId), zoneId: String(target.zoneId), period: target.period, branchFilter: {} })
+    const exists = await BranchZoneTargetHistoryModel.findOne({ sourceTargetId: target._id, isDeleted: false }).lean()
+    if (!exists) {
+      await BranchZoneTargetHistoryModel.create({
+        sourceTargetId: target._id, branchId: target.branchId, zoneId: target.zoneId, period: target.period, dateFrom: target.dateFrom, dateTo: target.dateTo, targetAmount: target.targetAmount || 0, actualBillingAmount: snapshot.achievedAmount || 0, archivedAt: new Date(),
+      })
+    }
+    await BranchZoneTargetModel.updateOne({ _id: target._id }, { $set: { isDeleted: true } })
+  }
+  const expiredEmployee = await BranchEmployeeTargetModel.find({ isDeleted: false, dateTo: { $lt: now } }).lean()
+  for (const target of expiredEmployee) {
+    const snapshot = await getEmployeeTargetSummary({ branchId: String(target.branchId), employeeId: String(target.employeeId), period: target.period, branchFilter: {} })
+    const exists = await BranchEmployeeTargetHistoryModel.findOne({ sourceTargetId: target._id, isDeleted: false }).lean()
+    if (!exists) {
+      await BranchEmployeeTargetHistoryModel.create({
+        sourceTargetId: target._id, branchId: target.branchId, zoneId: target.zoneId || null, employeeId: target.employeeId, period: target.period, dateFrom: target.dateFrom, dateTo: target.dateTo, targetAmount: target.targetAmount || 0, actualBillingAmount: snapshot.achievedAmount || 0, archivedAt: new Date(),
+      })
+    }
+    await BranchEmployeeTargetModel.updateOne({ _id: target._id }, { $set: { isDeleted: true } })
+  }
+  return { zoneProcessed: expiredZone.length, employeeProcessed: expiredEmployee.length }
 }

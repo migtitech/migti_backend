@@ -1,7 +1,19 @@
 import PoEntryModel from '../../models/poEntry.model.js'
 import BillingEntryModel from '../../models/billingEntry.model.js'
+import DocumentModel from '../../models/document.model.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
+import { toDisplayPath } from '../document/document.service.js'
+
+const normalizeAttachmentDocumentId = async (attachmentDocumentId) => {
+  const id = attachmentDocumentId && String(attachmentDocumentId).trim()
+  if (!id) return null
+  const doc = await DocumentModel.findById(id).lean()
+  if (!doc) {
+    throw new CustomError(statusCodes.badRequest, 'Attachment document not found', errorCodes.bad_request)
+  }
+  return id
+}
 
 const startOfUtcDay = (yyyyMmDd) => {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(yyyyMmDd || '').trim())
@@ -65,7 +77,9 @@ export const createPoEntry = async ({
   remark = '',
   branchId = null,
   created_by = null,
+  attachmentDocumentId = null,
 }) => {
+  const attachmentId = await normalizeAttachmentDocumentId(attachmentDocumentId)
   const doc = await PoEntryModel.create({
     poNumber: String(poNumber || '').trim().toUpperCase(),
     companyId,
@@ -75,6 +89,7 @@ export const createPoEntry = async ({
     remark: String(remark || '').trim(),
     branchId: branchId || null,
     created_by: created_by || null,
+    attachmentDocumentId: attachmentId,
   })
   return doc.toObject()
 }
@@ -88,7 +103,9 @@ export const createBillingEntry = async ({
   remark = '',
   branchId = null,
   created_by = null,
+  attachmentDocumentId = null,
 }) => {
+  const attachmentId = await normalizeAttachmentDocumentId(attachmentDocumentId)
   const doc = await BillingEntryModel.create({
     billingNumber: String(billingNumber || '').trim().toUpperCase(),
     companyId,
@@ -98,6 +115,7 @@ export const createBillingEntry = async ({
     remark: String(remark || '').trim(),
     branchId: branchId || null,
     created_by: created_by || null,
+    attachmentDocumentId: attachmentId,
   })
   return doc.toObject()
 }
@@ -143,23 +161,40 @@ export const getPoBillingAnalytics = async ({
     .find(activeFilter)
     .populate('companyId', 'name')
     .populate('salespersonId', 'name')
+    .populate('attachmentDocumentId', 'path originalName mimeType')
     .sort({ entryDate: -1, createdAt: -1 })
     .skip(skip)
     .limit(limit)
     .lean()
 
-  rows = rows.map((row) => ({
-    _id: row._id,
-    number: tab === 'billing' ? row.billingNumber || '' : row.poNumber || '',
-    companyId: row.companyId?._id || row.companyId || null,
-    companyName: row.companyId?.name || '-',
-    salespersonId: row.salespersonId?._id || row.salespersonId || null,
-    salespersonName: row.salespersonId?.name || '-',
-    amount: Number(row.amount) || 0,
-    entryDate: row.entryDate || row.createdAt,
-    remark: row.remark || '',
-    createdAt: row.createdAt,
-  }))
+  rows = await Promise.all(
+    rows.map(async (row) => {
+      let attachment = null
+      const att = row.attachmentDocumentId
+      if (att && att._id && att.path) {
+        const url = await toDisplayPath(att.path)
+        attachment = {
+          documentId: String(att._id),
+          url,
+          originalName: att.originalName || '',
+          mimeType: att.mimeType || '',
+        }
+      }
+      return {
+        _id: row._id,
+        number: tab === 'billing' ? row.billingNumber || '' : row.poNumber || '',
+        companyId: row.companyId?._id || row.companyId || null,
+        companyName: row.companyId?.name || '-',
+        salespersonId: row.salespersonId?._id || row.salespersonId || null,
+        salespersonName: row.salespersonId?.name || '-',
+        amount: Number(row.amount) || 0,
+        entryDate: row.entryDate || row.createdAt,
+        remark: row.remark || '',
+        createdAt: row.createdAt,
+        attachment,
+      }
+    }),
+  )
 
   const totalPages = Math.max(1, Math.ceil(totalItems / limit))
   return {
