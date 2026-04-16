@@ -358,6 +358,8 @@ export const MODULES = Object.freeze({
   COMPANIES: 'companies',
   BRANCHES: 'branches',
   ZONES: 'zones',
+  /** Sub-zones (separate from zones for RBAC / sidebar). */
+  SUB_ZONES: 'sub_zones',
   INDUSTRIES: 'industries',
   INDUSTRY_BRANCHES: 'industry_branches',
   GROUPS: 'groups',

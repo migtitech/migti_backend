@@ -1,11 +1,30 @@
 import EmployeeModel from '../../models/employee.model.js'
 import { assertSubZoneBelongsToArea } from '../subZone/subZone.service.js'
 import CustomError from '../../utils/exception.js'
-import { Message, statusCodes, errorCodes } from '../../core/common/constant.js'
+import { Message, statusCodes, errorCodes, MODULES, ACTIONS } from '../../core/common/constant.js'
 import { decrypt, encrypt } from '../../core/crypto/helper.cryto.js'
 import { createTokenPair } from '../../core/helpers/jwt.helper.js'
 
 const nullIfEmpty = (v) => (v === '' || v == null ? null : v)
+
+const SUB_ZONE_PERM_PREFIX = `${MODULES.SUB_ZONES}:`
+const SUB_ZONE_READ_PERM = `${MODULES.SUB_ZONES}:${ACTIONS.READ}`
+const SUB_ZONE_CREATE_PERM = `${MODULES.SUB_ZONES}:${ACTIONS.CREATE}`
+
+/**
+ * When an employee has a sub-zone assignment, ensure read + create (for inline sub-zone flows);
+ * when cleared, strip all sub_zones:* perms.
+ */
+const syncPermissionsWithSubZoneAssignment = (permissions = [], subZoneId) => {
+  const arr = [...(Array.isArray(permissions) ? permissions : [])].map(String).filter(Boolean)
+  const hasSub = subZoneId != null && String(subZoneId).trim() !== ''
+  if (!hasSub) {
+    return arr.filter((p) => !p.startsWith(SUB_ZONE_PERM_PREFIX))
+  }
+  if (!arr.includes(SUB_ZONE_READ_PERM)) arr.push(SUB_ZONE_READ_PERM)
+  if (!arr.includes(SUB_ZONE_CREATE_PERM)) arr.push(SUB_ZONE_CREATE_PERM)
+  return arr
+}
 
 export const addEmployee = async (payload) => {
   const { password, ...rest } = payload
@@ -39,6 +58,8 @@ export const addEmployee = async (payload) => {
       upiDetails: typeof rest.bankDetails.upiDetails === 'string' ? rest.bankDetails.upiDetails : '',
     }
   }
+
+  rest.permissions = syncPermissionsWithSubZoneAssignment(rest.permissions || [], rest.subZoneId)
 
   const existingEmployee = await EmployeeModel.findOne({
     $or: [{ email }, { idnumber }],
@@ -206,6 +227,12 @@ export const updateEmployee = async ({ employeeId, branchFilter = {}, ...updateD
       )
     }
   }
+
+  const basePermissions =
+    updateData.permissions !== undefined
+      ? [...(Array.isArray(updateData.permissions) ? updateData.permissions : [])]
+      : [...(employee.permissions || [])]
+  updateData.permissions = syncPermissionsWithSubZoneAssignment(basePermissions, effSub)
 
   const updatedEmployee = await EmployeeModel.findByIdAndUpdate(
     employeeId,

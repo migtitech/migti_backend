@@ -15,7 +15,7 @@ const subZoneRouter = Router()
 subZoneRouter.post(
   '/create',
   authenticateToken,
-  checkPermission(MODULES.ZONES, 'create'),
+  checkPermission(MODULES.SUB_ZONES, 'create'),
   asyncHandler(createSubZoneController),
 )
 subZoneRouter.get(
@@ -33,13 +33,13 @@ subZoneRouter.get(
 subZoneRouter.put(
   '/update',
   authenticateToken,
-  checkPermission(MODULES.ZONES, 'update'),
+  checkPermission(MODULES.SUB_ZONES, 'update'),
   asyncHandler(updateSubZoneController),
 )
 subZoneRouter.delete(
   '/delete',
   authenticateToken,
-  checkPermission(MODULES.ZONES, 'delete'),
+  checkPermission(MODULES.SUB_ZONES, 'delete'),
   asyncHandler(deleteSubZoneController),
 )
 
