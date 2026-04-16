@@ -9,7 +9,20 @@ import {
   createPoEntry,
   createBillingEntry,
   getPoBillingAnalytics,
+  getPoBillingFormOptions,
 } from '../../services/poBilling/poBilling.service.js'
+
+const normalizeRole = (role) =>
+  String(role || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, '_')
+
+const hasPoFormBypass = (role) => {
+  const normalized = normalizeRole(role)
+  if (['back_office_exicutive', 'back_office_executive', 'boe'].includes(normalized)) return true
+  return normalized.replace(/_/g, '').includes('backoffice')
+}
 
 export const createPoEntryController = async (req, res) => {
   const { error, value } = createPoEntrySchema.validate(req.body, { abortEarly: false })
@@ -68,6 +81,18 @@ export const getPoBillingAnalyticsController = async (req, res) => {
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'PO/Billing analytics retrieved successfully',
+    data: result,
+  })
+}
+
+export const getPoBillingFormOptionsController = async (req, res) => {
+  const branchFilter = hasPoFormBypass(req.user?.role)
+    ? {}
+    : getBranchFilter(req, { allowQueryBranchId: true })
+  const result = await getPoBillingFormOptions({ branchFilter })
+  return res.status(statusCodes.ok).json({
+    success: true,
+    message: 'PO/Billing form options retrieved successfully',
     data: result,
   })
 }

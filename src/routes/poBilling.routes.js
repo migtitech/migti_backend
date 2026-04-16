@@ -6,6 +6,7 @@ import {
   createPoEntryController,
   createBillingEntryController,
   getPoBillingAnalyticsController,
+  getPoBillingFormOptionsController,
 } from '../controller/poBilling/poBilling.controller.js'
 
 const poBillingRouter = Router()
@@ -22,6 +23,13 @@ poBillingRouter.post(
   authenticateToken,
   checkPermission(MODULES.PURCHASE_ORDERS, 'create'),
   asyncHandler(createBillingEntryController),
+)
+
+poBillingRouter.get(
+  '/form-options',
+  authenticateToken,
+  checkPermission(MODULES.PURCHASE_ORDERS, 'read'),
+  asyncHandler(getPoBillingFormOptionsController),
 )
 
 poBillingRouter.get(

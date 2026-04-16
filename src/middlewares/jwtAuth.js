@@ -2,8 +2,26 @@ import {
   verifyToken,
   extractTokenFromHeader,
 } from '../core/helpers/jwt.helper.js'
-import { statusCodes, errorCodes, FULL_ACCESS_ROLES } from '../core/common/constant.js'
+import {
+  statusCodes,
+  errorCodes,
+  FULL_ACCESS_ROLES,
+  MODULES,
+  PURCHASE_ORDER_BYPASS_ROLES,
+} from '../core/common/constant.js'
 import CustomError from '../utils/exception.js'
+
+const normalizeRole = (role) =>
+  String(role || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, '_')
+
+const hasPurchaseOrderBypass = (role) => {
+  const normalized = normalizeRole(role)
+  if (PURCHASE_ORDER_BYPASS_ROLES.includes(normalized)) return true
+  return normalized.replace(/_/g, '').includes('backoffice')
+}
 
 
 export const authenticateToken = (req, res, next) => {
@@ -140,6 +158,9 @@ export const checkPermission = (module, action) => {
       }
 
       if (FULL_ACCESS_ROLES.includes(req.user.role)) {
+        return next()
+      }
+      if (module === MODULES.PURCHASE_ORDERS && hasPurchaseOrderBypass(req.user.role)) {
         return next()
       }
 

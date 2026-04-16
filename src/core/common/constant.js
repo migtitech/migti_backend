@@ -400,6 +400,15 @@ export const FULL_ACCESS_ROLES = Object.freeze([
   'hod',
 ])
 
+// Roles that should always bypass permissions only for purchase orders.
+export const PURCHASE_ORDER_BYPASS_ROLES = Object.freeze([
+  'back_office_exicutive',
+  // accepted spelling variant
+  'back_office_executive',
+  // short alias
+  'boe',
+])
+
 // Roles that are not restricted to a single branch (see all branches).
 // Super_admin, admin and HOD (head_of_department/hod) can view/manage all branches.
 export const BRANCH_BYPASS_ROLES = Object.freeze([

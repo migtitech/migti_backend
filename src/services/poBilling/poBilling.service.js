@@ -1,6 +1,8 @@
 import PoEntryModel from '../../models/poEntry.model.js'
 import BillingEntryModel from '../../models/billingEntry.model.js'
 import DocumentModel from '../../models/document.model.js'
+import IndustryModel from '../../models/industry.model.js'
+import EmployeeModel from '../../models/employee.model.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 import { toDisplayPath } from '../document/document.service.js'
@@ -66,6 +68,32 @@ const buildDateFilter = ({ period = 'all', dateFrom = '', dateTo = '' }) => {
   if (fromD) createdAt.$gte = fromD
   if (toD) createdAt.$lte = toD
   return { entryDate: createdAt }
+}
+
+export const getPoBillingFormOptions = async ({ branchFilter = {} }) => {
+  const filter = { isDeleted: false, ...branchFilter }
+  const [companies, salespeople] = await Promise.all([
+    IndustryModel.find(filter).select('_id name').sort({ name: 1 }).lean(),
+    EmployeeModel.find({
+      ...filter,
+      role: /^sales/i,
+    })
+      .select('_id name role')
+      .sort({ name: 1 })
+      .lean(),
+  ])
+
+  return {
+    companies: (companies || []).map((company) => ({
+      _id: company._id,
+      name: company.name || '',
+    })),
+    salespeople: (salespeople || []).map((employee) => ({
+      _id: employee._id,
+      name: employee.name || '',
+      role: employee.role || '',
+    })),
+  }
 }
 
 export const createPoEntry = async ({
