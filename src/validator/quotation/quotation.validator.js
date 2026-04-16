@@ -95,6 +95,8 @@ export const getQuotationByIdSchema = Joi.object({
 
 export const deleteQuotationSchema = getQuotationByIdSchema
 
+export const listQuotationSnapshotsSchema = getQuotationByIdSchema
+
 export const updateQuotationSchema = Joi.object({
   quotationId: Joi.string()
     .pattern(objectIdPattern)

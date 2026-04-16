@@ -60,7 +60,8 @@ export const createEmployeeSchema = Joi.object({
   salary: Joi.number().min(0).optional(),
   password: Joi.string().required().min(6),
   branchId: Joi.string().optional(), // optional: set from token for branch-scoped users when omitted
-  zoneId: Joi.string().optional(),
+  zoneId: Joi.string().pattern(/^[a-fA-F0-9]{24}$/).allow('', null).optional(),
+  subZoneId: Joi.string().pattern(/^[a-fA-F0-9]{24}$/).allow('', null).optional(),
   permissions: Joi.array().items(Joi.string()).optional(),
   bankDetails: bankDetailsSchema.optional(),
   assets: assetsSchema.optional(),
@@ -110,7 +111,8 @@ export const updateEmployeeSchema = Joi.object({
   salary: Joi.number().min(0).optional(),
   password: Joi.forbidden(), // password cannot be updated via this endpoint
   branchId: Joi.string().optional(),
-  zoneId: Joi.string().optional(),
+  zoneId: Joi.string().pattern(/^[a-fA-F0-9]{24}$/).allow('', null).optional(),
+  subZoneId: Joi.string().pattern(/^[a-fA-F0-9]{24}$/).allow('', null).optional(),
   permissions: Joi.array().items(Joi.string()).optional(),
   bankDetails: bankDetailsSchema.optional(),
   assets: assetsSchema.optional(),

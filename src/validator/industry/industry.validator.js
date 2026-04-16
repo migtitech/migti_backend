@@ -10,6 +10,7 @@ export const createIndustrySchema = Joi.object({
   name: Joi.string().required().min(2).max(100),
   category: Joi.string().valid('A', 'B', 'C', 'D').optional().allow('', null),
   area: Joi.string().optional().allow(null, ''),
+  subZoneId: Joi.string().pattern(/^[a-fA-F0-9]{24}$/).allow('', null).optional(),
   location: Joi.string().optional().allow(''),
   address: Joi.string().optional().allow(''),
   purchase_manager_name: Joi.string().optional().allow('', null),
@@ -44,6 +45,8 @@ export const getIndustryByIdSchema = Joi.object({
 // Edit mode: location, address, purchase manager(s), and branch can be updated
 export const updateIndustrySchema = Joi.object({
   industryId: Joi.string().required(),
+  area: Joi.string().pattern(/^[a-fA-F0-9]{24}$/).allow('', null).optional(),
+  subZoneId: Joi.string().pattern(/^[a-fA-F0-9]{24}$/).allow('', null).optional(),
   location: Joi.string().optional().allow(''),
   address: Joi.string().optional().allow(''),
   purchase_manager_name: Joi.string().optional().allow('', null),

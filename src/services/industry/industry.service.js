@@ -1,10 +1,12 @@
 import IndustryModel from '../../models/industry.model.js'
+import { assertSubZoneBelongsToArea } from '../subZone/subZone.service.js'
 import IndustryPurchaseManagerModel from '../../models/industryPurchaseManager.model.js'
 import IndustryBranchModel from '../../models/industryBranch.model.js'
 import QueryModel from '../../models/query.model.js'
 import QuotationModel from '../../models/quotation.model.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
+import { getEmployeeIndustryTerritoryFields } from '../../core/helpers/queryAccess.js'
 
 const normalizeGstNumber = (gst) => (gst || '').trim().toUpperCase()
 export const findActiveIndustryByGstNumber = async (gstNumber) => {
@@ -47,6 +49,15 @@ export const addIndustry = async (data) => {
   if (!data.area) {
     data.area = null
   }
+  if (!data.subZoneId || String(data.subZoneId).trim() === '') {
+    data.subZoneId = null
+  }
+  const branchScope = data.branchId ? { branchId: data.branchId } : {}
+  await assertSubZoneBelongsToArea({
+    subZoneId: data.subZoneId,
+    areaId: data.area,
+    branchFilter: branchScope,
+  })
 
   const { purchaseManagers = [], branchId, ...industryPayload } = data
   const industry = await IndustryModel.create({
@@ -68,6 +79,7 @@ export const addIndustry = async (data) => {
 
   const result = await IndustryModel.findById(industryId)
     .populate('area', 'name city areaType')
+    .populate('subZoneId', 'name subZoneCode zoneId')
     .lean()
   const managers = await IndustryPurchaseManagerModel.find({
     industryId,
@@ -82,12 +94,22 @@ export const listIndustries = async ({
   search = '',
   category,
   branchFilter = {},
+  currentUserId = null,
+  isFullAccessRole = true,
 }) => {
   const page = Math.max(1, parseInt(pageNumber))
   const limit = Math.min(1000, Math.max(1, parseInt(pageSize)))
   const skip = (page - 1) * limit
 
   const filter = { isDeleted: false, ...branchFilter }
+
+  const territoryFields = await getEmployeeIndustryTerritoryFields({
+    currentUserId,
+    isFullAccessRole,
+  })
+  if (territoryFields) {
+    Object.assign(filter, territoryFields)
+  }
 
   if (search) {
     filter.$or = [
@@ -107,6 +129,7 @@ export const listIndustries = async ({
 
   const industries = await IndustryModel.find(filter)
     .populate('area', 'name city areaType')
+    .populate('subZoneId', 'name subZoneCode zoneId')
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit)
@@ -143,13 +166,24 @@ export const listIndustries = async ({
   }
 }
 
-export const getIndustryById = async ({ industryId, branchFilter = {} }) => {
+export const getIndustryById = async ({
+  industryId,
+  branchFilter = {},
+  currentUserId = null,
+  isFullAccessRole = true,
+}) => {
+  const territoryFields = await getEmployeeIndustryTerritoryFields({
+    currentUserId,
+    isFullAccessRole,
+  })
   const industry = await IndustryModel.findOne({
     _id: industryId,
     isDeleted: false,
     ...branchFilter,
+    ...(territoryFields || {}),
   })
     .populate('area', 'name city areaType')
+    .populate('subZoneId', 'name subZoneCode zoneId')
     .lean()
 
   if (!industry) {
@@ -167,13 +201,35 @@ export const getIndustryById = async ({ industryId, branchFilter = {} }) => {
   return { ...industry, purchaseManagers }
 }
 
-const ALLOWED_UPDATE_FIELDS = ['location', 'address', 'purchase_manager_name', 'purchase_manager_phone', 'branchId']
+const nullIfEmpty = (v) => (v === '' || v == null ? null : v)
 
-export const updateIndustry = async ({ industryId, purchaseManagers, branchFilter = {}, ...updateData }) => {
+const ALLOWED_UPDATE_FIELDS = [
+  'location',
+  'address',
+  'purchase_manager_name',
+  'purchase_manager_phone',
+  'branchId',
+  'area',
+  'subZoneId',
+]
+
+export const updateIndustry = async ({
+  industryId,
+  purchaseManagers,
+  branchFilter = {},
+  currentUserId = null,
+  isFullAccessRole = true,
+  ...updateData
+}) => {
+  const territoryFields = await getEmployeeIndustryTerritoryFields({
+    currentUserId,
+    isFullAccessRole,
+  })
   const industry = await IndustryModel.findOne({
     _id: industryId,
     isDeleted: false,
     ...branchFilter,
+    ...(territoryFields || {}),
   }).lean()
   if (!industry) {
     throw new CustomError(
@@ -186,9 +242,35 @@ export const updateIndustry = async ({ industryId, purchaseManagers, branchFilte
   const allowedUpdate = {}
   for (const key of ALLOWED_UPDATE_FIELDS) {
     if (Object.prototype.hasOwnProperty.call(updateData, key)) {
-      allowedUpdate[key] = key === 'branchId' && (updateData[key] === '' || updateData[key] == null) ? null : updateData[key]
+      if (key === 'branchId' && (updateData[key] === '' || updateData[key] == null)) {
+        allowedUpdate[key] = null
+      } else if (key === 'area' || key === 'subZoneId') {
+        allowedUpdate[key] = nullIfEmpty(updateData[key])
+      } else {
+        allowedUpdate[key] = updateData[key]
+      }
     }
   }
+
+  if (Object.prototype.hasOwnProperty.call(allowedUpdate, 'area') && allowedUpdate.area == null) {
+    allowedUpdate.subZoneId = null
+  }
+
+  const mergedArea = Object.prototype.hasOwnProperty.call(allowedUpdate, 'area')
+    ? allowedUpdate.area
+    : industry.area
+  const mergedSub = Object.prototype.hasOwnProperty.call(allowedUpdate, 'subZoneId')
+    ? allowedUpdate.subZoneId
+    : industry.subZoneId
+  const mergedBranchId = Object.prototype.hasOwnProperty.call(allowedUpdate, 'branchId')
+    ? allowedUpdate.branchId
+    : industry.branchId
+  const branchScope = mergedBranchId ? { branchId: mergedBranchId } : {}
+  await assertSubZoneBelongsToArea({
+    subZoneId: mergedSub,
+    areaId: mergedArea,
+    branchFilter: branchScope,
+  })
 
   if (Array.isArray(purchaseManagers)) {
     await IndustryPurchaseManagerModel.updateMany(
@@ -212,6 +294,7 @@ export const updateIndustry = async ({ industryId, purchaseManagers, branchFilte
     runValidators: true,
   })
     .populate('area', 'name city areaType')
+    .populate('subZoneId', 'name subZoneCode zoneId')
     .lean()
 
   const managers = await IndustryPurchaseManagerModel.find({
@@ -221,11 +304,21 @@ export const updateIndustry = async ({ industryId, purchaseManagers, branchFilte
   return { ...updated, purchaseManagers: managers }
 }
 
-export const deleteIndustry = async ({ industryId, branchFilter = {} }) => {
+export const deleteIndustry = async ({
+  industryId,
+  branchFilter = {},
+  currentUserId = null,
+  isFullAccessRole = true,
+}) => {
+  const territoryFields = await getEmployeeIndustryTerritoryFields({
+    currentUserId,
+    isFullAccessRole,
+  })
   const industry = await IndustryModel.findOne({
     _id: industryId,
     isDeleted: false,
     ...branchFilter,
+    ...(territoryFields || {}),
   }).lean()
   if (!industry) {
     throw new CustomError(

@@ -1,12 +1,24 @@
 import EmployeeModel from '../../models/employee.model.js'
+import { assertSubZoneBelongsToArea } from '../subZone/subZone.service.js'
 import CustomError from '../../utils/exception.js'
 import { Message, statusCodes, errorCodes } from '../../core/common/constant.js'
 import { decrypt, encrypt } from '../../core/crypto/helper.cryto.js'
 import { createTokenPair } from '../../core/helpers/jwt.helper.js'
 
+const nullIfEmpty = (v) => (v === '' || v == null ? null : v)
+
 export const addEmployee = async (payload) => {
   const { password, ...rest } = payload
   const { email, idnumber } = rest
+
+  rest.zoneId = nullIfEmpty(rest.zoneId)
+  rest.subZoneId = nullIfEmpty(rest.subZoneId)
+  const branchFilter = rest.branchId ? { branchId: rest.branchId } : {}
+  await assertSubZoneBelongsToArea({
+    subZoneId: rest.subZoneId,
+    areaId: rest.zoneId,
+    branchFilter,
+  })
 
   // Normalize optional company contact fields
   if (rest.companyEmail == null) {
@@ -119,6 +131,32 @@ export const updateEmployee = async ({ employeeId, branchFilter = {}, ...updateD
       errorCodes.not_found
     )
   }
+
+  if (Object.prototype.hasOwnProperty.call(updateData, 'zoneId')) {
+    updateData.zoneId = nullIfEmpty(updateData.zoneId)
+  }
+  if (Object.prototype.hasOwnProperty.call(updateData, 'subZoneId')) {
+    updateData.subZoneId = nullIfEmpty(updateData.subZoneId)
+  }
+  if (Object.prototype.hasOwnProperty.call(updateData, 'zoneId') && updateData.zoneId == null) {
+    updateData.subZoneId = null
+  }
+
+  const effZone = Object.prototype.hasOwnProperty.call(updateData, 'zoneId')
+    ? updateData.zoneId
+    : employee.zoneId
+  const effSub = Object.prototype.hasOwnProperty.call(updateData, 'subZoneId')
+    ? updateData.subZoneId
+    : employee.subZoneId
+  const effBranchId = Object.prototype.hasOwnProperty.call(updateData, 'branchId')
+    ? updateData.branchId
+    : employee.branchId
+  const areaBranchFilter = effBranchId ? { branchId: effBranchId } : {}
+  await assertSubZoneBelongsToArea({
+    subZoneId: effSub,
+    areaId: effZone,
+    branchFilter: areaBranchFilter,
+  })
 
   if (updateData.password) {
     updateData.password = encrypt(updateData.password)

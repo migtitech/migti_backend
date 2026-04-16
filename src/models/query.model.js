@@ -17,6 +17,7 @@ const companyInfoSchema = new mongoose.Schema(
   {
     name: { type: SchemaTypes.String, trim: true, default: '' },
     area: { type: SchemaTypes.String, trim: true, default: '' },
+    subZoneId: { type: SchemaTypes.String, trim: true, default: '' },
     location: { type: SchemaTypes.String, trim: true, default: '' },
     address: { type: SchemaTypes.String, default: '' },
     purchaseManagers: { type: [purchaseManagerSchema], default: [] },

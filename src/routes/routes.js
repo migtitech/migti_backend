@@ -11,6 +11,7 @@ import productRouter from './product.routes.js'
 import supplierRouter from './supplier.routes.js'
 import rateCardRouter from './rateCard.routes.js'
 import areaRouter from './area.routes.js'
+import subZoneRouter from './subZone.routes.js'
 import industryRouter from './industry.routes.js'
 import industryBranchRouter from './industryBranch.routes.js'
 import queryRouter from './query.routes.js'
@@ -51,6 +52,7 @@ mainRoutes.use('/v1/products', productRouter)
 mainRoutes.use('/v1/suppliers', supplierRouter)
 mainRoutes.use('/v1/rate-cards', rateCardRouter)
 mainRoutes.use('/v1/areas', areaRouter)
+mainRoutes.use('/v1/sub-zones', subZoneRouter)
 mainRoutes.use('/v1/industries', industryRouter)
 mainRoutes.use('/v1/industry-branches', industryBranchRouter)
 mainRoutes.use('/v1/queries', queryRouter)

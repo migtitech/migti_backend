@@ -409,12 +409,14 @@ export const exportQueryPdf = async ({
   branchFilter,
   currentUserId = null,
   isFullAccessRole = true,
+  role = '',
 }) => {
   const query = await getQueryById({
     queryId,
     branchFilter,
     currentUserId,
     isFullAccessRole,
+    role,
   })
 
   let branch = null
@@ -447,6 +449,7 @@ export const exportQueryPdf = async ({
       branchFilter,
       currentUserId,
       isFullAccessRole,
+      role,
     })
   } catch {
     quotation = null

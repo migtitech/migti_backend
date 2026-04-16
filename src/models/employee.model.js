@@ -102,6 +102,11 @@ const employeeSchema = new mongoose.Schema(
       ref: 'area',
       default: null,
     },
+    subZoneId: {
+      type: SchemaTypes.ObjectId,
+      ref: 'subZone',
+      default: null,
+    },
     permissions: [{ type: String }],
     bankDetails: { type: bankDetailsSchema, default: () => ({}) },
     assets: { type: assetsSchema, default: () => ({}) },

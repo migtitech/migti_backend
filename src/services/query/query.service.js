@@ -33,8 +33,22 @@ import {
 } from '../targetAnalytics/targetAnalytics.service.js'
 import BranchEmployeeTargetModel from '../../models/branchEmployeeTarget.model.js'
 import TargetAnalyticsModel from '../../models/targetAnalytics.model.js'
+import { assertSubZoneBelongsToArea } from '../subZone/subZone.service.js'
+import { resolveQueryAccessFilter } from '../../core/helpers/queryAccess.js'
 
 const OBJECT_ID_REGEX = /^[a-fA-F0-9]{24}$/
+
+const validateCompanyInfoSubZone = async (companyInfo, branchId) => {
+  if (!companyInfo || typeof companyInfo !== 'object') return
+  const sub = companyInfo.subZoneId
+  const areaId = companyInfo.area
+  if (!sub || String(sub).trim() === '') return
+  const bf =
+    branchId && mongoose.Types.ObjectId.isValid(String(branchId))
+      ? { branchId: new mongoose.Types.ObjectId(String(branchId)) }
+      : {}
+  await assertSubZoneBelongsToArea({ subZoneId: sub, areaId, branchFilter: bf })
+}
 
 /** Company name to first 5 chars (alphanumeric, uppercase). Fallback if empty. */
 const companyFirst5 = (name) => {
@@ -67,11 +81,6 @@ const mapProductsWithImages = (products) => {
     ...p,
     images: normalizeImageIds(p.images),
   }))
-}
-
-const getQueryOwnershipFilter = ({ currentUserId = null, isFullAccessRole = true }) => {
-  if (!currentUserId || isFullAccessRole) return {}
-  return { created_by: currentUserId }
 }
 
 const dedupeConvertedQuotationRefs = (refs = []) => {
@@ -131,6 +140,8 @@ export const addQuery = async ({
 
   const normalizedProducts = mapProductsWithImages(products || [])
 
+  await validateCompanyInfoSubZone(companyInfo, branchId)
+
   const doc = await QueryModel.create({
     queryCode,
     status: status || 'drafted',
@@ -174,12 +185,13 @@ export const listQueries = async ({
   branchFilter = {},
   currentUserId = null,
   isFullAccessRole = true,
+  role = '',
 }) => {
   const page = Math.max(1, parseInt(pageNumber))
   const limit = Math.min(100, Math.max(1, parseInt(pageSize)))
   const skip = (page - 1) * limit
 
-  const ownershipFilter = getQueryOwnershipFilter({ currentUserId, isFullAccessRole })
+  const ownershipFilter = await resolveQueryAccessFilter({ currentUserId, isFullAccessRole, role, branchFilter })
   const filter = { isDeleted: false, ...branchFilter, ...ownershipFilter }
   if (industryId && String(industryId).trim() && mongoose.Types.ObjectId.isValid(industryId)) {
     filter.industry_id = new mongoose.Types.ObjectId(String(industryId).trim())
@@ -247,8 +259,9 @@ export const getQueryById = async ({
   branchFilter = {},
   currentUserId = null,
   isFullAccessRole = true,
+  role = '',
 }) => {
-  const ownershipFilter = getQueryOwnershipFilter({ currentUserId, isFullAccessRole })
+  const ownershipFilter = await resolveQueryAccessFilter({ currentUserId, isFullAccessRole, role, branchFilter })
   const query = await QueryModel.findOne({ _id: queryId, isDeleted: false, ...branchFilter, ...ownershipFilter })
     .populate('industry_id', 'name location address email purchase_manager_name purchase_manager_phone')
     .populate('created_by', 'name email')
@@ -305,8 +318,9 @@ export const listQueryActivities = async ({
   branchFilter = {},
   currentUserId = null,
   isFullAccessRole = true,
+  role = '',
 }) => {
-  const ownershipFilter = getQueryOwnershipFilter({ currentUserId, isFullAccessRole })
+  const ownershipFilter = await resolveQueryAccessFilter({ currentUserId, isFullAccessRole, role, branchFilter })
   const queryBelongs = await QueryModel.findOne({
     _id: queryId,
     isDeleted: false,
@@ -371,8 +385,9 @@ export const recordQueryActivity = async ({
   branchFilter = {},
   currentUserId = null,
   isFullAccessRole = true,
+  role = '',
 }) => {
-  const ownershipFilter = getQueryOwnershipFilter({ currentUserId, isFullAccessRole })
+  const ownershipFilter = await resolveQueryAccessFilter({ currentUserId, isFullAccessRole, role, branchFilter })
   const query = await QueryModel.findOne({ _id: queryId, isDeleted: false, ...branchFilter, ...ownershipFilter }).lean()
   if (!query) {
     throw new CustomError(
@@ -410,8 +425,9 @@ export const updateQuery = async ({
   branchFilter = {},
   currentUserId = null,
   isFullAccessRole = true,
+  role = '',
 }) => {
-  const ownershipFilter = getQueryOwnershipFilter({ currentUserId, isFullAccessRole })
+  const ownershipFilter = await resolveQueryAccessFilter({ currentUserId, isFullAccessRole, role, branchFilter })
   const existing = await QueryModel.findOne({ _id: queryId, isDeleted: false, ...branchFilter, ...ownershipFilter }).lean()
   if (!existing) {
     throw new CustomError(
@@ -430,7 +446,11 @@ export const updateQuery = async ({
   }
 
   const updatePayload = {}
-  if (companyInfo !== undefined) updatePayload.companyInfo = companyInfo
+  if (companyInfo !== undefined) {
+    const mergedCi = { ...(existing.companyInfo || {}), ...companyInfo }
+    await validateCompanyInfoSubZone(mergedCi, existing.branchId)
+    updatePayload.companyInfo = companyInfo
+  }
   if (industry_id !== undefined) updatePayload.industry_id = industry_id || null
   if (products !== undefined) updatePayload.products = mapProductsWithImages(products)
   if (delivery !== undefined) updatePayload.delivery = delivery
@@ -453,8 +473,9 @@ export const deleteQuery = async ({
   branchFilter = {},
   currentUserId = null,
   isFullAccessRole = true,
+  role = '',
 }) => {
-  const ownershipFilter = getQueryOwnershipFilter({ currentUserId, isFullAccessRole })
+  const ownershipFilter = await resolveQueryAccessFilter({ currentUserId, isFullAccessRole, role, branchFilter })
   const existing = await QueryModel.findOne({ _id: queryId, isDeleted: false, ...branchFilter, ...ownershipFilter }).lean()
   if (!existing) {
     throw new CustomError(
@@ -482,8 +503,9 @@ export const linkConvertedQuotationToQuery = async ({
   branchFilter = {},
   currentUserId = null,
   isFullAccessRole = true,
+  role = '',
 }) => {
-  const ownershipFilter = getQueryOwnershipFilter({ currentUserId, isFullAccessRole })
+  const ownershipFilter = await resolveQueryAccessFilter({ currentUserId, isFullAccessRole, role, branchFilter })
   const existing = await QueryModel.findOne({
     _id: queryId,
     isDeleted: false,
@@ -515,10 +537,13 @@ export const convertQueryToQuotation = async ({
   remark,
   products,
   isFullAccessRole = true,
+  role = '',
 }) => {
-  const ownershipFilter = getQueryOwnershipFilter({
+  const ownershipFilter = await resolveQueryAccessFilter({
     currentUserId: created_by,
     isFullAccessRole,
+    role,
+    branchFilter,
   })
   const existing = await QueryModel.findOne({
     queryCode,
@@ -607,9 +632,10 @@ export const getTodayDashboardStats = async ({
   branchFilter = {},
   currentUserId = null,
   isFullAccessRole = true,
+  role = '',
 }) => {
   const { start, end } = getDayRange()
-  const ownershipFilter = getQueryOwnershipFilter({ currentUserId, isFullAccessRole })
+  const ownershipFilter = await resolveQueryAccessFilter({ currentUserId, isFullAccessRole, role, branchFilter })
 
   const queryFilter = {
     isDeleted: false,
@@ -630,7 +656,7 @@ export const getTodayDashboardStats = async ({
     const ownQueryIds = await QueryModel.find({
       isDeleted: false,
       ...branchFilter,
-      created_by: currentUserId,
+      ...ownershipFilter,
     })
       .select('_id')
       .lean()
@@ -694,11 +720,12 @@ export const getBranchAnalytics = async ({
   branchFilter = {},
   currentUserId = null,
   isFullAccessRole = true,
+  role = '',
 }) => {
   const page = Math.max(1, parseInt(pageNumber))
   const limit = Math.min(100, Math.max(1, parseInt(pageSize)))
   const skip = (page - 1) * limit
-  const ownershipFilter = getQueryOwnershipFilter({ currentUserId, isFullAccessRole })
+  const ownershipFilter = await resolveQueryAccessFilter({ currentUserId, isFullAccessRole, role, branchFilter })
 
   const queryBaseFilter = { isDeleted: false, ...ownershipFilter, ...branchFilter }
   const quotationBaseFilter = { isDeleted: false, ...branchFilter }
@@ -755,7 +782,7 @@ export const getBranchAnalytics = async ({
     const ownQueryIds = await QueryModel.find({
       isDeleted: false,
       ...branchFilter,
-      created_by: currentUserId,
+      ...ownershipFilter,
     })
       .select('_id')
       .lean()

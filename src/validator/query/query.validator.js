@@ -9,6 +9,7 @@ const purchaseManagerSchema = Joi.object({
 const companyInfoSchema = Joi.object({
   name: Joi.string().allow('').optional(),
   area: Joi.string().allow('').optional(),
+  subZoneId: Joi.string().pattern(/^[a-fA-F0-9]{24}$/).allow('', null).optional(),
   location: Joi.string().allow('').optional(),
   address: Joi.string().allow('').optional(),
   purchaseManagers: Joi.array().items(purchaseManagerSchema).optional().default([]),

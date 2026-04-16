@@ -26,6 +26,11 @@ const industrySchema = new mongoose.Schema(
       ref: 'area',
       default: null,
     },
+    subZoneId: {
+      type: SchemaTypes.ObjectId,
+      ref: 'subZone',
+      default: null,
+    },
     location: {
       type: SchemaTypes.String,
       trim: true,

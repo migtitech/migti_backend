@@ -11,6 +11,7 @@ import {
   exportQuotationPdfController,
   listRateLogsController,
   deleteQuotationController,
+  listQuotationSnapshotsController,
 } from '../controller/quotation/quotation.controller.js'
 
 const quotationRouter = Router()
@@ -32,6 +33,12 @@ quotationRouter.get(
   authenticateToken,
   checkPermission(MODULES.QUOTATIONS, 'read'),
   asyncHandler(getQuotationByIdController),
+)
+quotationRouter.get(
+  '/snapshots/list',
+  authenticateToken,
+  checkPermission(MODULES.QUOTATIONS, 'read'),
+  asyncHandler(listQuotationSnapshotsController),
 )
 quotationRouter.put(
   '/update',

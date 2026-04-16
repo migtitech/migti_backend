@@ -1,5 +1,6 @@
 import mongoose from 'mongoose'
 import QuotationModel, { QUOTATION_STATUS } from '../../models/quotation.model.js'
+import QuotationSnapshotModel from '../../models/quotationSnapshot.model.js'
 import QueryModel from '../../models/query.model.js'
 import CustomError from '../../utils/exception.js'
 import { getNextSequence } from '../codeSequence/codeSequence.service.js'
@@ -13,6 +14,11 @@ import { autoAssignPurchaseTasksForQuotation } from '../purchaseTask/purchaseTas
 import CompanyBranchModel from '../../models/companyBranch.model.js'
 import { getDocumentById, toDisplayPath } from '../document/document.service.js'
 import { captureRateLogsForProductChanges } from '../rateLog/rateLog.service.js'
+import {
+  resolveQueryAccessFilter,
+  findVisibleQueryById,
+  getTerritoryIndustryIdsForUser,
+} from '../../core/helpers/queryAccess.js'
 
 const QUOTATION_CODE_PREFIX = 'QUO'
 const normalizeRole = (role) => String(role || '').trim().toLowerCase().replace(/[\s-]+/g, '_')
@@ -80,6 +86,83 @@ const STATUSES_AUTO_UPDATED = [
   QUOTATION_STATUS.PARTIAL,
   QUOTATION_STATUS.FULFILLED,
 ]
+
+const toRefId = (val) => {
+  if (val == null || val === '') return null
+  if (typeof val === 'object' && val !== null && val._id != null) return val._id
+  return val
+}
+
+const buildQuotationSnapshotPayload = (doc) => {
+  if (!doc) return {}
+  const products = Array.isArray(doc.products)
+    ? doc.products.map((p) => ({
+      productName: p.productName,
+      description: p.description ?? '',
+      quantity: p.quantity,
+      unit: p.unit ?? '',
+      hsnNumber: p.hsnNumber ?? '',
+      modelNumber: p.modelNumber ?? '',
+      gstPercentage: p.gstPercentage ?? null,
+      variants: Array.isArray(p.variants)
+        ? p.variants.map((v) => ({
+          _id: v._id,
+          variantName: v.variantName || '',
+        }))
+        : [],
+      remark: p.remark ?? '',
+      product_id: toRefId(p.product_id),
+      rate: p.rate ?? null,
+      images: (Array.isArray(p.images) ? p.images : []).map((img) => toRefId(img)).filter(Boolean),
+      applyDiscount: !!p.applyDiscount,
+      discountPercentage: p.discountPercentage ?? null,
+      discountAmount: p.discountAmount ?? null,
+      notAvailable: !!p.notAvailable,
+      notAvailableRemark: p.notAvailableRemark || '',
+    }))
+    : []
+
+  return {
+    uniqueId: doc.uniqueId,
+    quotationCode: doc.quotationCode,
+    queryId: toRefId(doc.queryId),
+    status: doc.status,
+    companyInfo: doc.companyInfo ? JSON.parse(JSON.stringify(doc.companyInfo)) : {},
+    industry_id: toRefId(doc.industry_id),
+    products,
+    remark: doc.remark ?? '',
+    freightCharge: doc.freightCharge ?? '',
+    packingCharge: doc.packingCharge ?? 0,
+    expectedDeliveryDate: doc.expectedDeliveryDate ?? null,
+    expectedDeliveryWithinDays: doc.expectedDeliveryWithinDays ?? null,
+    branchId: toRefId(doc.branchId),
+    created_by: toRefId(doc.created_by),
+  }
+}
+
+const createQuotationSnapshotOnHodApproval = async ({ quotationLean, approvedBy = null }) => {
+  const quotationId = quotationLean._id
+  const baseCode = String(quotationLean.quotationCode || '').trim().toUpperCase()
+  if (!baseCode) {
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Quotation code is required before HOD approval snapshot',
+      errorCodes.bad_request,
+    )
+  }
+  const count = await QuotationSnapshotModel.countDocuments({ quotationId })
+  const revision = count + 1
+  const snapshotCode = `${baseCode}R${revision}`
+  const payload = buildQuotationSnapshotPayload(quotationLean)
+
+  await QuotationSnapshotModel.create({
+    quotationId,
+    revision,
+    snapshotCode,
+    payload,
+    approvedBy: approvedBy || null,
+  })
+}
 
 /** Compute total amount from products: sum of (quantity * rate - discount) for each line; excludes notAvailable */
 export const computeTotalAmountFromProducts = (products = []) => {
@@ -226,6 +309,7 @@ export const listQuotations = async ({
   branchFilter = {},
   currentUserId = null,
   isFullAccessRole = true,
+  role = '',
 }) => {
   const page = Math.max(1, parseInt(pageNumber))
   const limit = Math.min(100, Math.max(1, parseInt(pageSize)))
@@ -266,17 +350,32 @@ export const listQuotations = async ({
     if (toD) filter.createdAt.$lte = toD
   }
 
-  // For employees (non-admin): show only quotations that came from queries they created.
+  // For employees (non-admin): zone-assigned users see quotations by client (industry) territory; others by accessible queries.
   if (currentUserId && !isFullAccessRole) {
-    const queryIds = await QueryModel.find({
-      isDeleted: false,
-      created_by: currentUserId,
-      ...branchFilter,
+    const territoryIds = await getTerritoryIndustryIdsForUser({
+      currentUserId,
+      isFullAccessRole: false,
+      branchFilter,
     })
-      .select('_id')
-      .lean()
-    const ids = (queryIds || []).map((q) => q._id)
-    filter.queryId = { $in: ids }
+    if (territoryIds != null) {
+      filter.industry_id = { $in: territoryIds }
+    } else {
+      const accessFilter = await resolveQueryAccessFilter({
+        currentUserId,
+        isFullAccessRole: false,
+        role,
+        branchFilter,
+      })
+      const queryIds = await QueryModel.find({
+        isDeleted: false,
+        ...branchFilter,
+        ...accessFilter,
+      })
+        .select('_id')
+        .lean()
+      const ids = (queryIds || []).map((q) => q._id)
+      filter.queryId = { $in: ids }
+    }
   }
 
   if (search && search.trim()) {
@@ -339,6 +438,7 @@ export const getQuotationById = async ({
   branchFilter = {},
   currentUserId = null,
   isFullAccessRole = true,
+  role = '',
 }) => {
   const quotation = await QuotationModel.findOne({
     _id: quotationId,
@@ -368,11 +468,18 @@ export const getQuotationById = async ({
     )
   }
 
-  // Employees may only view quotations that came from their own queries
+  // Employees may only view quotations for queries they may access
   if (currentUserId && !isFullAccessRole && quotation.queryId) {
-    const queryCreatedBy = quotation.queryId.created_by?._id ?? quotation.queryId.created_by
-    const allowed = queryCreatedBy && String(queryCreatedBy) === String(currentUserId)
-    if (!allowed) {
+    const qid = typeof quotation.queryId === 'object' ? quotation.queryId._id : quotation.queryId
+    const visible = await findVisibleQueryById({
+      queryId: qid,
+      branchFilter,
+      currentUserId,
+      isFullAccessRole,
+      role,
+      select: '_id',
+    })
+    if (!visible) {
       throw new CustomError(
         statusCodes.forbidden,
         'You do not have access to this quotation',
@@ -414,6 +521,56 @@ export const getQuotationById = async ({
 }
 
 /**
+ * List HOD approval snapshots for a quotation (newest revision first).
+ */
+export const listQuotationSnapshots = async ({
+  quotationId,
+  branchFilter = {},
+  currentUserId = null,
+  isFullAccessRole = true,
+  role = '',
+}) => {
+  const existing = await QuotationModel.findOne({
+    _id: quotationId,
+    isDeleted: false,
+    ...branchFilter,
+  }).lean()
+
+  if (!existing) {
+    throw new CustomError(
+      statusCodes.notFound,
+      'Quotation not found',
+      errorCodes.not_found,
+    )
+  }
+
+  if (currentUserId && !isFullAccessRole && existing.queryId) {
+    const visible = await findVisibleQueryById({
+      queryId: existing.queryId,
+      branchFilter,
+      currentUserId,
+      isFullAccessRole,
+      role,
+      select: '_id',
+    })
+    if (!visible) {
+      throw new CustomError(
+        statusCodes.forbidden,
+        'You do not have access to this quotation',
+        errorCodes.access_forbidden,
+      )
+    }
+  }
+
+  const snapshots = await QuotationSnapshotModel.find({ quotationId: existing._id })
+    .sort({ revision: -1 })
+    .select('revision snapshotCode payload createdAt approvedBy')
+    .lean()
+
+  return { snapshots }
+}
+
+/**
  * Update quotation (products/rates). Recomputes status to partial/fulfilled when
  * current status is draft/partial/fulfilled.
  */
@@ -429,6 +586,7 @@ export const updateQuotation = async ({
   branchFilter = {},
   currentUserId = null,
   isFullAccessRole = true,
+  role = '',
 }) => {
   const existing = await QuotationModel.findOne({
     _id: quotationId,
@@ -444,9 +602,15 @@ export const updateQuotation = async ({
     )
   }
   if (currentUserId && !isFullAccessRole && existing.queryId) {
-    const sourceQuery = await QueryModel.findById(existing.queryId).select('created_by').lean()
-    const queryCreatedBy = sourceQuery?.created_by
-    if (!queryCreatedBy || String(queryCreatedBy) !== String(currentUserId)) {
+    const visible = await findVisibleQueryById({
+      queryId: existing.queryId,
+      branchFilter,
+      currentUserId,
+      isFullAccessRole,
+      role,
+      select: '_id',
+    })
+    if (!visible) {
       throw new CustomError(
         statusCodes.forbidden,
         'You do not have access to this quotation',
@@ -477,6 +641,14 @@ export const updateQuotation = async ({
     if (STATUSES_AUTO_UPDATED.includes(existing.status)) {
       updatePayload.status = computeStatusFromProducts(products)
     }
+  }
+
+  if (
+    existing.status === QUOTATION_STATUS.HOD_APPROVED
+    && Object.keys(updatePayload).length > 0
+  ) {
+    const effectiveProducts = products !== undefined ? products : existing.products
+    updatePayload.status = computeStatusFromProducts(effectiveProducts || [])
   }
 
   const updated = await QuotationModel.findByIdAndUpdate(
@@ -523,6 +695,8 @@ export const updateQuotationStatus = async ({
   currentUserId = null,
   currentUserRole = '',
   isFullAccessRole = true,
+  approvedBy = null,
+  role = '',
 }) => {
   const existing = await QuotationModel.findOne({
     _id: quotationId,
@@ -538,9 +712,15 @@ export const updateQuotationStatus = async ({
     )
   }
   if (currentUserId && !isFullAccessRole && existing.queryId) {
-    const sourceQuery = await QueryModel.findById(existing.queryId).select('created_by').lean()
-    const queryCreatedBy = sourceQuery?.created_by
-    if (!queryCreatedBy || String(queryCreatedBy) !== String(currentUserId)) {
+    const visible = await findVisibleQueryById({
+      queryId: existing.queryId,
+      branchFilter,
+      currentUserId,
+      isFullAccessRole,
+      role,
+      select: '_id',
+    })
+    if (!visible) {
       throw new CustomError(
         statusCodes.forbidden,
         'You do not have access to this quotation',
@@ -557,6 +737,22 @@ export const updateQuotationStatus = async ({
     )
   }
 
+  if (
+    status === QUOTATION_STATUS.HOD_APPROVED
+    && existing.status !== QUOTATION_STATUS.HOD_APPROVED
+  ) {
+    const code = String(existing.quotationCode || '').trim()
+    if (!code) {
+      throw new CustomError(
+        statusCodes.badRequest,
+        'Quotation code is required before HOD approval',
+        errorCodes.bad_request,
+      )
+    }
+  }
+
+  const previousStatus = existing.status
+
   const updated = await QuotationModel.findByIdAndUpdate(
     quotationId,
     { $set: { status } },
@@ -566,6 +762,30 @@ export const updateQuotationStatus = async ({
     .populate('industry_id', 'name location email')
     .lean()
 
+  if (
+    status === QUOTATION_STATUS.HOD_APPROVED
+    && previousStatus !== QUOTATION_STATUS.HOD_APPROVED
+  ) {
+    try {
+      await createQuotationSnapshotOnHodApproval({
+        quotationLean: updated,
+        approvedBy: approvedBy || null,
+      })
+    } catch (err) {
+      await QuotationModel.findByIdAndUpdate(
+        quotationId,
+        { $set: { status: previousStatus } },
+        { new: true, runValidators: true },
+      )
+      if (err instanceof CustomError) throw err
+      throw new CustomError(
+        statusCodes.internalServerError,
+        `Failed to save quotation snapshot: ${err?.message || 'unknown error'}`,
+        errorCodes.internal_error,
+      )
+    }
+  }
+
   return updated
 }
 
@@ -574,13 +794,20 @@ export const getQuotationByQueryId = async ({
   branchFilter = {},
   currentUserId = null,
   isFullAccessRole = true,
+  role = '',
 }) => {
   if (currentUserId && !isFullAccessRole) {
+    const accessFilter = await resolveQueryAccessFilter({
+      currentUserId,
+      isFullAccessRole: false,
+      role,
+      branchFilter,
+    })
     const sourceQuery = await QueryModel.findOne({
       _id: queryId,
       isDeleted: false,
       ...branchFilter,
-      created_by: currentUserId,
+      ...accessFilter,
     })
       .select('_id')
       .lean()

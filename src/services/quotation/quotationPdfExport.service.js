@@ -692,12 +692,14 @@ export const exportQuotationPdf = async ({
   branchFilter = {},
   currentUserId = null,
   isFullAccessRole = true,
+  role = '',
 }) => {
   const quotation = await getQuotationById({
     quotationId,
     branchFilter,
     currentUserId,
     isFullAccessRole,
+    role,
   })
 
   let branch = null

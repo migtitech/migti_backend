@@ -1,5 +1,17 @@
-import { Message, statusCodes } from '../../core/common/constant.js'
+import { Message, statusCodes, BRANCH_BYPASS_ROLES } from '../../core/common/constant.js'
 import { getBranchFilter, getEffectiveBranchIdForCreate } from '../../core/helpers/branchFilter.js'
+
+const normalizeRole = (role) => String(role || '').trim().toLowerCase().replace(/[\s-]+/g, '_')
+const isBackOfficeRole = (role) => {
+  const normalized = normalizeRole(role)
+  if (['back_office_exicutive', 'back_office_executive', 'boe'].includes(normalized)) return true
+  return normalized.replace(/_/g, '').includes('backoffice')
+}
+const hasOwnershipBypass = (role) => {
+  const normalized = normalizeRole(role)
+  if (BRANCH_BYPASS_ROLES.includes(normalized)) return true
+  return isBackOfficeRole(normalized)
+}
 import {
   createIndustrySchema,
   listIndustrySchema,
@@ -49,7 +61,14 @@ export const listIndustriesController = async (req, res) => {
   }
 
   const branchFilter = getBranchFilter(req, { allowQueryBranchId: true })
-  const result = await listIndustries({ ...value, branchFilter })
+  const currentUserId = req.user?.id || req.user?._id
+  const isFullAccessRole = hasOwnershipBypass(req.user?.role)
+  const result = await listIndustries({
+    ...value,
+    branchFilter,
+    currentUserId: currentUserId || null,
+    isFullAccessRole: !!isFullAccessRole,
+  })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Industries retrieved successfully',
@@ -70,7 +89,14 @@ export const getIndustryByIdController = async (req, res) => {
   }
 
   const branchFilter = getBranchFilter(req)
-  const result = await getIndustryById({ ...value, branchFilter })
+  const currentUserId = req.user?.id || req.user?._id
+  const isFullAccessRole = hasOwnershipBypass(req.user?.role)
+  const result = await getIndustryById({
+    ...value,
+    branchFilter,
+    currentUserId: currentUserId || null,
+    isFullAccessRole: !!isFullAccessRole,
+  })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Industry details retrieved successfully',
@@ -94,7 +120,14 @@ export const updateIndustryController = async (req, res) => {
   }
 
   const branchFilter = getBranchFilter(req)
-  const result = await updateIndustry({ ...value, branchFilter })
+  const currentUserId = req.user?.id || req.user?._id
+  const isFullAccessRole = hasOwnershipBypass(req.user?.role)
+  const result = await updateIndustry({
+    ...value,
+    branchFilter,
+    currentUserId: currentUserId || null,
+    isFullAccessRole: !!isFullAccessRole,
+  })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Industry updated successfully',
@@ -115,7 +148,14 @@ export const deleteIndustryController = async (req, res) => {
   }
 
   const branchFilter = getBranchFilter(req)
-  const result = await deleteIndustry({ ...value, branchFilter })
+  const currentUserId = req.user?.id || req.user?._id
+  const isFullAccessRole = hasOwnershipBypass(req.user?.role)
+  const result = await deleteIndustry({
+    ...value,
+    branchFilter,
+    currentUserId: currentUserId || null,
+    isFullAccessRole: !!isFullAccessRole,
+  })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Industry deleted successfully',

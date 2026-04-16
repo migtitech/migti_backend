@@ -126,6 +126,7 @@ export const listQueriesController = async (req, res) => {
     branchFilter,
     currentUserId: currentUserId || null,
     isFullAccessRole: !!isFullAccessRole,
+    role: req.user?.role || '',
   })
   return res.status(statusCodes.ok).json({
     success: true,
@@ -154,6 +155,7 @@ export const listQueriesByIndustryController = async (req, res) => {
     branchFilter,
     currentUserId: currentUserId || null,
     isFullAccessRole: !!isFullAccessRole,
+    role: req.user?.role || '',
   })
   return res.status(statusCodes.ok).json({
     success: true,
@@ -182,6 +184,7 @@ export const getQueryByIdController = async (req, res) => {
     branchFilter,
     currentUserId: currentUserId || null,
     isFullAccessRole: !!isFullAccessRole,
+    role: req.user?.role || '',
   })
   return res.status(statusCodes.ok).json({
     success: true,
@@ -211,6 +214,7 @@ export const updateQueryController = async (req, res) => {
     branchFilter,
     currentUserId: currentUserId || null,
     isFullAccessRole: !!isFullAccessRole,
+    role: req.user?.role || '',
   })
   return res.status(statusCodes.ok).json({
     success: true,
@@ -239,6 +243,7 @@ export const deleteQueryController = async (req, res) => {
     branchFilter,
     currentUserId: currentUserId || null,
     isFullAccessRole: !!isFullAccessRole,
+    role: req.user?.role || '',
   })
   return res.status(statusCodes.ok).json({
     success: true,
@@ -267,6 +272,7 @@ export const listQueryActivitiesController = async (req, res) => {
     branchFilter,
     currentUserId: currentUserId || null,
     isFullAccessRole: !!isFullAccessRole,
+    role: req.user?.role || '',
   })
   return res.status(statusCodes.ok).json({
     success: true,
@@ -295,6 +301,7 @@ export const recordQueryActivityController = async (req, res) => {
     branchFilter,
     currentUserId: currentUserId || null,
     isFullAccessRole: !!isFullAccessRole,
+    role: req.user?.role || '',
   })
   return res.status(statusCodes.ok).json({
     success: true,
@@ -325,6 +332,7 @@ export const linkConvertedQuotationController = async (req, res) => {
     branchFilter,
     currentUserId: currentUserId || null,
     isFullAccessRole: !!isFullAccessRole,
+    role: req.user?.role || '',
   })
   return res.status(statusCodes.ok).json({
     success: true,
@@ -357,6 +365,7 @@ export const convertQueryToQuotationController = async (req, res) => {
     created_by,
     branchFilter,
     isFullAccessRole: !!isFullAccessRole,
+    role: req.user?.role || '',
   })
   return res.status(statusCodes.ok).json({
     success: true,
@@ -385,6 +394,7 @@ export const exportQueryPdfController = async (req, res) => {
     branchFilter,
     currentUserId: currentUserId || null,
     isFullAccessRole: !!isFullAccessRole,
+    role: req.user?.role || '',
   })
   const fileName = `query-${queryCode || value.queryId}-${new Date().toISOString().slice(0, 10)}.pdf`
   res.setHeader('Content-Type', 'application/pdf')
@@ -402,6 +412,7 @@ export const getTodayDashboardStatsController = async (req, res) => {
     branchFilter,
     currentUserId: currentUserId || null,
     isFullAccessRole: !!isFullAccessRole,
+    role: req.user?.role || '',
   })
 
   return res.status(statusCodes.ok).json({
@@ -431,6 +442,7 @@ export const getBranchAnalyticsController = async (req, res) => {
     branchFilter,
     currentUserId: currentUserId || null,
     isFullAccessRole: !!isFullAccessRole,
+    role: req.user?.role || '',
   })
 
   return res.status(statusCodes.ok).json({
