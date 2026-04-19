@@ -1,4 +1,4 @@
-import { Message, statusCodes } from '../../core/common/constant.js'
+import { Message, statusCodes, BRANCH_BYPASS_ROLES } from '../../core/common/constant.js'
 import { getBranchFilter, getEffectiveBranchIdForCreate } from '../../core/helpers/branchFilter.js'
 import {
   createPoEntrySchema,
@@ -77,7 +77,15 @@ export const getPoBillingAnalyticsController = async (req, res) => {
   }
 
   const branchFilter = getBranchFilter(req, { allowQueryBranchId: true })
-  const result = await getPoBillingAnalytics({ ...value, branchFilter })
+  const currentUserId = req.user?.id || req.user?._id || null
+  const normalizedRole = normalizeRole(req.user?.role)
+  const isFullAccessRole = BRANCH_BYPASS_ROLES.includes(normalizedRole) || hasPoFormBypass(normalizedRole)
+  const result = await getPoBillingAnalytics({
+    ...value,
+    branchFilter,
+    currentUserId,
+    isFullAccessRole: !!isFullAccessRole,
+  })
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'PO/Billing analytics retrieved successfully',

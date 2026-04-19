@@ -4,7 +4,7 @@ var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefau
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.updateAdminSchema = exports.updateAdminAccessSchema = exports.loginAdminSchema = exports.listAdminSchema = exports.getAdminByIdSchema = exports.deleteAdminSchema = exports.createAdminSchema = void 0;
+exports.updateAdminSchema = exports.updateAdminAccessSchema = exports.loginSuperAdminSchema = exports.loginAdminSchema = exports.listAdminSchema = exports.getAdminByIdSchema = exports.deleteAdminSchema = exports.createAdminSchema = void 0;
 var _joi = _interopRequireDefault(require("joi"));
 var createAdminSchema = exports.createAdminSchema = _joi["default"].object({
   name: _joi["default"].string().required().min(2).max(50),
@@ -21,6 +21,10 @@ var updateAdminSchema = exports.updateAdminSchema = _joi["default"].object({
   password: _joi["default"].string().min(6).optional()
 });
 var loginAdminSchema = exports.loginAdminSchema = _joi["default"].object({
+  email: _joi["default"].string().email().required(),
+  password: _joi["default"].string().required()
+});
+var loginSuperAdminSchema = exports.loginSuperAdminSchema = _joi["default"].object({
   email: _joi["default"].string().email().required(),
   password: _joi["default"].string().required()
 });

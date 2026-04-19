@@ -116,7 +116,7 @@ export const upsertTargetAnalytics = async ({
   dateTo,
   targetAmount,
   userId,
-  branchFilter = {},
+  branchFilter: _branchFilter = {},
 }) => {
   const from = startOfUtcDay(dateFrom)
   const to = endOfUtcDay(dateTo)
@@ -126,10 +126,6 @@ export const upsertTargetAnalytics = async ({
       'dateFrom must be on or before dateTo',
       errorCodes.bad_request
     )
-  }
-
-  if (branchFilter?.branchId && String(branchFilter.branchId) !== String(branchId)) {
-    throw new CustomError(statusCodes.forbidden, 'Branch access denied', errorCodes.forbidden)
   }
 
   const existing = await TargetAnalyticsModel.findOne({
@@ -220,13 +216,9 @@ const getCurrentPeriodRange = (period = 'weekly') => {
   return { start, end }
 }
 
-export const getTargetSummary = async ({ branchId, period = 'weekly', branchFilter = {} }) => {
+export const getTargetSummary = async ({ branchId, period = 'weekly', branchFilter: _branchFilter = {} }) => {
   if (!branchId) {
     throw new CustomError(statusCodes.badRequest, 'branchId is required', errorCodes.bad_request)
-  }
-
-  if (branchFilter?.branchId && String(branchFilter.branchId) !== String(branchId)) {
-    throw new CustomError(statusCodes.forbidden, 'Branch access denied', errorCodes.forbidden)
   }
 
   const branchObjectId = mongoose.Types.ObjectId.isValid(branchId)
@@ -318,15 +310,12 @@ export const upsertZoneTargetAnalytics = async ({
   dateTo,
   targetAmount,
   userId,
-  branchFilter = {},
+  branchFilter: _branchFilter = {},
 }) => {
   const from = startOfUtcDay(dateFrom)
   const to = endOfUtcDay(dateTo)
   if (!from || !to || from > to) {
     throw new CustomError(statusCodes.badRequest, 'dateFrom must be on or before dateTo', errorCodes.bad_request)
-  }
-  if (branchFilter?.branchId && String(branchFilter.branchId) !== String(branchId)) {
-    throw new CustomError(statusCodes.forbidden, 'Branch access denied', errorCodes.forbidden)
   }
   const existing = await BranchZoneTargetModel.findOne({ isDeleted: false, branchId, zoneId, period, dateFrom: from, dateTo: to })
   if (existing) {
@@ -341,11 +330,8 @@ export const upsertZoneTargetAnalytics = async ({
   return created.toObject()
 }
 
-export const getZoneTargetSummary = async ({ branchId, zoneId, period = 'weekly', branchFilter = {} }) => {
+export const getZoneTargetSummary = async ({ branchId, zoneId, period = 'weekly', branchFilter: _branchFilter = {} }) => {
   if (!branchId || !zoneId) throw new CustomError(statusCodes.badRequest, 'branchId and zoneId are required', errorCodes.bad_request)
-  if (branchFilter?.branchId && String(branchFilter.branchId) !== String(branchId)) {
-    throw new CustomError(statusCodes.forbidden, 'Branch access denied', errorCodes.forbidden)
-  }
   const branchObjectId = new mongoose.Types.ObjectId(branchId)
   const zoneObjectId = new mongoose.Types.ObjectId(zoneId)
   const { start, end } = getCurrentPeriodRange(period)
@@ -354,7 +340,14 @@ export const getZoneTargetSummary = async ({ branchId, zoneId, period = 'weekly'
   }).sort({ createdAt: -1 }).lean()
   const rangeFrom = targetDoc?.dateFrom || start
   const rangeTo = targetDoc?.dateTo || end
-  const zoneEmployees = await EmployeeModel.find({ isDeleted: false, branchId: branchObjectId, zoneId: zoneObjectId }).select('_id').lean()
+  const zoneEmployees = await EmployeeModel.find({
+    isDeleted: false,
+    branchId: branchObjectId,
+    $or: [
+      { zoneIds: zoneObjectId },
+      { zoneId: zoneObjectId }, // legacy fallback
+    ],
+  }).select('_id').lean()
   const employeeIds = zoneEmployees.map((e) => e._id)
   const match = {
     isDeleted: false,
@@ -391,15 +384,12 @@ export const getEmployeeTargetAnalytics = async ({ branchId = '', employeeId = '
 }
 
 export const upsertEmployeeTargetAnalytics = async ({
-  branchId, zoneId = null, employeeId, period, dateFrom, dateTo, targetAmount, userId, branchFilter = {},
+  branchId, zoneId = null, employeeId, period, dateFrom, dateTo, targetAmount, userId, branchFilter: _branchFilter = {},
 }) => {
   const from = startOfUtcDay(dateFrom)
   const to = endOfUtcDay(dateTo)
   if (!from || !to || from > to) {
     throw new CustomError(statusCodes.badRequest, 'dateFrom must be on or before dateTo', errorCodes.bad_request)
-  }
-  if (branchFilter?.branchId && String(branchFilter.branchId) !== String(branchId)) {
-    throw new CustomError(statusCodes.forbidden, 'Branch access denied', errorCodes.forbidden)
   }
   const existing = await BranchEmployeeTargetModel.findOne({ isDeleted: false, branchId, employeeId, period, dateFrom: from, dateTo: to })
   if (existing) {
@@ -415,11 +405,8 @@ export const upsertEmployeeTargetAnalytics = async ({
   return created.toObject()
 }
 
-export const getEmployeeTargetSummary = async ({ branchId, employeeId, period = 'weekly', branchFilter = {} }) => {
+export const getEmployeeTargetSummary = async ({ branchId, employeeId, period = 'weekly', branchFilter: _branchFilter = {} }) => {
   if (!branchId || !employeeId) throw new CustomError(statusCodes.badRequest, 'branchId and employeeId are required', errorCodes.bad_request)
-  if (branchFilter?.branchId && String(branchFilter.branchId) !== String(branchId)) {
-    throw new CustomError(statusCodes.forbidden, 'Branch access denied', errorCodes.forbidden)
-  }
   const branchObjectId = new mongoose.Types.ObjectId(branchId)
   const employeeObjectId = new mongoose.Types.ObjectId(employeeId)
   const { start, end } = getCurrentPeriodRange(period)

@@ -4,7 +4,8 @@ var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefau
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.urls = exports.statusCodes = exports.moduleName = exports.fileTypesFolderNames = exports.externalAPI = exports.errorCodes = exports.documentTypes = exports.database_urls = exports.courseTypes = exports.checkRole = exports.USER_ROLES = exports.SchemaTypes = exports.NOTIFICATION_TYPES = exports.NOTIFICATION_PRIORITY = exports.Message = exports.EVENT_CODE_PREFIX = exports.EMAIL_CONFIG = exports.DocumentPath = void 0;
+exports.urls = exports.statusCodes = exports.moduleName = exports.fileTypesFolderNames = exports.externalAPI = exports.errorCodes = exports.documentTypes = exports.database_urls = exports.courseTypes = exports.checkRole = exports.USER_ROLES = exports.SchemaTypes = exports.PURCHASE_ORDER_BYPASS_ROLES = exports.NOTIFICATION_TYPES = exports.NOTIFICATION_PRIORITY = exports.Message = exports.MODULE_LIST = exports.MODULES = exports.FULL_ACCESS_ROLES = exports.EVENT_CODE_PREFIX = exports.EMAIL_CONFIG = exports.DocumentPath = exports.BRANCH_BYPASS_ROLES = exports.ACTIONS = void 0;
+var _slicedToArray2 = _interopRequireDefault(require("@babel/runtime/helpers/slicedToArray"));
 var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
 require("dotenv/config");
 var _nodeProcess = _interopRequireDefault(require("node:process"));
@@ -213,6 +214,77 @@ var USER_ROLES = exports.USER_ROLES = Object.freeze({
   ADMIN: 'admin',
   SUPER_ADMIN: 'super_admin'
 });
+
+// RBAC Modules - each maps to a sidebar section / resource
+var MODULES = exports.MODULES = Object.freeze({
+  COMPANIES: 'companies',
+  BRANCHES: 'branches',
+  ZONES: 'zones',
+  /** Sub-zones (separate from zones for RBAC / sidebar). */
+  SUB_ZONES: 'sub_zones',
+  INDUSTRIES: 'industries',
+  INDUSTRY_BRANCHES: 'industry_branches',
+  GROUPS: 'groups',
+  CATEGORIES: 'categories',
+  BRANDS: 'brands',
+  PRODUCTS: 'products',
+  SUPPLIERS: 'suppliers',
+  RATE_CARDS: 'rate_cards',
+  QUERIES: 'queries',
+  RAW_QUERIES: 'raw_queries',
+  QUOTATIONS: 'quotations',
+  PURCHASE_ORDERS: 'purchase_orders',
+  PURCHASE_TASKS: 'purchase_tasks',
+  TASK_MANAGEMENT: 'task_management',
+  TASK_BUCKET: 'task_bucket',
+  BRANCH_ANALYTICS: 'branch_analytics',
+  TARGET_ANALYTICS: 'target_analytics',
+  FINANCE: 'finance',
+  FOLLOW_UP: 'follow_up',
+  EMPLOYEES: 'employees',
+  VISITS: 'visits',
+  VISIT_MANAGEMENT: 'visit_management',
+  MY_VISITS: 'my_visits'
+});
+
+// RBAC Actions
+var ACTIONS = exports.ACTIONS = Object.freeze({
+  READ: 'read',
+  CREATE: 'create',
+  UPDATE: 'update',
+  DELETE: 'delete'
+});
+
+// Roles that automatically get full access to everything
+var FULL_ACCESS_ROLES = exports.FULL_ACCESS_ROLES = Object.freeze(['super_admin', 'admin', 'head_of_department',
+// legacy code kept for backward compatibility
+'hod']);
+
+// Roles that should always bypass permissions only for purchase orders.
+var PURCHASE_ORDER_BYPASS_ROLES = exports.PURCHASE_ORDER_BYPASS_ROLES = Object.freeze(['back_office_exicutive',
+// accepted spelling variant
+'back_office_executive',
+// short alias
+'boe']);
+
+// Roles that are not restricted to a single branch (see all branches).
+// Super_admin, admin and HOD (head_of_department/hod) can view/manage all branches.
+var BRANCH_BYPASS_ROLES = exports.BRANCH_BYPASS_ROLES = Object.freeze(['super_admin', 'admin', 'head_of_department',
+// legacy short code
+'hod']);
+
+// All available modules with labels (for the frontend permissions UI)
+var MODULE_LIST = exports.MODULE_LIST = Object.freeze(Object.entries(MODULES).map(function (_ref) {
+  var _ref2 = (0, _slicedToArray2["default"])(_ref, 2),
+    key = _ref2[0],
+    value = _ref2[1];
+  return {
+    key: value,
+    label: key.split('_').map(function (w) {
+      return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+    }).join(' ')
+  };
+}));
 var DocumentPath = exports.DocumentPath = Object.freeze({
   judgesPhoto: 'judges/photos',
   judgesCertifications: 'judges/certifications'

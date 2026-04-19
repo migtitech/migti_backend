@@ -18,6 +18,7 @@
     "seed:superadmin": "node seed-superadmin.js",
     "backfill:productCode": "node scripts/backfill-product-code.js",
     "backfill:queryConvertedQuotations": "node scripts/backfill-query-converted-quotations.js",
+    "backfill:employeeZoneIds": "node scripts/backfill-employee-zone-ids.js",
     "seed:codeSequence": "node scripts/seed-code-sequence.js"
   },
   "author": "",

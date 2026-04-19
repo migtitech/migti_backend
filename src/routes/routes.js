@@ -22,6 +22,7 @@ import taskManagementRouter from './taskManagement.routes.js'
 import queryNewProductRouter from './queryNewProduct.routes.js'
 import poBillingRouter from './poBilling.routes.js'
 import visitRouter from './visit.routes.js'
+import employeeLocationRouter from './employeeLocation.routes.js'
 
 const mainRoutes = express.Router()
 mainRoutes.use((req, res, next) => {
@@ -63,5 +64,6 @@ mainRoutes.use('/v1/task-management', taskManagementRouter)
 mainRoutes.use('/v1/query-new-products', queryNewProductRouter)
 mainRoutes.use('/v1/po-billing', poBillingRouter)
 mainRoutes.use('/v1/visits', visitRouter)
+mainRoutes.use('/v1/employee-locations', employeeLocationRouter)
 
 export default mainRoutes

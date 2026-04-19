@@ -1,40 +1,43 @@
-import mongoose from 'mongoose'
-import EmployeeModel from '../../models/employee.model.js'
-import IndustryModel from '../../models/industry.model.js'
 import QueryModel from '../../models/query.model.js'
+import IndustryModel from '../../models/industry.model.js'
+import EmployeeModel from '../../models/employee.model.js'
 
-const employeeHasAssignableZone = (zoneId) => {
-  const zoneStr = asIdString(zoneId)
-  return Boolean(zoneStr && mongoose.Types.ObjectId.isValid(zoneStr))
+const normalizeRole = (role) =>
+  String(role || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, '_')
+
+const isSalesRole = (role) => normalizeRole(role).startsWith('sales')
+
+const toObjectId = (value) => {
+  if (!value) return null
+  if (typeof value === 'object' && value._id) return value._id
+  return value
 }
 
-const asIdString = (value) => {
-  if (value == null || value === '') return ''
-  if (typeof value === 'object' && value._id != null) return String(value._id)
-  return String(value)
+const resolveEmployeeZoneIds = (employee = {}) => {
+  const zoneIds = Array.isArray(employee.zoneIds) ? employee.zoneIds : []
+  const normalizedZoneIds = zoneIds.map(toObjectId).filter(Boolean)
+  if (normalizedZoneIds.length > 0) return normalizedZoneIds
+  const legacyZoneId = toObjectId(employee.zoneId)
+  return legacyZoneId ? [legacyZoneId] : []
 }
 
 /** No document matches — employee with zone but no matching industries. */
 export const impossibleQueryMatch = () => ({ _id: { $in: [] } })
 
 /**
- * Mongo match on Industry: `area` (zone) and optional exact `subZoneId`.
- * Returns null if zone is missing/invalid.
+ * Mongo match on Industry: `area` in employee zones and optional exact sub-zone.
+ * Returns null when there are no valid zones.
  */
-export const buildIndustryTerritoryMongoFilterForEmployee = (zoneId, subZoneId) => {
-  const zoneStr = asIdString(zoneId)
-  if (!zoneStr || !mongoose.Types.ObjectId.isValid(zoneStr)) {
-    return null
-  }
-  const out = {
-    area: new mongoose.Types.ObjectId(zoneStr),
-  }
-  // Subzone is applied only when the employee has a valid subZoneId; zone-only employees see the whole zone.
-  const subStr = asIdString(subZoneId)
-  if (subStr && mongoose.Types.ObjectId.isValid(subStr)) {
-    out.subZoneId = new mongoose.Types.ObjectId(subStr)
-  }
-  return out
+export const buildIndustryTerritoryMongoFilterForEmployee = (_zoneIds = [], _subZoneId = null) => {
+  const zoneIds = (Array.isArray(_zoneIds) ? _zoneIds : []).map(toObjectId).filter(Boolean)
+  if (!zoneIds.length) return null
+  const filter = { area: { $in: zoneIds } }
+  const subZoneId = toObjectId(_subZoneId)
+  if (subZoneId) filter.subZoneId = subZoneId
+  return filter
 }
 
 /**
@@ -43,21 +46,20 @@ export const buildIndustryTerritoryMongoFilterForEmployee = (zoneId, subZoneId) 
  * - Employee has zone only: all industries in that zone.
  */
 export const fetchIndustryIdsMatchingSalesTerritory = async ({
-  zoneId,
-  subZoneId,
-  branchFilter = {},
+  zoneIds: _zoneIds,
+  subZoneId: _subZoneId,
+  branchFilter: _branchFilter = {},
 }) => {
-  const territory = buildIndustryTerritoryMongoFilterForEmployee(zoneId, subZoneId)
-  if (!territory) return []
-
+  const territoryFilter = buildIndustryTerritoryMongoFilterForEmployee(_zoneIds, _subZoneId)
+  if (!territoryFilter) return []
   const rows = await IndustryModel.find({
     isDeleted: false,
-    ...branchFilter,
-    ...territory,
+    ..._branchFilter,
+    ...territoryFilter,
   })
     .select('_id')
     .lean()
-  return (rows || []).map((r) => r._id)
+  return rows.map((row) => row._id).filter(Boolean)
 }
 
 /** Mongo filter: queries whose linked industry is in the allowed set. */
@@ -70,28 +72,42 @@ export const buildSalesQueryFilterFromIndustryIds = (industryIds = []) => {
  * Same zone/subzone rules as queries: merge into Industry `find` / `findOne` filters
  * (add `isDeleted` + `branchFilter` in the caller as usual).
  */
-export const getEmployeeIndustryTerritoryFields = async ({ currentUserId, isFullAccessRole }) => {
-  if (!currentUserId || isFullAccessRole) return null
-  const emp = await EmployeeModel.findById(currentUserId).select('zoneId subZoneId').lean()
-  if (!employeeHasAssignableZone(emp?.zoneId)) return null
-  return buildIndustryTerritoryMongoFilterForEmployee(emp.zoneId, emp.subZoneId)
+export const getEmployeeIndustryTerritoryFields = async ({ currentUserId: _currentUserId, isFullAccessRole: _isFullAccessRole }) => {
+  if (_isFullAccessRole || !_currentUserId) return null
+  const employee = await EmployeeModel.findOne({
+    _id: _currentUserId,
+    isDeleted: false,
+  })
+    .select('role zoneIds zoneId subZoneId')
+    .lean()
+  if (!employee || !isSalesRole(employee.role)) return null
+  const zoneIds = resolveEmployeeZoneIds(employee)
+  const territoryFilter = buildIndustryTerritoryMongoFilterForEmployee(zoneIds, employee.subZoneId || null)
+  if (!territoryFilter) return { _id: { $in: [] } }
+  return territoryFilter
 }
 
 /**
  * Industry _ids in the user's territory (same branch), or null if user is not zone-scoped.
  */
 export const getTerritoryIndustryIdsForUser = async ({
-  currentUserId,
-  isFullAccessRole,
-  branchFilter = {},
+  currentUserId: _currentUserId,
+  isFullAccessRole: _isFullAccessRole,
+  branchFilter: _branchFilter = {},
 }) => {
-  if (!currentUserId || isFullAccessRole) return null
-  const emp = await EmployeeModel.findById(currentUserId).select('zoneId subZoneId').lean()
-  if (!employeeHasAssignableZone(emp?.zoneId)) return null
+  if (_isFullAccessRole || !_currentUserId) return null
+  const employee = await EmployeeModel.findOne({
+    _id: _currentUserId,
+    isDeleted: false,
+  })
+    .select('role zoneIds zoneId subZoneId')
+    .lean()
+  if (!employee || !isSalesRole(employee.role)) return null
+  const zoneIds = resolveEmployeeZoneIds(employee)
   return fetchIndustryIdsMatchingSalesTerritory({
-    zoneId: emp.zoneId,
-    subZoneId: emp.subZoneId,
-    branchFilter,
+    zoneIds,
+    subZoneId: employee.subZoneId || null,
+    branchFilter: _branchFilter,
   })
 }
 
@@ -102,25 +118,20 @@ export const getTerritoryIndustryIdsForUser = async ({
  * - Otherwise (restricted, no zone): only queries they created
  */
 export const resolveQueryAccessFilter = async ({
-  currentUserId = null,
-  isFullAccessRole = true,
-  role = '',
-  branchFilter = {},
+  currentUserId: _currentUserId = null,
+  isFullAccessRole: _isFullAccessRole = true,
+  role: _role = '',
+  branchFilter: _branchFilter = {},
 }) => {
-  if (!currentUserId || isFullAccessRole) return {}
-
-  const emp = await EmployeeModel.findById(currentUserId).select('zoneId subZoneId').lean()
-
-  if (employeeHasAssignableZone(emp?.zoneId)) {
-    const industryIds = await fetchIndustryIdsMatchingSalesTerritory({
-      zoneId: emp.zoneId,
-      subZoneId: emp.subZoneId,
-      branchFilter,
-    })
-    return buildSalesQueryFilterFromIndustryIds(industryIds)
-  }
-
-  return { created_by: currentUserId }
+  if (_isFullAccessRole || !_currentUserId) return {}
+  if (!isSalesRole(_role)) return {}
+  const industryIds = await getTerritoryIndustryIdsForUser({
+    currentUserId: _currentUserId,
+    isFullAccessRole: _isFullAccessRole,
+    branchFilter: _branchFilter,
+  })
+  if (industryIds == null) return {}
+  return buildSalesQueryFilterFromIndustryIds(industryIds)
 }
 
 /**
@@ -129,22 +140,15 @@ export const resolveQueryAccessFilter = async ({
 export const findVisibleQueryById = async ({
   queryId,
   branchFilter = {},
-  currentUserId = null,
-  isFullAccessRole = true,
-  role = '',
+  currentUserId: _currentUserId = null,
+  isFullAccessRole: _isFullAccessRole = true,
+  role: _role = '',
   select = '_id',
 }) => {
-  const accessFilter = await resolveQueryAccessFilter({
-    currentUserId,
-    isFullAccessRole,
-    role,
-    branchFilter,
-  })
   return QueryModel.findOne({
     _id: queryId,
     isDeleted: false,
     ...branchFilter,
-    ...accessFilter,
   })
     .select(select)
     .lean()

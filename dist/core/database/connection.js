@@ -8,15 +8,15 @@ exports["default"] = void 0;
 var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 var _mongoose = _interopRequireDefault(require("mongoose"));
+var _dotenv = _interopRequireDefault(require("dotenv"));
+_dotenv["default"].config();
 var connectDB = /*#__PURE__*/function () {
   var _ref = (0, _asyncToGenerator2["default"])(/*#__PURE__*/_regenerator["default"].mark(function _callee() {
-    var dbenv, connectionOptions, _t;
+    var uri, connectionOptions, _t;
     return _regenerator["default"].wrap(function (_context) {
       while (1) switch (_context.prev = _context.next) {
         case 0:
-          dbenv = {
-            dev: 'mongodb+srv://anuradhamigti_db_user:TypUyvWE1NxfcFJW@migticrm.1omv7mx.mongodb.net/?appName=migticrm'
-          };
+          uri = process.env.MONGODB_URI || process.env.DB_URL || 'mongodb://127.0.0.1:27017/';
           connectionOptions = {
             maxPoolSize: 10,
             serverSelectionTimeoutMS: 5000,
@@ -25,7 +25,7 @@ var connectDB = /*#__PURE__*/function () {
           _context.prev = 1;
           console.log('Attempting to connect to database...');
           _context.next = 2;
-          return _mongoose["default"].connect(dbenv.dev, connectionOptions);
+          return _mongoose["default"].connect(uri, connectionOptions);
         case 2:
           _context.next = 3;
           return new Promise(function (resolve, reject) {
@@ -43,8 +43,7 @@ var connectDB = /*#__PURE__*/function () {
         case 4:
           _context.prev = 4;
           _t = _context["catch"](1);
-          console.error('Database connection error:', _t.message);
-          process.exit(1);
+          console.log(_t);
         case 5:
         case "end":
           return _context.stop();

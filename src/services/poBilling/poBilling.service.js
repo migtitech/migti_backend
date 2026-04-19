@@ -6,6 +6,7 @@ import EmployeeModel from '../../models/employee.model.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 import { toDisplayPath } from '../document/document.service.js'
+import { getTerritoryIndustryIdsForUser } from '../../core/helpers/queryAccess.js'
 
 const normalizeAttachmentDocumentId = async (attachmentDocumentId) => {
   const id = attachmentDocumentId && String(attachmentDocumentId).trim()
@@ -156,6 +157,8 @@ export const getPoBillingAnalytics = async ({
   pageNumber = 1,
   pageSize = 10,
   branchFilter = {},
+  currentUserId = null,
+  isFullAccessRole = true,
 }) => {
   const page = Math.max(1, parseInt(pageNumber))
   const limit = Math.min(100, Math.max(1, parseInt(pageSize)))
@@ -164,6 +167,17 @@ export const getPoBillingAnalytics = async ({
   const dateFilter = buildDateFilter({ period, dateFrom, dateTo })
   const poFilter = { isDeleted: false, ...branchFilter, ...dateFilter }
   const billingFilter = { isDeleted: false, ...branchFilter, ...dateFilter }
+
+  const territoryIndustryIds = await getTerritoryIndustryIdsForUser({
+    currentUserId,
+    isFullAccessRole,
+    branchFilter,
+  })
+  if (territoryIndustryIds != null) {
+    const companyScope = { $in: territoryIndustryIds }
+    poFilter.companyId = companyScope
+    billingFilter.companyId = companyScope
+  }
 
   const [totalPoCount, totalBillingCount, poAmountAgg, billingAmountAgg] = await Promise.all([
     PoEntryModel.countDocuments(poFilter),

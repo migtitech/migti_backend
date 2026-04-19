@@ -1,6 +1,5 @@
 import PurchaseOrderModel, { PURCHASE_ORDER_STATUS } from '../../models/purchaseOrder.model.js'
 import QuotationModel from '../../models/quotation.model.js'
-import QueryModel from '../../models/query.model.js'
 import CustomError from '../../utils/exception.js'
 import { getNextSequence } from '../codeSequence/codeSequence.service.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
@@ -75,6 +74,11 @@ const formatPoCode = (numericCode, companyName) => {
   return `${companyFirst5(companyName)}-PO-MIG-IND-${DD}-${MM}-${numericCode}`
 }
 
+const quotationFreightToPoNumber = (value) => {
+  const n = Number(value)
+  return Number.isNaN(n) || n < 0 ? 0 : n
+}
+
 const OBJECT_ID_REGEX = /^[a-fA-F0-9]{24}$/
 
 const toImageIds = (imgs) => {
@@ -109,24 +113,8 @@ const cloneProductsFromQuotation = (products = []) => {
   })
 }
 
-const assertQuotationAccess = async ({
-  quotation,
-  branchFilter = {},
-  currentUserId = null,
-  isFullAccessRole = true,
-}) => {
-  if (!quotation?.queryId) return
-  if (currentUserId && !isFullAccessRole) {
-    const sourceQuery = await QueryModel.findById(quotation.queryId).select('created_by').lean()
-    const queryCreatedBy = sourceQuery?.created_by
-    if (!queryCreatedBy || String(queryCreatedBy) !== String(currentUserId)) {
-      throw new CustomError(
-        statusCodes.forbidden,
-        'You do not have access to this quotation',
-        errorCodes.access_forbidden,
-      )
-    }
-  }
+const assertQuotationAccess = async () => {
+  return
 }
 
 export const createPurchaseOrderFromQuotation = async ({
@@ -185,8 +173,8 @@ export const createPurchaseOrderFromQuotation = async ({
 export const getPurchaseOrderByQuotationId = async ({
   quotationId,
   branchFilter = {},
-  currentUserId = null,
-  isFullAccessRole = true,
+  currentUserId: _currentUserId = null,
+  isFullAccessRole: _isFullAccessRole = true,
 }) => {
   const quotation = await QuotationModel.findOne({
     _id: quotationId,
@@ -217,8 +205,8 @@ export const listPurchaseOrders = async ({
   search = '',
   status = '',
   branchFilter = {},
-  currentUserId = null,
-  isFullAccessRole = true,
+  currentUserId: _currentUserId = null,
+  isFullAccessRole: _isFullAccessRole = true,
 }) => {
   const page = Math.max(1, parseInt(pageNumber))
   const limit = Math.min(100, Math.max(1, parseInt(pageSize)))
@@ -227,18 +215,6 @@ export const listPurchaseOrders = async ({
   const filter = { isDeleted: false, ...branchFilter }
   if (status && status.trim()) {
     filter.status = String(status).trim()
-  }
-
-  if (currentUserId && !isFullAccessRole) {
-    const queryIds = await QueryModel.find({
-      isDeleted: false,
-      created_by: currentUserId,
-      ...branchFilter,
-    })
-      .select('_id')
-      .lean()
-    const ids = (queryIds || []).map((q) => q._id)
-    filter.queryId = { $in: ids }
   }
 
   if (search && search.trim()) {
@@ -285,8 +261,8 @@ export const listPurchaseOrders = async ({
 export const getPurchaseOrderById = async ({
   purchaseOrderId,
   branchFilter = {},
-  currentUserId = null,
-  isFullAccessRole = true,
+  currentUserId: _currentUserId = null,
+  isFullAccessRole: _isFullAccessRole = true,
 }) => {
   const po = await PurchaseOrderModel.findOne({
     _id: purchaseOrderId,
@@ -312,18 +288,6 @@ export const getPurchaseOrderById = async ({
 
   if (!po) {
     throw new CustomError(statusCodes.notFound, 'Purchase order not found', errorCodes.not_found)
-  }
-
-  if (currentUserId && !isFullAccessRole && po.queryId) {
-    const queryCreatedBy = po.queryId.created_by?._id ?? po.queryId.created_by
-    const allowed = queryCreatedBy && String(queryCreatedBy) === String(currentUserId)
-    if (!allowed) {
-      throw new CustomError(
-        statusCodes.forbidden,
-        'You do not have access to this purchase order',
-        errorCodes.access_forbidden,
-      )
-    }
   }
 
   if (po.products?.length) {
@@ -362,8 +326,8 @@ export const appendPurchaseOrderPayment = async ({
   paidAt,
   remark = '',
   branchFilter = {},
-  currentUserId = null,
-  isFullAccessRole = true,
+  currentUserId: _currentUserId = null,
+  isFullAccessRole: _isFullAccessRole = true,
 }) => {
   const existing = await PurchaseOrderModel.findOne({
     _id: purchaseOrderId,
@@ -373,18 +337,6 @@ export const appendPurchaseOrderPayment = async ({
 
   if (!existing) {
     throw new CustomError(statusCodes.notFound, 'Purchase order not found', errorCodes.not_found)
-  }
-
-  if (currentUserId && !isFullAccessRole && existing.queryId) {
-    const sourceQuery = await QueryModel.findById(existing.queryId).select('created_by').lean()
-    const queryCreatedBy = sourceQuery?.created_by
-    if (!queryCreatedBy || String(queryCreatedBy) !== String(currentUserId)) {
-      throw new CustomError(
-        statusCodes.forbidden,
-        'You do not have access to this purchase order',
-        errorCodes.access_forbidden,
-      )
-    }
   }
 
   const amt = Number(amount)
@@ -435,8 +387,8 @@ export const updatePurchaseOrder = async ({
   remark,
   salesEmployeeId,
   branchFilter = {},
-  currentUserId = null,
-  isFullAccessRole = true,
+  currentUserId: _currentUserId = null,
+  isFullAccessRole: _isFullAccessRole = true,
 }) => {
   const existing = await PurchaseOrderModel.findOne({
     _id: purchaseOrderId,
@@ -446,18 +398,6 @@ export const updatePurchaseOrder = async ({
 
   if (!existing) {
     throw new CustomError(statusCodes.notFound, 'Purchase order not found', errorCodes.not_found)
-  }
-
-  if (currentUserId && !isFullAccessRole && existing.queryId) {
-    const sourceQuery = await QueryModel.findById(existing.queryId).select('created_by').lean()
-    const queryCreatedBy = sourceQuery?.created_by
-    if (!queryCreatedBy || String(queryCreatedBy) !== String(currentUserId)) {
-      throw new CustomError(
-        statusCodes.forbidden,
-        'You do not have access to this purchase order',
-        errorCodes.access_forbidden,
-      )
-    }
   }
 
   const updatePayload = {}
@@ -512,8 +452,8 @@ export const updatePurchaseOrderStatus = async ({
   purchaseOrderId,
   status,
   branchFilter = {},
-  currentUserId = null,
-  isFullAccessRole = true,
+  currentUserId: _currentUserId = null,
+  isFullAccessRole: _isFullAccessRole = true,
 }) => {
   const existing = await PurchaseOrderModel.findOne({
     _id: purchaseOrderId,
@@ -523,18 +463,6 @@ export const updatePurchaseOrderStatus = async ({
 
   if (!existing) {
     throw new CustomError(statusCodes.notFound, 'Purchase order not found', errorCodes.not_found)
-  }
-
-  if (currentUserId && !isFullAccessRole && existing.queryId) {
-    const sourceQuery = await QueryModel.findById(existing.queryId).select('created_by').lean()
-    const queryCreatedBy = sourceQuery?.created_by
-    if (!queryCreatedBy || String(queryCreatedBy) !== String(currentUserId)) {
-      throw new CustomError(
-        statusCodes.forbidden,
-        'You do not have access to this purchase order',
-        errorCodes.access_forbidden,
-      )
-    }
   }
 
   const updated = await PurchaseOrderModel.findByIdAndUpdate(

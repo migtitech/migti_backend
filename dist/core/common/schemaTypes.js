@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.createReferenceField = exports.SchemaTypes = exports.CommonFields = void 0;
 var _mongoose = _interopRequireDefault(require("mongoose"));
+var _uuid = require("uuid");
 // Common Schema Types
 var SchemaTypes = exports.SchemaTypes = Object.freeze({
   ObjectId: _mongoose["default"].Schema.Types.ObjectId,
@@ -23,7 +24,7 @@ var CommonFields = exports.CommonFields = Object.freeze({
     type: String,
     unique: true,
     "default": function _default() {
-      return require('uuid').v4();
+      return (0, _uuid.v4)();
     }
   },
   createdAt: {

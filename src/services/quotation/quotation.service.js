@@ -16,17 +16,8 @@ import { getDocumentById, toDisplayPath } from '../document/document.service.js'
 import { captureRateLogsForProductChanges } from '../rateLog/rateLog.service.js'
 import {
   resolveQueryAccessFilter,
-  findVisibleQueryById,
   getTerritoryIndustryIdsForUser,
 } from '../../core/helpers/queryAccess.js'
-
-const QUOTATION_CODE_PREFIX = 'QUO'
-const normalizeRole = (role) => String(role || '').trim().toLowerCase().replace(/[\s-]+/g, '_')
-const isBackOfficeRole = (role) => {
-  const normalized = normalizeRole(role)
-  if (['back_office_exicutive', 'back_office_executive', 'boe'].includes(normalized)) return true
-  return normalized.replace(/_/g, '').includes('backoffice')
-}
 
 /** Persist quotation ref on the source query (deduped by quotationId). */
 export const appendConvertedQuotationOnQuery = async (queryId, quotationId, quotationCode = '') => {
@@ -224,7 +215,6 @@ export const createQuotationFromQuery = async ({
     }
   }
 
-  const quotationBranchFilter = branchId ? { branchId } : {}
   const numericCode = await getNextSequence('quotationCode')
   const companyName = query.companyInfo?.name
   const quotationCode = formatQuotationCode(numericCode, companyName)
@@ -436,9 +426,9 @@ export const listQuotations = async ({
 export const getQuotationById = async ({
   quotationId,
   branchFilter = {},
-  currentUserId = null,
-  isFullAccessRole = true,
-  role = '',
+  currentUserId: _currentUserId = null,
+  isFullAccessRole: _isFullAccessRole = true,
+  role: _role = '',
 }) => {
   const quotation = await QuotationModel.findOne({
     _id: quotationId,
@@ -466,26 +456,6 @@ export const getQuotationById = async ({
       'Quotation not found',
       errorCodes.not_found,
     )
-  }
-
-  // Employees may only view quotations for queries they may access
-  if (currentUserId && !isFullAccessRole && quotation.queryId) {
-    const qid = typeof quotation.queryId === 'object' ? quotation.queryId._id : quotation.queryId
-    const visible = await findVisibleQueryById({
-      queryId: qid,
-      branchFilter,
-      currentUserId,
-      isFullAccessRole,
-      role,
-      select: '_id',
-    })
-    if (!visible) {
-      throw new CustomError(
-        statusCodes.forbidden,
-        'You do not have access to this quotation',
-        errorCodes.access_forbidden,
-      )
-    }
   }
 
   // Transform product images (master + snapshot) to signed URLs for S3 (same as query)
@@ -526,9 +496,9 @@ export const getQuotationById = async ({
 export const listQuotationSnapshots = async ({
   quotationId,
   branchFilter = {},
-  currentUserId = null,
-  isFullAccessRole = true,
-  role = '',
+  currentUserId: _currentUserId = null,
+  isFullAccessRole: _isFullAccessRole = true,
+  role: _role = '',
 }) => {
   const existing = await QuotationModel.findOne({
     _id: quotationId,
@@ -542,24 +512,6 @@ export const listQuotationSnapshots = async ({
       'Quotation not found',
       errorCodes.not_found,
     )
-  }
-
-  if (currentUserId && !isFullAccessRole && existing.queryId) {
-    const visible = await findVisibleQueryById({
-      queryId: existing.queryId,
-      branchFilter,
-      currentUserId,
-      isFullAccessRole,
-      role,
-      select: '_id',
-    })
-    if (!visible) {
-      throw new CustomError(
-        statusCodes.forbidden,
-        'You do not have access to this quotation',
-        errorCodes.access_forbidden,
-      )
-    }
   }
 
   const snapshots = await QuotationSnapshotModel.find({ quotationId: existing._id })
@@ -584,9 +536,9 @@ export const updateQuotation = async ({
   expectedDeliveryDate,
   expectedDeliveryWithinDays,
   branchFilter = {},
-  currentUserId = null,
-  isFullAccessRole = true,
-  role = '',
+  currentUserId: _currentUserId = null,
+  isFullAccessRole: _isFullAccessRole = true,
+  role: _role = '',
 }) => {
   const existing = await QuotationModel.findOne({
     _id: quotationId,
@@ -601,24 +553,6 @@ export const updateQuotation = async ({
       errorCodes.not_found,
     )
   }
-  if (currentUserId && !isFullAccessRole && existing.queryId) {
-    const visible = await findVisibleQueryById({
-      queryId: existing.queryId,
-      branchFilter,
-      currentUserId,
-      isFullAccessRole,
-      role,
-      select: '_id',
-    })
-    if (!visible) {
-      throw new CustomError(
-        statusCodes.forbidden,
-        'You do not have access to this quotation',
-        errorCodes.access_forbidden,
-      )
-    }
-  }
-
   const updatePayload = {}
   if (companyInfo !== undefined) updatePayload.companyInfo = companyInfo
   if (industry_id !== undefined) updatePayload.industry_id = industry_id || null
@@ -692,11 +626,11 @@ export const updateQuotationStatus = async ({
   quotationId,
   status,
   branchFilter = {},
-  currentUserId = null,
-  currentUserRole = '',
-  isFullAccessRole = true,
+  currentUserId: _currentUserId = null,
+  currentUserRole: _currentUserRole = '',
+  isFullAccessRole: _isFullAccessRole = true,
   approvedBy = null,
-  role = '',
+  role: _role = '',
 }) => {
   const existing = await QuotationModel.findOne({
     _id: quotationId,
@@ -711,32 +645,6 @@ export const updateQuotationStatus = async ({
       errorCodes.not_found,
     )
   }
-  if (currentUserId && !isFullAccessRole && existing.queryId) {
-    const visible = await findVisibleQueryById({
-      queryId: existing.queryId,
-      branchFilter,
-      currentUserId,
-      isFullAccessRole,
-      role,
-      select: '_id',
-    })
-    if (!visible) {
-      throw new CustomError(
-        statusCodes.forbidden,
-        'You do not have access to this quotation',
-        errorCodes.access_forbidden,
-      )
-    }
-  }
-
-  if (isBackOfficeRole(currentUserRole) && status === QUOTATION_STATUS.HOD_APPROVED) {
-    throw new CustomError(
-      statusCodes.forbidden,
-      'Back office role cannot approve quotations',
-      errorCodes.access_forbidden,
-    )
-  }
-
   if (
     status === QUOTATION_STATUS.HOD_APPROVED
     && existing.status !== QUOTATION_STATUS.HOD_APPROVED

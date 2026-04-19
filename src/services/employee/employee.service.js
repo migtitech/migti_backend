@@ -6,6 +6,33 @@ import { decrypt, encrypt } from '../../core/crypto/helper.cryto.js'
 import { createTokenPair } from '../../core/helpers/jwt.helper.js'
 
 const nullIfEmpty = (v) => (v === '' || v == null ? null : v)
+const hasOwn = (obj, key) => Object.prototype.hasOwnProperty.call(obj, key)
+const asIdString = (value) => {
+  if (value == null || value === '') return ''
+  if (typeof value === 'object' && value._id != null) return String(value._id)
+  return String(value)
+}
+const normalizeZoneIds = (zoneIds = [], legacyZoneId = null) => {
+  const out = []
+  if (Array.isArray(zoneIds)) {
+    for (const zid of zoneIds) {
+      const v = asIdString(zid).trim()
+      if (v && !out.includes(v)) out.push(v)
+    }
+  }
+  if (!out.length) {
+    const legacy = asIdString(legacyZoneId).trim()
+    if (legacy) out.push(legacy)
+  }
+  return out
+}
+const withNormalizedZones = (employee = {}) => {
+  const zoneIds = normalizeZoneIds(employee.zoneIds, employee.zoneId)
+  return {
+    ...employee,
+    zoneIds,
+  }
+}
 
 const SUB_ZONE_PERM_PREFIX = `${MODULES.SUB_ZONES}:`
 const SUB_ZONE_READ_PERM = `${MODULES.SUB_ZONES}:${ACTIONS.READ}`
@@ -30,14 +57,20 @@ export const addEmployee = async (payload) => {
   const { password, ...rest } = payload
   const { email, idnumber } = rest
 
-  rest.zoneId = nullIfEmpty(rest.zoneId)
+  rest.zoneIds = normalizeZoneIds(rest.zoneIds, rest.zoneId)
+  delete rest.zoneId
   rest.subZoneId = nullIfEmpty(rest.subZoneId)
+  if (rest.zoneIds.length !== 1) {
+    rest.subZoneId = null
+  }
   const branchFilter = rest.branchId ? { branchId: rest.branchId } : {}
-  await assertSubZoneBelongsToArea({
-    subZoneId: rest.subZoneId,
-    areaId: rest.zoneId,
-    branchFilter,
-  })
+  if (rest.zoneIds.length === 1) {
+    await assertSubZoneBelongsToArea({
+      subZoneId: rest.subZoneId,
+      areaId: rest.zoneIds[0],
+      branchFilter,
+    })
+  }
 
   // Normalize optional company contact fields
   if (rest.companyEmail == null) {
@@ -78,7 +111,7 @@ export const addEmployee = async (payload) => {
     password: encrypt(password),
   })
 
-  const employee = employeeDoc.toObject()
+  const employee = withNormalizedZones(employeeDoc.toObject())
   delete employee.password
   return employee
 }
@@ -117,7 +150,7 @@ export const listEmployees = async ({
   const hasPrevPage = page > 1
 
   return {
-    employees,
+    employees: (employees || []).map(withNormalizedZones),
     pagination: {
       currentPage: page,
       totalPages,
@@ -140,7 +173,7 @@ export const getEmployeeById = async ({ employeeId, branchFilter = {} }) => {
     )
   }
 
-  return employee
+  return withNormalizedZones(employee)
 }
 
 export const updateEmployee = async ({ employeeId, branchFilter = {}, ...updateData }) => {
@@ -153,19 +186,26 @@ export const updateEmployee = async ({ employeeId, branchFilter = {}, ...updateD
     )
   }
 
-  if (Object.prototype.hasOwnProperty.call(updateData, 'zoneId')) {
-    updateData.zoneId = nullIfEmpty(updateData.zoneId)
+  const hasZoneIds = hasOwn(updateData, 'zoneIds')
+  const hasLegacyZoneId = hasOwn(updateData, 'zoneId')
+  const zonesTouched = hasZoneIds || hasLegacyZoneId
+  if (zonesTouched) {
+    updateData.zoneIds = normalizeZoneIds(
+      hasZoneIds ? updateData.zoneIds : [],
+      hasLegacyZoneId ? nullIfEmpty(updateData.zoneId) : null,
+    )
   }
+  delete updateData.zoneId
   if (Object.prototype.hasOwnProperty.call(updateData, 'subZoneId')) {
     updateData.subZoneId = nullIfEmpty(updateData.subZoneId)
   }
-  if (Object.prototype.hasOwnProperty.call(updateData, 'zoneId') && updateData.zoneId == null) {
+  if (zonesTouched && updateData.zoneIds.length !== 1) {
     updateData.subZoneId = null
   }
 
-  const effZone = Object.prototype.hasOwnProperty.call(updateData, 'zoneId')
-    ? updateData.zoneId
-    : employee.zoneId
+  const effZoneIds = zonesTouched
+    ? updateData.zoneIds
+    : normalizeZoneIds(employee.zoneIds, employee.zoneId)
   const effSub = Object.prototype.hasOwnProperty.call(updateData, 'subZoneId')
     ? updateData.subZoneId
     : employee.subZoneId
@@ -173,11 +213,15 @@ export const updateEmployee = async ({ employeeId, branchFilter = {}, ...updateD
     ? updateData.branchId
     : employee.branchId
   const areaBranchFilter = effBranchId ? { branchId: effBranchId } : {}
-  await assertSubZoneBelongsToArea({
-    subZoneId: effSub,
-    areaId: effZone,
-    branchFilter: areaBranchFilter,
-  })
+  if (effZoneIds.length !== 1) {
+    updateData.subZoneId = null
+  } else {
+    await assertSubZoneBelongsToArea({
+      subZoneId: effSub,
+      areaId: effZoneIds[0],
+      branchFilter: areaBranchFilter,
+    })
+  }
 
   if (updateData.password) {
     updateData.password = encrypt(updateData.password)
@@ -245,7 +289,7 @@ export const updateEmployee = async ({ employeeId, branchFilter = {}, ...updateD
     .select('-password')
     .lean()
 
-  return updatedEmployee
+  return withNormalizedZones(updatedEmployee)
 }
 
 export const deleteEmployee = async ({ employeeId, branchFilter = {} }) => {
@@ -301,6 +345,7 @@ export const employeeLogin = async ({ email, password, role }) => {
   const tokens = createTokenPair(tokenPayload)
 
   const safeEmployee = { ...employee }
+  safeEmployee.zoneIds = normalizeZoneIds(safeEmployee.zoneIds, safeEmployee.zoneId)
   delete safeEmployee.password
 
   return {

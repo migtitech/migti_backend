@@ -97,6 +97,16 @@ const employeeSchema = new mongoose.Schema(
       ref: 'companyBranch',
       required: true,
     },
+    zoneIds: {
+      type: [
+        {
+          type: SchemaTypes.ObjectId,
+          ref: 'area',
+        },
+      ],
+      default: [],
+    },
+    // Legacy field kept temporarily for backward compatibility during migration.
     zoneId: {
       type: SchemaTypes.ObjectId,
       ref: 'area',
