@@ -29,6 +29,7 @@ var _taskManagementRoutes = _interopRequireDefault(require("./taskManagement.rou
 var _queryNewProductRoutes = _interopRequireDefault(require("./queryNewProduct.routes.js"));
 var _poBillingRoutes = _interopRequireDefault(require("./poBilling.routes.js"));
 var _visitRoutes = _interopRequireDefault(require("./visit.routes.js"));
+var _employeeLocationRoutes = _interopRequireDefault(require("./employeeLocation.routes.js"));
 var mainRoutes = _express["default"].Router();
 mainRoutes.use(function (req, res, next) {
   console.log("Main Routes - ".concat(req.method, " ").concat(req.originalUrl));
@@ -67,4 +68,5 @@ mainRoutes.use('/v1/task-management', _taskManagementRoutes["default"]);
 mainRoutes.use('/v1/query-new-products', _queryNewProductRoutes["default"]);
 mainRoutes.use('/v1/po-billing', _poBillingRoutes["default"]);
 mainRoutes.use('/v1/visits', _visitRoutes["default"]);
+mainRoutes.use('/v1/employee-locations', _employeeLocationRoutes["default"]);
 var _default = exports["default"] = mainRoutes;

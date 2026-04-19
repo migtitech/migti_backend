@@ -1,6 +1,7 @@
 import mongoose from 'mongoose'
 import QueryModel from '../../models/query.model.js'
-import QuotationModel from '../../models/quotation.model.js'
+import QuotationModel, { QUOTATION_STATUS } from '../../models/quotation.model.js'
+import PurchaseOrderModel, { PURCHASE_ORDER_STATUS } from '../../models/purchaseOrder.model.js'
 import PoEntryModel from '../../models/poEntry.model.js'
 import BillingEntryModel from '../../models/billingEntry.model.js'
 import QueryActivityModel from '../../models/queryActivity.model.js'
@@ -31,6 +32,7 @@ import {
   upsertEmployeeTargetAnalytics as upsertEmployeeTargetAnalyticsData,
   getEmployeeTargetSummary as getEmployeeTargetSummaryData,
 } from '../targetAnalytics/targetAnalytics.service.js'
+import { computePurchaseOrderFinancials } from '../purchaseOrder/purchaseOrder.service.js'
 import BranchEmployeeTargetModel from '../../models/branchEmployeeTarget.model.js'
 import TargetAnalyticsModel from '../../models/targetAnalytics.model.js'
 import { assertSubZoneBelongsToArea } from '../subZone/subZone.service.js'
@@ -937,63 +939,6 @@ export const getEmployeeTargetAnalytics = async (params = {}) => getEmployeeTarg
 export const upsertEmployeeTargetAnalytics = async (params = {}) => upsertEmployeeTargetAnalyticsData(params)
 export const getEmployeeTargetSummary = async (params = {}) => getEmployeeTargetSummaryData(params)
 
-const getWeeklyMonthlyRanges = () => {
-  const now = new Date()
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-
-  const weeklyFrom = new Date(today)
-  weeklyFrom.setDate(today.getDate() - 6)
-  weeklyFrom.setHours(0, 0, 0, 0)
-  const weeklyTo = new Date(today)
-  weeklyTo.setHours(23, 59, 59, 999)
-
-  const monthlyFrom = new Date(today.getFullYear(), today.getMonth(), 1, 0, 0, 0, 0)
-  const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate()
-  const monthlyTo = new Date(today.getFullYear(), today.getMonth(), Math.min(30, lastDay), 23, 59, 59, 999)
-
-  return { weeklyFrom, weeklyTo, monthlyFrom, monthlyTo }
-}
-
-const getEmployeeTargetAmountForPeriod = async ({
-  employeeId,
-  branchId = null,
-  period,
-  rangeFrom,
-  rangeTo,
-}) => {
-  const filter = {
-    isDeleted: false,
-    employeeId,
-    period,
-    dateFrom: { $lte: rangeTo },
-    dateTo: { $gte: rangeFrom },
-  }
-  if (branchId) filter.branchId = branchId
-  const targetDoc = await BranchEmployeeTargetModel.findOne(filter)
-    .sort({ createdAt: -1 })
-    .lean()
-  return Number(targetDoc?.targetAmount || 0)
-}
-
-/** Billings for sales cards: salespersonId + entryDate window only (no branch filter — billing.branchId may differ from JWT branch). */
-const getEmployeeBillingForRange = async ({ employeeId, rangeFrom, rangeTo }) => {
-  if (!employeeId || !mongoose.Types.ObjectId.isValid(String(employeeId))) {
-    return 0
-  }
-  const spId = new mongoose.Types.ObjectId(String(employeeId))
-  const billingFilter = {
-    isDeleted: false,
-    entryDate: { $gte: rangeFrom, $lte: rangeTo },
-    salespersonId: spId,
-  }
-
-  const agg = await BillingEntryModel.aggregate([
-    { $match: billingFilter },
-    { $group: { _id: null, total: { $sum: '$amount' } } },
-  ])
-  return Number(agg?.[0]?.total || 0)
-}
-
 /** Same calendar windows as branch target analytics (targetAnalytics.service getCurrentPeriodRange). */
 const getBranchTargetCalendarRange = (period) => {
   const now = new Date()
@@ -1091,8 +1036,212 @@ export const getHodDashboardCards = async ({ branchId }) => {
   }
 }
 
+/** Weekly / monthly windows for employee target + billing (aligned with target analytics). */
+const getSalesTargetWeeklyMonthlyRanges = () => {
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+
+  const weeklyFrom = new Date(today)
+  weeklyFrom.setDate(today.getDate() - 6)
+  weeklyFrom.setHours(0, 0, 0, 0)
+  const weeklyTo = new Date(today)
+  weeklyTo.setHours(23, 59, 59, 999)
+
+  const monthlyFrom = new Date(today.getFullYear(), today.getMonth(), 1, 0, 0, 0, 0)
+  const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate()
+  const monthlyTo = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    Math.min(30, lastDay),
+    23,
+    59,
+    59,
+    999
+  )
+
+  return { weeklyFrom, weeklyTo, monthlyFrom, monthlyTo }
+}
+
+const getEmployeeTargetAmountForPeriod = async ({
+  employeeId,
+  branchId = null,
+  period,
+  rangeFrom,
+  rangeTo,
+}) => {
+  const filter = {
+    isDeleted: false,
+    employeeId,
+    period,
+    dateFrom: { $lte: rangeTo },
+    dateTo: { $gte: rangeFrom },
+  }
+  if (branchId) filter.branchId = branchId
+  const targetDoc = await BranchEmployeeTargetModel.findOne(filter)
+    .sort({ createdAt: -1 })
+    .lean()
+  return Number(targetDoc?.targetAmount || 0)
+}
+
+const getEmployeeBillingForRange = async ({ employeeId, rangeFrom, rangeTo }) => {
+  if (!employeeId || !mongoose.Types.ObjectId.isValid(String(employeeId))) {
+    return 0
+  }
+  const spId = new mongoose.Types.ObjectId(String(employeeId))
+  const billingFilter = {
+    isDeleted: false,
+    entryDate: { $gte: rangeFrom, $lte: rangeTo },
+    salespersonId: spId,
+  }
+
+  const agg = await BillingEntryModel.aggregate([
+    { $match: billingFilter },
+    { $group: { _id: null, total: { $sum: '$amount' } } },
+  ])
+  return Number(agg?.[0]?.total || 0)
+}
+
 export const getSalesDashboardCards = async ({ employeeId, branchId = null }) => {
-  const { weeklyFrom, weeklyTo, monthlyFrom, monthlyTo } = getWeeklyMonthlyRanges()
+  const empty = {
+    monthlyFrom: null,
+    monthlyTo: null,
+    monthlyQueriesCount: 0,
+    monthlyQuotationsCount: 0,
+    monthlyPurchaseOrdersCount: 0,
+    pendingQueriesCount: 0,
+    pendingQuotationsCount: 0,
+    pendingPurchaseOrdersCount: 0,
+    pendingCollectionAmount: 0,
+    weeklyTarget: 0,
+    weeklyBilling: 0,
+    monthlyTarget: 0,
+    monthlyBilling: 0,
+    weeklyPeriodFrom: null,
+    weeklyPeriodTo: null,
+    monthlyPeriodFrom: null,
+    monthlyPeriodTo: null,
+    pendingQueries: [],
+    pendingQuotations: [],
+    pendingPurchaseOrders: [],
+    employeeId: '',
+    branchIdFromToken: branchId != null ? String(branchId) : null,
+  }
+  if (!employeeId || !mongoose.Types.ObjectId.isValid(String(employeeId))) {
+    return empty
+  }
+
+  const oid = new mongoose.Types.ObjectId(String(employeeId))
+  const now = new Date()
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0)
+  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
+
+  const salesPoScope = {
+    $or: [{ salesEmployeeId: oid }, { salesEmployeeId: null, created_by: oid }],
+  }
+  const monthCreatedFilter = { createdAt: { $gte: monthStart, $lte: monthEnd } }
+
+  const pendingQueryFilter = {
+    isDeleted: false,
+    created_by: oid,
+    status: 'drafted',
+  }
+  const pendingQuotationFilter = {
+    isDeleted: false,
+    created_by: oid,
+    status: { $nin: [QUOTATION_STATUS.CLOSED, QUOTATION_STATUS.FULFILLED] },
+  }
+  const pendingPoFilter = {
+    isDeleted: false,
+    ...salesPoScope,
+    status: { $nin: [PURCHASE_ORDER_STATUS.FULFILLED, PURCHASE_ORDER_STATUS.CANCELLED] },
+  }
+
+  const [
+    monthlyQueriesCount,
+    monthlyQuotationsCount,
+    monthlyPurchaseOrdersCount,
+    pendingQueriesCount,
+    pendingQuotationsCount,
+    pendingPurchaseOrdersCount,
+    posForOutstanding,
+    pendingQueriesRaw,
+    pendingQuotationsRaw,
+    pendingPurchaseOrdersRaw,
+  ] = await Promise.all([
+    QueryModel.countDocuments({
+      isDeleted: false,
+      created_by: oid,
+      ...monthCreatedFilter,
+    }),
+    QuotationModel.countDocuments({
+      isDeleted: false,
+      created_by: oid,
+      ...monthCreatedFilter,
+    }),
+    PurchaseOrderModel.countDocuments({
+      isDeleted: false,
+      ...salesPoScope,
+      ...monthCreatedFilter,
+    }),
+    QueryModel.countDocuments(pendingQueryFilter),
+    QuotationModel.countDocuments(pendingQuotationFilter),
+    PurchaseOrderModel.countDocuments(pendingPoFilter),
+    PurchaseOrderModel.find({
+      isDeleted: false,
+      ...salesPoScope,
+      status: { $nin: [PURCHASE_ORDER_STATUS.CANCELLED, PURCHASE_ORDER_STATUS.FULFILLED] },
+    })
+      .select('products freightCharge packingCharge payments status')
+      .lean(),
+    QueryModel.find(pendingQueryFilter)
+      .sort({ createdAt: -1 })
+      .limit(25)
+      .select('queryCode companyInfo status createdAt')
+      .lean(),
+    QuotationModel.find(pendingQuotationFilter)
+      .sort({ createdAt: -1 })
+      .limit(25)
+      .select('quotationCode companyInfo status createdAt')
+      .lean(),
+    PurchaseOrderModel.find(pendingPoFilter)
+      .sort({ createdAt: -1 })
+      .limit(25)
+      .select('poCode quotationId companyInfo status createdAt products freightCharge packingCharge payments')
+      .lean(),
+  ])
+
+  let pendingCollectionAmount = 0
+  for (const po of posForOutstanding) {
+    pendingCollectionAmount += computePurchaseOrderFinancials(po).remainingAmount
+  }
+
+  const pendingQueries = pendingQueriesRaw.map((q) => ({
+    id: String(q._id),
+    queryCode: q.queryCode || '',
+    companyName: q.companyInfo?.name || '—',
+    status: q.status || '',
+    createdAt: q.createdAt ? new Date(q.createdAt).toISOString() : null,
+  }))
+
+  const pendingQuotations = pendingQuotationsRaw.map((q) => ({
+    id: String(q._id),
+    quotationCode: q.quotationCode || '',
+    companyName: q.companyInfo?.name || '—',
+    status: q.status || '',
+    createdAt: q.createdAt ? new Date(q.createdAt).toISOString() : null,
+  }))
+
+  const pendingPurchaseOrders = pendingPurchaseOrdersRaw.map((po) => ({
+    id: String(po._id),
+    poCode: po.poCode || '',
+    quotationId: po.quotationId ? String(po.quotationId) : '',
+    companyName: po.companyInfo?.name || '—',
+    status: po.status || '',
+    remainingAmount: computePurchaseOrderFinancials(po).remainingAmount,
+    createdAt: po.createdAt ? new Date(po.createdAt).toISOString() : null,
+  }))
+
+  const { weeklyFrom, weeklyTo, monthlyFrom, monthlyTo } = getSalesTargetWeeklyMonthlyRanges()
   const [weeklyTarget, monthlyTarget, weeklyBilling, monthlyBilling] = await Promise.all([
     getEmployeeTargetAmountForPeriod({
       employeeId,
@@ -1113,17 +1262,27 @@ export const getSalesDashboardCards = async ({ employeeId, branchId = null }) =>
   ])
 
   return {
+    monthlyFrom: monthStart.toISOString(),
+    monthlyTo: monthEnd.toISOString(),
+    monthlyQueriesCount,
+    monthlyQuotationsCount,
+    monthlyPurchaseOrdersCount,
+    pendingQueriesCount,
+    pendingQuotationsCount,
+    pendingPurchaseOrdersCount,
+    pendingCollectionAmount,
     weeklyTarget,
     weeklyBilling,
     monthlyTarget,
     monthlyBilling,
-    weeklyFrom: weeklyFrom.toISOString(),
-    weeklyTo: weeklyTo.toISOString(),
-    monthlyFrom: monthlyFrom.toISOString(),
-    monthlyTo: monthlyTo.toISOString(),
-    /** Matches billingentries.salespersonId used for queries below */
-    employeeId: employeeId != null ? String(employeeId) : '',
-    /** Branch on JWT (targets still use this); billing totals ignore branch */
+    weeklyPeriodFrom: weeklyFrom.toISOString(),
+    weeklyPeriodTo: weeklyTo.toISOString(),
+    monthlyPeriodFrom: monthlyFrom.toISOString(),
+    monthlyPeriodTo: monthlyTo.toISOString(),
+    pendingQueries,
+    pendingQuotations,
+    pendingPurchaseOrders,
+    employeeId: String(employeeId),
     branchIdFromToken: branchId != null ? String(branchId) : null,
   }
 }

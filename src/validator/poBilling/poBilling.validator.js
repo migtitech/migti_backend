@@ -4,9 +4,10 @@ const objectIdPattern = /^[0-9a-fA-F]{24}$/
 
 export const createPoEntrySchema = Joi.object({
   companyId: Joi.string().pattern(objectIdPattern).required(),
-  salespersonId: Joi.string().pattern(objectIdPattern).required(),
+  salespersonId: Joi.string().pattern(objectIdPattern).optional().allow(null, ''),
   amount: Joi.number().min(0).required(),
   entryDate: Joi.date().optional(),
+  dispatchmentDate: Joi.date().allow(null).optional(),
   remark: Joi.string().allow('').optional(),
   branchId: Joi.string().pattern(objectIdPattern).optional(),
   attachmentDocumentId: Joi.string().pattern(objectIdPattern).optional().allow(null, ''),
@@ -14,7 +15,7 @@ export const createPoEntrySchema = Joi.object({
 
 export const createBillingEntrySchema = Joi.object({
   companyId: Joi.string().pattern(objectIdPattern).required(),
-  salespersonId: Joi.string().pattern(objectIdPattern).required(),
+  salespersonId: Joi.string().pattern(objectIdPattern).optional().allow(null, ''),
   amount: Joi.number().min(0).required(),
   entryDate: Joi.date().optional(),
   remark: Joi.string().allow('').optional(),

@@ -16,3 +16,12 @@ export const listEmployeeLocationSchema = Joi.object({
   pageSize: Joi.number().integer().min(1).max(100).default(10),
   employeeId: Joi.string().pattern(objectIdPattern).allow('', null).optional(),
 })
+
+export const listTeamLatestLocationsSchema = Joi.object({})
+
+export const listEmployeeLocationHistoryBinnedSchema = Joi.object({
+  employeeId: Joi.string().pattern(objectIdPattern).required(),
+  pageNumber: Joi.number().integer().min(1).default(1),
+  pageSize: Joi.number().integer().min(1).max(100).default(10),
+  intervalMinutes: Joi.number().integer().min(1).max(1440).default(30),
+})

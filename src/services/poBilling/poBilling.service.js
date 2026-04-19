@@ -1,3 +1,4 @@
+import mongoose from 'mongoose'
 import PoEntryModel from '../../models/poEntry.model.js'
 import BillingEntryModel from '../../models/billingEntry.model.js'
 import DocumentModel from '../../models/document.model.js'
@@ -71,29 +72,69 @@ const buildDateFilter = ({ period = 'all', dateFrom = '', dateTo = '' }) => {
   return { entryDate: createdAt }
 }
 
+/**
+ * Pick a sales employee for PO/Billing from the client's zone/subzone (no manual selection).
+ * - Client has subZoneId: match employee.subZoneId.
+ * - Else client has area: match employee.zoneId or zoneIds containing that area.
+ */
+const resolveSalespersonIdForIndustry = async ({ companyId, branchId = null }) => {
+  if (!companyId || !mongoose.Types.ObjectId.isValid(String(companyId))) {
+    throw new CustomError(statusCodes.badRequest, 'Invalid company', errorCodes.bad_request)
+  }
+  const industryFilter = {
+    _id: new mongoose.Types.ObjectId(String(companyId)),
+    isDeleted: false,
+  }
+  if (branchId && mongoose.Types.ObjectId.isValid(String(branchId))) {
+    industryFilter.branchId = new mongoose.Types.ObjectId(String(branchId))
+  }
+  const industry = await IndustryModel.findOne(industryFilter).select('area subZoneId branchId').lean()
+  if (!industry) {
+    throw new CustomError(statusCodes.notFound, 'Company not found', errorCodes.not_found)
+  }
+
+  const empFilter = {
+    isDeleted: false,
+    role: { $regex: /^sales/i },
+  }
+  if (industry.branchId) {
+    empFilter.branchId = industry.branchId
+  }
+
+  if (industry.subZoneId) {
+    empFilter.subZoneId = industry.subZoneId
+  } else if (industry.area) {
+    const aid = industry.area
+    empFilter.$or = [{ zoneId: aid }, { zoneIds: aid }]
+  } else {
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Client has no zone assigned; cannot determine salesperson',
+      errorCodes.bad_request,
+    )
+  }
+
+  const emp = await EmployeeModel.findOne(empFilter).select('_id').sort({ name: 1 }).lean()
+  if (!emp?._id) {
+    throw new CustomError(
+      statusCodes.badRequest,
+      'No sales employee mapped to this client zone',
+      errorCodes.bad_request,
+    )
+  }
+  return emp._id
+}
+
 export const getPoBillingFormOptions = async ({ branchFilter = {} }) => {
   const filter = { isDeleted: false, ...branchFilter }
-  const [companies, salespeople] = await Promise.all([
-    IndustryModel.find(filter).select('_id name').sort({ name: 1 }).lean(),
-    EmployeeModel.find({
-      ...filter,
-      role: /^sales/i,
-    })
-      .select('_id name role')
-      .sort({ name: 1 })
-      .lean(),
-  ])
+  const companies = await IndustryModel.find(filter).select('_id name').sort({ name: 1 }).lean()
 
   return {
     companies: (companies || []).map((company) => ({
       _id: company._id,
       name: company.name || '',
     })),
-    salespeople: (salespeople || []).map((employee) => ({
-      _id: employee._id,
-      name: employee.name || '',
-      role: employee.role || '',
-    })),
+    salespeople: [],
   }
 }
 
@@ -103,18 +144,28 @@ export const createPoEntry = async ({
   salespersonId,
   amount,
   entryDate,
+  dispatchmentDate = null,
   remark = '',
   branchId = null,
   created_by = null,
   attachmentDocumentId = null,
 }) => {
   const attachmentId = await normalizeAttachmentDocumentId(attachmentDocumentId)
+  const trimmedSalesId = salespersonId && String(salespersonId).trim()
+  const resolvedSalespersonId = trimmedSalesId
+    ? trimmedSalesId
+    : await resolveSalespersonIdForIndustry({ companyId, branchId })
+  const dispatchment =
+    dispatchmentDate != null && String(dispatchmentDate).trim() !== ''
+      ? new Date(dispatchmentDate)
+      : null
   const doc = await PoEntryModel.create({
     poNumber: String(poNumber || '').trim().toUpperCase(),
     companyId,
-    salespersonId,
+    salespersonId: resolvedSalespersonId,
     amount: Number(amount) || 0,
     entryDate: entryDate ? new Date(entryDate) : new Date(),
+    dispatchmentDate: dispatchment && !Number.isNaN(dispatchment.getTime()) ? dispatchment : null,
     remark: String(remark || '').trim(),
     branchId: branchId || null,
     created_by: created_by || null,
@@ -135,10 +186,14 @@ export const createBillingEntry = async ({
   attachmentDocumentId = null,
 }) => {
   const attachmentId = await normalizeAttachmentDocumentId(attachmentDocumentId)
+  const trimmedSalesId = salespersonId && String(salespersonId).trim()
+  const resolvedSalespersonId = trimmedSalesId
+    ? trimmedSalesId
+    : await resolveSalespersonIdForIndustry({ companyId, branchId })
   const doc = await BillingEntryModel.create({
     billingNumber: String(billingNumber || '').trim().toUpperCase(),
     companyId,
-    salespersonId,
+    salespersonId: resolvedSalespersonId,
     amount: Number(amount) || 0,
     entryDate: entryDate ? new Date(entryDate) : new Date(),
     remark: String(remark || '').trim(),
@@ -231,6 +286,7 @@ export const getPoBillingAnalytics = async ({
         salespersonName: row.salespersonId?.name || '-',
         amount: Number(row.amount) || 0,
         entryDate: row.entryDate || row.createdAt,
+        dispatchmentDate: tab === 'po' ? row.dispatchmentDate || null : null,
         remark: row.remark || '',
         createdAt: row.createdAt,
         attachment,

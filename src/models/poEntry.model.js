@@ -41,6 +41,10 @@ const poEntrySchema = new mongoose.Schema(
       default: Date.now,
       index: true,
     },
+    dispatchmentDate: {
+      type: SchemaTypes.Date,
+      default: null,
+    },
     branchId: {
       type: SchemaTypes.ObjectId,
       ref: 'companyBranch',
