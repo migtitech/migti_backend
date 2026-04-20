@@ -1,8 +1,11 @@
 import puppeteer from 'puppeteer'
 import fs from 'fs/promises'
 import { getQuotationById } from './quotation.service.js'
+import { QUOTATION_STATUS } from '../../models/quotation.model.js'
 import CompanyBranchModel from '../../models/companyBranch.model.js'
 import CompanyModel from '../../models/company.model.js'
+import CustomError from '../../utils/exception.js'
+import { errorCodes, statusCodes } from '../../core/common/constant.js'
 import {
   getDocumentById,
   getDocumentServeInfo,
@@ -701,6 +704,14 @@ export const exportQuotationPdf = async ({
     isFullAccessRole,
     role,
   })
+
+  if (quotation?.status !== QUOTATION_STATUS.HOD_APPROVED) {
+    throw new CustomError(
+      statusCodes.forbidden,
+      'Quotation can be exported only after HOD approval',
+      errorCodes.forbidden,
+    )
+  }
 
   let branch = null
   let company = null
