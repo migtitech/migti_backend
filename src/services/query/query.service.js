@@ -6,6 +6,7 @@ import PoEntryModel from '../../models/poEntry.model.js'
 import BillingEntryModel from '../../models/billingEntry.model.js'
 import QueryActivityModel from '../../models/queryActivity.model.js'
 import EmployeeModel from '../../models/employee.model.js'
+import IndustryModel from '../../models/industry.model.js'
 import AdminModel from '../../models/admin.model.js'
 import SuperAdminModel from '../../models/super.admin.js'
 import {
@@ -34,6 +35,7 @@ import {
 } from '../targetAnalytics/targetAnalytics.service.js'
 import { computePurchaseOrderFinancials } from '../purchaseOrder/purchaseOrder.service.js'
 import BranchEmployeeTargetModel from '../../models/branchEmployeeTarget.model.js'
+import BranchZoneTargetModel from '../../models/branchZoneTarget.model.js'
 import TargetAnalyticsModel from '../../models/targetAnalytics.model.js'
 import { assertSubZoneBelongsToArea } from '../subZone/subZone.service.js'
 import { resolveQueryAccessFilter } from '../../core/helpers/queryAccess.js'
@@ -208,7 +210,10 @@ export const listQueries = async ({
       .map((v) => String(v || '').trim())
       .filter(Boolean)
     if (selectedAreaIds.length) {
-      filter['companyInfo.area'] = { $in: selectedAreaIds }
+      const areaObjectIds = selectedAreaIds
+        .filter((id) => mongoose.Types.ObjectId.isValid(id))
+        .map((id) => new mongoose.Types.ObjectId(id))
+      filter['companyInfo.area'] = { $in: [...selectedAreaIds, ...areaObjectIds] }
     }
   }
 
@@ -1072,6 +1077,90 @@ const getSalesTargetWeeklyMonthlyRanges = () => {
   return { weeklyFrom, weeklyTo, monthlyFrom, monthlyTo }
 }
 
+const getEmployeeAreaScope = async ({ employeeId, branchId = null }) => {
+  if (!employeeId || !mongoose.Types.ObjectId.isValid(String(employeeId))) {
+    return { areaObjectIds: [], areaScopeValues: [], industryObjectIds: [] }
+  }
+
+  const employee = await EmployeeModel.findOne({
+    _id: new mongoose.Types.ObjectId(String(employeeId)),
+    isDeleted: false,
+  })
+    .select('zoneIds zoneId')
+    .lean()
+
+  const rawAreaIds = [
+    ...(Array.isArray(employee?.zoneIds) ? employee.zoneIds : []),
+    employee?.zoneId || null,
+  ].filter(Boolean)
+
+  const dedupedAreaIds = [...new Set(rawAreaIds.map((id) => String(id).trim()).filter(Boolean))]
+  const areaObjectIds = dedupedAreaIds
+    .filter((id) => mongoose.Types.ObjectId.isValid(id))
+    .map((id) => new mongoose.Types.ObjectId(id))
+
+  if (!areaObjectIds.length) {
+    return { areaObjectIds: [], areaScopeValues: [], industryObjectIds: [] }
+  }
+
+  const areaScopeValues = [...dedupedAreaIds, ...areaObjectIds]
+  const industryFilter = { isDeleted: false, area: { $in: areaObjectIds } }
+  if (branchId && mongoose.Types.ObjectId.isValid(String(branchId))) {
+    industryFilter.branchId = new mongoose.Types.ObjectId(String(branchId))
+  }
+  const industries = await IndustryModel.find(industryFilter).select('_id').lean()
+  const industryObjectIds = industries.map((row) => row._id).filter(Boolean)
+
+  return { areaObjectIds, areaScopeValues, industryObjectIds }
+}
+
+const getZoneTargetAmountForPeriod = async ({
+  areaObjectIds = [],
+  branchId = null,
+  period,
+  rangeFrom,
+  rangeTo,
+}) => {
+  if (!Array.isArray(areaObjectIds) || !areaObjectIds.length) return 0
+  const match = {
+    isDeleted: false,
+    zoneId: { $in: areaObjectIds },
+    period,
+    dateFrom: { $lte: rangeTo },
+    dateTo: { $gte: rangeFrom },
+  }
+  if (branchId && mongoose.Types.ObjectId.isValid(String(branchId))) {
+    match.branchId = new mongoose.Types.ObjectId(String(branchId))
+  }
+  const agg = await BranchZoneTargetModel.aggregate([
+    { $match: match },
+    { $group: { _id: null, total: { $sum: '$targetAmount' } } },
+  ])
+  return Number(agg?.[0]?.total || 0)
+}
+
+const getScopedBillingForRange = async ({
+  industryObjectIds = [],
+  branchId = null,
+  rangeFrom,
+  rangeTo,
+}) => {
+  if (!Array.isArray(industryObjectIds) || !industryObjectIds.length) return 0
+  const match = {
+    isDeleted: false,
+    companyId: { $in: industryObjectIds },
+    entryDate: { $gte: rangeFrom, $lte: rangeTo },
+  }
+  if (branchId && mongoose.Types.ObjectId.isValid(String(branchId))) {
+    match.branchId = new mongoose.Types.ObjectId(String(branchId))
+  }
+  const agg = await BillingEntryModel.aggregate([
+    { $match: match },
+    { $group: { _id: null, total: { $sum: '$amount' } } },
+  ])
+  return Number(agg?.[0]?.total || 0)
+}
+
 const getEmployeeTargetAmountForPeriod = async ({
   employeeId,
   branchId = null,
@@ -1079,29 +1168,48 @@ const getEmployeeTargetAmountForPeriod = async ({
   rangeFrom,
   rangeTo,
 }) => {
-  const filter = {
+  const employeeObjectId = mongoose.Types.ObjectId.isValid(String(employeeId))
+    ? new mongoose.Types.ObjectId(String(employeeId))
+    : null
+  if (!employeeObjectId) return 0
+
+  const baseFilter = {
     isDeleted: false,
-    employeeId,
+    employeeId: employeeObjectId,
     period,
     dateFrom: { $lte: rangeTo },
     dateTo: { $gte: rangeFrom },
   }
-  if (branchId) filter.branchId = branchId
-  const targetDoc = await BranchEmployeeTargetModel.findOne(filter)
+
+  const branchObjectId =
+    branchId && mongoose.Types.ObjectId.isValid(String(branchId))
+      ? new mongoose.Types.ObjectId(String(branchId))
+      : null
+
+  // Prefer branch-scoped target when available; fall back to employee-period target.
+  const targetDoc = await BranchEmployeeTargetModel.findOne(
+    branchObjectId ? { ...baseFilter, branchId: branchObjectId } : baseFilter
+  )
     .sort({ createdAt: -1 })
     .lean()
-  return Number(targetDoc?.targetAmount || 0)
+
+  if (targetDoc) return Number(targetDoc.targetAmount || 0)
+
+  const fallbackDoc = await BranchEmployeeTargetModel.findOne(baseFilter)
+    .sort({ createdAt: -1 })
+    .lean()
+  return Number(fallbackDoc?.targetAmount || 0)
 }
 
 const getEmployeeBillingForRange = async ({ employeeId, rangeFrom, rangeTo }) => {
   if (!employeeId || !mongoose.Types.ObjectId.isValid(String(employeeId))) {
     return 0
   }
-  const spId = new mongoose.Types.ObjectId(String(employeeId))
+  const employeeObjectId = new mongoose.Types.ObjectId(String(employeeId))
   const billingFilter = {
     isDeleted: false,
     entryDate: { $gte: rangeFrom, $lte: rangeTo },
-    salespersonId: spId,
+    $or: [{ salespersonId: employeeObjectId }, { created_by: employeeObjectId }],
   }
 
   const agg = await BillingEntryModel.aggregate([
@@ -1140,29 +1248,41 @@ export const getSalesDashboardCards = async ({ employeeId, branchId = null }) =>
     return empty
   }
 
-  const oid = new mongoose.Types.ObjectId(String(employeeId))
+  const branchObjectId =
+    branchId && mongoose.Types.ObjectId.isValid(String(branchId))
+      ? new mongoose.Types.ObjectId(String(branchId))
+      : null
   const now = new Date()
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0)
   const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
+  const { areaObjectIds, areaScopeValues, industryObjectIds } = await getEmployeeAreaScope({
+    employeeId,
+    branchId,
+  })
 
-  const salesPoScope = {
-    $or: [{ salesEmployeeId: oid }, { salesEmployeeId: null, created_by: oid }],
-  }
+  const scopedOr = []
+  if (areaScopeValues.length) scopedOr.push({ 'companyInfo.area': { $in: areaScopeValues } })
+  if (industryObjectIds.length) scopedOr.push({ industry_id: { $in: industryObjectIds } })
+  const salesScopeFilter = scopedOr.length ? { $or: scopedOr } : { _id: null }
   const monthCreatedFilter = { createdAt: { $gte: monthStart, $lte: monthEnd } }
+  const branchScopedFilter = branchObjectId ? { branchId: branchObjectId } : {}
 
   const pendingQueryFilter = {
     isDeleted: false,
-    created_by: oid,
+    ...branchScopedFilter,
+    ...salesScopeFilter,
     status: 'drafted',
   }
   const pendingQuotationFilter = {
     isDeleted: false,
-    created_by: oid,
-    status: { $nin: [QUOTATION_STATUS.CLOSED, QUOTATION_STATUS.FULFILLED] },
+    ...branchScopedFilter,
+    ...salesScopeFilter,
+    status: { $ne: QUOTATION_STATUS.HOD_APPROVED },
   }
   const pendingPoFilter = {
     isDeleted: false,
-    ...salesPoScope,
+    ...branchScopedFilter,
+    ...salesScopeFilter,
     status: { $nin: [PURCHASE_ORDER_STATUS.FULFILLED, PURCHASE_ORDER_STATUS.CANCELLED] },
   }
 
@@ -1180,17 +1300,20 @@ export const getSalesDashboardCards = async ({ employeeId, branchId = null }) =>
   ] = await Promise.all([
     QueryModel.countDocuments({
       isDeleted: false,
-      created_by: oid,
+      ...branchScopedFilter,
+      ...salesScopeFilter,
       ...monthCreatedFilter,
     }),
     QuotationModel.countDocuments({
       isDeleted: false,
-      created_by: oid,
+      ...branchScopedFilter,
+      ...salesScopeFilter,
       ...monthCreatedFilter,
     }),
     PurchaseOrderModel.countDocuments({
       isDeleted: false,
-      ...salesPoScope,
+      ...branchScopedFilter,
+      ...salesScopeFilter,
       ...monthCreatedFilter,
     }),
     QueryModel.countDocuments(pendingQueryFilter),
@@ -1198,7 +1321,8 @@ export const getSalesDashboardCards = async ({ employeeId, branchId = null }) =>
     PurchaseOrderModel.countDocuments(pendingPoFilter),
     PurchaseOrderModel.find({
       isDeleted: false,
-      ...salesPoScope,
+      ...branchScopedFilter,
+      ...salesScopeFilter,
       status: { $nin: [PURCHASE_ORDER_STATUS.CANCELLED, PURCHASE_ORDER_STATUS.FULFILLED] },
     })
       .select('products freightCharge packingCharge payments status')
@@ -1253,22 +1377,32 @@ export const getSalesDashboardCards = async ({ employeeId, branchId = null }) =>
 
   const { weeklyFrom, weeklyTo, monthlyFrom, monthlyTo } = getSalesTargetWeeklyMonthlyRanges()
   const [weeklyTarget, monthlyTarget, weeklyBilling, monthlyBilling] = await Promise.all([
-    getEmployeeTargetAmountForPeriod({
-      employeeId,
+    getZoneTargetAmountForPeriod({
+      areaObjectIds,
       branchId,
       period: 'weekly',
       rangeFrom: weeklyFrom,
       rangeTo: weeklyTo,
     }),
-    getEmployeeTargetAmountForPeriod({
-      employeeId,
+    getZoneTargetAmountForPeriod({
+      areaObjectIds,
       branchId,
       period: 'monthly',
       rangeFrom: monthlyFrom,
       rangeTo: monthlyTo,
     }),
-    getEmployeeBillingForRange({ employeeId, rangeFrom: weeklyFrom, rangeTo: weeklyTo }),
-    getEmployeeBillingForRange({ employeeId, rangeFrom: monthlyFrom, rangeTo: monthlyTo }),
+    getScopedBillingForRange({
+      industryObjectIds,
+      branchId,
+      rangeFrom: weeklyFrom,
+      rangeTo: weeklyTo,
+    }),
+    getScopedBillingForRange({
+      industryObjectIds,
+      branchId,
+      rangeFrom: monthlyFrom,
+      rangeTo: monthlyTo,
+    }),
   ])
 
   return {

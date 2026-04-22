@@ -35,6 +35,7 @@ export const listIndustrySchema = Joi.object({
   pageSize: Joi.number().integer().min(1).max(1000).default(10),
   search: Joi.string().allow('', null),
   category: Joi.string().valid('A', 'B', 'C', 'D').optional().allow('', null),
+  areaIds: Joi.string().allow('', null).optional(),
   branchId: Joi.string().optional().allow('', null),
 })
 

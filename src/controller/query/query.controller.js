@@ -590,7 +590,11 @@ export const getEmployeeTargetSummaryController = async (req, res) => {
 
 export const getSalesDashboardCardsController = async (req, res) => {
   const employeeId = resolveSalesDashboardEmployeeId(req)
-  const branchId = req.user?.branchId || null
+  const rawBranchId = req.user?.branchId
+  const branchId =
+    rawBranchId && typeof rawBranchId === 'object' && rawBranchId._id != null
+      ? rawBranchId._id
+      : rawBranchId || null
   const result = await getSalesDashboardCards({ employeeId, branchId })
   return res.status(statusCodes.ok).json({
     success: true,

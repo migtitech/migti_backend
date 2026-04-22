@@ -59,6 +59,7 @@ export const listQuotationSchema = Joi.object({
     .optional(),
   dateFrom: Joi.alternatives().try(Joi.string().valid(''), dateOnlySchema).optional(),
   dateTo: Joi.alternatives().try(Joi.string().valid(''), dateOnlySchema).optional(),
+  areaIds: Joi.string().allow('').optional(),
   industryId: Joi.string()
     .pattern(objectIdPattern)
     .optional()

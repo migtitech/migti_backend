@@ -208,6 +208,8 @@ export const getPoBillingAnalytics = async ({
   period = 'all',
   dateFrom = '',
   dateTo = '',
+  areaIds = '',
+  industryId = '',
   tab = 'po',
   pageNumber = 1,
   pageSize = 10,
@@ -223,13 +225,60 @@ export const getPoBillingAnalytics = async ({
   const poFilter = { isDeleted: false, ...branchFilter, ...dateFilter }
   const billingFilter = { isDeleted: false, ...branchFilter, ...dateFilter }
 
+  if (industryId && String(industryId).trim() && mongoose.Types.ObjectId.isValid(String(industryId).trim())) {
+    const scopedIndustryId = new mongoose.Types.ObjectId(String(industryId).trim())
+    poFilter.companyId = scopedIndustryId
+    billingFilter.companyId = scopedIndustryId
+  }
+
+  if (areaIds && String(areaIds).trim()) {
+    const selectedAreaIds = String(areaIds)
+      .split(',')
+      .map((v) => String(v || '').trim())
+      .filter(Boolean)
+    if (selectedAreaIds.length) {
+      const areaObjectIds = selectedAreaIds
+        .filter((id) => mongoose.Types.ObjectId.isValid(id))
+        .map((id) => new mongoose.Types.ObjectId(id))
+      const areaScopedIndustries = await IndustryModel.find({
+        isDeleted: false,
+        ...branchFilter,
+        area: { $in: [...selectedAreaIds, ...areaObjectIds] },
+      })
+        .select('_id')
+        .lean()
+      const areaIndustryIds = areaScopedIndustries.map((row) => row._id)
+      if (poFilter.companyId && !Array.isArray(poFilter.companyId?.$in)) {
+        const selectedCompanyId = String(poFilter.companyId)
+        const inArea = areaIndustryIds.some((id) => String(id) === selectedCompanyId)
+        const scopedIds = inArea ? [poFilter.companyId] : []
+        poFilter.companyId = { $in: scopedIds }
+        billingFilter.companyId = { $in: scopedIds }
+      } else {
+        poFilter.companyId = { $in: areaIndustryIds }
+        billingFilter.companyId = { $in: areaIndustryIds }
+      }
+    }
+  }
+
   const territoryIndustryIds = await getTerritoryIndustryIdsForUser({
     currentUserId,
     isFullAccessRole,
     branchFilter,
   })
   if (territoryIndustryIds != null) {
-    const companyScope = { $in: territoryIndustryIds }
+    let scopedIds = territoryIndustryIds
+    if (Array.isArray(poFilter.companyId?.$in)) {
+      scopedIds = poFilter.companyId.$in.filter((id) =>
+        territoryIndustryIds.some((tid) => String(tid) === String(id)),
+      )
+    } else if (poFilter.companyId) {
+      const selectedCompanyId = String(poFilter.companyId)
+      scopedIds = territoryIndustryIds.some((id) => String(id) === selectedCompanyId)
+        ? [poFilter.companyId]
+        : []
+    }
+    const companyScope = { $in: scopedIds }
     poFilter.companyId = companyScope
     billingFilter.companyId = companyScope
   }

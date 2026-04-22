@@ -292,6 +292,7 @@ export const listQuotations = async ({
   pageSize = 10,
   search = '',
   status = '',
+  areaIds = '',
   dateFrom = '',
   dateTo = '',
   industryId = '',
@@ -311,8 +312,10 @@ export const listQuotations = async ({
     || includeTotalAmountSum === '1'
 
   const filter = { isDeleted: false, ...branchFilter }
-  if (industryId && String(industryId).trim() && mongoose.Types.ObjectId.isValid(industryId)) {
-    filter.industry_id = new mongoose.Types.ObjectId(String(industryId).trim())
+  const normalizedIndustryId = String(industryId || '').trim()
+  const hasIndustryIdFilter = normalizedIndustryId && mongoose.Types.ObjectId.isValid(normalizedIndustryId)
+  if (hasIndustryIdFilter) {
+    filter.industry_id = new mongoose.Types.ObjectId(normalizedIndustryId)
   }
   const normalizeStatusFilter = (rawStatus = '') => {
     const val = String(rawStatus || '').trim().toLowerCase()
@@ -323,6 +326,18 @@ export const listQuotations = async ({
   }
   if (status && status.trim()) {
     filter.status = normalizeStatusFilter(status)
+  }
+  if (areaIds && String(areaIds).trim()) {
+    const selectedAreaIds = String(areaIds)
+      .split(',')
+      .map((v) => String(v || '').trim())
+      .filter(Boolean)
+    if (selectedAreaIds.length) {
+      const areaObjectIds = selectedAreaIds
+        .filter((id) => mongoose.Types.ObjectId.isValid(id))
+        .map((id) => new mongoose.Types.ObjectId(id))
+      filter['companyInfo.area'] = { $in: [...selectedAreaIds, ...areaObjectIds] }
+    }
   }
 
   let fromD = dateFrom && String(dateFrom).trim() ? startOfUtcDay(dateFrom) : null
@@ -348,7 +363,15 @@ export const listQuotations = async ({
       branchFilter,
     })
     if (territoryIds != null) {
-      filter.industry_id = { $in: territoryIds }
+      // Keep industry-specific pages scoped to the selected industry and ensure it falls inside employee territory.
+      if (hasIndustryIdFilter) {
+        const allowedIndustryIds = new Set((territoryIds || []).map((id) => String(id)))
+        if (!allowedIndustryIds.has(normalizedIndustryId)) {
+          filter.industry_id = { $in: [] }
+        }
+      } else {
+        filter.industry_id = { $in: territoryIds }
+      }
     } else {
       const accessFilter = await resolveQueryAccessFilter({
         currentUserId,

@@ -27,6 +27,8 @@ export const poBillingAnalyticsSchema = Joi.object({
   period: Joi.string().valid('all', 'daily', 'weekly', 'monthly').default('all'),
   dateFrom: Joi.string().allow('').optional(),
   dateTo: Joi.string().allow('').optional(),
+  areaIds: Joi.string().allow('').optional(),
+  industryId: Joi.string().pattern(objectIdPattern).allow('').optional(),
   tab: Joi.string().valid('po', 'billing').default('po'),
   pageNumber: Joi.number().integer().min(1).default(1),
   pageSize: Joi.number().integer().min(1).max(100).default(10),

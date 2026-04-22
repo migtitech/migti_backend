@@ -1,3 +1,4 @@
+import mongoose from 'mongoose'
 import IndustryModel from '../../models/industry.model.js'
 import { assertSubZoneBelongsToArea } from '../subZone/subZone.service.js'
 import IndustryPurchaseManagerModel from '../../models/industryPurchaseManager.model.js'
@@ -93,6 +94,7 @@ export const listIndustries = async ({
   pageSize = 10,
   search = '',
   category,
+  areaIds = '',
   branchFilter = {},
   currentUserId = null,
   isFullAccessRole = true,
@@ -123,6 +125,18 @@ export const listIndustries = async ({
 
   if (category) {
     filter.category = category
+  }
+  if (areaIds && String(areaIds).trim()) {
+    const selectedAreaIds = String(areaIds)
+      .split(',')
+      .map((v) => String(v || '').trim())
+      .filter(Boolean)
+    if (selectedAreaIds.length) {
+      const areaObjectIds = selectedAreaIds
+        .filter((id) => mongoose.Types.ObjectId.isValid(id))
+        .map((id) => new mongoose.Types.ObjectId(id))
+      filter.area = { $in: [...selectedAreaIds, ...areaObjectIds] }
+    }
   }
 
   const totalItems = await IndustryModel.countDocuments(filter)
