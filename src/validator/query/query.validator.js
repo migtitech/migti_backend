@@ -60,6 +60,7 @@ export const listQuerySchema = Joi.object({
   status: Joi.string().valid(...queryStatusValues).allow('').optional(),
   dateFrom: Joi.alternatives().try(Joi.string().valid(''), dateOnlySchema).optional(),
   dateTo: Joi.alternatives().try(Joi.string().valid(''), dateOnlySchema).optional(),
+  areaIds: Joi.string().allow('').optional(),
   industryId: Joi.string()
     .pattern(/^[a-fA-F0-9]{24}$/)
     .optional()

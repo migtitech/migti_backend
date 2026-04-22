@@ -183,6 +183,7 @@ export const listQueries = async ({
   status = '',
   dateFrom = '',
   dateTo = '',
+  areaIds = '',
   industryId = '',
   branchFilter = {},
   currentUserId = null,
@@ -200,6 +201,15 @@ export const listQueries = async ({
   }
   if (status && status.trim()) {
     filter.status = status.trim()
+  }
+  if (areaIds && String(areaIds).trim()) {
+    const selectedAreaIds = String(areaIds)
+      .split(',')
+      .map((v) => String(v || '').trim())
+      .filter(Boolean)
+    if (selectedAreaIds.length) {
+      filter['companyInfo.area'] = { $in: selectedAreaIds }
+    }
   }
 
   let fromD = dateFrom && String(dateFrom).trim() ? startOfUtcDay(dateFrom) : null
