@@ -35,12 +35,15 @@ const industryBranchSchema = new mongoose.Schema(
       default: '',
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 )
 
 industryBranchSchema.index({ industryId: 1, isDeleted: 1 })
 industryBranchSchema.plugin(commonFieldsPlugin)
 
-const IndustryBranchModel = mongoose.model('industryBranch', industryBranchSchema)
+const IndustryBranchModel = mongoose.model(
+  'industryBranch',
+  industryBranchSchema
+)
 
 export default IndustryBranchModel

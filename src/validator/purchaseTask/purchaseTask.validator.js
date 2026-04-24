@@ -22,12 +22,17 @@ export const assignPurchaseTaskSchema = Joi.object({
 export const listMyPurchaseTasksSchema = Joi.object({
   pageNumber: Joi.number().integer().min(1).default(1),
   pageSize: Joi.number().integer().min(1).max(100).default(10),
-  status: Joi.string().valid(...purchaseTaskStatusValues).allow('', null).optional(),
+  status: Joi.string()
+    .valid(...purchaseTaskStatusValues)
+    .allow('', null)
+    .optional(),
 })
 
 export const updatePurchaseTaskStatusSchema = Joi.object({
   taskId: Joi.string().required(),
-  status: Joi.string().valid(...purchaseTaskStatusValues).required(),
+  status: Joi.string()
+    .valid(...purchaseTaskStatusValues)
+    .required(),
   targetRate: Joi.number().min(0).allow(null).optional(),
 })
 
@@ -39,14 +44,19 @@ export const updatePurchaseTaskRemarkSchema = Joi.object({
 export const listRateBucketSchema = Joi.object({
   pageNumber: Joi.number().integer().min(1).default(1),
   pageSize: Joi.number().integer().min(1).max(100).default(10),
-  status: Joi.string().valid(...purchaseTaskStatusValues).allow('', null).optional(),
+  status: Joi.string()
+    .valid(...purchaseTaskStatusValues)
+    .allow('', null)
+    .optional(),
 })
 
 export const adminListPurchaseTasksSchema = Joi.object({
   pageNumber: Joi.number().integer().min(1).default(1),
   pageSize: Joi.number().integer().min(1).max(100).default(10),
-  status: Joi.string().valid(...purchaseTaskStatusValues).allow('', null).optional(),
+  status: Joi.string()
+    .valid(...purchaseTaskStatusValues)
+    .allow('', null)
+    .optional(),
   employeeId: Joi.string().allow('', null).optional(),
   role: Joi.string().allow('', null).optional(),
 })
-

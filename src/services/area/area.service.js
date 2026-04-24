@@ -7,12 +7,15 @@ export const addArea = async (data) => {
   const companyId = data.companyId
   const branchId = data.branchId
 
-  const branch = await CompanyBranchModel.findOne({ _id: branchId, companyId }).lean()
+  const branch = await CompanyBranchModel.findOne({
+    _id: branchId,
+    companyId,
+  }).lean()
   if (!branch) {
     throw new CustomError(
       statusCodes.badRequest,
       'Branch does not belong to the selected company',
-      errorCodes.not_found,
+      errorCodes.not_found
     )
   }
 
@@ -27,7 +30,7 @@ export const addArea = async (data) => {
     throw new CustomError(
       statusCodes.conflict,
       'Area with this name already exists for this branch',
-      errorCodes.already_exist,
+      errorCodes.already_exist
     )
   }
 
@@ -104,21 +107,25 @@ export const getAreaById = async ({ areaId, branchFilter = {} }) => {
     throw new CustomError(
       statusCodes.notFound,
       'Area not found',
-      errorCodes.not_found,
+      errorCodes.not_found
     )
   }
 
   return area
 }
 
-export const updateArea = async ({ areaId, branchFilter = {}, ...updateData }) => {
+export const updateArea = async ({
+  areaId,
+  branchFilter = {},
+  ...updateData
+}) => {
   const area = await AreaModel.findOne({ _id: areaId, ...branchFilter }).lean()
 
   if (!area) {
     throw new CustomError(
       statusCodes.notFound,
       'Area not found',
-      errorCodes.not_found,
+      errorCodes.not_found
     )
   }
 
@@ -140,7 +147,7 @@ export const deleteArea = async ({ areaId, branchFilter = {} }) => {
     throw new CustomError(
       statusCodes.notFound,
       'Area not found',
-      errorCodes.not_found,
+      errorCodes.not_found
     )
   }
 

@@ -1,6 +1,9 @@
 import cron from 'node-cron'
 import logger from '../../core/config/logger.js'
-import { archiveExpiredTargets, archiveExpiredZoneAndEmployeeTargets } from './targetAnalytics.service.js'
+import {
+  archiveExpiredTargets,
+  archiveExpiredZoneAndEmployeeTargets,
+} from './targetAnalytics.service.js'
 
 let targetAnalyticsCronJob = null
 
@@ -13,7 +16,9 @@ export const startTargetAnalyticsCron = () => {
       try {
         const result = await archiveExpiredTargets()
         const ext = await archiveExpiredZoneAndEmployeeTargets()
-        logger.info(`Target analytics archive cron completed. Processed: ${result.processed}, zone: ${ext.zoneProcessed}, employee: ${ext.employeeProcessed}`)
+        logger.info(
+          `Target analytics archive cron completed. Processed: ${result.processed}, zone: ${ext.zoneProcessed}, employee: ${ext.employeeProcessed}`
+        )
       } catch (error) {
         logger.error('Target analytics archive cron failed', error)
       }

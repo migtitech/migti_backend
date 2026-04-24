@@ -34,11 +34,17 @@ async function createDocumentsFromBuffersLocal(files) {
   for (const file of files) {
     if (!file.buffer) continue
     const ext = path.extname(file.originalname) || '.jpg'
-    const name = `${path.basename(file.originalname || 'file', ext).replace(/\s+/g, '-').slice(0, 40)}-${Date.now()}-${uuidv4().slice(0, 8)}${ext}`
+    const name = `${path
+      .basename(file.originalname || 'file', ext)
+      .replace(/\s+/g, '-')
+      .slice(0, 40)}-${Date.now()}-${uuidv4().slice(0, 8)}${ext}`
     const filePath = path.join(dir, name)
     const fullPath = path.join(process.cwd(), filePath)
     fs.writeFileSync(fullPath, file.buffer)
-    const relativePath = path.join('images', 'products', String(timestamp), name).split(path.sep).join('/')
+    const relativePath = path
+      .join('images', 'products', String(timestamp), name)
+      .split(path.sep)
+      .join('/')
     const doc = await DocumentModel.create({
       path: relativePath,
       originalName: file.originalname || '',
@@ -79,9 +85,7 @@ export const createDocumentsFromS3Uploads = async (files) => {
     docs.push({ _id: doc._id, path: doc.path })
   }
   if (docs.length === 0) {
-    const reason =
-      failures[0]?.reason ||
-      'No files could be uploaded to S3'
+    const reason = failures[0]?.reason || 'No files could be uploaded to S3'
     throw new Error(reason)
   }
   return docs
@@ -95,7 +99,10 @@ export const createDocumentsForFiles = async (files) => {
   if (!files?.length) return []
   const docs = []
   for (const file of files) {
-    const relativePath = path.relative(ASSETS_DIR, file.path).split(path.sep).join('/')
+    const relativePath = path
+      .relative(ASSETS_DIR, file.path)
+      .split(path.sep)
+      .join('/')
     const doc = await DocumentModel.create({
       path: relativePath,
       originalName: file.originalname || '',
@@ -138,11 +145,17 @@ export const getDocumentById = async (documentId) => {
  * Get document serve info for authenticated image serving.
  * Returns { type: 'local', filePath } or { type: 's3', signedUrl }.
  */
-export const getDocumentServeInfo = async (documentId, signedUrlExpiresIn = 86400) => {
+export const getDocumentServeInfo = async (
+  documentId,
+  signedUrlExpiresIn = 86400
+) => {
   const doc = await DocumentModel.findById(documentId).lean()
   if (!doc?.path) return null
   const p = doc.path
-  if (typeof p === 'string' && (p.startsWith('http://') || p.startsWith('https://'))) {
+  if (
+    typeof p === 'string' &&
+    (p.startsWith('http://') || p.startsWith('https://'))
+  ) {
     const signed = await getSignedUrlForPath(p, signedUrlExpiresIn)
     if (signed) return { type: 's3', signedUrl: signed }
     return { type: 's3', signedUrl: p }
@@ -160,7 +173,10 @@ export const getDocumentServeInfo = async (documentId, signedUrlExpiresIn = 8640
  */
 export const toDisplayPath = async (docPath) => {
   if (!docPath) return docPath
-  if (typeof docPath === 'string' && (docPath.startsWith('http://') || docPath.startsWith('https://'))) {
+  if (
+    typeof docPath === 'string' &&
+    (docPath.startsWith('http://') || docPath.startsWith('https://'))
+  ) {
     const signed = await getSignedUrlForPath(docPath)
     return signed || docPath
   }
@@ -202,7 +218,10 @@ export const transformProductImagesToSigned = async (productOrProducts) => {
       out.variantCombinations = await Promise.all(
         out.variantCombinations.map(async (vc) => {
           if (!vc?.images?.length) return vc
-          return { ...vc, images: await Promise.all(vc.images.map(transformDoc)) }
+          return {
+            ...vc,
+            images: await Promise.all(vc.images.map(transformDoc)),
+          }
         })
       )
     }

@@ -61,17 +61,19 @@ const quotedProductRateSchema = new mongoose.Schema(
       index: true,
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 )
 
 quotedProductRateSchema.index(
   { quotationId: 1, productId: 1, productCode: 1, productName: 1, unit: 1 },
-  { name: 'quoted_rate_per_quotation_product', unique: false },
+  { name: 'quoted_rate_per_quotation_product', unique: false }
 )
 
 quotedProductRateSchema.plugin(commonFieldsPlugin)
 
-const QuotedProductRateModel = mongoose.model('quotedProductRate', quotedProductRateSchema)
+const QuotedProductRateModel = mongoose.model(
+  'quotedProductRate',
+  quotedProductRateSchema
+)
 
 export default QuotedProductRateModel
-

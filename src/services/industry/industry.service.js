@@ -28,7 +28,7 @@ export const addIndustry = async (data) => {
     throw new CustomError(
       statusCodes.conflict,
       'Industry already present',
-      errorCodes.already_exist,
+      errorCodes.already_exist
     )
   }
 
@@ -43,7 +43,7 @@ export const addIndustry = async (data) => {
     throw new CustomError(
       statusCodes.conflict,
       'Industry with this name already exists',
-      errorCodes.already_exist,
+      errorCodes.already_exist
     )
   }
 
@@ -74,7 +74,7 @@ export const addIndustry = async (data) => {
         name: pm.name || '',
         phone: pm.phone || '',
         email: pm.email || '',
-      })),
+      }))
     )
   }
 
@@ -204,7 +204,7 @@ export const getIndustryById = async ({
     throw new CustomError(
       statusCodes.notFound,
       'Industry not found',
-      errorCodes.not_found,
+      errorCodes.not_found
     )
   }
 
@@ -249,14 +249,17 @@ export const updateIndustry = async ({
     throw new CustomError(
       statusCodes.notFound,
       'Industry not found',
-      errorCodes.not_found,
+      errorCodes.not_found
     )
   }
 
   const allowedUpdate = {}
   for (const key of ALLOWED_UPDATE_FIELDS) {
     if (Object.prototype.hasOwnProperty.call(updateData, key)) {
-      if (key === 'branchId' && (updateData[key] === '' || updateData[key] == null)) {
+      if (
+        key === 'branchId' &&
+        (updateData[key] === '' || updateData[key] == null)
+      ) {
         allowedUpdate[key] = null
       } else if (key === 'area' || key === 'subZoneId') {
         allowedUpdate[key] = nullIfEmpty(updateData[key])
@@ -266,17 +269,26 @@ export const updateIndustry = async ({
     }
   }
 
-  if (Object.prototype.hasOwnProperty.call(allowedUpdate, 'area') && allowedUpdate.area == null) {
+  if (
+    Object.prototype.hasOwnProperty.call(allowedUpdate, 'area') &&
+    allowedUpdate.area == null
+  ) {
     allowedUpdate.subZoneId = null
   }
 
   const mergedArea = Object.prototype.hasOwnProperty.call(allowedUpdate, 'area')
     ? allowedUpdate.area
     : industry.area
-  const mergedSub = Object.prototype.hasOwnProperty.call(allowedUpdate, 'subZoneId')
+  const mergedSub = Object.prototype.hasOwnProperty.call(
+    allowedUpdate,
+    'subZoneId'
+  )
     ? allowedUpdate.subZoneId
     : industry.subZoneId
-  const mergedBranchId = Object.prototype.hasOwnProperty.call(allowedUpdate, 'branchId')
+  const mergedBranchId = Object.prototype.hasOwnProperty.call(
+    allowedUpdate,
+    'branchId'
+  )
     ? allowedUpdate.branchId
     : industry.branchId
   const branchScope = mergedBranchId ? { branchId: mergedBranchId } : {}
@@ -289,7 +301,7 @@ export const updateIndustry = async ({
   if (Array.isArray(purchaseManagers)) {
     await IndustryPurchaseManagerModel.updateMany(
       { industryId, isDeleted: false },
-      { $set: { isDeleted: true } },
+      { $set: { isDeleted: true } }
     )
     if (purchaseManagers.length > 0) {
       await IndustryPurchaseManagerModel.insertMany(
@@ -298,15 +310,19 @@ export const updateIndustry = async ({
           name: pm.name || '',
           phone: pm.phone || '',
           email: pm.email || '',
-        })),
+        }))
       )
     }
   }
 
-  const updated = await IndustryModel.findByIdAndUpdate(industryId, allowedUpdate, {
-    new: true,
-    runValidators: true,
-  })
+  const updated = await IndustryModel.findByIdAndUpdate(
+    industryId,
+    allowedUpdate,
+    {
+      new: true,
+      runValidators: true,
+    }
+  )
     .populate('area', 'name city areaType')
     .populate('subZoneId', 'name subZoneCode zoneId')
     .lean()
@@ -338,33 +354,33 @@ export const deleteIndustry = async ({
     throw new CustomError(
       statusCodes.notFound,
       'Industry not found',
-      errorCodes.not_found,
+      errorCodes.not_found
     )
   }
 
   await IndustryPurchaseManagerModel.updateMany(
     { industryId },
-    { $set: { isDeleted: true } },
+    { $set: { isDeleted: true } }
   )
   await IndustryBranchModel.updateMany(
     { industryId },
-    { $set: { isDeleted: true } },
+    { $set: { isDeleted: true } }
   )
   // Keep industry row (soft-delete) to avoid hard dangling references.
   await IndustryModel.findByIdAndUpdate(
     industryId,
     { $set: { isDeleted: true, isActive: false } },
-    { new: true },
+    { new: true }
   )
 
   // Detach deleted industry from historical query/quotation rows.
   await QueryModel.updateMany(
     { industry_id: industryId },
-    { $set: { industry_id: null } },
+    { $set: { industry_id: null } }
   )
   await QuotationModel.updateMany(
     { industry_id: industryId },
-    { $set: { industry_id: null } },
+    { $set: { industry_id: null } }
   )
 
   return {

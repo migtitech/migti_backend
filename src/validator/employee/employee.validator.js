@@ -60,10 +60,18 @@ export const createEmployeeSchema = Joi.object({
   salary: Joi.number().min(0).optional(),
   password: Joi.string().required().min(6),
   branchId: Joi.string().optional(), // optional: set from token for branch-scoped users when omitted
-  zoneIds: Joi.array().items(Joi.string().pattern(/^[a-fA-F0-9]{24}$/)).optional(),
+  zoneIds: Joi.array()
+    .items(Joi.string().pattern(/^[a-fA-F0-9]{24}$/))
+    .optional(),
   // Backward compatibility for older clients; converted to zoneIds in service layer.
-  zoneId: Joi.string().pattern(/^[a-fA-F0-9]{24}$/).allow('', null).optional(),
-  subZoneId: Joi.string().pattern(/^[a-fA-F0-9]{24}$/).allow('', null).optional(),
+  zoneId: Joi.string()
+    .pattern(/^[a-fA-F0-9]{24}$/)
+    .allow('', null)
+    .optional(),
+  subZoneId: Joi.string()
+    .pattern(/^[a-fA-F0-9]{24}$/)
+    .allow('', null)
+    .optional(),
   permissions: Joi.array().items(Joi.string()).optional(),
   bankDetails: bankDetailsSchema.optional(),
   assets: assetsSchema.optional(),
@@ -113,10 +121,18 @@ export const updateEmployeeSchema = Joi.object({
   salary: Joi.number().min(0).optional(),
   password: Joi.forbidden(), // password cannot be updated via this endpoint
   branchId: Joi.string().optional(),
-  zoneIds: Joi.array().items(Joi.string().pattern(/^[a-fA-F0-9]{24}$/)).optional(),
+  zoneIds: Joi.array()
+    .items(Joi.string().pattern(/^[a-fA-F0-9]{24}$/))
+    .optional(),
   // Backward compatibility for older clients; converted to zoneIds in service layer.
-  zoneId: Joi.string().pattern(/^[a-fA-F0-9]{24}$/).allow('', null).optional(),
-  subZoneId: Joi.string().pattern(/^[a-fA-F0-9]{24}$/).allow('', null).optional(),
+  zoneId: Joi.string()
+    .pattern(/^[a-fA-F0-9]{24}$/)
+    .allow('', null)
+    .optional(),
+  subZoneId: Joi.string()
+    .pattern(/^[a-fA-F0-9]{24}$/)
+    .allow('', null)
+    .optional(),
   permissions: Joi.array().items(Joi.string()).optional(),
   bankDetails: bankDetailsSchema.optional(),
   assets: assetsSchema.optional(),
@@ -151,7 +167,7 @@ export const loginEmployeeSchema = Joi.object({
       'sales',
       'purchase',
       'finance',
-      'delivery',
+      'delivery'
     )
     .required(),
 })

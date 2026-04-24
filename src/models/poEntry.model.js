@@ -67,7 +67,7 @@ const poEntrySchema = new mongoose.Schema(
       default: null,
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 )
 
 poEntrySchema.plugin(commonFieldsPlugin)

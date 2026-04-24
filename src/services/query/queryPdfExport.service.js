@@ -15,7 +15,11 @@ const toImageUrl = (img) => {
   if (!img) return ''
   const p = typeof img === 'string' ? img : img?.path
   if (!p) return ''
-  if (typeof p === 'string' && (p.startsWith('http://') || p.startsWith('https://'))) return p
+  if (
+    typeof p === 'string' &&
+    (p.startsWith('http://') || p.startsWith('https://'))
+  )
+    return p
   const base = getAssetsBaseUrl()
   return `${base}/assets/${p.startsWith('/') ? p.slice(1) : p}`
 }
@@ -32,13 +36,19 @@ const escapeHtml = (str) => {
 
 const formatVariants = (variants) => {
   if (!variants?.length) return '—'
-  return variants.map((v) => v.variantName || '—').filter(Boolean).join(', ') || '—'
+  return (
+    variants
+      .map((v) => v.variantName || '—')
+      .filter(Boolean)
+      .join(', ') || '—'
+  )
 }
 
 // Fixed Migti header (same as quotation PDF)
 const MIGTI_COMPANY_NAME = 'Migti Industrial Pvt Ltd'
 const MIGTI_GST_NUMBER = '23AARCM4143L1Z6'
-const MIGTI_ADDRESS = '3rd Floor, M.S.-1, B-304, New Siyaganj, Indore, Madhya Pradesh 452003'
+const MIGTI_ADDRESS =
+  '3rd Floor, M.S.-1, B-304, New Siyaganj, Indore, Madhya Pradesh 452003'
 const MIGTI_EMAIL = 'sale.migtiindore@gmail.com'
 const MIGTI_PHONE1 = '+91 7898611052'
 const MIGTI_PHONE2 = ''
@@ -51,7 +61,8 @@ const buildHtml = (query, orgContext = {}) => {
   const ci = query.companyInfo || {}
   const prods = Array.isArray(query.products) ? query.products : []
 
-  const queryCode = query.queryCode || `QR-${String(query._id || query.id).slice(-6)}`
+  const queryCode =
+    query.queryCode || `QR-${String(query._id || query.id).slice(-6)}`
   let queryDateWithTime = ''
   if (query.createdAt) {
     const d = new Date(query.createdAt)
@@ -72,9 +83,16 @@ const buildHtml = (query, orgContext = {}) => {
   const customerAddress = ci.address || (industry && industry.address) || ''
   const pmList = Array.isArray(ci.purchaseManagers) ? ci.purchaseManagers : []
   const primaryPm = pmList[0] || null
-  const customerContactPerson = (primaryPm && primaryPm.name) || (industry && industry.purchase_manager_name) || ''
-  const customerPhone = (primaryPm && primaryPm.phone) || (industry && industry.purchase_manager_phone) || ''
-  const customerEmail = (primaryPm && primaryPm.email) || (industry && industry.email) || ''
+  const customerContactPerson =
+    (primaryPm && primaryPm.name) ||
+    (industry && industry.purchase_manager_name) ||
+    ''
+  const customerPhone =
+    (primaryPm && primaryPm.phone) ||
+    (industry && industry.purchase_manager_phone) ||
+    ''
+  const customerEmail =
+    (primaryPm && primaryPm.email) || (industry && industry.email) || ''
   const shippingAddress = customerAddress
   const shippingContactPerson = customerContactPerson
 
@@ -96,13 +114,22 @@ const buildHtml = (query, orgContext = {}) => {
     const gstPercent =
       typeof p.gstPercentage === 'number' && !Number.isNaN(p.gstPercentage)
         ? p.gstPercentage
-        : ref != null && typeof ref.gstPercentage === 'number' && !Number.isNaN(ref.gstPercentage)
+        : ref != null &&
+            typeof ref.gstPercentage === 'number' &&
+            !Number.isNaN(ref.gstPercentage)
           ? ref.gstPercentage
           : 0
-    const descriptionText = (p.description || ref?.shortDescription || '').trim()
+    const descriptionText = (
+      p.description ||
+      ref?.shortDescription ||
+      ''
+    ).trim()
     const variantsText = formatVariants(p.variants || [])
 
-    const remarkText = (p.remark && String(p.remark).trim()) ? escapeHtml(String(p.remark).trim()) : '—'
+    const remarkText =
+      p.remark && String(p.remark).trim()
+        ? escapeHtml(String(p.remark).trim())
+        : '—'
     return `
       <tr>
         <td class="cell text-center">${index + 1}</td>
@@ -432,15 +459,27 @@ export const exportQueryPdf = async ({
     }
   }
   if (query.industry_id) {
-    const industryId = typeof query.industry_id === 'object' ? query.industry_id._id : query.industry_id
+    const industryId =
+      typeof query.industry_id === 'object'
+        ? query.industry_id._id
+        : query.industry_id
     if (industryId) {
-      industry = await IndustryModel.findById(industryId).select('name location address email purchase_manager_name purchase_manager_phone gstNumber').lean()
+      industry = await IndustryModel.findById(industryId)
+        .select(
+          'name location address email purchase_manager_name purchase_manager_phone gstNumber'
+        )
+        .lean()
     }
   }
   if (query.created_by) {
-    const creatorId = typeof query.created_by === 'object' ? query.created_by._id : query.created_by
+    const creatorId =
+      typeof query.created_by === 'object'
+        ? query.created_by._id
+        : query.created_by
     if (creatorId) {
-      createdByEmployee = await EmployeeModel.findById(creatorId).select('name email phone').lean()
+      createdByEmployee = await EmployeeModel.findById(creatorId)
+        .select('name email phone')
+        .lean()
     }
   }
   try {

@@ -11,14 +11,29 @@ import {
 
 const visitRouter = Router()
 
-visitRouter.post('/create', authenticateToken, checkPermission(MODULES.VISIT_MANAGEMENT, 'create'), asyncHandler(createVisitController))
-visitRouter.get('/list', authenticateToken, checkPermission(MODULES.VISIT_MANAGEMENT, 'read'), asyncHandler(listVisitsController))
-visitRouter.get('/my-visits', authenticateToken, checkPermission(MODULES.MY_VISITS, 'read'), asyncHandler(myVisitsController))
+visitRouter.post(
+  '/create',
+  authenticateToken,
+  checkPermission(MODULES.VISIT_MANAGEMENT, 'create'),
+  asyncHandler(createVisitController)
+)
+visitRouter.get(
+  '/list',
+  authenticateToken,
+  checkPermission(MODULES.VISIT_MANAGEMENT, 'read'),
+  asyncHandler(listVisitsController)
+)
+visitRouter.get(
+  '/my-visits',
+  authenticateToken,
+  checkPermission(MODULES.MY_VISITS, 'read'),
+  asyncHandler(myVisitsController)
+)
 visitRouter.patch(
   '/complete-with-remark',
   authenticateToken,
   checkPermission(MODULES.VISIT_MANAGEMENT, 'update'),
-  asyncHandler(completeVisitWithRemarkController),
+  asyncHandler(completeVisitWithRemarkController)
 )
 
 export default visitRouter

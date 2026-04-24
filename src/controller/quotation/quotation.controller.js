@@ -22,10 +22,19 @@ import { exportQuotationPdf } from '../../services/quotation/quotationPdfExport.
 import { listRateLogsSchema } from '../../validator/rateLog/rateLog.validator.js'
 import { listRateLogs } from '../../services/rateLog/rateLog.service.js'
 
-const normalizeRole = (role) => String(role || '').trim().toLowerCase().replace(/[\s-]+/g, '_')
+const normalizeRole = (role) =>
+  String(role || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, '_')
 const isBackOfficeRole = (role) => {
   const normalized = normalizeRole(role)
-  if (['back_office_exicutive', 'back_office_executive', 'boe'].includes(normalized)) return true
+  if (
+    ['back_office_exicutive', 'back_office_executive', 'boe'].includes(
+      normalized
+    )
+  )
+    return true
   return normalized.replace(/_/g, '').includes('backoffice')
 }
 const hasOwnershipBypass = (role) => {
@@ -51,7 +60,9 @@ export const listQuotationsController = async (req, res) => {
     })
   }
 
-  const branchFilter = resolveQuotationBranchFilter(req, { allowQueryBranchId: true })
+  const branchFilter = resolveQuotationBranchFilter(req, {
+    allowQueryBranchId: true,
+  })
   const currentUserId = req.user?.id || req.user?._id
   const isFullAccessRole = hasOwnershipBypass(req.user?.role)
   const result = await listQuotations({
@@ -80,7 +91,9 @@ export const listQuotationsByIndustryController = async (req, res) => {
     })
   }
 
-  const branchFilter = resolveQuotationBranchFilter(req, { allowQueryBranchId: true })
+  const branchFilter = resolveQuotationBranchFilter(req, {
+    allowQueryBranchId: true,
+  })
   const currentUserId = req.user?.id || req.user?._id
   const isFullAccessRole = hasOwnershipBypass(req.user?.role)
   const result = await listQuotations({
@@ -158,7 +171,7 @@ export const getQuotationByIdController = async (req, res) => {
 export const updateQuotationController = async (req, res) => {
   const { error, value } = updateQuotationSchema.validate(
     { ...req.body, ...req.query },
-    { abortEarly: false },
+    { abortEarly: false }
   )
   if (error) {
     return res.status(statusCodes.badRequest).json({
@@ -188,7 +201,7 @@ export const updateQuotationController = async (req, res) => {
 export const updateQuotationStatusController = async (req, res) => {
   const { error, value } = updateQuotationStatusSchema.validate(
     { ...req.body, ...req.query },
-    { abortEarly: false },
+    { abortEarly: false }
   )
   if (error) {
     return res.status(statusCodes.badRequest).json({
@@ -259,7 +272,9 @@ export const deleteQuotationController = async (req, res) => {
     })
   }
 
-  const branchFilter = resolveQuotationBranchFilter(req, { allowQueryBranchId: true })
+  const branchFilter = resolveQuotationBranchFilter(req, {
+    allowQueryBranchId: true,
+  })
   const result = await deleteQuotation({
     quotationId: value.quotationId,
     branchFilter,

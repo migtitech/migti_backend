@@ -9,7 +9,12 @@ import ProductModel from '../../models/product.model.js'
  * @param {Object} params.quotation - quotation document (lean) with products[]
  */
 export const upsertQuotedRatesForQuotation = async ({ quotation }) => {
-  if (!quotation?._id || !Array.isArray(quotation.products) || quotation.products.length === 0) return
+  if (
+    !quotation?._id ||
+    !Array.isArray(quotation.products) ||
+    quotation.products.length === 0
+  )
+    return
 
   const quotationId = quotation._id
   const queryId = quotation.queryId || null
@@ -24,7 +29,9 @@ export const upsertQuotedRatesForQuotation = async ({ quotation }) => {
   const productCodeMap = new Map()
   if (productIdSet.size > 0) {
     const ids = Array.from(productIdSet)
-    const products = await ProductModel.find({ _id: { $in: ids } }).select('_id productCode').lean()
+    const products = await ProductModel.find({ _id: { $in: ids } })
+      .select('_id productCode')
+      .lean()
     products.forEach((prod) => {
       productCodeMap.set(String(prod._id), prod.productCode || '')
     })
@@ -45,7 +52,9 @@ export const upsertQuotedRatesForQuotation = async ({ quotation }) => {
 
     const productId = p.product_id || null
     const productIdStr = productId ? String(productId) : null
-    const productCode = productIdStr ? (productCodeMap.get(productIdStr) || '') : ''
+    const productCode = productIdStr
+      ? productCodeMap.get(productIdStr) || ''
+      : ''
 
     const filter = {
       quotationId,
@@ -65,7 +74,9 @@ export const upsertQuotedRatesForQuotation = async ({ quotation }) => {
         unit: p.unit || '',
         quotedRate: rate,
         quantity:
-          typeof p.quantity === 'number' && !Number.isNaN(p.quantity) && p.quantity >= 0
+          typeof p.quantity === 'number' &&
+          !Number.isNaN(p.quantity) &&
+          p.quantity >= 0
             ? p.quantity
             : 0,
       },
@@ -84,4 +95,3 @@ export const upsertQuotedRatesForQuotation = async ({ quotation }) => {
 
   await QuotedProductRateModel.bulkWrite(ops, { ordered: false })
 }
-

@@ -42,12 +42,14 @@ const queryNewProductSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  },
+  }
 )
 
 queryNewProductSchema.plugin(commonFieldsPlugin)
 
-const QueryNewProductModel = mongoose.model('query_new_product', queryNewProductSchema)
+const QueryNewProductModel = mongoose.model(
+  'query_new_product',
+  queryNewProductSchema
+)
 
 export default QueryNewProductModel
-

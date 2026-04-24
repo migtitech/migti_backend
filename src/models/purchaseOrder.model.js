@@ -7,9 +7,14 @@ const purchaseManagerSchema = new mongoose.Schema(
   {
     name: { type: SchemaTypes.String, trim: true, default: '' },
     phone: { type: SchemaTypes.String, trim: true, default: '' },
-    email: { type: SchemaTypes.String, trim: true, lowercase: true, default: '' },
+    email: {
+      type: SchemaTypes.String,
+      trim: true,
+      lowercase: true,
+      default: '',
+    },
   },
-  { _id: false },
+  { _id: false }
 )
 
 const companyInfoSchema = new mongoose.Schema(
@@ -20,14 +25,14 @@ const companyInfoSchema = new mongoose.Schema(
     address: { type: SchemaTypes.String, default: '' },
     purchaseManagers: { type: [purchaseManagerSchema], default: [] },
   },
-  { _id: false },
+  { _id: false }
 )
 
 const productVariantSchema = new mongoose.Schema(
   {
     variantName: { type: SchemaTypes.String, trim: true, default: '' },
   },
-  { _id: true },
+  { _id: true }
 )
 
 const paymentEntrySchema = new mongoose.Schema(
@@ -36,7 +41,7 @@ const paymentEntrySchema = new mongoose.Schema(
     paidAt: { type: SchemaTypes.Date, required: true, default: Date.now },
     remark: { type: SchemaTypes.String, trim: true, default: '' },
   },
-  { _id: true },
+  { _id: true }
 )
 
 const purchaseOrderProductItemSchema = new mongoose.Schema(
@@ -47,19 +52,29 @@ const purchaseOrderProductItemSchema = new mongoose.Schema(
     unit: { type: SchemaTypes.String, trim: true, default: '' },
     hsnNumber: { type: SchemaTypes.String, trim: true, default: '' },
     modelNumber: { type: SchemaTypes.String, trim: true, default: '' },
-    gstPercentage: { type: SchemaTypes.Number, min: 0, max: 100, default: null },
+    gstPercentage: {
+      type: SchemaTypes.Number,
+      min: 0,
+      max: 100,
+      default: null,
+    },
     variants: { type: [productVariantSchema], default: [] },
     remark: { type: SchemaTypes.String, default: '' },
     product_id: { type: SchemaTypes.ObjectId, ref: 'product', default: null },
     rate: { type: SchemaTypes.Number, min: 0, default: null },
     images: [{ type: SchemaTypes.ObjectId, ref: 'document' }],
     applyDiscount: { type: SchemaTypes.Boolean, default: false },
-    discountPercentage: { type: SchemaTypes.Number, min: 0, max: 100, default: null },
+    discountPercentage: {
+      type: SchemaTypes.Number,
+      min: 0,
+      max: 100,
+      default: null,
+    },
     discountAmount: { type: SchemaTypes.Number, min: 0, default: null },
     notAvailable: { type: SchemaTypes.Boolean, default: false },
     notAvailableRemark: { type: SchemaTypes.String, default: '' },
   },
-  { _id: true },
+  { _id: true }
 )
 
 export const PURCHASE_ORDER_STATUS = {
@@ -135,7 +150,11 @@ const purchaseOrderSchema = new mongoose.Schema(
     freightCharge: { type: SchemaTypes.Number, min: 0, default: 0 },
     packingCharge: { type: SchemaTypes.Number, min: 0, default: 0 },
     expectedDeliveryDate: { type: SchemaTypes.Date, default: null },
-    expectedDeliveryWithinDays: { type: SchemaTypes.Number, min: 0, default: null },
+    expectedDeliveryWithinDays: {
+      type: SchemaTypes.Number,
+      min: 0,
+      default: null,
+    },
     salesEmployeeId: {
       type: SchemaTypes.ObjectId,
       ref: 'employee',
@@ -147,7 +166,7 @@ const purchaseOrderSchema = new mongoose.Schema(
       default: [],
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 )
 
 purchaseOrderSchema.plugin(commonFieldsPlugin)

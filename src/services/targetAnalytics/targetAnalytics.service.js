@@ -31,7 +31,8 @@ const computeQuotationAmount = (products = []) => {
     if (item?.notAvailable) return sum
     const qty = Number(item?.quantity)
     const rate = Number(item?.rate)
-    if (Number.isNaN(qty) || Number.isNaN(rate) || qty < 0 || rate < 0) return sum
+    if (Number.isNaN(qty) || Number.isNaN(rate) || qty < 0 || rate < 0)
+      return sum
     let lineTotal = qty * rate
     if (item?.applyDiscount && item?.discountPercentage != null) {
       const discount = lineTotal * (Number(item.discountPercentage) / 100)
@@ -63,21 +64,35 @@ const getMetricsForRange = async ({ branchId, dateFrom, dateTo }) => {
     entryDate: { $gte: dateFrom, $lte: dateTo },
   }
 
-  const [totalQueries, totalQuotation, totalPo, totalBilling, poAmountAgg, billingAmountAgg] =
-    await Promise.all([
-      QueryModel.countDocuments(queryFilter),
-      QuotationModel.countDocuments(quotationFilter),
-      PoEntryModel.countDocuments(poFilter),
-      BillingEntryModel.countDocuments(billingFilter),
-      PoEntryModel.aggregate([{ $match: poFilter }, { $group: { _id: null, total: { $sum: '$amount' } } }]),
-      BillingEntryModel.aggregate([
-        { $match: billingFilter },
-        { $group: { _id: null, total: { $sum: '$amount' } } },
-      ]),
-    ])
+  const [
+    totalQueries,
+    totalQuotation,
+    totalPo,
+    totalBilling,
+    poAmountAgg,
+    billingAmountAgg,
+  ] = await Promise.all([
+    QueryModel.countDocuments(queryFilter),
+    QuotationModel.countDocuments(quotationFilter),
+    PoEntryModel.countDocuments(poFilter),
+    BillingEntryModel.countDocuments(billingFilter),
+    PoEntryModel.aggregate([
+      { $match: poFilter },
+      { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]),
+    BillingEntryModel.aggregate([
+      { $match: billingFilter },
+      { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]),
+  ])
 
-  const quotations = await QuotationModel.find(quotationFilter).select('products').lean()
-  const quotedAmount = quotations.reduce((sum, q) => sum + computeQuotationAmount(q?.products || []), 0)
+  const quotations = await QuotationModel.find(quotationFilter)
+    .select('products')
+    .lean()
+  const quotedAmount = quotations.reduce(
+    (sum, q) => sum + computeQuotationAmount(q?.products || []),
+    0
+  )
 
   return {
     totalQueries,
@@ -90,15 +105,25 @@ const getMetricsForRange = async ({ branchId, dateFrom, dateTo }) => {
   }
 }
 
-export const getTargetAnalytics = async ({ branchId, period, dateFrom, dateTo, branchFilter = {} }) => {
+export const getTargetAnalytics = async ({
+  branchId,
+  period,
+  dateFrom,
+  dateTo,
+  branchFilter = {},
+}) => {
   const filter = { isDeleted: false, ...branchFilter }
   if (branchId && !filter.branchId) filter.branchId = branchId
   if (period) filter.period = period
   if (dateFrom) filter.dateFrom = { $gte: startOfUtcDay(dateFrom) }
-  if (dateTo) filter.dateTo = { ...(filter.dateTo || {}), $lte: endOfUtcDay(dateTo) }
+  if (dateTo)
+    filter.dateTo = { ...(filter.dateTo || {}), $lte: endOfUtcDay(dateTo) }
 
   const [activeTargets, history] = await Promise.all([
-    TargetAnalyticsModel.find(filter).populate('branchId', 'name branchcode').sort({ dateFrom: -1 }).lean(),
+    TargetAnalyticsModel.find(filter)
+      .populate('branchId', 'name branchcode')
+      .sort({ dateFrom: -1 })
+      .lean(),
     TargetAnalyticsHistoryModel.find(filter)
       .populate('branchId', 'name branchcode')
       .sort({ archivedAt: -1 })
@@ -190,7 +215,10 @@ export const archiveExpiredTargets = async () => {
       })
     }
 
-    await TargetAnalyticsModel.updateOne({ _id: target._id }, { $set: { isDeleted: true } })
+    await TargetAnalyticsModel.updateOne(
+      { _id: target._id },
+      { $set: { isDeleted: true } }
+    )
   }
 
   return { processed: expiredTargets.length }
@@ -206,8 +234,20 @@ const getCurrentPeriodRange = (period = 'weekly') => {
     start.setDate(today.getDate() - 6)
   } else {
     start = new Date(today.getFullYear(), today.getMonth(), 1)
-    const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate()
-    end = new Date(today.getFullYear(), today.getMonth(), Math.min(30, lastDay), 23, 59, 59, 999)
+    const lastDay = new Date(
+      today.getFullYear(),
+      today.getMonth() + 1,
+      0
+    ).getDate()
+    end = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      Math.min(30, lastDay),
+      23,
+      59,
+      59,
+      999
+    )
   }
 
   start.setHours(0, 0, 0, 0)
@@ -216,9 +256,17 @@ const getCurrentPeriodRange = (period = 'weekly') => {
   return { start, end }
 }
 
-export const getTargetSummary = async ({ branchId, period = 'weekly', branchFilter: _branchFilter = {} }) => {
+export const getTargetSummary = async ({
+  branchId,
+  period = 'weekly',
+  branchFilter: _branchFilter = {},
+}) => {
   if (!branchId) {
-    throw new CustomError(statusCodes.badRequest, 'branchId is required', errorCodes.bad_request)
+    throw new CustomError(
+      statusCodes.badRequest,
+      'branchId is required',
+      errorCodes.bad_request
+    )
   }
 
   const branchObjectId = mongoose.Types.ObjectId.isValid(branchId)
@@ -281,7 +329,12 @@ export const getTargetSummary = async ({ branchId, period = 'weekly', branchFilt
   }
 }
 
-export const getZoneTargetAnalytics = async ({ branchId = '', zoneId = '', period = '', branchFilter = {} }) => {
+export const getZoneTargetAnalytics = async ({
+  branchId = '',
+  zoneId = '',
+  period = '',
+  branchFilter = {},
+}) => {
   const filter = { isDeleted: false, ...branchFilter }
   if (branchId && !filter.branchId) filter.branchId = branchId
   if (zoneId) filter.zoneId = zoneId
@@ -315,9 +368,20 @@ export const upsertZoneTargetAnalytics = async ({
   const from = startOfUtcDay(dateFrom)
   const to = endOfUtcDay(dateTo)
   if (!from || !to || from > to) {
-    throw new CustomError(statusCodes.badRequest, 'dateFrom must be on or before dateTo', errorCodes.bad_request)
+    throw new CustomError(
+      statusCodes.badRequest,
+      'dateFrom must be on or before dateTo',
+      errorCodes.bad_request
+    )
   }
-  const existing = await BranchZoneTargetModel.findOne({ isDeleted: false, branchId, zoneId, period, dateFrom: from, dateTo: to })
+  const existing = await BranchZoneTargetModel.findOne({
+    isDeleted: false,
+    branchId,
+    zoneId,
+    period,
+    dateFrom: from,
+    dateTo: to,
+  })
   if (existing) {
     existing.targetAmount = Number(targetAmount) || 0
     existing.updated_by = userId || null
@@ -325,19 +389,43 @@ export const upsertZoneTargetAnalytics = async ({
     return existing.toObject()
   }
   const created = await BranchZoneTargetModel.create({
-    branchId, zoneId, period, dateFrom: from, dateTo: to, targetAmount: Number(targetAmount) || 0, created_by: userId || null, updated_by: userId || null,
+    branchId,
+    zoneId,
+    period,
+    dateFrom: from,
+    dateTo: to,
+    targetAmount: Number(targetAmount) || 0,
+    created_by: userId || null,
+    updated_by: userId || null,
   })
   return created.toObject()
 }
 
-export const getZoneTargetSummary = async ({ branchId, zoneId, period = 'weekly', branchFilter: _branchFilter = {} }) => {
-  if (!branchId || !zoneId) throw new CustomError(statusCodes.badRequest, 'branchId and zoneId are required', errorCodes.bad_request)
+export const getZoneTargetSummary = async ({
+  branchId,
+  zoneId,
+  period = 'weekly',
+  branchFilter: _branchFilter = {},
+}) => {
+  if (!branchId || !zoneId)
+    throw new CustomError(
+      statusCodes.badRequest,
+      'branchId and zoneId are required',
+      errorCodes.bad_request
+    )
   const branchObjectId = new mongoose.Types.ObjectId(branchId)
   const zoneObjectId = new mongoose.Types.ObjectId(zoneId)
   const { start, end } = getCurrentPeriodRange(period)
   const targetDoc = await BranchZoneTargetModel.findOne({
-    isDeleted: false, branchId: branchObjectId, zoneId: zoneObjectId, period, dateFrom: { $lte: end }, dateTo: { $gte: start },
-  }).sort({ createdAt: -1 }).lean()
+    isDeleted: false,
+    branchId: branchObjectId,
+    zoneId: zoneObjectId,
+    period,
+    dateFrom: { $lte: end },
+    dateTo: { $gte: start },
+  })
+    .sort({ createdAt: -1 })
+    .lean()
   const rangeFrom = targetDoc?.dateFrom || start
   const rangeTo = targetDoc?.dateTo || end
   const zoneEmployees = await EmployeeModel.find({
@@ -347,20 +435,45 @@ export const getZoneTargetSummary = async ({ branchId, zoneId, period = 'weekly'
       { zoneIds: zoneObjectId },
       { zoneId: zoneObjectId }, // legacy fallback
     ],
-  }).select('_id').lean()
+  })
+    .select('_id')
+    .lean()
   const employeeIds = zoneEmployees.map((e) => e._id)
   const match = {
     isDeleted: false,
     createdAt: { $gte: rangeFrom, $lte: rangeTo },
-    ...(employeeIds.length ? { $or: [{ salespersonId: { $in: employeeIds } }, { created_by: { $in: employeeIds } }] } : { salespersonId: null }),
+    ...(employeeIds.length
+      ? {
+          $or: [
+            { salespersonId: { $in: employeeIds } },
+            { created_by: { $in: employeeIds } },
+          ],
+        }
+      : { salespersonId: null }),
   }
-  const agg = await BillingEntryModel.aggregate([{ $match: match }, { $group: { _id: null, total: { $sum: '$amount' } } }])
+  const agg = await BillingEntryModel.aggregate([
+    { $match: match },
+    { $group: { _id: null, total: { $sum: '$amount' } } },
+  ])
   const targetAmount = Number(targetDoc?.targetAmount || 0)
   const achievedAmount = Number(agg?.[0]?.total || 0)
-  return { period, dateFrom: rangeFrom, dateTo: rangeTo, targetAmount, achievedAmount, remainingAmount: Math.max(0, targetAmount - achievedAmount), targetId: targetDoc?._id || null }
+  return {
+    period,
+    dateFrom: rangeFrom,
+    dateTo: rangeTo,
+    targetAmount,
+    achievedAmount,
+    remainingAmount: Math.max(0, targetAmount - achievedAmount),
+    targetId: targetDoc?._id || null,
+  }
 }
 
-export const getEmployeeTargetAnalytics = async ({ branchId = '', employeeId = '', period = '', branchFilter = {} }) => {
+export const getEmployeeTargetAnalytics = async ({
+  branchId = '',
+  employeeId = '',
+  period = '',
+  branchFilter = {},
+}) => {
   const filter = { isDeleted: false, ...branchFilter }
   if (branchId && !filter.branchId) filter.branchId = branchId
   if (employeeId) filter.employeeId = employeeId
@@ -384,14 +497,33 @@ export const getEmployeeTargetAnalytics = async ({ branchId = '', employeeId = '
 }
 
 export const upsertEmployeeTargetAnalytics = async ({
-  branchId, zoneId = null, employeeId, period, dateFrom, dateTo, targetAmount, userId, branchFilter: _branchFilter = {},
+  branchId,
+  zoneId = null,
+  employeeId,
+  period,
+  dateFrom,
+  dateTo,
+  targetAmount,
+  userId,
+  branchFilter: _branchFilter = {},
 }) => {
   const from = startOfUtcDay(dateFrom)
   const to = endOfUtcDay(dateTo)
   if (!from || !to || from > to) {
-    throw new CustomError(statusCodes.badRequest, 'dateFrom must be on or before dateTo', errorCodes.bad_request)
+    throw new CustomError(
+      statusCodes.badRequest,
+      'dateFrom must be on or before dateTo',
+      errorCodes.bad_request
+    )
   }
-  const existing = await BranchEmployeeTargetModel.findOne({ isDeleted: false, branchId, employeeId, period, dateFrom: from, dateTo: to })
+  const existing = await BranchEmployeeTargetModel.findOne({
+    isDeleted: false,
+    branchId,
+    employeeId,
+    period,
+    dateFrom: from,
+    dateTo: to,
+  })
   if (existing) {
     existing.targetAmount = Number(targetAmount) || 0
     existing.zoneId = zoneId || existing.zoneId || null
@@ -400,53 +532,143 @@ export const upsertEmployeeTargetAnalytics = async ({
     return existing.toObject()
   }
   const created = await BranchEmployeeTargetModel.create({
-    branchId, zoneId: zoneId || null, employeeId, period, dateFrom: from, dateTo: to, targetAmount: Number(targetAmount) || 0, created_by: userId || null, updated_by: userId || null,
+    branchId,
+    zoneId: zoneId || null,
+    employeeId,
+    period,
+    dateFrom: from,
+    dateTo: to,
+    targetAmount: Number(targetAmount) || 0,
+    created_by: userId || null,
+    updated_by: userId || null,
   })
   return created.toObject()
 }
 
-export const getEmployeeTargetSummary = async ({ branchId, employeeId, period = 'weekly', branchFilter: _branchFilter = {} }) => {
-  if (!branchId || !employeeId) throw new CustomError(statusCodes.badRequest, 'branchId and employeeId are required', errorCodes.bad_request)
+export const getEmployeeTargetSummary = async ({
+  branchId,
+  employeeId,
+  period = 'weekly',
+  branchFilter: _branchFilter = {},
+}) => {
+  if (!branchId || !employeeId)
+    throw new CustomError(
+      statusCodes.badRequest,
+      'branchId and employeeId are required',
+      errorCodes.bad_request
+    )
   const branchObjectId = new mongoose.Types.ObjectId(branchId)
   const employeeObjectId = new mongoose.Types.ObjectId(employeeId)
   const { start, end } = getCurrentPeriodRange(period)
   const targetDoc = await BranchEmployeeTargetModel.findOne({
-    isDeleted: false, branchId: branchObjectId, employeeId: employeeObjectId, period, dateFrom: { $lte: end }, dateTo: { $gte: start },
-  }).sort({ createdAt: -1 }).lean()
+    isDeleted: false,
+    branchId: branchObjectId,
+    employeeId: employeeObjectId,
+    period,
+    dateFrom: { $lte: end },
+    dateTo: { $gte: start },
+  })
+    .sort({ createdAt: -1 })
+    .lean()
   const rangeFrom = targetDoc?.dateFrom || start
   const rangeTo = targetDoc?.dateTo || end
   const agg = await BillingEntryModel.aggregate([
-    { $match: { isDeleted: false, createdAt: { $gte: rangeFrom, $lte: rangeTo }, $or: [{ salespersonId: employeeObjectId }, { created_by: employeeObjectId }] } },
+    {
+      $match: {
+        isDeleted: false,
+        createdAt: { $gte: rangeFrom, $lte: rangeTo },
+        $or: [
+          { salespersonId: employeeObjectId },
+          { created_by: employeeObjectId },
+        ],
+      },
+    },
     { $group: { _id: null, total: { $sum: '$amount' } } },
   ])
   const targetAmount = Number(targetDoc?.targetAmount || 0)
   const achievedAmount = Number(agg?.[0]?.total || 0)
-  return { period, dateFrom: rangeFrom, dateTo: rangeTo, targetAmount, achievedAmount, remainingAmount: Math.max(0, targetAmount - achievedAmount), targetId: targetDoc?._id || null }
+  return {
+    period,
+    dateFrom: rangeFrom,
+    dateTo: rangeTo,
+    targetAmount,
+    achievedAmount,
+    remainingAmount: Math.max(0, targetAmount - achievedAmount),
+    targetId: targetDoc?._id || null,
+  }
 }
 
 export const archiveExpiredZoneAndEmployeeTargets = async () => {
   const now = new Date()
-  const expiredZone = await BranchZoneTargetModel.find({ isDeleted: false, dateTo: { $lt: now } }).lean()
+  const expiredZone = await BranchZoneTargetModel.find({
+    isDeleted: false,
+    dateTo: { $lt: now },
+  }).lean()
   for (const target of expiredZone) {
-    const snapshot = await getZoneTargetSummary({ branchId: String(target.branchId), zoneId: String(target.zoneId), period: target.period, branchFilter: {} })
-    const exists = await BranchZoneTargetHistoryModel.findOne({ sourceTargetId: target._id, isDeleted: false }).lean()
+    const snapshot = await getZoneTargetSummary({
+      branchId: String(target.branchId),
+      zoneId: String(target.zoneId),
+      period: target.period,
+      branchFilter: {},
+    })
+    const exists = await BranchZoneTargetHistoryModel.findOne({
+      sourceTargetId: target._id,
+      isDeleted: false,
+    }).lean()
     if (!exists) {
       await BranchZoneTargetHistoryModel.create({
-        sourceTargetId: target._id, branchId: target.branchId, zoneId: target.zoneId, period: target.period, dateFrom: target.dateFrom, dateTo: target.dateTo, targetAmount: target.targetAmount || 0, actualBillingAmount: snapshot.achievedAmount || 0, archivedAt: new Date(),
+        sourceTargetId: target._id,
+        branchId: target.branchId,
+        zoneId: target.zoneId,
+        period: target.period,
+        dateFrom: target.dateFrom,
+        dateTo: target.dateTo,
+        targetAmount: target.targetAmount || 0,
+        actualBillingAmount: snapshot.achievedAmount || 0,
+        archivedAt: new Date(),
       })
     }
-    await BranchZoneTargetModel.updateOne({ _id: target._id }, { $set: { isDeleted: true } })
+    await BranchZoneTargetModel.updateOne(
+      { _id: target._id },
+      { $set: { isDeleted: true } }
+    )
   }
-  const expiredEmployee = await BranchEmployeeTargetModel.find({ isDeleted: false, dateTo: { $lt: now } }).lean()
+  const expiredEmployee = await BranchEmployeeTargetModel.find({
+    isDeleted: false,
+    dateTo: { $lt: now },
+  }).lean()
   for (const target of expiredEmployee) {
-    const snapshot = await getEmployeeTargetSummary({ branchId: String(target.branchId), employeeId: String(target.employeeId), period: target.period, branchFilter: {} })
-    const exists = await BranchEmployeeTargetHistoryModel.findOne({ sourceTargetId: target._id, isDeleted: false }).lean()
+    const snapshot = await getEmployeeTargetSummary({
+      branchId: String(target.branchId),
+      employeeId: String(target.employeeId),
+      period: target.period,
+      branchFilter: {},
+    })
+    const exists = await BranchEmployeeTargetHistoryModel.findOne({
+      sourceTargetId: target._id,
+      isDeleted: false,
+    }).lean()
     if (!exists) {
       await BranchEmployeeTargetHistoryModel.create({
-        sourceTargetId: target._id, branchId: target.branchId, zoneId: target.zoneId || null, employeeId: target.employeeId, period: target.period, dateFrom: target.dateFrom, dateTo: target.dateTo, targetAmount: target.targetAmount || 0, actualBillingAmount: snapshot.achievedAmount || 0, archivedAt: new Date(),
+        sourceTargetId: target._id,
+        branchId: target.branchId,
+        zoneId: target.zoneId || null,
+        employeeId: target.employeeId,
+        period: target.period,
+        dateFrom: target.dateFrom,
+        dateTo: target.dateTo,
+        targetAmount: target.targetAmount || 0,
+        actualBillingAmount: snapshot.achievedAmount || 0,
+        archivedAt: new Date(),
       })
     }
-    await BranchEmployeeTargetModel.updateOne({ _id: target._id }, { $set: { isDeleted: true } })
+    await BranchEmployeeTargetModel.updateOne(
+      { _id: target._id },
+      { $set: { isDeleted: true } }
+    )
   }
-  return { zoneProcessed: expiredZone.length, employeeProcessed: expiredEmployee.length }
+  return {
+    zoneProcessed: expiredZone.length,
+    employeeProcessed: expiredEmployee.length,
+  }
 }

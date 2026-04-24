@@ -14,7 +14,7 @@ const variantOptionValueSchema = new mongoose.Schema(
       required: true,
     },
   },
-  { _id: false },
+  { _id: false }
 )
 
 const variantCombinationSchema = new mongoose.Schema(
@@ -94,7 +94,7 @@ const variantCombinationSchema = new mongoose.Schema(
       trim: true,
     },
   },
-  { _id: true },
+  { _id: true }
 )
 
 const variantSchema = new mongoose.Schema(
@@ -110,7 +110,7 @@ const variantSchema = new mongoose.Schema(
       },
     ],
   },
-  { _id: false },
+  { _id: false }
 )
 
 const productSchema = new mongoose.Schema(
@@ -242,7 +242,7 @@ const productSchema = new mongoose.Schema(
       default: 'pcs',
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 )
 
 productSchema.plugin(commonFieldsPlugin)

@@ -110,7 +110,7 @@ const purchaseTaskSchema = new mongoose.Schema(
       index: true,
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 )
 
 purchaseTaskSchema.plugin(commonFieldsPlugin)
@@ -118,4 +118,3 @@ purchaseTaskSchema.plugin(commonFieldsPlugin)
 const PurchaseTaskModel = mongoose.model('purchaseTask', purchaseTaskSchema)
 
 export default PurchaseTaskModel
-

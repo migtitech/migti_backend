@@ -8,10 +8,13 @@ import { generateSlug, generateUniqueSlug } from '../../utils/slugGenerator.js'
 const generateCategoryCode = async (parentId) => {
   if (!parentId) {
     const roots = await CategoryModel.find(
-      { parent: null, isDeleted: false, categoryCode: { $exists: true, $ne: '' } },
-      { categoryCode: 1 },
-    )
-      .lean()
+      {
+        parent: null,
+        isDeleted: false,
+        categoryCode: { $exists: true, $ne: '' },
+      },
+      { categoryCode: 1 }
+    ).lean()
     const nums = roots
       .map((c) => {
         const m = c.categoryCode?.match(/^MIG(\d+)$/i)
@@ -25,12 +28,18 @@ const generateCategoryCode = async (parentId) => {
   let parentCode = parent?.categoryCode
   if (!parentCode) {
     parentCode = await generateCategoryCode(parent?.parent || null)
-    await CategoryModel.findByIdAndUpdate(parentId, { categoryCode: parentCode })
+    await CategoryModel.findByIdAndUpdate(parentId, {
+      categoryCode: parentCode,
+    })
   }
   const prefix = parent.categoryCode
   const subs = await CategoryModel.find(
-    { parent: parentId, isDeleted: false, categoryCode: { $exists: true, $ne: '' } },
-    { categoryCode: 1 },
+    {
+      parent: parentId,
+      isDeleted: false,
+      categoryCode: { $exists: true, $ne: '' },
+    },
+    { categoryCode: 1 }
   ).lean()
   const re = new RegExp(`^${prefix}SUB(\\d+)$`, 'i')
   const nums = subs
@@ -57,7 +66,7 @@ export const addCategory = async (data) => {
       throw new CustomError(
         statusCodes.notFound,
         'Parent category not found',
-        errorCodes.not_found,
+        errorCodes.not_found
       )
     }
   }
@@ -67,12 +76,12 @@ export const addCategory = async (data) => {
     parent: parentId,
     isDeleted: false,
   }).lean()
-  
+
   if (existing) {
     throw new CustomError(
       statusCodes.conflict,
       'Category already exists under this parent',
-      errorCodes.already_exist,
+      errorCodes.already_exist
     )
   }
 
@@ -161,7 +170,7 @@ export const getCategoryById = async ({ categoryId }) => {
     throw new CustomError(
       statusCodes.notFound,
       'Category not found',
-      errorCodes.not_found,
+      errorCodes.not_found
     )
   }
 
@@ -169,7 +178,9 @@ export const getCategoryById = async ({ categoryId }) => {
     parent: categoryId,
     isDeleted: false,
   })
-    .select('_id name categoryCode description status sortOrder group parent createdAt')
+    .select(
+      '_id name categoryCode description status sortOrder group parent createdAt'
+    )
     .lean()
 
   const subcategories = subcategoriesRaw.map((s) => ({
@@ -186,7 +197,7 @@ export const updateCategory = async ({ categoryId, ...updateData }) => {
     throw new CustomError(
       statusCodes.notFound,
       'Category not found',
-      errorCodes.not_found,
+      errorCodes.not_found
     )
   }
 
@@ -204,10 +215,14 @@ export const updateCategory = async ({ categoryId, ...updateData }) => {
     updateData.group = null
   }
 
-  const updated = await CategoryModel.findByIdAndUpdate(categoryId, updateData, {
-    new: true,
-    runValidators: true,
-  })
+  const updated = await CategoryModel.findByIdAndUpdate(
+    categoryId,
+    updateData,
+    {
+      new: true,
+      runValidators: true,
+    }
+  )
     .populate('group', 'name code')
     .populate('parent', 'name slug categoryCode')
     .lean()
@@ -221,7 +236,7 @@ export const deleteCategory = async ({ categoryId }) => {
     throw new CustomError(
       statusCodes.notFound,
       'Category not found',
-      errorCodes.not_found,
+      errorCodes.not_found
     )
   }
 
@@ -233,7 +248,7 @@ export const deleteCategory = async ({ categoryId }) => {
     throw new CustomError(
       statusCodes.conflict,
       'Cannot delete category with subcategories. Remove subcategories first.',
-      errorCodes.conflict,
+      errorCodes.conflict
     )
   }
 
@@ -245,7 +260,7 @@ export const deleteCategory = async ({ categoryId }) => {
     throw new CustomError(
       statusCodes.conflict,
       'Cannot delete category with associated products.',
-      errorCodes.conflict,
+      errorCodes.conflict
     )
   }
 

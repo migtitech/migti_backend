@@ -20,12 +20,18 @@ const TEAM_LOCATION_ROLES = new Set(['head_of_department', 'hod'])
 const assertHeadOfDepartmentTeamLocations = (req) => {
   const role = String(req.user?.role || '').toLowerCase()
   if (!TEAM_LOCATION_ROLES.has(role)) {
-    throw new CustomError(statusCodes.forbidden, 'Forbidden', errorCodes.forbidden)
+    throw new CustomError(
+      statusCodes.forbidden,
+      'Forbidden',
+      errorCodes.forbidden
+    )
   }
 }
 
 export const createEmployeeLocationController = async (req, res) => {
-  const { error, value } = createEmployeeLocationSchema.validate(req.body, { abortEarly: false })
+  const { error, value } = createEmployeeLocationSchema.validate(req.body, {
+    abortEarly: false,
+  })
   if (error) {
     return res.status(statusCodes.badRequest).json({
       success: false,
@@ -69,7 +75,9 @@ export const getLatestEmployeeLocationController = async (req, res) => {
 }
 
 export const listEmployeeLocationsController = async (req, res) => {
-  const { error, value } = listEmployeeLocationSchema.validate(req.query, { abortEarly: false })
+  const { error, value } = listEmployeeLocationSchema.validate(req.query, {
+    abortEarly: false,
+  })
   if (error) {
     return res.status(statusCodes.badRequest).json({
       success: false,
@@ -89,7 +97,9 @@ export const listEmployeeLocationsController = async (req, res) => {
 export const listTeamLatestLocationsController = async (req, res) => {
   assertHeadOfDepartmentTeamLocations(req)
 
-  const { error } = listTeamLatestLocationsSchema.validate(req.query, { abortEarly: false })
+  const { error } = listTeamLatestLocationsSchema.validate(req.query, {
+    abortEarly: false,
+  })
   if (error) {
     return res.status(statusCodes.badRequest).json({
       success: false,
@@ -109,9 +119,12 @@ export const listTeamLatestLocationsController = async (req, res) => {
 export const listEmployeeLocationHistoryBinnedController = async (req, res) => {
   assertHeadOfDepartmentTeamLocations(req)
 
-  const { error, value } = listEmployeeLocationHistoryBinnedSchema.validate(req.query, {
-    abortEarly: false,
-  })
+  const { error, value } = listEmployeeLocationHistoryBinnedSchema.validate(
+    req.query,
+    {
+      abortEarly: false,
+    }
+  )
   if (error) {
     return res.status(statusCodes.badRequest).json({
       success: false,

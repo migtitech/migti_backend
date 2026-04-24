@@ -19,52 +19,52 @@ taskManagementRouter.post(
   '/create',
   authenticateToken,
   checkPermission(MODULES.TASK_MANAGEMENT, 'create'),
-  asyncHandler(createTaskController),
+  asyncHandler(createTaskController)
 )
 taskManagementRouter.get(
   '/list',
   authenticateToken,
   checkPermission(MODULES.TASK_MANAGEMENT, 'read'),
-  asyncHandler(listTasksController),
+  asyncHandler(listTasksController)
 )
 taskManagementRouter.get(
   '/my-tasks',
   authenticateToken,
   checkPermission(MODULES.TASK_BUCKET, 'read'),
-  asyncHandler(listMyTasksController),
+  asyncHandler(listMyTasksController)
 )
 taskManagementRouter.get(
   '/get-by-id/:id',
   authenticateToken,
   checkPermission(MODULES.TASK_MANAGEMENT, 'read'),
-  asyncHandler(getTaskByIdController),
+  asyncHandler(getTaskByIdController)
 )
 taskManagementRouter.put(
   '/assign-employee',
   authenticateToken,
   checkPermission(MODULES.TASK_MANAGEMENT, 'update'),
-  asyncHandler(assignEmployeeController),
+  asyncHandler(assignEmployeeController)
 )
 
 taskManagementRouter.put(
   '/update-supplier',
   authenticateToken,
   checkPermission(MODULES.TASK_BUCKET, 'update'),
-  asyncHandler(updateTaskSupplierController),
+  asyncHandler(updateTaskSupplierController)
 )
 
 taskManagementRouter.put(
   '/update',
   authenticateToken,
   checkPermission(MODULES.TASK_MANAGEMENT, 'update'),
-  asyncHandler(updateTaskController),
+  asyncHandler(updateTaskController)
 )
 
 taskManagementRouter.delete(
   '/delete',
   authenticateToken,
   checkPermission(MODULES.TASK_MANAGEMENT, 'delete'),
-  asyncHandler(deleteTaskController),
+  asyncHandler(deleteTaskController)
 )
 
 export default taskManagementRouter

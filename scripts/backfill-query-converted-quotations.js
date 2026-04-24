@@ -81,7 +81,7 @@ async function backfillQueryConvertedQuotations() {
         (row.refs || []).map((r) => ({
           quotationId: r.quotationId,
           quotationCode: String(r.quotationCode || '').trim(),
-        })),
+        }))
       )
 
       const query = await QueryModel.findOne({
@@ -93,18 +93,25 @@ async function backfillQueryConvertedQuotations() {
 
       if (!query) {
         skipped++
-        console.warn(`Skip: query ${queryId} missing or deleted (${refs.length} quotation(s) orphaned).`)
+        console.warn(
+          `Skip: query ${queryId} missing or deleted (${refs.length} quotation(s) orphaned).`
+        )
         continue
       }
 
-      await QueryModel.updateOne({ _id: queryId }, { $set: { convertedQuotations: refs } })
+      await QueryModel.updateOne(
+        { _id: queryId },
+        { $set: { convertedQuotations: refs } }
+      )
       updated++
       console.log(
-        `[${updated}] ${query.queryCode || queryId} <- ${refs.length} quotation(s): ${refs.map((r) => r.quotationCode || r.quotationId).join(', ')}`,
+        `[${updated}] ${query.queryCode || queryId} <- ${refs.length} quotation(s): ${refs.map((r) => r.quotationCode || r.quotationId).join(', ')}`
       )
     }
 
-    console.log(`\nDone. Updated ${updated} queries, skipped ${skipped} (missing query).`)
+    console.log(
+      `\nDone. Updated ${updated} queries, skipped ${skipped} (missing query).`
+    )
   } catch (err) {
     console.error('Migration failed:', err)
     process.exit(1)

@@ -10,7 +10,9 @@ export const sendMail = async (mail, html) => {
   try {
     // Check if email sending is enabled
     if (!EMAIL_CONFIG.enabled) {
-      logger.info(`Email sending is disabled. Would have sent email to: ${mail}`)
+      logger.info(
+        `Email sending is disabled. Would have sent email to: ${mail}`
+      )
       return
     }
 
@@ -24,6 +26,9 @@ export const sendMail = async (mail, html) => {
     await sgMail.send(msg)
     logger.info(`Email sent successfully to: ${mail}`)
   } catch (error) {
-    logger.error('Error sending email via SendGrid:', error.response?.body || error)
+    logger.error(
+      'Error sending email via SendGrid:',
+      error.response?.body || error
+    )
   }
 }

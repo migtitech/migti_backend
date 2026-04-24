@@ -20,10 +20,19 @@ import {
   appendPurchaseOrderPayment,
 } from '../../services/purchaseOrder/purchaseOrder.service.js'
 
-const normalizeRole = (role) => String(role || '').trim().toLowerCase().replace(/[\s-]+/g, '_')
+const normalizeRole = (role) =>
+  String(role || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, '_')
 const isBackOfficeRole = (role) => {
   const normalized = normalizeRole(role)
-  if (['back_office_exicutive', 'back_office_executive', 'boe'].includes(normalized)) return true
+  if (
+    ['back_office_exicutive', 'back_office_executive', 'boe'].includes(
+      normalized
+    )
+  )
+    return true
   return normalized.replace(/_/g, '').includes('backoffice')
 }
 const hasOwnershipBypass = (role) => {
@@ -37,7 +46,9 @@ const resolvePoBranchFilter = (req, options = {}) => {
 }
 
 export const listPurchaseOrdersController = async (req, res) => {
-  const { error, value } = listPurchaseOrderSchema.validate(req.query, { abortEarly: false })
+  const { error, value } = listPurchaseOrderSchema.validate(req.query, {
+    abortEarly: false,
+  })
   if (error) {
     return res.status(statusCodes.badRequest).json({
       success: false,
@@ -63,7 +74,9 @@ export const listPurchaseOrdersController = async (req, res) => {
 }
 
 export const getPurchaseOrderByIdController = async (req, res) => {
-  const { error, value } = getPurchaseOrderByIdSchema.validate(req.query, { abortEarly: false })
+  const { error, value } = getPurchaseOrderByIdSchema.validate(req.query, {
+    abortEarly: false,
+  })
   if (error) {
     return res.status(statusCodes.badRequest).json({
       success: false,
@@ -89,9 +102,12 @@ export const getPurchaseOrderByIdController = async (req, res) => {
 }
 
 export const getPurchaseOrderByQuotationIdController = async (req, res) => {
-  const { error, value } = getPurchaseOrderByQuotationIdSchema.validate(req.query, {
-    abortEarly: false,
-  })
+  const { error, value } = getPurchaseOrderByQuotationIdSchema.validate(
+    req.query,
+    {
+      abortEarly: false,
+    }
+  )
   if (error) {
     return res.status(statusCodes.badRequest).json({
       success: false,
@@ -111,15 +127,20 @@ export const getPurchaseOrderByQuotationIdController = async (req, res) => {
   })
   return res.status(statusCodes.ok).json({
     success: true,
-    message: result ? 'Purchase order found' : 'No purchase order for this quotation',
+    message: result
+      ? 'Purchase order found'
+      : 'No purchase order for this quotation',
     data: result,
   })
 }
 
 export const createPurchaseOrderFromQuotationController = async (req, res) => {
-  const { error, value } = createPurchaseOrderFromQuotationSchema.validate(req.body, {
-    abortEarly: false,
-  })
+  const { error, value } = createPurchaseOrderFromQuotationSchema.validate(
+    req.body,
+    {
+      abortEarly: false,
+    }
+  )
   if (error) {
     return res.status(statusCodes.badRequest).json({
       success: false,
@@ -149,7 +170,7 @@ export const createPurchaseOrderFromQuotationController = async (req, res) => {
 export const updatePurchaseOrderController = async (req, res) => {
   const { error, value } = updatePurchaseOrderSchema.validate(
     { ...req.body, ...req.query },
-    { abortEarly: false },
+    { abortEarly: false }
   )
   if (error) {
     return res.status(statusCodes.badRequest).json({
@@ -180,7 +201,7 @@ export const updatePurchaseOrderController = async (req, res) => {
 export const appendPurchaseOrderPaymentController = async (req, res) => {
   const { error, value } = appendPurchaseOrderPaymentSchema.validate(
     { ...req.body, ...req.query },
-    { abortEarly: false },
+    { abortEarly: false }
   )
   if (error) {
     return res.status(statusCodes.badRequest).json({
@@ -212,7 +233,7 @@ export const appendPurchaseOrderPaymentController = async (req, res) => {
 export const updatePurchaseOrderStatusController = async (req, res) => {
   const { error, value } = updatePurchaseOrderStatusSchema.validate(
     { ...req.body, ...req.query },
-    { abortEarly: false },
+    { abortEarly: false }
   )
   if (error) {
     return res.status(statusCodes.badRequest).json({

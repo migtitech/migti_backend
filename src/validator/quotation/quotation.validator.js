@@ -7,7 +7,10 @@ const objectIdPattern = /^[0-9a-fA-F]{24}$/
 const purchaseManagerSchema = Joi.object({
   name: Joi.string().allow('').optional(),
   phone: Joi.string().allow('').optional(),
-  email: Joi.string().email({ tlds: { allow: false } }).allow('').optional(),
+  email: Joi.string()
+    .email({ tlds: { allow: false } })
+    .allow('')
+    .optional(),
 })
 
 const companyInfoSchema = Joi.object({
@@ -15,7 +18,10 @@ const companyInfoSchema = Joi.object({
   area: Joi.string().allow('').optional(),
   location: Joi.string().allow('').optional(),
   address: Joi.string().allow('').optional(),
-  purchaseManagers: Joi.array().items(purchaseManagerSchema).optional().default([]),
+  purchaseManagers: Joi.array()
+    .items(purchaseManagerSchema)
+    .optional()
+    .default([]),
 })
 
 const productVariantSchema = Joi.object({
@@ -57,13 +63,19 @@ export const listQuotationSchema = Joi.object({
     .valid(...quotationStatusValues, 'drafted', 'hod approved', 'hod-approved')
     .allow('')
     .optional(),
-  dateFrom: Joi.alternatives().try(Joi.string().valid(''), dateOnlySchema).optional(),
-  dateTo: Joi.alternatives().try(Joi.string().valid(''), dateOnlySchema).optional(),
+  dateFrom: Joi.alternatives()
+    .try(Joi.string().valid(''), dateOnlySchema)
+    .optional(),
+  dateTo: Joi.alternatives()
+    .try(Joi.string().valid(''), dateOnlySchema)
+    .optional(),
   areaIds: Joi.string().allow('').optional(),
   industryId: Joi.string()
     .pattern(objectIdPattern)
     .optional()
-    .messages({ 'string.pattern.base': 'industryId must be a valid Mongo ObjectId' }),
+    .messages({
+      'string.pattern.base': 'industryId must be a valid Mongo ObjectId',
+    }),
   includeTotalAmountSum: Joi.alternatives()
     .try(Joi.boolean(), Joi.string().valid('true', 'false', '1', '0'))
     .optional(),
@@ -73,7 +85,9 @@ export const listQuotationsByIndustrySchema = Joi.object({
   industryId: Joi.string()
     .pattern(objectIdPattern)
     .required()
-    .messages({ 'string.pattern.base': 'industryId must be a valid Mongo ObjectId' }),
+    .messages({
+      'string.pattern.base': 'industryId must be a valid Mongo ObjectId',
+    }),
   pageNumber: Joi.number().integer().min(1).default(1),
   pageSize: Joi.number().integer().min(1).max(100).default(10),
   status: Joi.string()
@@ -86,12 +100,9 @@ export const listQuotationsByIndustrySchema = Joi.object({
 })
 
 export const getQuotationByIdSchema = Joi.object({
-  quotationId: Joi.string()
-    .pattern(objectIdPattern)
-    .required()
-    .messages({
-      'string.pattern.base': 'quotationId must be a valid Mongo ObjectId',
-    }),
+  quotationId: Joi.string().pattern(objectIdPattern).required().messages({
+    'string.pattern.base': 'quotationId must be a valid Mongo ObjectId',
+  }),
 })
 
 export const deleteQuotationSchema = getQuotationByIdSchema
@@ -99,12 +110,9 @@ export const deleteQuotationSchema = getQuotationByIdSchema
 export const listQuotationSnapshotsSchema = getQuotationByIdSchema
 
 export const updateQuotationSchema = Joi.object({
-  quotationId: Joi.string()
-    .pattern(objectIdPattern)
-    .required()
-    .messages({
-      'string.pattern.base': 'quotationId must be a valid Mongo ObjectId',
-    }),
+  quotationId: Joi.string().pattern(objectIdPattern).required().messages({
+    'string.pattern.base': 'quotationId must be a valid Mongo ObjectId',
+  }),
   companyInfo: companyInfoSchema.optional(),
   industry_id: Joi.string().allow(null, '').optional(),
   products: Joi.array().items(quotationProductItemSchema).optional(),
@@ -117,15 +125,18 @@ export const updateQuotationSchema = Joi.object({
     }),
   packingCharge: Joi.number().min(0).optional(),
   expectedDeliveryDate: Joi.date().allow(null).optional(),
-  expectedDeliveryWithinDays: Joi.number().integer().min(0).allow(null).optional(),
+  expectedDeliveryWithinDays: Joi.number()
+    .integer()
+    .min(0)
+    .allow(null)
+    .optional(),
 })
 
 export const updateQuotationStatusSchema = Joi.object({
-  quotationId: Joi.string()
-    .pattern(objectIdPattern)
-    .required()
-    .messages({
-      'string.pattern.base': 'quotationId must be a valid Mongo ObjectId',
-    }),
-  status: Joi.string().valid(...quotationStatusValues).required(),
+  quotationId: Joi.string().pattern(objectIdPattern).required().messages({
+    'string.pattern.base': 'quotationId must be a valid Mongo ObjectId',
+  }),
+  status: Joi.string()
+    .valid(...quotationStatusValues)
+    .required(),
 })

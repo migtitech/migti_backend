@@ -102,9 +102,15 @@ export const listRawQueries = async ({
 }
 
 export const getRawQueryById = async ({ rawQueryId, branchFilter = {} }) => {
-  const rawQuery = await RawQueryModel.findOne({ _id: rawQueryId, ...branchFilter })
+  const rawQuery = await RawQueryModel.findOne({
+    _id: rawQueryId,
+    ...branchFilter,
+  })
     .populate('supplier_id')
-    .populate('industry_id', 'name location address email purchase_manager_name purchase_manager_phone')
+    .populate(
+      'industry_id',
+      'name location address email purchase_manager_name purchase_manager_phone'
+    )
     .populate('created_by', 'name email')
     .lean()
 
@@ -121,8 +127,11 @@ export const getRawQueryById = async ({ rawQueryId, branchFilter = {} }) => {
 
 const resolvePerformerName = async (performerId) => {
   if (!performerId) return null
-  let user = await EmployeeModel.findById(performerId).select('name email').lean()
-  if (user) return { name: user.name, email: user.email, role: user.role || 'employee' }
+  let user = await EmployeeModel.findById(performerId)
+    .select('name email')
+    .lean()
+  if (user)
+    return { name: user.name, email: user.email, role: user.role || 'employee' }
   user = await AdminModel.findById(performerId).select('name email').lean()
   if (user) return { name: user.name, email: user.email, role: 'admin' }
   user = await SuperAdminModel.findById(performerId).select('name email').lean()
@@ -130,13 +139,21 @@ const resolvePerformerName = async (performerId) => {
   return null
 }
 
-export const listRawQueryActivities = async ({ rawQueryId, pageNumber = 1, pageSize = 10, branchFilter = {} }) => {
-  const rawQueryBelongs = await RawQueryModel.findOne({ _id: rawQueryId, ...branchFilter }).lean()
+export const listRawQueryActivities = async ({
+  rawQueryId,
+  pageNumber = 1,
+  pageSize = 10,
+  branchFilter = {},
+}) => {
+  const rawQueryBelongs = await RawQueryModel.findOne({
+    _id: rawQueryId,
+    ...branchFilter,
+  }).lean()
   if (!rawQueryBelongs) {
     throw new CustomError(
       statusCodes.notFound,
       'Raw query not found',
-      errorCodes.not_found,
+      errorCodes.not_found
     )
   }
 
@@ -155,7 +172,9 @@ export const listRawQueryActivities = async ({ rawQueryId, pageNumber = 1, pageS
 
   const totalPages = Math.ceil(totalItems / limit)
 
-  const performerIds = [...new Set(activities.map((a) => a.performedBy).filter(Boolean))]
+  const performerIds = [
+    ...new Set(activities.map((a) => a.performedBy).filter(Boolean)),
+  ]
   const performerMap = {}
   for (const pid of performerIds) {
     const resolved = await resolvePerformerName(pid)
@@ -189,7 +208,10 @@ export const recordRawQueryActivity = async ({
   meta = {},
   branchFilter = {},
 }) => {
-  const rawQuery = await RawQueryModel.findOne({ _id: rawQueryId, ...branchFilter }).lean()
+  const rawQuery = await RawQueryModel.findOne({
+    _id: rawQueryId,
+    ...branchFilter,
+  }).lean()
   if (!rawQuery) {
     throw new CustomError(
       statusCodes.notFound,
@@ -215,8 +237,15 @@ export const recordRawQueryActivity = async ({
   return populated
 }
 
-export const updateRawQuery = async ({ rawQueryId, branchFilter = {}, ...updateData }) => {
-  const rawQuery = await RawQueryModel.findOne({ _id: rawQueryId, ...branchFilter }).lean()
+export const updateRawQuery = async ({
+  rawQueryId,
+  branchFilter = {},
+  ...updateData
+}) => {
+  const rawQuery = await RawQueryModel.findOne({
+    _id: rawQueryId,
+    ...branchFilter,
+  }).lean()
   if (!rawQuery) {
     throw new CustomError(
       statusCodes.notFound,
@@ -238,7 +267,10 @@ export const updateRawQuery = async ({ rawQueryId, branchFilter = {}, ...updateD
 }
 
 export const deleteRawQuery = async ({ rawQueryId, branchFilter = {} }) => {
-  const rawQuery = await RawQueryModel.findOne({ _id: rawQueryId, ...branchFilter }).lean()
+  const rawQuery = await RawQueryModel.findOne({
+    _id: rawQueryId,
+    ...branchFilter,
+  }).lean()
   if (!rawQuery) {
     throw new CustomError(
       statusCodes.notFound,

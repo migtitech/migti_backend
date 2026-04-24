@@ -31,8 +31,13 @@ export const impossibleQueryMatch = () => ({ _id: { $in: [] } })
  * Mongo match on Industry: `area` in employee zones and optional exact sub-zone.
  * Returns null when there are no valid zones.
  */
-export const buildIndustryTerritoryMongoFilterForEmployee = (_zoneIds = [], _subZoneId = null) => {
-  const zoneIds = (Array.isArray(_zoneIds) ? _zoneIds : []).map(toObjectId).filter(Boolean)
+export const buildIndustryTerritoryMongoFilterForEmployee = (
+  _zoneIds = [],
+  _subZoneId = null
+) => {
+  const zoneIds = (Array.isArray(_zoneIds) ? _zoneIds : [])
+    .map(toObjectId)
+    .filter(Boolean)
   if (!zoneIds.length) return null
   const filter = { area: { $in: zoneIds } }
   const subZoneId = toObjectId(_subZoneId)
@@ -50,7 +55,10 @@ export const fetchIndustryIdsMatchingSalesTerritory = async ({
   subZoneId: _subZoneId,
   branchFilter: _branchFilter = {},
 }) => {
-  const territoryFilter = buildIndustryTerritoryMongoFilterForEmployee(_zoneIds, _subZoneId)
+  const territoryFilter = buildIndustryTerritoryMongoFilterForEmployee(
+    _zoneIds,
+    _subZoneId
+  )
   if (!territoryFilter) return []
   const rows = await IndustryModel.find({
     isDeleted: false,
@@ -72,7 +80,10 @@ export const buildSalesQueryFilterFromIndustryIds = (industryIds = []) => {
  * Same zone/subzone rules as queries: merge into Industry `find` / `findOne` filters
  * (add `isDeleted` + `branchFilter` in the caller as usual).
  */
-export const getEmployeeIndustryTerritoryFields = async ({ currentUserId: _currentUserId, isFullAccessRole: _isFullAccessRole }) => {
+export const getEmployeeIndustryTerritoryFields = async ({
+  currentUserId: _currentUserId,
+  isFullAccessRole: _isFullAccessRole,
+}) => {
   if (_isFullAccessRole || !_currentUserId) return null
   const employee = await EmployeeModel.findOne({
     _id: _currentUserId,
@@ -82,7 +93,10 @@ export const getEmployeeIndustryTerritoryFields = async ({ currentUserId: _curre
     .lean()
   if (!employee || !isSalesRole(employee.role)) return null
   const zoneIds = resolveEmployeeZoneIds(employee)
-  const territoryFilter = buildIndustryTerritoryMongoFilterForEmployee(zoneIds, employee.subZoneId || null)
+  const territoryFilter = buildIndustryTerritoryMongoFilterForEmployee(
+    zoneIds,
+    employee.subZoneId || null
+  )
   if (!territoryFilter) return { _id: { $in: [] } }
   return territoryFilter
 }

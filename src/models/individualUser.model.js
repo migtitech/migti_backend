@@ -33,6 +33,9 @@ const individualUserSchema = new mongoose.Schema(
 
 individualUserSchema.plugin(commonFieldsPlugin)
 
-const IndividualUserModel = mongoose.model('IndividualUser', individualUserSchema)
+const IndividualUserModel = mongoose.model(
+  'IndividualUser',
+  individualUserSchema
+)
 
 export default IndividualUserModel

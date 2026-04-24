@@ -9,7 +9,9 @@ import dotenv from 'dotenv'
 import { fileURLToPath } from 'url'
 import path from 'path'
 
-import CodeSequenceModel, { CODE_SEQUENCE_ID } from '../src/models/codeSequence.model.js'
+import CodeSequenceModel, {
+  CODE_SEQUENCE_ID,
+} from '../src/models/codeSequence.model.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -52,7 +54,11 @@ async function seedCodeSequence() {
       queryCode: INITIAL_VALUE,
       quotationCode: INITIAL_VALUE,
     })
-    console.log('Code sequence document created with all counters at', INITIAL_VALUE, '(first generated code will be 1000).')
+    console.log(
+      'Code sequence document created with all counters at',
+      INITIAL_VALUE,
+      '(first generated code will be 1000).'
+    )
   } catch (err) {
     console.error('Seed failed:', err)
     process.exit(1)

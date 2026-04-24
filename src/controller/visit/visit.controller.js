@@ -1,14 +1,23 @@
 import { Message, statusCodes } from '../../core/common/constant.js'
-import { getBranchFilter, getEffectiveBranchIdForCreate } from '../../core/helpers/branchFilter.js'
+import {
+  getBranchFilter,
+  getEffectiveBranchIdForCreate,
+} from '../../core/helpers/branchFilter.js'
 import {
   completeVisitWithRemarkSchema,
   createVisitSchema,
   listVisitSchema,
 } from '../../validator/visit/visit.validator.js'
-import { completeVisitWithRemark, createVisit, listVisits } from '../../services/visit/visit.service.js'
+import {
+  completeVisitWithRemark,
+  createVisit,
+  listVisits,
+} from '../../services/visit/visit.service.js'
 
 export const createVisitController = async (req, res) => {
-  const { error, value } = createVisitSchema.validate(req.body, { abortEarly: false })
+  const { error, value } = createVisitSchema.validate(req.body, {
+    abortEarly: false,
+  })
   if (error) {
     return res.status(statusCodes.badRequest).json({
       success: false,
@@ -29,7 +38,9 @@ export const createVisitController = async (req, res) => {
 }
 
 export const listVisitsController = async (req, res) => {
-  const { error, value } = listVisitSchema.validate(req.query, { abortEarly: false })
+  const { error, value } = listVisitSchema.validate(req.query, {
+    abortEarly: false,
+  })
   if (error) {
     return res.status(statusCodes.badRequest).json({
       success: false,
@@ -49,7 +60,9 @@ export const listVisitsController = async (req, res) => {
 }
 
 export const myVisitsController = async (req, res) => {
-  const { error, value } = listVisitSchema.validate(req.query, { abortEarly: false })
+  const { error, value } = listVisitSchema.validate(req.query, {
+    abortEarly: false,
+  })
   if (error) {
     return res.status(statusCodes.badRequest).json({
       success: false,
@@ -60,7 +73,11 @@ export const myVisitsController = async (req, res) => {
 
   const branchFilter = getBranchFilter(req, { allowQueryBranchId: true })
   const employeeId = req.user?.id || req.user?._id
-  const result = await listVisits({ ...value, branchFilter, extraFilter: { employeeId } })
+  const result = await listVisits({
+    ...value,
+    branchFilter,
+    extraFilter: { employeeId },
+  })
 
   return res.status(statusCodes.ok).json({
     success: true,
@@ -70,7 +87,9 @@ export const myVisitsController = async (req, res) => {
 }
 
 export const completeVisitWithRemarkController = async (req, res) => {
-  const { error, value } = completeVisitWithRemarkSchema.validate(req.body, { abortEarly: false })
+  const { error, value } = completeVisitWithRemarkSchema.validate(req.body, {
+    abortEarly: false,
+  })
   if (error) {
     return res.status(statusCodes.badRequest).json({
       success: false,

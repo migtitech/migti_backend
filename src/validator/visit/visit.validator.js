@@ -6,7 +6,10 @@ export const createVisitSchema = Joi.object({
   branchId: Joi.string().pattern(objectIdPattern).optional(),
   zoneId: Joi.string().pattern(objectIdPattern).required(),
   employeeId: Joi.string().pattern(objectIdPattern).required(),
-  industryIds: Joi.array().items(Joi.string().pattern(objectIdPattern)).optional().default([]),
+  industryIds: Joi.array()
+    .items(Joi.string().pattern(objectIdPattern))
+    .optional()
+    .default([]),
   instructions: Joi.string().allow('').optional(),
   status: Joi.string().valid('active', 'completed').optional(),
 })
@@ -15,7 +18,9 @@ export const listVisitSchema = Joi.object({
   pageNumber: Joi.number().integer().min(1).default(1),
   pageSize: Joi.number().integer().min(1).max(100).default(10),
   branchId: Joi.string().pattern(objectIdPattern).allow('', null).optional(),
-  period: Joi.string().valid('all', 'daily', 'weekly', 'monthly').default('all'),
+  period: Joi.string()
+    .valid('all', 'daily', 'weekly', 'monthly')
+    .default('all'),
   dateFrom: Joi.string().allow('').optional(),
   dateTo: Joi.string().allow('').optional(),
   status: Joi.string().valid('active', 'completed').allow('', null).optional(),

@@ -58,6 +58,9 @@ targetAnalyticsSchema.index(
   { unique: true }
 )
 
-const TargetAnalyticsModel = mongoose.model('targetAnalytics', targetAnalyticsSchema)
+const TargetAnalyticsModel = mongoose.model(
+  'targetAnalytics',
+  targetAnalyticsSchema
+)
 
 export default TargetAnalyticsModel

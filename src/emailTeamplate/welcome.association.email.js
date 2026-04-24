@@ -1,5 +1,9 @@
-export const associationWelcomeEmail = (associationName, contactPersonName, email) => {
-    return `
+export const associationWelcomeEmail = (
+  associationName,
+  contactPersonName,
+  email
+) => {
+  return `
 <!DOCTYPE html>
 <html lang="en">
 <head>

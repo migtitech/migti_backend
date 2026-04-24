@@ -2,12 +2,8 @@ import {
   verifyToken,
   extractTokenFromHeader,
 } from '../core/helpers/jwt.helper.js'
-import {
-  statusCodes,
-  errorCodes,
-} from '../core/common/constant.js'
+import { statusCodes, errorCodes } from '../core/common/constant.js'
 import CustomError from '../utils/exception.js'
-
 
 export const authenticateToken = (req, res, next) => {
   try {
@@ -34,7 +30,6 @@ export const authenticateToken = (req, res, next) => {
   }
 }
 
-
 export const optionalAuth = (req, res, next) => {
   try {
     const authHeader = req.headers.authorization
@@ -52,7 +47,6 @@ export const optionalAuth = (req, res, next) => {
     next()
   }
 }
-
 
 export const authorizeRoles = (_allowedRoles) => {
   return (req, res, next) => {
@@ -73,7 +67,6 @@ export const checkPermission = (_module, _action) => {
     next()
   }
 }
-
 
 export const checkPermissionAny = (_module, _actions) => {
   return (req, res, next) => {

@@ -17,43 +17,42 @@ purchaseTaskRouter.post(
   '/assign',
   authenticateToken,
   checkPermission(MODULES.QUOTATIONS, 'update'),
-  asyncHandler(assignPurchaseTaskController),
+  asyncHandler(assignPurchaseTaskController)
 )
 
 purchaseTaskRouter.get(
   '/my-tasks',
   authenticateToken,
   checkPermission(MODULES.PURCHASE_TASKS, 'read'),
-  asyncHandler(listMyPurchaseTasksController),
+  asyncHandler(listMyPurchaseTasksController)
 )
 
 purchaseTaskRouter.put(
   '/update-status',
   authenticateToken,
   checkPermission(MODULES.PURCHASE_TASKS, 'update'),
-  asyncHandler(updatePurchaseTaskStatusController),
+  asyncHandler(updatePurchaseTaskStatusController)
 )
 
 purchaseTaskRouter.put(
   '/update-remark',
   authenticateToken,
   checkPermission(MODULES.PURCHASE_TASKS, 'update'),
-  asyncHandler(updatePurchaseTaskRemarkController),
+  asyncHandler(updatePurchaseTaskRemarkController)
 )
 
 purchaseTaskRouter.get(
   '/rate-bucket',
   authenticateToken,
   checkPermission(MODULES.PURCHASE_TASKS, 'read'),
-  asyncHandler(listRateBucketController),
+  asyncHandler(listRateBucketController)
 )
 
 purchaseTaskRouter.get(
   '/admin-list',
   authenticateToken,
   checkPermission(MODULES.PURCHASE_TASKS, 'read'),
-  asyncHandler(adminListPurchaseTasksController),
+  asyncHandler(adminListPurchaseTasksController)
 )
 
 export default purchaseTaskRouter
-

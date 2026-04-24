@@ -125,19 +125,26 @@ export const updateCompany = async ({ companyId, ...updateData }) => {
     updateData.logoUrl = DEFAULT_LOGO_URL
   }
   if (updateData.mobile !== undefined) {
-    updateData.mobile = updateData.mobile == null ? '' : String(updateData.mobile)
+    updateData.mobile =
+      updateData.mobile == null ? '' : String(updateData.mobile)
   }
   if (updateData.address !== undefined) {
-    updateData.address = updateData.address == null ? '' : String(updateData.address)
+    updateData.address =
+      updateData.address == null ? '' : String(updateData.address)
   }
   if (updateData.shippingAddress !== undefined) {
-    updateData.shippingAddress = updateData.shippingAddress == null ? '' : String(updateData.shippingAddress)
+    updateData.shippingAddress =
+      updateData.shippingAddress == null
+        ? ''
+        : String(updateData.shippingAddress)
   }
   if (updateData.billingAddress !== undefined) {
-    updateData.billingAddress = updateData.billingAddress == null ? '' : String(updateData.billingAddress)
+    updateData.billingAddress =
+      updateData.billingAddress == null ? '' : String(updateData.billingAddress)
   }
   if (updateData.website !== undefined) {
-    updateData.website = updateData.website == null ? '' : String(updateData.website)
+    updateData.website =
+      updateData.website == null ? '' : String(updateData.website)
   }
   if (updateData.isActive === undefined) {
     delete updateData.isActive

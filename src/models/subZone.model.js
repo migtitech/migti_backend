@@ -28,14 +28,14 @@ const subZoneSchema = new mongoose.Schema(
       maxlength: 200,
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 )
 
 subZoneSchema.plugin(commonFieldsPlugin)
 
 subZoneSchema.index(
   { zoneId: 1, subZoneCode: 1 },
-  { unique: true, partialFilterExpression: { isDeleted: false } },
+  { unique: true, partialFilterExpression: { isDeleted: false } }
 )
 
 const SubZoneModel = mongoose.model('subZone', subZoneSchema)

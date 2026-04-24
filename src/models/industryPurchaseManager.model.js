@@ -32,7 +32,7 @@ const industryPurchaseManagerSchema = new mongoose.Schema(
       default: '',
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 )
 
 industryPurchaseManagerSchema.index({ industryId: 1, isDeleted: 1 })
@@ -40,7 +40,7 @@ industryPurchaseManagerSchema.plugin(commonFieldsPlugin)
 
 const IndustryPurchaseManagerModel = mongoose.model(
   'industryPurchaseManager',
-  industryPurchaseManagerSchema,
+  industryPurchaseManagerSchema
 )
 
 export default IndustryPurchaseManagerModel

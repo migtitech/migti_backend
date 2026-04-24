@@ -1,5 +1,8 @@
 import { Message, statusCodes } from '../../core/common/constant.js'
-import { getBranchFilter, getEffectiveBranchIdForCreate } from '../../core/helpers/branchFilter.js'
+import {
+  getBranchFilter,
+  getEffectiveBranchIdForCreate,
+} from '../../core/helpers/branchFilter.js'
 import {
   createEmployeeSchema,
   listEmployeeSchema,

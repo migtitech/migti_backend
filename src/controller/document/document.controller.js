@@ -47,16 +47,23 @@ export const uploadDocumentsController = async (req, res) => {
 export const serveDocumentController = async (req, res) => {
   const { id } = req.params
   if (!id) {
-    return res.status(statusCodes.badRequest).json({ success: false, message: 'Document id required' })
+    return res
+      .status(statusCodes.badRequest)
+      .json({ success: false, message: 'Document id required' })
   }
   const info = await getDocumentServeInfo(id)
   if (!info) {
-    return res.status(statusCodes.notFound).json({ success: false, message: 'Document not found' })
+    return res
+      .status(statusCodes.notFound)
+      .json({ success: false, message: 'Document not found' })
   }
   if (info.type === 's3') {
     return res.redirect(302, info.signedUrl)
   }
   res.sendFile(path.resolve(info.filePath), (err) => {
-    if (err) res.status(statusCodes.notFound).json({ success: false, message: 'File not found' })
+    if (err)
+      res
+        .status(statusCodes.notFound)
+        .json({ success: false, message: 'File not found' })
   })
 }

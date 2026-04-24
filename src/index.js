@@ -13,7 +13,10 @@ import { startAgenda, stopAgenda } from './core/queue/loyaltyPoints.js'
 import { startEmailQueue, stopEmailQueue } from './core/queue/emailQueue.js'
 import { seedPreferences } from './core/helpers/preferenceData.js'
 import { ensureAssetsDir } from './models/document.model.js'
-import { startTargetAnalyticsCron, stopTargetAnalyticsCron } from './services/targetAnalytics/targetAnalytics.cron.js'
+import {
+  startTargetAnalyticsCron,
+  stopTargetAnalyticsCron,
+} from './services/targetAnalytics/targetAnalytics.cron.js'
 import { fileURLToPath } from 'url'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -43,7 +46,7 @@ io.on('connection', (socket) => {
   })
   socket.on('disconnect', () => {})
 })
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public')))
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({
@@ -52,11 +55,10 @@ app.get('/health', (req, res) => {
     data: {
       status: 'OK',
       timestamp: new Date().toISOString(),
-      version: '1.0.0'
-    }
-  });
+      version: '1.0.0',
+    },
+  })
 })
-
 
 // Middleware
 app.use(express.json())
@@ -86,7 +88,6 @@ connectDB()
 // Ensure assets folders exist at runtime (created dynamically on first upload if missing)
 ensureAssetsDir('assets')
 ensureAssetsDir('assets/temp')
-
 
 // Initialize Agenda queues
 startAgenda().catch((error) => {
@@ -119,4 +120,3 @@ process.on('SIGTERM', async () => {
 httpServer.listen(PORT, '0.0.0.0', () => {
   logger.info(`Server is running at port ${PORT}`)
 })
-

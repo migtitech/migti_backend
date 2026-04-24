@@ -1,5 +1,5 @@
 export const individualWelcomeEmail = (name, email) => {
-    return `
+  return `
 <!DOCTYPE html>
 <html lang="en">
 <head>

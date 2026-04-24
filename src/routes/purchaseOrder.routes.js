@@ -18,43 +18,43 @@ purchaseOrderRouter.get(
   '/list',
   authenticateToken,
   checkPermission(MODULES.PURCHASE_ORDERS, 'read'),
-  asyncHandler(listPurchaseOrdersController),
+  asyncHandler(listPurchaseOrdersController)
 )
 purchaseOrderRouter.get(
   '/get-by-id',
   authenticateToken,
   checkPermission(MODULES.PURCHASE_ORDERS, 'read'),
-  asyncHandler(getPurchaseOrderByIdController),
+  asyncHandler(getPurchaseOrderByIdController)
 )
 purchaseOrderRouter.get(
   '/by-quotation',
   authenticateToken,
   checkPermission(MODULES.PURCHASE_ORDERS, 'read'),
-  asyncHandler(getPurchaseOrderByQuotationIdController),
+  asyncHandler(getPurchaseOrderByQuotationIdController)
 )
 purchaseOrderRouter.post(
   '/create-from-quotation',
   authenticateToken,
   checkPermission(MODULES.PURCHASE_ORDERS, 'create'),
-  asyncHandler(createPurchaseOrderFromQuotationController),
+  asyncHandler(createPurchaseOrderFromQuotationController)
 )
 purchaseOrderRouter.put(
   '/update',
   authenticateToken,
   checkPermission(MODULES.PURCHASE_ORDERS, 'update'),
-  asyncHandler(updatePurchaseOrderController),
+  asyncHandler(updatePurchaseOrderController)
 )
 purchaseOrderRouter.put(
   '/update-status',
   authenticateToken,
   checkPermission(MODULES.PURCHASE_ORDERS, 'update'),
-  asyncHandler(updatePurchaseOrderStatusController),
+  asyncHandler(updatePurchaseOrderStatusController)
 )
 purchaseOrderRouter.post(
   '/append-payment',
   authenticateToken,
   checkPermission(MODULES.PURCHASE_ORDERS, 'update'),
-  asyncHandler(appendPurchaseOrderPaymentController),
+  asyncHandler(appendPurchaseOrderPaymentController)
 )
 
 export default purchaseOrderRouter

@@ -49,7 +49,7 @@ const rateCardSchema = new mongoose.Schema(
       type: SchemaTypes.Date,
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 )
 
 rateCardSchema.index({ product: 1, supplier: 1, branchId: 1 }, { unique: true })

@@ -55,7 +55,7 @@ const categorySchema = new mongoose.Schema(
   {
     timestamps: true,
     autoIndex: false,
-  },
+  }
 )
 
 categorySchema.plugin(commonFieldsPlugin)

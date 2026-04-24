@@ -1,4 +1,3 @@
-
 export const generateSlug = (text) => {
   if (!text || typeof text !== 'string') {
     return ''
@@ -12,7 +11,11 @@ export const generateSlug = (text) => {
     .replace(/^-+|-+$/g, '') // Remove leading and trailing hyphens
 }
 
-export const generateUniqueSlug = async (baseSlug, checkExistence, maxAttempts = 100) => {
+export const generateUniqueSlug = async (
+  baseSlug,
+  checkExistence,
+  maxAttempts = 100
+) => {
   let slug = baseSlug
   let counter = 1
 
@@ -32,7 +35,6 @@ export const generateUniqueSlug = async (baseSlug, checkExistence, maxAttempts =
 
   return `${baseSlug}-${Date.now()}`
 }
-
 
 export const generatePlanSlug = async (membershipname, checkExistence) => {
   const baseSlug = generateSlug(membershipname)

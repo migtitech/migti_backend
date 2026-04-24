@@ -46,9 +46,7 @@ export const listRolesController = async (req, res) => {
     })
   }
 
-  const result = await listRoles( value.page,
-    value.limit,
-    value.search)
+  const result = await listRoles(value.page, value.limit, value.search)
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Roles retrieved successfully',

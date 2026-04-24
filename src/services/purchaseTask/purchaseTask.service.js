@@ -10,7 +10,11 @@ import CategoryModel from '../../models/category.model.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 
-const PURCHASE_ROLES = ['purchase_manager', 'purchase_exicutive', 'purchase_executive']
+const PURCHASE_ROLES = [
+  'purchase_manager',
+  'purchase_exicutive',
+  'purchase_executive',
+]
 
 export const assignQuotationTask = async ({
   quotationId,
@@ -38,7 +42,7 @@ export const assignQuotationTask = async ({
     throw new CustomError(
       statusCodes.notFound,
       'Quotation not found',
-      errorCodes.not_found,
+      errorCodes.not_found
     )
   }
 
@@ -51,7 +55,7 @@ export const assignQuotationTask = async ({
     throw new CustomError(
       statusCodes.notFound,
       'Employee not found',
-      errorCodes.not_found,
+      errorCodes.not_found
     )
   }
 
@@ -59,11 +63,12 @@ export const assignQuotationTask = async ({
     throw new CustomError(
       statusCodes.badRequest,
       'Selected employee is not a purchase role',
-      errorCodes.invalid_input,
+      errorCodes.invalid_input
     )
   }
 
-  const branchId = quotation.branchId || employee.branchId || branchIdFromRequest || null
+  const branchId =
+    quotation.branchId || employee.branchId || branchIdFromRequest || null
 
   const doc = await PurchaseTaskModel.create({
     quotationId: quotation._id,
@@ -77,7 +82,8 @@ export const assignQuotationTask = async ({
     productGroup: productGroup || '',
     subCategory: subCategory || '',
     targetRate: typeof targetRate === 'number' ? targetRate : 0,
-    procurementRate: typeof procurementRate === 'number' ? procurementRate : null,
+    procurementRate:
+      typeof procurementRate === 'number' ? procurementRate : null,
     dueDate: dueDate ? new Date(dueDate) : null,
     supplierRateRemark: supplierRateRemark || '',
     status: PURCHASE_TASK_STATUS.ASSIGNED,
@@ -87,8 +93,7 @@ export const assignQuotationTask = async ({
   return doc.toObject()
 }
 
-const escapeRegex = (value = '') =>
-  value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+const escapeRegex = (value = '') => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
 /**
  * Automatically assign purchase tasks for a quotation based on product categories
@@ -120,9 +125,11 @@ export const autoAssignPurchaseTasksForQuotation = async ({
         products
           .map((p) => {
             if (!p?.product_id) return null
-            return typeof p.product_id === 'object' ? p.product_id._id || p.product_id.id : p.product_id
+            return typeof p.product_id === 'object'
+              ? p.product_id._id || p.product_id.id
+              : p.product_id
           })
-          .filter(Boolean),
+          .filter(Boolean)
       ),
     ]
 
@@ -140,7 +147,7 @@ export const autoAssignPurchaseTasksForQuotation = async ({
         productDocs
           .map((pd) => pd?.category && (pd.category.name || '').trim())
           .filter((name) => typeof name === 'string' && name.trim().length > 0)
-          .map((name) => name.trim()),
+          .map((name) => name.trim())
       ),
     ]
 
@@ -177,7 +184,7 @@ export const autoAssignPurchaseTasksForQuotation = async ({
       .lean()
 
     const alreadyAssigned = new Set(
-      existingTasks.map((t) => String(t.assignedTo)).filter(Boolean),
+      existingTasks.map((t) => String(t.assignedTo)).filter(Boolean)
     )
 
     const categoryLabel = categoryNames.join(', ')
@@ -232,7 +239,13 @@ const buildBaseTaskFilter = ({ status, branchFilter = {} }) => {
   return filter
 }
 
-const paginateQuery = async ({ model, filter, pageNumber, pageSize, sort = { createdAt: -1 } }) => {
+const paginateQuery = async ({
+  model,
+  filter,
+  pageNumber,
+  pageSize,
+  sort = { createdAt: -1 },
+}) => {
   const page = Math.max(1, parseInt(pageNumber, 10) || 1)
   const limit = Math.min(100, Math.max(1, parseInt(pageSize, 10) || 10))
   const skip = (page - 1) * limit
@@ -277,7 +290,7 @@ export const listPurchaseTasksForUser = async ({
     throw new CustomError(
       statusCodes.unauthorized,
       'User context is required',
-      errorCodes.unauthorized,
+      errorCodes.unauthorized
     )
   }
 
@@ -318,7 +331,7 @@ export const updatePurchaseTaskStatus = async ({
     throw new CustomError(
       statusCodes.notFound,
       'Task not found',
-      errorCodes.not_found,
+      errorCodes.not_found
     )
   }
 
@@ -333,7 +346,7 @@ export const updatePurchaseTaskStatus = async ({
   const updated = await PurchaseTaskModel.findByIdAndUpdate(
     taskId,
     { $set: updatePayload },
-    { new: true, runValidators: true },
+    { new: true, runValidators: true }
   )
     .populate('quotationId', 'quotationCode companyInfo status products')
     .populate('assignedTo', 'name email phone role designation branchId')
@@ -358,7 +371,7 @@ export const updatePurchaseTaskRemark = async ({
     throw new CustomError(
       statusCodes.notFound,
       'Task not found',
-      errorCodes.not_found,
+      errorCodes.not_found
     )
   }
 
@@ -369,7 +382,7 @@ export const updatePurchaseTaskRemark = async ({
         supplierRateRemark: supplierRateRemark || '',
       },
     },
-    { new: true, runValidators: true },
+    { new: true, runValidators: true }
   )
     .populate('quotationId', 'quotationCode companyInfo status products')
     .populate('assignedTo', 'name email phone role designation branchId')
@@ -428,4 +441,3 @@ export const adminListPurchaseTasks = async ({
     pageSize,
   })
 }
-

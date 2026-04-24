@@ -32,7 +32,7 @@ const groupSchema = new mongoose.Schema(
   {
     timestamps: true,
     autoIndex: false,
-  },
+  }
 )
 
 groupSchema.plugin(commonFieldsPlugin)

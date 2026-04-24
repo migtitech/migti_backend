@@ -16,31 +16,31 @@ subZoneRouter.post(
   '/create',
   authenticateToken,
   checkPermission(MODULES.SUB_ZONES, 'create'),
-  asyncHandler(createSubZoneController),
+  asyncHandler(createSubZoneController)
 )
 subZoneRouter.get(
   '/list',
   authenticateToken,
   checkPermission(MODULES.ZONES, 'read'),
-  asyncHandler(listSubZonesController),
+  asyncHandler(listSubZonesController)
 )
 subZoneRouter.get(
   '/list-grouped',
   authenticateToken,
   checkPermission(MODULES.ZONES, 'read'),
-  asyncHandler(listSubZonesGroupedController),
+  asyncHandler(listSubZonesGroupedController)
 )
 subZoneRouter.put(
   '/update',
   authenticateToken,
   checkPermission(MODULES.SUB_ZONES, 'update'),
-  asyncHandler(updateSubZoneController),
+  asyncHandler(updateSubZoneController)
 )
 subZoneRouter.delete(
   '/delete',
   authenticateToken,
   checkPermission(MODULES.SUB_ZONES, 'delete'),
-  asyncHandler(deleteSubZoneController),
+  asyncHandler(deleteSubZoneController)
 )
 
 export default subZoneRouter

@@ -46,7 +46,11 @@ export const addCompanyBranch = async ({
   return branchDoc.toObject()
 }
 
-export const listCompanyBranches = async ({ pageNumber = 1, pageSize = 10, companyId }) => {
+export const listCompanyBranches = async ({
+  pageNumber = 1,
+  pageSize = 10,
+  companyId,
+}) => {
   const page = Math.max(1, parseInt(pageNumber))
   const limit = Math.min(100, Math.max(1, parseInt(pageSize)))
   const skip = (page - 1) * limit

@@ -17,7 +17,7 @@ export const addProduct = async (data) => {
     throw new CustomError(
       statusCodes.conflict,
       'Product with this SKU already exists',
-      errorCodes.already_exist,
+      errorCodes.already_exist
     )
   }
 
@@ -26,7 +26,7 @@ export const addProduct = async (data) => {
     throw new CustomError(
       statusCodes.notFound,
       'Category not found',
-      errorCodes.not_found,
+      errorCodes.not_found
     )
   }
 
@@ -36,7 +36,7 @@ export const addProduct = async (data) => {
       throw new CustomError(
         statusCodes.badRequest,
         'Invalid subcategory for the selected category',
-        errorCodes.invalid_input,
+        errorCodes.invalid_input
       )
     }
   }
@@ -47,7 +47,7 @@ export const addProduct = async (data) => {
       throw new CustomError(
         statusCodes.notFound,
         'Brand not found',
-        errorCodes.not_found,
+        errorCodes.not_found
       )
     }
   }
@@ -57,10 +57,12 @@ export const addProduct = async (data) => {
     field: 'productCode',
   })
 
-  const variantCombinationsWithCode = (data.variantCombinations || []).map((vc, i) => ({
-    ...vc,
-    variantCode: `${productCode}v${i + 1}`,
-  }))
+  const variantCombinationsWithCode = (data.variantCombinations || []).map(
+    (vc, i) => ({
+      ...vc,
+      variantCode: `${productCode}v${i + 1}`,
+    })
+  )
 
   const product = await ProductModel.create({
     ...data,
@@ -120,7 +122,12 @@ export const listProducts = async ({
     filter.$and.push({
       $or: [
         { defaultModelNumber: { $regex: modelTerm, $options: 'i' } },
-        { 'variantCombinations.modelNumber': { $regex: modelTerm, $options: 'i' } },
+        {
+          'variantCombinations.modelNumber': {
+            $regex: modelTerm,
+            $options: 'i',
+          },
+        },
       ],
     })
   }
@@ -166,14 +173,18 @@ export const getProductById = async ({ productId }) => {
     .populate('brand', 'name slug logo')
     .populate('group', 'name code')
     .populate('images', 'path')
-    .populate({ path: 'variantCombinations.images', model: 'document', select: 'path' })
+    .populate({
+      path: 'variantCombinations.images',
+      model: 'document',
+      select: 'path',
+    })
     .lean()
 
   if (!product) {
     throw new CustomError(
       statusCodes.notFound,
       'Product not found',
-      errorCodes.not_found,
+      errorCodes.not_found
     )
   }
 
@@ -186,7 +197,7 @@ export const updateProduct = async ({ productId, ...updateData }) => {
     throw new CustomError(
       statusCodes.notFound,
       'Product not found',
-      errorCodes.not_found,
+      errorCodes.not_found
     )
   }
 
@@ -206,7 +217,7 @@ export const updateProduct = async ({ productId, ...updateData }) => {
       throw new CustomError(
         statusCodes.conflict,
         'SKU already exists',
-        errorCodes.already_exist,
+        errorCodes.already_exist
       )
     }
   }
@@ -217,19 +228,21 @@ export const updateProduct = async ({ productId, ...updateData }) => {
       throw new CustomError(
         statusCodes.notFound,
         'Category not found',
-        errorCodes.not_found,
+        errorCodes.not_found
       )
     }
   }
 
   if (updateData.subcategory) {
     const catId = updateData.category || product.category
-    const subcategory = await CategoryModel.findById(updateData.subcategory).lean()
+    const subcategory = await CategoryModel.findById(
+      updateData.subcategory
+    ).lean()
     if (!subcategory || String(subcategory.parent) !== String(catId)) {
       throw new CustomError(
         statusCodes.badRequest,
         'Invalid subcategory for the selected category',
-        errorCodes.invalid_input,
+        errorCodes.invalid_input
       )
     }
   }
@@ -240,7 +253,7 @@ export const updateProduct = async ({ productId, ...updateData }) => {
       throw new CustomError(
         statusCodes.notFound,
         'Brand not found',
-        errorCodes.not_found,
+        errorCodes.not_found
       )
     }
   }
@@ -256,11 +269,17 @@ export const updateProduct = async ({ productId, ...updateData }) => {
   }
 
   const productCode = product.productCode || updateData.productCode
-  if (updateData.variantCombinations && updateData.variantCombinations.length > 0 && productCode) {
-    updateData.variantCombinations = updateData.variantCombinations.map((vc, i) => ({
-      ...vc,
-      variantCode: `${productCode}v${i + 1}`,
-    }))
+  if (
+    updateData.variantCombinations &&
+    updateData.variantCombinations.length > 0 &&
+    productCode
+  ) {
+    updateData.variantCombinations = updateData.variantCombinations.map(
+      (vc, i) => ({
+        ...vc,
+        variantCode: `${productCode}v${i + 1}`,
+      })
+    )
   }
 
   const updated = await ProductModel.findByIdAndUpdate(productId, updateData, {
@@ -282,7 +301,7 @@ export const deleteProduct = async ({ productId }) => {
     throw new CustomError(
       statusCodes.notFound,
       'Product not found',
-      errorCodes.not_found,
+      errorCodes.not_found
     )
   }
 

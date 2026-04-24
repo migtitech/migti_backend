@@ -1,5 +1,8 @@
 import Joi from 'joi'
-import { TASK_STATUS, TASK_PRIORITY } from '../../models/taskManagement.model.js'
+import {
+  TASK_STATUS,
+  TASK_PRIORITY,
+} from '../../models/taskManagement.model.js'
 
 const taskStatusValues = Object.values(TASK_STATUS)
 const taskPriorityValues = Object.values(TASK_PRIORITY)

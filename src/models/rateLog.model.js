@@ -54,7 +54,7 @@ const rateLogSchema = new mongoose.Schema(
       index: true,
     },
   },
-  { timestamps: { createdAt: 'created_at', updatedAt: false } },
+  { timestamps: { createdAt: 'created_at', updatedAt: false } }
 )
 
 rateLogSchema.plugin(commonFieldsPlugin)

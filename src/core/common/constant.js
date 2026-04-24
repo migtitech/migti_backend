@@ -122,7 +122,8 @@ export const Message = {
   questionCreated: 'Question created successfully',
   questionsRetrieved: 'Questions retrieved successfully',
   questionNotFound: 'Question not found',
-  questionPositionAlreadyExists: 'Question position already exists for this event',
+  questionPositionAlreadyExists:
+    'Question position already exists for this event',
   // subquestion
   subquestionCreated: 'Subquestion created successfully',
   subquestionsRetrieved: 'Subquestions retrieved successfully',
@@ -133,7 +134,8 @@ export const Message = {
   judgingSubmissionNotFound: 'Judging submission not found',
   // Team messages
   teamCreated: 'Team created successfully',
-  teamCreatedAndAddedToEvent: 'Team created successfully and added to the event',
+  teamCreatedAndAddedToEvent:
+    'Team created successfully and added to the event',
   teamNotFound: 'Team not found',
   teamAlreadyExists: 'Team with this email already exists',
   // User lookup
@@ -167,7 +169,8 @@ export const Message = {
   servingSizeMax: 'Serving size cannot exceed 20',
   ingredientNameRequired: 'Ingredient name is required',
   ingredientNameMaxLength: 'Ingredient name cannot exceed 50 characters',
-  ingredientQuantityMaxLength: 'Ingredient quantity cannot exceed 20 characters',
+  ingredientQuantityMaxLength:
+    'Ingredient quantity cannot exceed 20 characters',
   ingredientUnitMaxLength: 'Ingredient unit cannot exceed 20 characters',
   maxIngredientsAllowed: 'Maximum 20 ingredients allowed',
   cookingMethodMaxLength: 'Cooking method cannot exceed 100 characters',

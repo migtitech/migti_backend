@@ -1,5 +1,7 @@
 import mongoose from 'mongoose'
-import QuotationModel, { QUOTATION_STATUS } from '../../models/quotation.model.js'
+import QuotationModel, {
+  QUOTATION_STATUS,
+} from '../../models/quotation.model.js'
 import QuotationSnapshotModel from '../../models/quotationSnapshot.model.js'
 import QueryModel from '../../models/query.model.js'
 import CustomError from '../../utils/exception.js'
@@ -20,7 +22,11 @@ import {
 } from '../../core/helpers/queryAccess.js'
 
 /** Persist quotation ref on the source query (deduped by quotationId). */
-export const appendConvertedQuotationOnQuery = async (queryId, quotationId, quotationCode = '') => {
+export const appendConvertedQuotationOnQuery = async (
+  queryId,
+  quotationId,
+  quotationCode = ''
+) => {
   if (!queryId || !quotationId) return
   await QueryModel.updateOne(
     {
@@ -34,7 +40,7 @@ export const appendConvertedQuotationOnQuery = async (queryId, quotationId, quot
           quotationCode: String(quotationCode || '').trim(),
         },
       },
-    },
+    }
   )
 }
 
@@ -64,7 +70,7 @@ const formatQuotationCode = (numericCode, companyName) => {
 export const computeStatusFromProducts = (products = []) => {
   if (!products.length) return QUOTATION_STATUS.DRAFT
   const withRate = products.filter(
-    (p) => !p.notAvailable && typeof p.rate === 'number' && p.rate >= 0,
+    (p) => !p.notAvailable && typeof p.rate === 'number' && p.rate >= 0
   ).length
   const totalLines = products.filter((p) => !p.notAvailable).length
   if (totalLines === 0 || withRate === 0) return QUOTATION_STATUS.DRAFT
@@ -88,29 +94,31 @@ const buildQuotationSnapshotPayload = (doc) => {
   if (!doc) return {}
   const products = Array.isArray(doc.products)
     ? doc.products.map((p) => ({
-      productName: p.productName,
-      description: p.description ?? '',
-      quantity: p.quantity,
-      unit: p.unit ?? '',
-      hsnNumber: p.hsnNumber ?? '',
-      modelNumber: p.modelNumber ?? '',
-      gstPercentage: p.gstPercentage ?? null,
-      variants: Array.isArray(p.variants)
-        ? p.variants.map((v) => ({
-          _id: v._id,
-          variantName: v.variantName || '',
-        }))
-        : [],
-      remark: p.remark ?? '',
-      product_id: toRefId(p.product_id),
-      rate: p.rate ?? null,
-      images: (Array.isArray(p.images) ? p.images : []).map((img) => toRefId(img)).filter(Boolean),
-      applyDiscount: !!p.applyDiscount,
-      discountPercentage: p.discountPercentage ?? null,
-      discountAmount: p.discountAmount ?? null,
-      notAvailable: !!p.notAvailable,
-      notAvailableRemark: p.notAvailableRemark || '',
-    }))
+        productName: p.productName,
+        description: p.description ?? '',
+        quantity: p.quantity,
+        unit: p.unit ?? '',
+        hsnNumber: p.hsnNumber ?? '',
+        modelNumber: p.modelNumber ?? '',
+        gstPercentage: p.gstPercentage ?? null,
+        variants: Array.isArray(p.variants)
+          ? p.variants.map((v) => ({
+              _id: v._id,
+              variantName: v.variantName || '',
+            }))
+          : [],
+        remark: p.remark ?? '',
+        product_id: toRefId(p.product_id),
+        rate: p.rate ?? null,
+        images: (Array.isArray(p.images) ? p.images : [])
+          .map((img) => toRefId(img))
+          .filter(Boolean),
+        applyDiscount: !!p.applyDiscount,
+        discountPercentage: p.discountPercentage ?? null,
+        discountAmount: p.discountAmount ?? null,
+        notAvailable: !!p.notAvailable,
+        notAvailableRemark: p.notAvailableRemark || '',
+      }))
     : []
 
   return {
@@ -118,7 +126,9 @@ const buildQuotationSnapshotPayload = (doc) => {
     quotationCode: doc.quotationCode,
     queryId: toRefId(doc.queryId),
     status: doc.status,
-    companyInfo: doc.companyInfo ? JSON.parse(JSON.stringify(doc.companyInfo)) : {},
+    companyInfo: doc.companyInfo
+      ? JSON.parse(JSON.stringify(doc.companyInfo))
+      : {},
     industry_id: toRefId(doc.industry_id),
     products,
     remark: doc.remark ?? '',
@@ -131,14 +141,19 @@ const buildQuotationSnapshotPayload = (doc) => {
   }
 }
 
-const createQuotationSnapshotOnHodApproval = async ({ quotationLean, approvedBy = null }) => {
+const createQuotationSnapshotOnHodApproval = async ({
+  quotationLean,
+  approvedBy = null,
+}) => {
   const quotationId = quotationLean._id
-  const baseCode = String(quotationLean.quotationCode || '').trim().toUpperCase()
+  const baseCode = String(quotationLean.quotationCode || '')
+    .trim()
+    .toUpperCase()
   if (!baseCode) {
     throw new CustomError(
       statusCodes.badRequest,
       'Quotation code is required before HOD approval snapshot',
-      errorCodes.bad_request,
+      errorCodes.bad_request
     )
   }
   const count = await QuotationSnapshotModel.countDocuments({ quotationId })
@@ -162,7 +177,8 @@ export const computeTotalAmountFromProducts = (products = []) => {
     if (p.notAvailable) return sum
     const qty = Number(p.quantity)
     const rate = Number(p.rate)
-    if (Number.isNaN(qty) || Number.isNaN(rate) || qty < 0 || rate < 0) return sum
+    if (Number.isNaN(qty) || Number.isNaN(rate) || qty < 0 || rate < 0)
+      return sum
     let lineTotal = qty * rate
     if (p.applyDiscount && p.discountPercentage != null) {
       const discountAmt = lineTotal * (Number(p.discountPercentage) / 100)
@@ -199,7 +215,7 @@ export const createQuotationFromQuery = async ({
     throw new CustomError(
       statusCodes.notFound,
       'Query not found',
-      errorCodes.not_found,
+      errorCodes.not_found
     )
   }
 
@@ -227,9 +243,16 @@ export const createQuotationFromQuery = async ({
       .filter((id) => typeof id === 'string' && OBJECT_ID_REGEX.test(id))
   }
 
-  const baseProducts = Array.isArray(productsOverride) ? productsOverride : (query.products || [])
+  const baseProducts = Array.isArray(productsOverride)
+    ? productsOverride
+    : query.products || []
   const products = baseProducts.map((p) => {
-    const obj = typeof p === 'object' && p !== null ? (typeof p.toObject === 'function' ? p.toObject() : p) : {}
+    const obj =
+      typeof p === 'object' && p !== null
+        ? typeof p.toObject === 'function'
+          ? p.toObject()
+          : p
+        : {}
     return {
       productName: obj.productName || '',
       description: obj.description || '',
@@ -307,21 +330,26 @@ export const listQuotations = async ({
   const skip = (page - 1) * limit
 
   const wantTotalAmountSum =
-    includeTotalAmountSum === true
-    || includeTotalAmountSum === 'true'
-    || includeTotalAmountSum === '1'
+    includeTotalAmountSum === true ||
+    includeTotalAmountSum === 'true' ||
+    includeTotalAmountSum === '1'
 
   const filter = { isDeleted: false, ...branchFilter }
   const normalizedIndustryId = String(industryId || '').trim()
-  const hasIndustryIdFilter = normalizedIndustryId && mongoose.Types.ObjectId.isValid(normalizedIndustryId)
+  const hasIndustryIdFilter =
+    normalizedIndustryId &&
+    mongoose.Types.ObjectId.isValid(normalizedIndustryId)
   if (hasIndustryIdFilter) {
     filter.industry_id = new mongoose.Types.ObjectId(normalizedIndustryId)
   }
   const normalizeStatusFilter = (rawStatus = '') => {
-    const val = String(rawStatus || '').trim().toLowerCase()
+    const val = String(rawStatus || '')
+      .trim()
+      .toLowerCase()
     if (!val) return ''
     if (val === 'drafted') return QUOTATION_STATUS.DRAFT
-    if (val === 'hod approved' || val === 'hod-approved') return QUOTATION_STATUS.HOD_APPROVED
+    if (val === 'hod approved' || val === 'hod-approved')
+      return QUOTATION_STATUS.HOD_APPROVED
     return val
   }
   if (status && status.trim()) {
@@ -336,17 +364,20 @@ export const listQuotations = async ({
       const areaObjectIds = selectedAreaIds
         .filter((id) => mongoose.Types.ObjectId.isValid(id))
         .map((id) => new mongoose.Types.ObjectId(id))
-      filter['companyInfo.area'] = { $in: [...selectedAreaIds, ...areaObjectIds] }
+      filter['companyInfo.area'] = {
+        $in: [...selectedAreaIds, ...areaObjectIds],
+      }
     }
   }
 
-  let fromD = dateFrom && String(dateFrom).trim() ? startOfUtcDay(dateFrom) : null
+  let fromD =
+    dateFrom && String(dateFrom).trim() ? startOfUtcDay(dateFrom) : null
   let toD = dateTo && String(dateTo).trim() ? endOfUtcDay(dateTo) : null
   if (fromD && toD && fromD > toD) {
     throw new CustomError(
       statusCodes.badRequest,
       'dateFrom must be on or before dateTo',
-      errorCodes.bad_request,
+      errorCodes.bad_request
     )
   }
   if (fromD || toD) {
@@ -365,7 +396,9 @@ export const listQuotations = async ({
     if (territoryIds != null) {
       // Keep industry-specific pages scoped to the selected industry and ensure it falls inside employee territory.
       if (hasIndustryIdFilter) {
-        const allowedIndustryIds = new Set((territoryIds || []).map((id) => String(id)))
+        const allowedIndustryIds = new Set(
+          (territoryIds || []).map((id) => String(id))
+        )
         if (!allowedIndustryIds.has(normalizedIndustryId)) {
           filter.industry_id = { $in: [] }
         }
@@ -403,15 +436,15 @@ export const listQuotations = async ({
 
   let totalAmountSum
   if (
-    wantTotalAmountSum
-    && industryId
-    && String(industryId).trim()
-    && mongoose.Types.ObjectId.isValid(industryId)
+    wantTotalAmountSum &&
+    industryId &&
+    String(industryId).trim() &&
+    mongoose.Types.ObjectId.isValid(industryId)
   ) {
     const forSum = await QuotationModel.find(filter).select('products').lean()
     totalAmountSum = forSum.reduce(
       (sum, q) => sum + computeTotalAmountFromProducts(q.products),
-      0,
+      0
     )
   }
 
@@ -458,8 +491,14 @@ export const getQuotationById = async ({
     isDeleted: false,
     ...branchFilter,
   })
-    .populate('queryId', 'queryCode status companyInfo industry_id products created_by')
-    .populate('industry_id', 'name location address email purchase_manager_name purchase_manager_phone gstNumber')
+    .populate(
+      'queryId',
+      'queryCode status companyInfo industry_id products created_by'
+    )
+    .populate(
+      'industry_id',
+      'name location address email purchase_manager_name purchase_manager_phone gstNumber'
+    )
     .populate('created_by', 'name email')
     .populate({
       path: 'products.product_id',
@@ -477,7 +516,7 @@ export const getQuotationById = async ({
     throw new CustomError(
       statusCodes.notFound,
       'Quotation not found',
-      errorCodes.not_found,
+      errorCodes.not_found
     )
   }
 
@@ -533,11 +572,13 @@ export const listQuotationSnapshots = async ({
     throw new CustomError(
       statusCodes.notFound,
       'Quotation not found',
-      errorCodes.not_found,
+      errorCodes.not_found
     )
   }
 
-  const snapshots = await QuotationSnapshotModel.find({ quotationId: existing._id })
+  const snapshots = await QuotationSnapshotModel.find({
+    quotationId: existing._id,
+  })
     .sort({ revision: -1 })
     .select('revision snapshotCode payload createdAt approvedBy')
     .lean()
@@ -573,7 +614,7 @@ export const updateQuotation = async ({
     throw new CustomError(
       statusCodes.notFound,
       'Quotation not found',
-      errorCodes.not_found,
+      errorCodes.not_found
     )
   }
   const updatePayload = {}
@@ -583,15 +624,18 @@ export const updateQuotation = async ({
     updatePayload.freightCharge =
       freightCharge == null ? '' : String(freightCharge).trim()
   }
-  if (packingCharge !== undefined) updatePayload.packingCharge = Number(packingCharge) >= 0 ? Number(packingCharge) : 0
-  if (expectedDeliveryDate !== undefined) updatePayload.expectedDeliveryDate = expectedDeliveryDate || null
+  if (packingCharge !== undefined)
+    updatePayload.packingCharge =
+      Number(packingCharge) >= 0 ? Number(packingCharge) : 0
+  if (expectedDeliveryDate !== undefined)
+    updatePayload.expectedDeliveryDate = expectedDeliveryDate || null
   if (expectedDeliveryWithinDays !== undefined) {
     updatePayload.expectedDeliveryWithinDays =
       expectedDeliveryWithinDays === null || expectedDeliveryWithinDays === ''
         ? null
-        : (Number(expectedDeliveryWithinDays) >= 0
-            ? Number(expectedDeliveryWithinDays)
-            : null)
+        : Number(expectedDeliveryWithinDays) >= 0
+          ? Number(expectedDeliveryWithinDays)
+          : null
   }
   if (products !== undefined) {
     updatePayload.products = products
@@ -601,17 +645,18 @@ export const updateQuotation = async ({
   }
 
   if (
-    existing.status === QUOTATION_STATUS.HOD_APPROVED
-    && Object.keys(updatePayload).length > 0
+    existing.status === QUOTATION_STATUS.HOD_APPROVED &&
+    Object.keys(updatePayload).length > 0
   ) {
-    const effectiveProducts = products !== undefined ? products : existing.products
+    const effectiveProducts =
+      products !== undefined ? products : existing.products
     updatePayload.status = computeStatusFromProducts(effectiveProducts || [])
   }
 
   const updated = await QuotationModel.findByIdAndUpdate(
     quotationId,
     updatePayload,
-    { new: true, runValidators: true },
+    { new: true, runValidators: true }
   )
     .populate('queryId', 'queryCode status')
     .populate('industry_id', 'name location email')
@@ -620,7 +665,8 @@ export const updateQuotation = async ({
 
   if (updated?.products?.length) {
     for (const p of updated.products) {
-      if (p.images?.length) p.images = await transformPathsToSignedUrls(p.images)
+      if (p.images?.length)
+        p.images = await transformPathsToSignedUrls(p.images)
     }
   }
   if (products !== undefined) {
@@ -665,19 +711,19 @@ export const updateQuotationStatus = async ({
     throw new CustomError(
       statusCodes.notFound,
       'Quotation not found',
-      errorCodes.not_found,
+      errorCodes.not_found
     )
   }
   if (
-    status === QUOTATION_STATUS.HOD_APPROVED
-    && existing.status !== QUOTATION_STATUS.HOD_APPROVED
+    status === QUOTATION_STATUS.HOD_APPROVED &&
+    existing.status !== QUOTATION_STATUS.HOD_APPROVED
   ) {
     const code = String(existing.quotationCode || '').trim()
     if (!code) {
       throw new CustomError(
         statusCodes.badRequest,
         'Quotation code is required before HOD approval',
-        errorCodes.bad_request,
+        errorCodes.bad_request
       )
     }
   }
@@ -687,15 +733,15 @@ export const updateQuotationStatus = async ({
   const updated = await QuotationModel.findByIdAndUpdate(
     quotationId,
     { $set: { status } },
-    { new: true, runValidators: true },
+    { new: true, runValidators: true }
   )
     .populate('queryId', 'queryCode status')
     .populate('industry_id', 'name location email')
     .lean()
 
   if (
-    status === QUOTATION_STATUS.HOD_APPROVED
-    && previousStatus !== QUOTATION_STATUS.HOD_APPROVED
+    status === QUOTATION_STATUS.HOD_APPROVED &&
+    previousStatus !== QUOTATION_STATUS.HOD_APPROVED
   ) {
     try {
       await createQuotationSnapshotOnHodApproval({
@@ -706,13 +752,13 @@ export const updateQuotationStatus = async ({
       await QuotationModel.findByIdAndUpdate(
         quotationId,
         { $set: { status: previousStatus } },
-        { new: true, runValidators: true },
+        { new: true, runValidators: true }
       )
       if (err instanceof CustomError) throw err
       throw new CustomError(
         statusCodes.internalServerError,
         `Failed to save quotation snapshot: ${err?.message || 'unknown error'}`,
-        errorCodes.internal_error,
+        errorCodes.internal_error
       )
     }
   }
@@ -767,16 +813,20 @@ export const deleteQuotation = async ({ quotationId, branchFilter = {} }) => {
     throw new CustomError(
       statusCodes.notFound,
       'Quotation not found',
-      errorCodes.not_found,
+      errorCodes.not_found
     )
   }
 
-  await QuotationModel.findByIdAndUpdate(quotationId, { isDeleted: true }, { new: true })
+  await QuotationModel.findByIdAndUpdate(
+    quotationId,
+    { isDeleted: true },
+    { new: true }
+  )
 
   if (existing.queryId) {
     await QueryModel.updateOne(
       { _id: existing.queryId },
-      { $pull: { convertedQuotations: { quotationId: existing._id } } },
+      { $pull: { convertedQuotations: { quotationId: existing._id } } }
     )
   }
 

@@ -18,12 +18,20 @@ export const upsertRate = async ({
 }) => {
   const product = await ProductModel.findById(productId)
   if (!product) {
-    throw new CustomError(statusCodes.notFound, 'Product not found', errorCodes.not_found)
+    throw new CustomError(
+      statusCodes.notFound,
+      'Product not found',
+      errorCodes.not_found
+    )
   }
 
   const supplier = await SupplierModel.findById(supplierId)
   if (!supplier) {
-    throw new CustomError(statusCodes.notFound, 'Supplier not found', errorCodes.not_found)
+    throw new CustomError(
+      statusCodes.notFound,
+      'Supplier not found',
+      errorCodes.not_found
+    )
   }
 
   let rateCardEntry
@@ -32,13 +40,13 @@ export const upsertRate = async ({
   if (combinationUniqueId && combinationUniqueId.trim()) {
     // Validate combination exists in product
     const comboExists = product.variantCombinations?.some(
-      (c) => (c.uniqueId || c._id?.toString()) === combinationUniqueId.trim(),
+      (c) => (c.uniqueId || c._id?.toString()) === combinationUniqueId.trim()
     )
     if (!comboExists && product.hasVariants) {
       throw new CustomError(
         statusCodes.badRequest,
         'Invalid combination for this product',
-        errorCodes.invalid_input,
+        errorCodes.invalid_input
       )
     }
 
@@ -61,7 +69,7 @@ export const upsertRate = async ({
         isDeleted: false,
       },
       comboUpdate,
-      { upsert: true, new: true },
+      { upsert: true, new: true }
     )
 
     // Get all combination rates for this product+supplier
@@ -79,11 +87,16 @@ export const upsertRate = async ({
     // Pick GST info from the combination that has the minimum rate
     let minComboGst = {}
     if (allCombos.length > 0) {
-      const minCombo = allCombos.reduce((acc, c) => (c.rate < acc.rate ? c : acc), allCombos[0])
+      const minCombo = allCombos.reduce(
+        (acc, c) => (c.rate < acc.rate ? c : acc),
+        allCombos[0]
+      )
       minComboGst = {
         includeGst: !!minCombo.includeGst,
         gstPercentage:
-          typeof minCombo.gstPercentage === 'number' ? minCombo.gstPercentage : 0,
+          typeof minCombo.gstPercentage === 'number'
+            ? minCombo.gstPercentage
+            : 0,
       }
     }
 
@@ -97,7 +110,7 @@ export const upsertRate = async ({
         ...(allCombos.length > 0 ? minComboGst : {}),
         ...(nextDueDate ? { nextDueDate } : {}),
       },
-      { upsert: true, new: true },
+      { upsert: true, new: true }
     )
       .populate('product', 'name sku price')
       .populate('supplier', 'name shopname phone_1 email')
@@ -114,7 +127,7 @@ export const upsertRate = async ({
         ...(typeof gstPercentage === 'number' ? { gstPercentage } : {}),
         ...(nextDueDate ? { nextDueDate } : {}),
       },
-      { upsert: true, new: true },
+      { upsert: true, new: true }
     )
       .populate('product', 'name sku price')
       .populate('supplier', 'name shopname phone_1 email')
@@ -124,17 +137,29 @@ export const upsertRate = async ({
   return rateCardEntry
 }
 
-export const getSuppliersByProduct = async ({ productId, combinationUniqueId, branchFilter = {} }) => {
+export const getSuppliersByProduct = async ({
+  productId,
+  combinationUniqueId,
+  branchFilter = {},
+}) => {
   const product = await ProductModel.findById(productId)
     .select('name sku price description hasVariants variantCombinations')
     .lean()
   if (!product) {
-    throw new CustomError(statusCodes.notFound, 'Product not found', errorCodes.not_found)
+    throw new CustomError(
+      statusCodes.notFound,
+      'Product not found',
+      errorCodes.not_found
+    )
   }
 
   let rates
 
-  if (combinationUniqueId && combinationUniqueId.trim() && combinationUniqueId !== 'base') {
+  if (
+    combinationUniqueId &&
+    combinationUniqueId.trim() &&
+    combinationUniqueId !== 'base'
+  ) {
     // Return suppliers with rates for this specific combination
     const comboRates = await RateCombinationModel.find({
       product: productId,
@@ -142,7 +167,10 @@ export const getSuppliersByProduct = async ({ productId, combinationUniqueId, br
       isDeleted: false,
       ...branchFilter,
     })
-      .populate('supplier', 'name shopname phone_1 phone_2 email address shop_location')
+      .populate(
+        'supplier',
+        'name shopname phone_1 phone_2 email address shop_location'
+      )
       .sort({ rate: 1 })
       .lean()
 
@@ -150,15 +178,21 @@ export const getSuppliersByProduct = async ({ productId, combinationUniqueId, br
       _id: r._id,
       rate: r.rate,
       includeGst: !!r.includeGst,
-      gstPercentage:
-        typeof r.gstPercentage === 'number' ? r.gstPercentage : 0,
+      gstPercentage: typeof r.gstPercentage === 'number' ? r.gstPercentage : 0,
       supplier: r.supplier,
       combinationUniqueId: r.combinationUniqueId,
     }))
   } else {
     // Product-level: return from rate card
-    const cardRates = await RateCardModel.find({ product: productId, isDeleted: false, ...branchFilter })
-      .populate('supplier', 'name shopname phone_1 phone_2 email address shop_location')
+    const cardRates = await RateCardModel.find({
+      product: productId,
+      isDeleted: false,
+      ...branchFilter,
+    })
+      .populate(
+        'supplier',
+        'name shopname phone_1 phone_2 email address shop_location'
+      )
       .sort({ rate: 1 })
       .lean()
 
@@ -166,8 +200,7 @@ export const getSuppliersByProduct = async ({ productId, combinationUniqueId, br
       _id: r._id,
       rate: r.rate,
       includeGst: !!r.includeGst,
-      gstPercentage:
-        typeof r.gstPercentage === 'number' ? r.gstPercentage : 0,
+      gstPercentage: typeof r.gstPercentage === 'number' ? r.gstPercentage : 0,
       nextDueDate: r.nextDueDate,
       supplier: r.supplier,
     }))
@@ -187,15 +220,26 @@ export const getSuppliersByProduct = async ({ productId, combinationUniqueId, br
   return { product, rates }
 }
 
-export const getProductsBySupplier = async ({ supplierId, branchFilter = {} }) => {
+export const getProductsBySupplier = async ({
+  supplierId,
+  branchFilter = {},
+}) => {
   const supplier = await SupplierModel.findById(supplierId)
     .select('name shopname phone_1 phone_2 email address')
     .lean()
   if (!supplier) {
-    throw new CustomError(statusCodes.notFound, 'Supplier not found', errorCodes.not_found)
+    throw new CustomError(
+      statusCodes.notFound,
+      'Supplier not found',
+      errorCodes.not_found
+    )
   }
 
-  const rates = await RateCardModel.find({ supplier: supplierId, isDeleted: false, ...branchFilter })
+  const rates = await RateCardModel.find({
+    supplier: supplierId,
+    isDeleted: false,
+    ...branchFilter,
+  })
     .populate('product', 'name sku price description')
     .sort({ createdAt: -1 })
     .lean()
@@ -204,8 +248,7 @@ export const getProductsBySupplier = async ({ supplierId, branchFilter = {} }) =
     _id: r._id,
     rate: r.rate,
     includeGst: !!r.includeGst,
-    gstPercentage:
-      typeof r.gstPercentage === 'number' ? r.gstPercentage : 0,
+    gstPercentage: typeof r.gstPercentage === 'number' ? r.gstPercentage : 0,
     nextDueDate: r.nextDueDate,
     product: r.product,
   }))
@@ -215,12 +258,13 @@ export const getProductsBySupplier = async ({ supplierId, branchFilter = {} }) =
 
 export const deleteRateCard = async ({ rateCardId, rateCombinationId }) => {
   if (rateCombinationId) {
-    const rateCombo = await RateCombinationModel.findById(rateCombinationId).lean()
+    const rateCombo =
+      await RateCombinationModel.findById(rateCombinationId).lean()
     if (!rateCombo) {
       throw new CustomError(
         statusCodes.notFound,
         'Rate combination entry not found',
-        errorCodes.not_found,
+        errorCodes.not_found
       )
     }
     await RateCombinationModel.findByIdAndDelete(rateCombinationId)
@@ -241,8 +285,12 @@ export const deleteRateCard = async ({ rateCardId, rateCombinationId }) => {
     } else {
       const minRate = Math.min(...remaining.map((r) => r.rate))
       await RateCardModel.findOneAndUpdate(
-        { product: rateCombo.product, supplier: rateCombo.supplier, branchId: rateCombo.branchId || null },
-        { rate: minRate },
+        {
+          product: rateCombo.product,
+          supplier: rateCombo.supplier,
+          branchId: rateCombo.branchId || null,
+        },
+        { rate: minRate }
       )
     }
 
@@ -256,7 +304,11 @@ export const deleteRateCard = async ({ rateCardId, rateCombinationId }) => {
 
   const rateCard = await RateCardModel.findById(rateCardId).lean()
   if (!rateCard) {
-    throw new CustomError(statusCodes.notFound, 'Rate card entry not found', errorCodes.not_found)
+    throw new CustomError(
+      statusCodes.notFound,
+      'Rate card entry not found',
+      errorCodes.not_found
+    )
   }
 
   await RateCardModel.findByIdAndDelete(rateCardId)

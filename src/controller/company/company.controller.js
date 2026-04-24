@@ -138,7 +138,11 @@ export const uploadCompanyLogoController = async (req, res) => {
     })
   }
 
-  const result = await uploadToS3(req.file, process.env.AWS_BUCKET_NAME, 'company-logos')
+  const result = await uploadToS3(
+    req.file,
+    process.env.AWS_BUCKET_NAME,
+    'company-logos'
+  )
   if (!result.success) {
     return res.status(statusCodes.badRequest).json({
       success: false,

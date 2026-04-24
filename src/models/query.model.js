@@ -7,9 +7,14 @@ const purchaseManagerSchema = new mongoose.Schema(
   {
     name: { type: SchemaTypes.String, trim: true, default: '' },
     phone: { type: SchemaTypes.String, trim: true, default: '' },
-    email: { type: SchemaTypes.String, trim: true, lowercase: true, default: '' },
+    email: {
+      type: SchemaTypes.String,
+      trim: true,
+      lowercase: true,
+      default: '',
+    },
   },
-  { _id: false },
+  { _id: false }
 )
 
 // Company/industry snapshot stored in query (editable, does not change industry table)
@@ -22,7 +27,7 @@ const companyInfoSchema = new mongoose.Schema(
     address: { type: SchemaTypes.String, default: '' },
     purchaseManagers: { type: [purchaseManagerSchema], default: [] },
   },
-  { _id: false },
+  { _id: false }
 )
 
 // Variant (multiple per product)
@@ -30,15 +35,19 @@ const productVariantSchema = new mongoose.Schema(
   {
     variantName: { type: SchemaTypes.String, trim: true, default: '' },
   },
-  { _id: true },
+  { _id: true }
 )
 
 const convertedQuotationRefSchema = new mongoose.Schema(
   {
-    quotationId: { type: SchemaTypes.ObjectId, ref: 'quotation', required: true },
+    quotationId: {
+      type: SchemaTypes.ObjectId,
+      ref: 'quotation',
+      required: true,
+    },
     quotationCode: { type: SchemaTypes.String, trim: true, default: '' },
   },
-  { _id: false },
+  { _id: false }
 )
 
 const productItemSchema = new mongoose.Schema(
@@ -48,14 +57,19 @@ const productItemSchema = new mongoose.Schema(
     unit: { type: SchemaTypes.String, trim: true, default: '' },
     hsnNumber: { type: SchemaTypes.String, trim: true, default: '' },
     modelNumber: { type: SchemaTypes.String, trim: true, default: '' },
-    gstPercentage: { type: SchemaTypes.Number, min: 0, max: 100, default: null },
+    gstPercentage: {
+      type: SchemaTypes.Number,
+      min: 0,
+      max: 100,
+      default: null,
+    },
     variants: { type: [productVariantSchema], default: [] },
     remark: { type: SchemaTypes.String, default: '' },
     description: { type: SchemaTypes.String, default: '' },
     product_id: { type: SchemaTypes.ObjectId, ref: 'product', default: null },
     images: [{ type: SchemaTypes.ObjectId, ref: 'document' }],
   },
-  { _id: true },
+  { _id: true }
 )
 
 const querySchema = new mongoose.Schema(
@@ -112,7 +126,7 @@ const querySchema = new mongoose.Schema(
       default: '',
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 )
 
 querySchema.plugin(commonFieldsPlugin)

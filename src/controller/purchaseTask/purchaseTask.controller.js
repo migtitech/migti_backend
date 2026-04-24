@@ -86,7 +86,7 @@ export const listMyPurchaseTasksController = async (req, res) => {
 export const updatePurchaseTaskStatusController = async (req, res) => {
   const { error, value } = updatePurchaseTaskStatusSchema.validate(
     { ...req.body, ...req.query },
-    { abortEarly: false },
+    { abortEarly: false }
   )
 
   if (error) {
@@ -113,7 +113,7 @@ export const updatePurchaseTaskStatusController = async (req, res) => {
 export const updatePurchaseTaskRemarkController = async (req, res) => {
   const { error, value } = updatePurchaseTaskRemarkSchema.validate(
     { ...req.body, ...req.query },
-    { abortEarly: false },
+    { abortEarly: false }
   )
 
   if (error) {
@@ -196,4 +196,3 @@ export const adminListPurchaseTasksController = async (req, res) => {
     data: result,
   })
 }
-

@@ -1,7 +1,13 @@
 import EmployeeModel from '../../models/employee.model.js'
 import { assertSubZoneBelongsToArea } from '../subZone/subZone.service.js'
 import CustomError from '../../utils/exception.js'
-import { Message, statusCodes, errorCodes, MODULES, ACTIONS } from '../../core/common/constant.js'
+import {
+  Message,
+  statusCodes,
+  errorCodes,
+  MODULES,
+  ACTIONS,
+} from '../../core/common/constant.js'
 import { decrypt, encrypt } from '../../core/crypto/helper.cryto.js'
 import { createTokenPair } from '../../core/helpers/jwt.helper.js'
 
@@ -43,7 +49,9 @@ const SUB_ZONE_CREATE_PERM = `${MODULES.SUB_ZONES}:${ACTIONS.CREATE}`
  * when cleared, strip all sub_zones:* perms.
  */
 const syncPermissionsWithSubZoneAssignment = (permissions = [], subZoneId) => {
-  const arr = [...(Array.isArray(permissions) ? permissions : [])].map(String).filter(Boolean)
+  const arr = [...(Array.isArray(permissions) ? permissions : [])]
+    .map(String)
+    .filter(Boolean)
   const hasSub = subZoneId != null && String(subZoneId).trim() !== ''
   if (!hasSub) {
     return arr.filter((p) => !p.startsWith(SUB_ZONE_PERM_PREFIX))
@@ -83,16 +91,33 @@ export const addEmployee = async (payload) => {
   // Normalize optional bank details to strings to avoid type issues
   if (rest.bankDetails) {
     rest.bankDetails = {
-      accountNumber: typeof rest.bankDetails.accountNumber === 'string' ? rest.bankDetails.accountNumber : '',
-      ifscCode: typeof rest.bankDetails.ifscCode === 'string' ? rest.bankDetails.ifscCode : '',
-      bankName: typeof rest.bankDetails.bankName === 'string' ? rest.bankDetails.bankName : '',
+      accountNumber:
+        typeof rest.bankDetails.accountNumber === 'string'
+          ? rest.bankDetails.accountNumber
+          : '',
+      ifscCode:
+        typeof rest.bankDetails.ifscCode === 'string'
+          ? rest.bankDetails.ifscCode
+          : '',
+      bankName:
+        typeof rest.bankDetails.bankName === 'string'
+          ? rest.bankDetails.bankName
+          : '',
       accountHolderName:
-        typeof rest.bankDetails.accountHolderName === 'string' ? rest.bankDetails.accountHolderName : '',
-      upiDetails: typeof rest.bankDetails.upiDetails === 'string' ? rest.bankDetails.upiDetails : '',
+        typeof rest.bankDetails.accountHolderName === 'string'
+          ? rest.bankDetails.accountHolderName
+          : '',
+      upiDetails:
+        typeof rest.bankDetails.upiDetails === 'string'
+          ? rest.bankDetails.upiDetails
+          : '',
     }
   }
 
-  rest.permissions = syncPermissionsWithSubZoneAssignment(rest.permissions || [], rest.subZoneId)
+  rest.permissions = syncPermissionsWithSubZoneAssignment(
+    rest.permissions || [],
+    rest.subZoneId
+  )
 
   const existingEmployee = await EmployeeModel.findOne({
     $or: [{ email }, { idnumber }],
@@ -163,7 +188,12 @@ export const listEmployees = async ({
 }
 
 export const getEmployeeById = async ({ employeeId, branchFilter = {} }) => {
-  const employee = await EmployeeModel.findOne({ _id: employeeId, ...branchFilter }).select('-password').lean()
+  const employee = await EmployeeModel.findOne({
+    _id: employeeId,
+    ...branchFilter,
+  })
+    .select('-password')
+    .lean()
 
   if (!employee) {
     throw new CustomError(
@@ -176,8 +206,15 @@ export const getEmployeeById = async ({ employeeId, branchFilter = {} }) => {
   return withNormalizedZones(employee)
 }
 
-export const updateEmployee = async ({ employeeId, branchFilter = {}, ...updateData }) => {
-  const employee = await EmployeeModel.findOne({ _id: employeeId, ...branchFilter }).lean()
+export const updateEmployee = async ({
+  employeeId,
+  branchFilter = {},
+  ...updateData
+}) => {
+  const employee = await EmployeeModel.findOne({
+    _id: employeeId,
+    ...branchFilter,
+  }).lean()
   if (!employee) {
     throw new CustomError(
       statusCodes.notFound,
@@ -192,7 +229,7 @@ export const updateEmployee = async ({ employeeId, branchFilter = {}, ...updateD
   if (zonesTouched) {
     updateData.zoneIds = normalizeZoneIds(
       hasZoneIds ? updateData.zoneIds : [],
-      hasLegacyZoneId ? nullIfEmpty(updateData.zoneId) : null,
+      hasLegacyZoneId ? nullIfEmpty(updateData.zoneId) : null
     )
   }
   delete updateData.zoneId
@@ -209,7 +246,10 @@ export const updateEmployee = async ({ employeeId, branchFilter = {}, ...updateD
   const effSub = Object.prototype.hasOwnProperty.call(updateData, 'subZoneId')
     ? updateData.subZoneId
     : employee.subZoneId
-  const effBranchId = Object.prototype.hasOwnProperty.call(updateData, 'branchId')
+  const effBranchId = Object.prototype.hasOwnProperty.call(
+    updateData,
+    'branchId'
+  )
     ? updateData.branchId
     : employee.branchId
   const areaBranchFilter = effBranchId ? { branchId: effBranchId } : {}
@@ -230,10 +270,16 @@ export const updateEmployee = async ({ employeeId, branchFilter = {}, ...updateD
   }
 
   // Normalize optional company contact fields on update
-  if (Object.prototype.hasOwnProperty.call(updateData, 'companyEmail') && updateData.companyEmail == null) {
+  if (
+    Object.prototype.hasOwnProperty.call(updateData, 'companyEmail') &&
+    updateData.companyEmail == null
+  ) {
     updateData.companyEmail = ''
   }
-  if (Object.prototype.hasOwnProperty.call(updateData, 'companyPhone') && updateData.companyPhone == null) {
+  if (
+    Object.prototype.hasOwnProperty.call(updateData, 'companyPhone') &&
+    updateData.companyPhone == null
+  ) {
     updateData.companyPhone = ''
   }
 
@@ -241,16 +287,25 @@ export const updateEmployee = async ({ employeeId, branchFilter = {}, ...updateD
   if (updateData.bankDetails) {
     updateData.bankDetails = {
       accountNumber:
-        typeof updateData.bankDetails.accountNumber === 'string' ? updateData.bankDetails.accountNumber : '',
+        typeof updateData.bankDetails.accountNumber === 'string'
+          ? updateData.bankDetails.accountNumber
+          : '',
       ifscCode:
-        typeof updateData.bankDetails.ifscCode === 'string' ? updateData.bankDetails.ifscCode : '',
-      bankName: typeof updateData.bankDetails.bankName === 'string' ? updateData.bankDetails.bankName : '',
+        typeof updateData.bankDetails.ifscCode === 'string'
+          ? updateData.bankDetails.ifscCode
+          : '',
+      bankName:
+        typeof updateData.bankDetails.bankName === 'string'
+          ? updateData.bankDetails.bankName
+          : '',
       accountHolderName:
         typeof updateData.bankDetails.accountHolderName === 'string'
           ? updateData.bankDetails.accountHolderName
           : '',
       upiDetails:
-        typeof updateData.bankDetails.upiDetails === 'string' ? updateData.bankDetails.upiDetails : '',
+        typeof updateData.bankDetails.upiDetails === 'string'
+          ? updateData.bankDetails.upiDetails
+          : '',
     }
   }
 
@@ -274,9 +329,16 @@ export const updateEmployee = async ({ employeeId, branchFilter = {}, ...updateD
 
   const basePermissions =
     updateData.permissions !== undefined
-      ? [...(Array.isArray(updateData.permissions) ? updateData.permissions : [])]
+      ? [
+          ...(Array.isArray(updateData.permissions)
+            ? updateData.permissions
+            : []),
+        ]
       : [...(employee.permissions || [])]
-  updateData.permissions = syncPermissionsWithSubZoneAssignment(basePermissions, effSub)
+  updateData.permissions = syncPermissionsWithSubZoneAssignment(
+    basePermissions,
+    effSub
+  )
 
   const updatedEmployee = await EmployeeModel.findByIdAndUpdate(
     employeeId,
@@ -293,7 +355,10 @@ export const updateEmployee = async ({ employeeId, branchFilter = {}, ...updateD
 }
 
 export const deleteEmployee = async ({ employeeId, branchFilter = {} }) => {
-  const employee = await EmployeeModel.findOne({ _id: employeeId, ...branchFilter }).lean()
+  const employee = await EmployeeModel.findOne({
+    _id: employeeId,
+    ...branchFilter,
+  }).lean()
   if (!employee) {
     throw new CustomError(
       statusCodes.notFound,
@@ -315,7 +380,7 @@ export const deleteEmployee = async ({ employeeId, branchFilter = {} }) => {
 }
 
 export const employeeLogin = async ({ email, password, role }) => {
-  const employee = await EmployeeModel.findOne({ email , role }).lean()
+  const employee = await EmployeeModel.findOne({ email, role }).lean()
   if (!employee) {
     throw new CustomError(
       statusCodes.notFound,
@@ -345,7 +410,10 @@ export const employeeLogin = async ({ email, password, role }) => {
   const tokens = createTokenPair(tokenPayload)
 
   const safeEmployee = { ...employee }
-  safeEmployee.zoneIds = normalizeZoneIds(safeEmployee.zoneIds, safeEmployee.zoneId)
+  safeEmployee.zoneIds = normalizeZoneIds(
+    safeEmployee.zoneIds,
+    safeEmployee.zoneId
+  )
   delete safeEmployee.password
 
   return {

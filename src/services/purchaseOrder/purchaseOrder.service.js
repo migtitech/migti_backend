@@ -1,4 +1,6 @@
-import PurchaseOrderModel, { PURCHASE_ORDER_STATUS } from '../../models/purchaseOrder.model.js'
+import PurchaseOrderModel, {
+  PURCHASE_ORDER_STATUS,
+} from '../../models/purchaseOrder.model.js'
 import QuotationModel from '../../models/quotation.model.js'
 import CustomError from '../../utils/exception.js'
 import { getNextSequence } from '../codeSequence/codeSequence.service.js'
@@ -16,16 +18,27 @@ const lineTaxableAmount = (p) => {
   const qty = Number(p.quantity) || 0
   const rate = Number(p.rate) || 0
   let lineTotal = qty * rate
-  if (p.applyDiscount && p.discountPercentage != null && !Number.isNaN(Number(p.discountPercentage))) {
+  if (
+    p.applyDiscount &&
+    p.discountPercentage != null &&
+    !Number.isNaN(Number(p.discountPercentage))
+  ) {
     lineTotal -= lineTotal * (Number(p.discountPercentage) / 100)
   }
   return Math.max(0, lineTotal)
 }
 
 const lineGstPctForProduct = (p) => {
-  if (typeof p?.gstPercentage === 'number' && !Number.isNaN(p.gstPercentage)) return p.gstPercentage
-  const ref = p?.product_id && typeof p.product_id === 'object' ? p.product_id : null
-  if (ref && typeof ref.gstPercentage === 'number' && !Number.isNaN(ref.gstPercentage)) return ref.gstPercentage
+  if (typeof p?.gstPercentage === 'number' && !Number.isNaN(p.gstPercentage))
+    return p.gstPercentage
+  const ref =
+    p?.product_id && typeof p.product_id === 'object' ? p.product_id : null
+  if (
+    ref &&
+    typeof ref.gstPercentage === 'number' &&
+    !Number.isNaN(ref.gstPercentage)
+  )
+    return ref.gstPercentage
   return 0
 }
 
@@ -44,7 +57,10 @@ export const computePurchaseOrderFinancials = (po) => {
   const taxableAfterCharges = totalTaxable + freight + packing
   const grandTotal = taxableAfterCharges + totalGst
   const payments = Array.isArray(po?.payments) ? po.payments : []
-  const totalPaid = payments.reduce((sum, e) => sum + (Number(e.amount) || 0), 0)
+  const totalPaid = payments.reduce(
+    (sum, e) => sum + (Number(e.amount) || 0),
+    0
+  )
   return {
     totalTaxable,
     totalGst,
@@ -90,7 +106,12 @@ const toImageIds = (imgs) => {
 
 const cloneProductsFromQuotation = (products = []) => {
   return products.map((p) => {
-    const obj = typeof p === 'object' && p !== null ? (typeof p.toObject === 'function' ? p.toObject() : p) : {}
+    const obj =
+      typeof p === 'object' && p !== null
+        ? typeof p.toObject === 'function'
+          ? p.toObject()
+          : p
+        : {}
     return {
       productName: obj.productName || '',
       description: obj.description || '',
@@ -102,7 +123,10 @@ const cloneProductsFromQuotation = (products = []) => {
       variants: Array.isArray(obj.variants) ? obj.variants : [],
       remark: obj.remark || '',
       product_id: obj.product_id || null,
-      rate: typeof obj.rate === 'number' && !Number.isNaN(obj.rate) ? obj.rate : null,
+      rate:
+        typeof obj.rate === 'number' && !Number.isNaN(obj.rate)
+          ? obj.rate
+          : null,
       images: toImageIds(obj.images || []),
       applyDiscount: !!obj.applyDiscount,
       discountPercentage: obj.discountPercentage ?? null,
@@ -132,10 +156,19 @@ export const createPurchaseOrderFromQuotation = async ({
   }).lean()
 
   if (!quotation) {
-    throw new CustomError(statusCodes.notFound, 'Quotation not found', errorCodes.not_found)
+    throw new CustomError(
+      statusCodes.notFound,
+      'Quotation not found',
+      errorCodes.not_found
+    )
   }
 
-  await assertQuotationAccess({ quotation, branchFilter, currentUserId, isFullAccessRole })
+  await assertQuotationAccess({
+    quotation,
+    branchFilter,
+    currentUserId,
+    isFullAccessRole,
+  })
 
   if (reuseExisting) {
     const existing = await PurchaseOrderModel.findOne({
@@ -185,10 +218,19 @@ export const getPurchaseOrderByQuotationId = async ({
     .lean()
 
   if (!quotation) {
-    throw new CustomError(statusCodes.notFound, 'Quotation not found', errorCodes.not_found)
+    throw new CustomError(
+      statusCodes.notFound,
+      'Quotation not found',
+      errorCodes.not_found
+    )
   }
 
-  await assertQuotationAccess({ quotation, branchFilter, currentUserId, isFullAccessRole })
+  await assertQuotationAccess({
+    quotation,
+    branchFilter,
+    currentUserId,
+    isFullAccessRole,
+  })
 
   const po = await PurchaseOrderModel.findOne({
     quotationId,
@@ -269,9 +311,18 @@ export const getPurchaseOrderById = async ({
     isDeleted: false,
     ...branchFilter,
   })
-    .populate('quotationId', 'quotationCode status companyInfo industry_id products created_by')
-    .populate('queryId', 'queryCode status companyInfo industry_id products created_by')
-    .populate('industry_id', 'name location address email purchase_manager_name purchase_manager_phone')
+    .populate(
+      'quotationId',
+      'quotationCode status companyInfo industry_id products created_by'
+    )
+    .populate(
+      'queryId',
+      'queryCode status companyInfo industry_id products created_by'
+    )
+    .populate(
+      'industry_id',
+      'name location address email purchase_manager_name purchase_manager_phone'
+    )
     .populate('created_by', 'name email')
     .populate('salesEmployeeId', 'name email phone role designation')
     .populate({
@@ -287,7 +338,11 @@ export const getPurchaseOrderById = async ({
     .lean()
 
   if (!po) {
-    throw new CustomError(statusCodes.notFound, 'Purchase order not found', errorCodes.not_found)
+    throw new CustomError(
+      statusCodes.notFound,
+      'Purchase order not found',
+      errorCodes.not_found
+    )
   }
 
   if (po.products?.length) {
@@ -302,7 +357,9 @@ export const getPurchaseOrderById = async ({
   }
 
   if (po.branchId) {
-    const branch = await CompanyBranchModel.findById(po.branchId).select('signature').lean()
+    const branch = await CompanyBranchModel.findById(po.branchId)
+      .select('signature')
+      .lean()
     const signatureId = branch?.signature ? String(branch.signature) : ''
     if (signatureId) {
       const signatureDoc = await getDocumentById(signatureId)
@@ -336,12 +393,20 @@ export const appendPurchaseOrderPayment = async ({
   }).lean()
 
   if (!existing) {
-    throw new CustomError(statusCodes.notFound, 'Purchase order not found', errorCodes.not_found)
+    throw new CustomError(
+      statusCodes.notFound,
+      'Purchase order not found',
+      errorCodes.not_found
+    )
   }
 
   const amt = Number(amount)
   if (Number.isNaN(amt) || amt <= 0) {
-    throw new CustomError(statusCodes.badRequest, 'amount must be a positive number', errorCodes.validation_error)
+    throw new CustomError(
+      statusCodes.badRequest,
+      'amount must be a positive number',
+      errorCodes.validation_error
+    )
   }
 
   const entry = {
@@ -353,7 +418,7 @@ export const appendPurchaseOrderPayment = async ({
   const updated = await PurchaseOrderModel.findByIdAndUpdate(
     purchaseOrderId,
     { $push: { payments: entry } },
-    { new: true, runValidators: true },
+    { new: true, runValidators: true }
   )
     .populate('salesEmployeeId', 'name email phone role')
     .populate({
@@ -397,24 +462,33 @@ export const updatePurchaseOrder = async ({
   }).lean()
 
   if (!existing) {
-    throw new CustomError(statusCodes.notFound, 'Purchase order not found', errorCodes.not_found)
+    throw new CustomError(
+      statusCodes.notFound,
+      'Purchase order not found',
+      errorCodes.not_found
+    )
   }
 
   const updatePayload = {}
   if (companyInfo !== undefined) updatePayload.companyInfo = companyInfo
   if (industry_id !== undefined) updatePayload.industry_id = industry_id || null
   if (freightCharge !== undefined) {
-    updatePayload.freightCharge = Number(freightCharge) >= 0 ? Number(freightCharge) : 0
+    updatePayload.freightCharge =
+      Number(freightCharge) >= 0 ? Number(freightCharge) : 0
   }
   if (packingCharge !== undefined) {
-    updatePayload.packingCharge = Number(packingCharge) >= 0 ? Number(packingCharge) : 0
+    updatePayload.packingCharge =
+      Number(packingCharge) >= 0 ? Number(packingCharge) : 0
   }
-  if (expectedDeliveryDate !== undefined) updatePayload.expectedDeliveryDate = expectedDeliveryDate || null
+  if (expectedDeliveryDate !== undefined)
+    updatePayload.expectedDeliveryDate = expectedDeliveryDate || null
   if (expectedDeliveryWithinDays !== undefined) {
     updatePayload.expectedDeliveryWithinDays =
       expectedDeliveryWithinDays === null || expectedDeliveryWithinDays === ''
         ? null
-        : (Number(expectedDeliveryWithinDays) >= 0 ? Number(expectedDeliveryWithinDays) : null)
+        : Number(expectedDeliveryWithinDays) >= 0
+          ? Number(expectedDeliveryWithinDays)
+          : null
   }
   if (remark !== undefined) updatePayload.remark = (remark || '').trim()
   if (products !== undefined) updatePayload.products = products
@@ -424,10 +498,14 @@ export const updatePurchaseOrder = async ({
       sid && OBJECT_ID_REGEX.test(sid) ? sid : null
   }
 
-  const updated = await PurchaseOrderModel.findByIdAndUpdate(purchaseOrderId, updatePayload, {
-    new: true,
-    runValidators: true,
-  })
+  const updated = await PurchaseOrderModel.findByIdAndUpdate(
+    purchaseOrderId,
+    updatePayload,
+    {
+      new: true,
+      runValidators: true,
+    }
+  )
     .populate('quotationId', 'quotationCode status')
     .populate('queryId', 'queryCode status')
     .populate('industry_id', 'name location email')
@@ -437,7 +515,8 @@ export const updatePurchaseOrder = async ({
 
   if (updated?.products?.length) {
     for (const p of updated.products) {
-      if (p.images?.length) p.images = await transformPathsToSignedUrls(p.images)
+      if (p.images?.length)
+        p.images = await transformPathsToSignedUrls(p.images)
     }
   }
 
@@ -462,13 +541,17 @@ export const updatePurchaseOrderStatus = async ({
   }).lean()
 
   if (!existing) {
-    throw new CustomError(statusCodes.notFound, 'Purchase order not found', errorCodes.not_found)
+    throw new CustomError(
+      statusCodes.notFound,
+      'Purchase order not found',
+      errorCodes.not_found
+    )
   }
 
   const updated = await PurchaseOrderModel.findByIdAndUpdate(
     purchaseOrderId,
     { $set: { status } },
-    { new: true, runValidators: true },
+    { new: true, runValidators: true }
   )
     .populate('quotationId', 'quotationCode status')
     .populate('queryId', 'queryCode status')

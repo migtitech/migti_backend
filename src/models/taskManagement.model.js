@@ -26,7 +26,7 @@ const productInfoSchema = new mongoose.Schema(
     description: { type: SchemaTypes.String, trim: true, default: '' },
     image: { type: SchemaTypes.ObjectId, ref: 'document', default: null },
   },
-  { _id: false },
+  { _id: false }
 )
 
 const supplierInfoSchema = new mongoose.Schema(
@@ -42,7 +42,7 @@ const supplierInfoSchema = new mongoose.Schema(
     updatedBy: { type: SchemaTypes.ObjectId, ref: 'employee', default: null },
     updatedAt: { type: SchemaTypes.Date, default: null },
   },
-  { _id: false },
+  { _id: false }
 )
 
 const taskManagementSchema = new mongoose.Schema(
@@ -106,11 +106,14 @@ const taskManagementSchema = new mongoose.Schema(
       default: null,
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 )
 
 taskManagementSchema.plugin(commonFieldsPlugin)
 
-const TaskManagementModel = mongoose.model('taskManagement', taskManagementSchema)
+const TaskManagementModel = mongoose.model(
+  'taskManagement',
+  taskManagementSchema
+)
 
 export default TaskManagementModel

@@ -1,7 +1,11 @@
 import mongoose from 'mongoose'
 import QueryModel from '../../models/query.model.js'
-import QuotationModel, { QUOTATION_STATUS } from '../../models/quotation.model.js'
-import PurchaseOrderModel, { PURCHASE_ORDER_STATUS } from '../../models/purchaseOrder.model.js'
+import QuotationModel, {
+  QUOTATION_STATUS,
+} from '../../models/quotation.model.js'
+import PurchaseOrderModel, {
+  PURCHASE_ORDER_STATUS,
+} from '../../models/purchaseOrder.model.js'
 import PoEntryModel from '../../models/poEntry.model.js'
 import BillingEntryModel from '../../models/billingEntry.model.js'
 import QueryActivityModel from '../../models/queryActivity.model.js'
@@ -123,7 +127,9 @@ export const mergeQuotationRefsForQueries = async (queries = []) => {
   }
   return queries.map((q) => {
     const fromDb = byQuery.get(String(q._id)) || []
-    const stored = Array.isArray(q.convertedQuotations) ? q.convertedQuotations : []
+    const stored = Array.isArray(q.convertedQuotations)
+      ? q.convertedQuotations
+      : []
     const merged = dedupeConvertedQuotationRefs([...stored, ...fromDb])
     return { ...q, convertedQuotations: merged }
   })
@@ -196,9 +202,18 @@ export const listQueries = async ({
   const limit = Math.min(100, Math.max(1, parseInt(pageSize)))
   const skip = (page - 1) * limit
 
-  const ownershipFilter = await resolveQueryAccessFilter({ currentUserId, isFullAccessRole, role, branchFilter })
+  const ownershipFilter = await resolveQueryAccessFilter({
+    currentUserId,
+    isFullAccessRole,
+    role,
+    branchFilter,
+  })
   const filter = { isDeleted: false, ...branchFilter, ...ownershipFilter }
-  if (industryId && String(industryId).trim() && mongoose.Types.ObjectId.isValid(industryId)) {
+  if (
+    industryId &&
+    String(industryId).trim() &&
+    mongoose.Types.ObjectId.isValid(industryId)
+  ) {
     filter.industry_id = new mongoose.Types.ObjectId(String(industryId).trim())
   }
   if (status && status.trim()) {
@@ -213,17 +228,20 @@ export const listQueries = async ({
       const areaObjectIds = selectedAreaIds
         .filter((id) => mongoose.Types.ObjectId.isValid(id))
         .map((id) => new mongoose.Types.ObjectId(id))
-      filter['companyInfo.area'] = { $in: [...selectedAreaIds, ...areaObjectIds] }
+      filter['companyInfo.area'] = {
+        $in: [...selectedAreaIds, ...areaObjectIds],
+      }
     }
   }
 
-  let fromD = dateFrom && String(dateFrom).trim() ? startOfUtcDay(dateFrom) : null
+  let fromD =
+    dateFrom && String(dateFrom).trim() ? startOfUtcDay(dateFrom) : null
   let toD = dateTo && String(dateTo).trim() ? endOfUtcDay(dateTo) : null
   if (fromD && toD && fromD > toD) {
     throw new CustomError(
       statusCodes.badRequest,
       'dateFrom must be on or before dateTo',
-      errorCodes.bad_request,
+      errorCodes.bad_request
     )
   }
   if (fromD || toD) {
@@ -278,9 +296,22 @@ export const getQueryById = async ({
   isFullAccessRole = true,
   role = '',
 }) => {
-  const ownershipFilter = await resolveQueryAccessFilter({ currentUserId, isFullAccessRole, role, branchFilter })
-  const query = await QueryModel.findOne({ _id: queryId, isDeleted: false, ...branchFilter, ...ownershipFilter })
-    .populate('industry_id', 'name location address email purchase_manager_name purchase_manager_phone')
+  const ownershipFilter = await resolveQueryAccessFilter({
+    currentUserId,
+    isFullAccessRole,
+    role,
+    branchFilter,
+  })
+  const query = await QueryModel.findOne({
+    _id: queryId,
+    isDeleted: false,
+    ...branchFilter,
+    ...ownershipFilter,
+  })
+    .populate(
+      'industry_id',
+      'name location address email purchase_manager_name purchase_manager_phone'
+    )
     .populate('created_by', 'name email')
     .populate({
       path: 'products.product_id',
@@ -298,7 +329,7 @@ export const getQueryById = async ({
     throw new CustomError(
       statusCodes.notFound,
       'Query not found',
-      errorCodes.not_found,
+      errorCodes.not_found
     )
   }
 
@@ -319,8 +350,11 @@ export const getQueryById = async ({
 
 const resolvePerformerName = async (performerId) => {
   if (!performerId) return null
-  let user = await EmployeeModel.findById(performerId).select('name email').lean()
-  if (user) return { name: user.name, email: user.email, role: user.role || 'employee' }
+  let user = await EmployeeModel.findById(performerId)
+    .select('name email')
+    .lean()
+  if (user)
+    return { name: user.name, email: user.email, role: user.role || 'employee' }
   user = await AdminModel.findById(performerId).select('name email').lean()
   if (user) return { name: user.name, email: user.email, role: 'admin' }
   user = await SuperAdminModel.findById(performerId).select('name email').lean()
@@ -337,7 +371,12 @@ export const listQueryActivities = async ({
   isFullAccessRole = true,
   role = '',
 }) => {
-  const ownershipFilter = await resolveQueryAccessFilter({ currentUserId, isFullAccessRole, role, branchFilter })
+  const ownershipFilter = await resolveQueryAccessFilter({
+    currentUserId,
+    isFullAccessRole,
+    role,
+    branchFilter,
+  })
   const queryBelongs = await QueryModel.findOne({
     _id: queryId,
     isDeleted: false,
@@ -348,7 +387,7 @@ export const listQueryActivities = async ({
     throw new CustomError(
       statusCodes.notFound,
       'Query not found',
-      errorCodes.not_found,
+      errorCodes.not_found
     )
   }
 
@@ -367,7 +406,9 @@ export const listQueryActivities = async ({
 
   const totalPages = Math.ceil(totalItems / limit)
 
-  const performerIds = [...new Set(activities.map((a) => a.performedBy).filter(Boolean))]
+  const performerIds = [
+    ...new Set(activities.map((a) => a.performedBy).filter(Boolean)),
+  ]
   const performerMap = {}
   for (const pid of performerIds) {
     const resolved = await resolvePerformerName(pid)
@@ -404,13 +445,23 @@ export const recordQueryActivity = async ({
   isFullAccessRole = true,
   role = '',
 }) => {
-  const ownershipFilter = await resolveQueryAccessFilter({ currentUserId, isFullAccessRole, role, branchFilter })
-  const query = await QueryModel.findOne({ _id: queryId, isDeleted: false, ...branchFilter, ...ownershipFilter }).lean()
+  const ownershipFilter = await resolveQueryAccessFilter({
+    currentUserId,
+    isFullAccessRole,
+    role,
+    branchFilter,
+  })
+  const query = await QueryModel.findOne({
+    _id: queryId,
+    isDeleted: false,
+    ...branchFilter,
+    ...ownershipFilter,
+  }).lean()
   if (!query) {
     throw new CustomError(
       statusCodes.notFound,
       'Query not found',
-      errorCodes.not_found,
+      errorCodes.not_found
     )
   }
 
@@ -444,13 +495,23 @@ export const updateQuery = async ({
   isFullAccessRole = true,
   role = '',
 }) => {
-  const ownershipFilter = await resolveQueryAccessFilter({ currentUserId, isFullAccessRole, role, branchFilter })
-  const existing = await QueryModel.findOne({ _id: queryId, isDeleted: false, ...branchFilter, ...ownershipFilter }).lean()
+  const ownershipFilter = await resolveQueryAccessFilter({
+    currentUserId,
+    isFullAccessRole,
+    role,
+    branchFilter,
+  })
+  const existing = await QueryModel.findOne({
+    _id: queryId,
+    isDeleted: false,
+    ...branchFilter,
+    ...ownershipFilter,
+  }).lean()
   if (!existing) {
     throw new CustomError(
       statusCodes.notFound,
       'Query not found',
-      errorCodes.not_found,
+      errorCodes.not_found
     )
   }
 
@@ -458,7 +519,7 @@ export const updateQuery = async ({
     throw new CustomError(
       statusCodes.badRequest,
       'This query is closed and cannot be updated',
-      errorCodes.bad_request,
+      errorCodes.bad_request
     )
   }
 
@@ -469,16 +530,16 @@ export const updateQuery = async ({
     updatePayload.companyInfo = companyInfo
   }
   if (industry_id !== undefined) updatePayload.industry_id = industry_id || null
-  if (products !== undefined) updatePayload.products = mapProductsWithImages(products)
+  if (products !== undefined)
+    updatePayload.products = mapProductsWithImages(products)
   if (delivery !== undefined) updatePayload.delivery = delivery
   if (status !== undefined) updatePayload.status = status
   if (close_remark !== undefined) updatePayload.close_remark = close_remark
 
-  const updated = await QueryModel.findByIdAndUpdate(
-    queryId,
-    updatePayload,
-    { new: true, runValidators: true },
-  )
+  const updated = await QueryModel.findByIdAndUpdate(queryId, updatePayload, {
+    new: true,
+    runValidators: true,
+  })
     .populate('industry_id', 'name location email')
     .lean()
 
@@ -492,17 +553,31 @@ export const deleteQuery = async ({
   isFullAccessRole = true,
   role = '',
 }) => {
-  const ownershipFilter = await resolveQueryAccessFilter({ currentUserId, isFullAccessRole, role, branchFilter })
-  const existing = await QueryModel.findOne({ _id: queryId, isDeleted: false, ...branchFilter, ...ownershipFilter }).lean()
+  const ownershipFilter = await resolveQueryAccessFilter({
+    currentUserId,
+    isFullAccessRole,
+    role,
+    branchFilter,
+  })
+  const existing = await QueryModel.findOne({
+    _id: queryId,
+    isDeleted: false,
+    ...branchFilter,
+    ...ownershipFilter,
+  }).lean()
   if (!existing) {
     throw new CustomError(
       statusCodes.notFound,
       'Query not found',
-      errorCodes.not_found,
+      errorCodes.not_found
     )
   }
 
-  await QueryModel.findByIdAndUpdate(queryId, { isDeleted: true }, { new: true })
+  await QueryModel.findByIdAndUpdate(
+    queryId,
+    { isDeleted: true },
+    { new: true }
+  )
 
   return {
     deletedQuery: {
@@ -522,7 +597,12 @@ export const linkConvertedQuotationToQuery = async ({
   isFullAccessRole = true,
   role = '',
 }) => {
-  const ownershipFilter = await resolveQueryAccessFilter({ currentUserId, isFullAccessRole, role, branchFilter })
+  const ownershipFilter = await resolveQueryAccessFilter({
+    currentUserId,
+    isFullAccessRole,
+    role,
+    branchFilter,
+  })
   const existing = await QueryModel.findOne({
     _id: queryId,
     isDeleted: false,
@@ -533,7 +613,7 @@ export const linkConvertedQuotationToQuery = async ({
     throw new CustomError(
       statusCodes.notFound,
       'Query not found',
-      errorCodes.not_found,
+      errorCodes.not_found
     )
   }
 
@@ -572,7 +652,7 @@ export const convertQueryToQuotation = async ({
     throw new CustomError(
       statusCodes.notFound,
       'Query not found',
-      errorCodes.not_found,
+      errorCodes.not_found
     )
   }
 
@@ -580,13 +660,16 @@ export const convertQueryToQuotation = async ({
     throw new CustomError(
       statusCodes.badRequest,
       'Cannot convert a closed query to quotation',
-      errorCodes.bad_request,
+      errorCodes.bad_request
     )
   }
 
   let quotation = null
   if (!forceNewQuotation) {
-    quotation = await getQuotationByQueryId({ queryId: existing._id, branchFilter })
+    quotation = await getQuotationByQueryId({
+      queryId: existing._id,
+      branchFilter,
+    })
   }
   if (!quotation) {
     quotation = await createQuotationFromQuery({
@@ -603,18 +686,21 @@ export const convertQueryToQuotation = async ({
   await appendConvertedQuotationOnQuery(
     existing._id,
     quotation._id,
-    quotation.quotationCode,
+    quotation.quotationCode
   )
 
   if (existing.status !== 'convertedToQuotation') {
     await QueryModel.updateOne(
       { _id: existing._id },
-      { $set: { status: 'convertedToQuotation' } },
+      { $set: { status: 'convertedToQuotation' } }
     )
   }
 
   const updatedQuery = await QueryModel.findById(existing._id)
-    .populate('industry_id', 'name location address email purchase_manager_name purchase_manager_phone')
+    .populate(
+      'industry_id',
+      'name location address email purchase_manager_name purchase_manager_phone'
+    )
     .lean()
 
   return { query: updatedQuery, quotation }
@@ -634,7 +720,8 @@ const computeQuotationAmount = (products = []) => {
     if (item?.notAvailable) return sum
     const qty = Number(item?.quantity)
     const rate = Number(item?.rate)
-    if (Number.isNaN(qty) || Number.isNaN(rate) || qty < 0 || rate < 0) return sum
+    if (Number.isNaN(qty) || Number.isNaN(rate) || qty < 0 || rate < 0)
+      return sum
 
     let lineTotal = qty * rate
     if (item?.applyDiscount && item?.discountPercentage != null) {
@@ -652,7 +739,12 @@ export const getTodayDashboardStats = async ({
   role = '',
 }) => {
   const { start, end } = getDayRange()
-  const ownershipFilter = await resolveQueryAccessFilter({ currentUserId, isFullAccessRole, role, branchFilter })
+  const ownershipFilter = await resolveQueryAccessFilter({
+    currentUserId,
+    isFullAccessRole,
+    role,
+    branchFilter,
+  })
 
   const queryFilter = {
     isDeleted: false,
@@ -685,14 +777,15 @@ export const getTodayDashboardStats = async ({
     }
   }
 
-  const todayQuotationCount = await QuotationModel.countDocuments(quotationFilter)
+  const todayQuotationCount =
+    await QuotationModel.countDocuments(quotationFilter)
   const todayQuotations = await QuotationModel.find(quotationFilter)
     .select('products')
     .lean()
 
   const todayQuotedAmount = todayQuotations.reduce(
     (sum, q) => sum + computeQuotationAmount(q?.products || []),
-    0,
+    0
   )
 
   return {
@@ -704,16 +797,38 @@ export const getTodayDashboardStats = async ({
 
 const getRangeFromPeriod = (period = 'all') => {
   const now = new Date()
-  const end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999))
+  const end = new Date(
+    Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate(),
+      23,
+      59,
+      59,
+      999
+    )
+  )
   let start = null
   if (period === 'daily') {
-    start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0))
+    start = new Date(
+      Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate(),
+        0,
+        0,
+        0,
+        0
+      )
+    )
   } else if (period === 'weekly') {
     start = new Date(end)
     start.setUTCDate(start.getUTCDate() - 6)
     start.setUTCHours(0, 0, 0, 0)
   } else if (period === 'monthly') {
-    start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0))
+    start = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0)
+    )
   } else if (period === 'yearly') {
     start = new Date(Date.UTC(now.getUTCFullYear(), 0, 1, 0, 0, 0, 0))
   }
@@ -742,9 +857,18 @@ export const getBranchAnalytics = async ({
   const page = Math.max(1, parseInt(pageNumber))
   const limit = Math.min(100, Math.max(1, parseInt(pageSize)))
   const skip = (page - 1) * limit
-  const ownershipFilter = await resolveQueryAccessFilter({ currentUserId, isFullAccessRole, role, branchFilter })
+  const ownershipFilter = await resolveQueryAccessFilter({
+    currentUserId,
+    isFullAccessRole,
+    role,
+    branchFilter,
+  })
 
-  const queryBaseFilter = { isDeleted: false, ...ownershipFilter, ...branchFilter }
+  const queryBaseFilter = {
+    isDeleted: false,
+    ...ownershipFilter,
+    ...branchFilter,
+  }
   const quotationBaseFilter = { isDeleted: false, ...branchFilter }
   const poBaseFilter = { isDeleted: false, ...branchFilter }
   const billingBaseFilter = { isDeleted: false, ...branchFilter }
@@ -762,7 +886,8 @@ export const getBranchAnalytics = async ({
     billingBaseFilter.branchId = branchId
   }
 
-  let fromD = dateFrom && String(dateFrom).trim() ? startOfUtcDay(dateFrom) : null
+  let fromD =
+    dateFrom && String(dateFrom).trim() ? startOfUtcDay(dateFrom) : null
   let toD = dateTo && String(dateTo).trim() ? endOfUtcDay(dateTo) : null
   if (!fromD && !toD && period && period !== 'all') {
     const range = getRangeFromPeriod(period)
@@ -773,7 +898,7 @@ export const getBranchAnalytics = async ({
     throw new CustomError(
       statusCodes.badRequest,
       'dateFrom must be on or before dateTo',
-      errorCodes.bad_request,
+      errorCodes.bad_request
     )
   }
   if (fromD || toD) {
@@ -806,7 +931,14 @@ export const getBranchAnalytics = async ({
     quotationBaseFilter.queryId = { $in: ownQueryIds.map((q) => q._id) }
   }
 
-  const [totalQueries, totalQuotation, totalPo, totalBilling, poAmountAgg, billingAmountAgg] = await Promise.all([
+  const [
+    totalQueries,
+    totalQuotation,
+    totalPo,
+    totalBilling,
+    poAmountAgg,
+    billingAmountAgg,
+  ] = await Promise.all([
     QueryModel.countDocuments(queryBaseFilter),
     QuotationModel.countDocuments(quotationBaseFilter),
     PoEntryModel.countDocuments(poBaseFilter),
@@ -826,7 +958,7 @@ export const getBranchAnalytics = async ({
     .lean()
   const quotedAmount = quotedAmountDocs.reduce(
     (sum, q) => sum + computeQuotationAmount(q?.products || []),
-    0,
+    0
   )
   const poAmount = poAmountAgg?.[0]?.total || 0
   const billingAmount = billingAmountAgg?.[0]?.total || 0
@@ -852,7 +984,9 @@ export const getBranchAnalytics = async ({
   } else if (tab === 'quotations') {
     totalItems = totalQuotation
     rows = await QuotationModel.find(quotationBaseFilter)
-      .select('quotationCode status companyInfo createdAt branchId totalAmount products')
+      .select(
+        'quotationCode status companyInfo createdAt branchId totalAmount products'
+      )
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
@@ -863,15 +997,18 @@ export const getBranchAnalytics = async ({
       status: item.status || '',
       companyInfo: item.companyInfo || {},
       branchId: asObjectIdString(item.branchId),
-      totalAmount: typeof item.totalAmount === 'number'
-        ? item.totalAmount
-        : computeQuotationAmount(item?.products || []),
+      totalAmount:
+        typeof item.totalAmount === 'number'
+          ? item.totalAmount
+          : computeQuotationAmount(item?.products || []),
       createdAt: item.createdAt,
     }))
   } else if (tab === 'po') {
     totalItems = totalPo
     rows = await PoEntryModel.find(poBaseFilter)
-      .select('poNumber amount entryDate remark companyId salespersonId createdAt')
+      .select(
+        'poNumber amount entryDate remark companyId salespersonId createdAt'
+      )
       .populate('companyId', 'name')
       .populate('salespersonId', 'name')
       .sort({ entryDate: -1, createdAt: -1 })
@@ -890,7 +1027,9 @@ export const getBranchAnalytics = async ({
   } else if (tab === 'billing') {
     totalItems = totalBilling
     rows = await BillingEntryModel.find(billingBaseFilter)
-      .select('billingNumber amount entryDate remark companyId salespersonId createdAt')
+      .select(
+        'billingNumber amount entryDate remark companyId salespersonId createdAt'
+      )
       .populate('companyId', 'name')
       .populate('salespersonId', 'name')
       .sort({ entryDate: -1, createdAt: -1 })
@@ -947,12 +1086,18 @@ export const getTargetSummary = async (params = {}) => {
   return getTargetSummaryData(params)
 }
 
-export const getZoneTargetAnalytics = async (params = {}) => getZoneTargetAnalyticsData(params)
-export const upsertZoneTargetAnalytics = async (params = {}) => upsertZoneTargetAnalyticsData(params)
-export const getZoneTargetSummary = async (params = {}) => getZoneTargetSummaryData(params)
-export const getEmployeeTargetAnalytics = async (params = {}) => getEmployeeTargetAnalyticsData(params)
-export const upsertEmployeeTargetAnalytics = async (params = {}) => upsertEmployeeTargetAnalyticsData(params)
-export const getEmployeeTargetSummary = async (params = {}) => getEmployeeTargetSummaryData(params)
+export const getZoneTargetAnalytics = async (params = {}) =>
+  getZoneTargetAnalyticsData(params)
+export const upsertZoneTargetAnalytics = async (params = {}) =>
+  upsertZoneTargetAnalyticsData(params)
+export const getZoneTargetSummary = async (params = {}) =>
+  getZoneTargetSummaryData(params)
+export const getEmployeeTargetAnalytics = async (params = {}) =>
+  getEmployeeTargetAnalyticsData(params)
+export const upsertEmployeeTargetAnalytics = async (params = {}) =>
+  upsertEmployeeTargetAnalyticsData(params)
+export const getEmployeeTargetSummary = async (params = {}) =>
+  getEmployeeTargetSummaryData(params)
 
 /** Same calendar windows as branch target analytics (targetAnalytics.service getCurrentPeriodRange). */
 const getBranchTargetCalendarRange = (period) => {
@@ -965,8 +1110,20 @@ const getBranchTargetCalendarRange = (period) => {
     start.setDate(today.getDate() - 6)
   } else {
     start = new Date(today.getFullYear(), today.getMonth(), 1, 0, 0, 0, 0)
-    const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate()
-    end = new Date(today.getFullYear(), today.getMonth(), Math.min(30, lastDay), 23, 59, 59, 999)
+    const lastDay = new Date(
+      today.getFullYear(),
+      today.getMonth() + 1,
+      0
+    ).getDate()
+    end = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      Math.min(30, lastDay),
+      23,
+      59,
+      59,
+      999
+    )
   }
 
   start.setHours(0, 0, 0, 0)
@@ -975,7 +1132,12 @@ const getBranchTargetCalendarRange = (period) => {
   return { start, end }
 }
 
-const getBranchTargetDocForCurrentWindow = async (branchId, period, start, end) => {
+const getBranchTargetDocForCurrentWindow = async (
+  branchId,
+  period,
+  start,
+  end
+) => {
   return TargetAnalyticsModel.findOne({
     isDeleted: false,
     branchId,
@@ -988,7 +1150,11 @@ const getBranchTargetDocForCurrentWindow = async (branchId, period, start, end) 
 }
 
 /** Billing total for branch: strict branchId on billingentries, entryDate in range. */
-const getBranchBillingTotalByEntryDate = async (branchId, rangeFrom, rangeTo) => {
+const getBranchBillingTotalByEntryDate = async (
+  branchId,
+  rangeFrom,
+  rangeTo
+) => {
   if (!branchId || !mongoose.Types.ObjectId.isValid(String(branchId))) return 0
   const bid = new mongoose.Types.ObjectId(String(branchId))
   const match = {
@@ -1005,7 +1171,12 @@ const getBranchBillingTotalByEntryDate = async (branchId, rangeFrom, rangeTo) =>
 
 const resolveHodPeriod = async (branchId, period) => {
   const { start, end } = getBranchTargetCalendarRange(period)
-  const targetDoc = await getBranchTargetDocForCurrentWindow(branchId, period, start, end)
+  const targetDoc = await getBranchTargetDocForCurrentWindow(
+    branchId,
+    period,
+    start,
+    end
+  )
   const rangeFrom = targetDoc?.dateFrom ? new Date(targetDoc.dateFrom) : start
   const rangeTo = targetDoc?.dateTo ? new Date(targetDoc.dateTo) : end
   const targetAmount = Number(targetDoc?.targetAmount || 0)
@@ -1034,8 +1205,16 @@ export const getHodDashboardCards = async ({ branchId }) => {
   ])
 
   const [weeklyBilling, monthlyBilling] = await Promise.all([
-    getBranchBillingTotalByEntryDate(branchId, weekly.rangeFrom, weekly.rangeTo),
-    getBranchBillingTotalByEntryDate(branchId, monthly.rangeFrom, monthly.rangeTo),
+    getBranchBillingTotalByEntryDate(
+      branchId,
+      weekly.rangeFrom,
+      weekly.rangeTo
+    ),
+    getBranchBillingTotalByEntryDate(
+      branchId,
+      monthly.rangeFrom,
+      monthly.rangeTo
+    ),
   ])
 
   return {
@@ -1062,8 +1241,20 @@ const getSalesTargetWeeklyMonthlyRanges = () => {
   const weeklyTo = new Date(today)
   weeklyTo.setHours(23, 59, 59, 999)
 
-  const monthlyFrom = new Date(today.getFullYear(), today.getMonth(), 1, 0, 0, 0, 0)
-  const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate()
+  const monthlyFrom = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    1,
+    0,
+    0,
+    0,
+    0
+  )
+  const lastDay = new Date(
+    today.getFullYear(),
+    today.getMonth() + 1,
+    0
+  ).getDate()
   const monthlyTo = new Date(
     today.getFullYear(),
     today.getMonth(),
@@ -1094,7 +1285,9 @@ const getEmployeeAreaScope = async ({ employeeId, branchId = null }) => {
     employee?.zoneId || null,
   ].filter(Boolean)
 
-  const dedupedAreaIds = [...new Set(rawAreaIds.map((id) => String(id).trim()).filter(Boolean))]
+  const dedupedAreaIds = [
+    ...new Set(rawAreaIds.map((id) => String(id).trim()).filter(Boolean)),
+  ]
   const areaObjectIds = dedupedAreaIds
     .filter((id) => mongoose.Types.ObjectId.isValid(id))
     .map((id) => new mongoose.Types.ObjectId(id))
@@ -1108,7 +1301,9 @@ const getEmployeeAreaScope = async ({ employeeId, branchId = null }) => {
   if (branchId && mongoose.Types.ObjectId.isValid(String(branchId))) {
     industryFilter.branchId = new mongoose.Types.ObjectId(String(branchId))
   }
-  const industries = await IndustryModel.find(industryFilter).select('_id').lean()
+  const industries = await IndustryModel.find(industryFilter)
+    .select('_id')
+    .lean()
   const industryObjectIds = industries.map((row) => row._id).filter(Boolean)
 
   return { areaObjectIds, areaScopeValues, industryObjectIds }
@@ -1201,7 +1396,11 @@ const getEmployeeTargetAmountForPeriod = async ({
   return Number(fallbackDoc?.targetAmount || 0)
 }
 
-const getEmployeeBillingForRange = async ({ employeeId, rangeFrom, rangeTo }) => {
+const getEmployeeBillingForRange = async ({
+  employeeId,
+  rangeFrom,
+  rangeTo,
+}) => {
   if (!employeeId || !mongoose.Types.ObjectId.isValid(String(employeeId))) {
     return 0
   }
@@ -1209,7 +1408,10 @@ const getEmployeeBillingForRange = async ({ employeeId, rangeFrom, rangeTo }) =>
   const billingFilter = {
     isDeleted: false,
     entryDate: { $gte: rangeFrom, $lte: rangeTo },
-    $or: [{ salespersonId: employeeObjectId }, { created_by: employeeObjectId }],
+    $or: [
+      { salespersonId: employeeObjectId },
+      { created_by: employeeObjectId },
+    ],
   }
 
   const agg = await BillingEntryModel.aggregate([
@@ -1219,7 +1421,10 @@ const getEmployeeBillingForRange = async ({ employeeId, rangeFrom, rangeTo }) =>
   return Number(agg?.[0]?.total || 0)
 }
 
-export const getSalesDashboardCards = async ({ employeeId, branchId = null }) => {
+export const getSalesDashboardCards = async ({
+  employeeId,
+  branchId = null,
+}) => {
   const empty = {
     monthlyFrom: null,
     monthlyTo: null,
@@ -1254,15 +1459,26 @@ export const getSalesDashboardCards = async ({ employeeId, branchId = null }) =>
       : null
   const now = new Date()
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0)
-  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
-  const { areaObjectIds, areaScopeValues, industryObjectIds } = await getEmployeeAreaScope({
-    employeeId,
-    branchId,
-  })
+  const monthEnd = new Date(
+    now.getFullYear(),
+    now.getMonth() + 1,
+    0,
+    23,
+    59,
+    59,
+    999
+  )
+  const { areaObjectIds, areaScopeValues, industryObjectIds } =
+    await getEmployeeAreaScope({
+      employeeId,
+      branchId,
+    })
 
   const scopedOr = []
-  if (areaScopeValues.length) scopedOr.push({ 'companyInfo.area': { $in: areaScopeValues } })
-  if (industryObjectIds.length) scopedOr.push({ industry_id: { $in: industryObjectIds } })
+  if (areaScopeValues.length)
+    scopedOr.push({ 'companyInfo.area': { $in: areaScopeValues } })
+  if (industryObjectIds.length)
+    scopedOr.push({ industry_id: { $in: industryObjectIds } })
   const salesScopeFilter = scopedOr.length ? { $or: scopedOr } : { _id: null }
   const monthCreatedFilter = { createdAt: { $gte: monthStart, $lte: monthEnd } }
   const branchScopedFilter = branchObjectId ? { branchId: branchObjectId } : {}
@@ -1283,7 +1499,9 @@ export const getSalesDashboardCards = async ({ employeeId, branchId = null }) =>
     isDeleted: false,
     ...branchScopedFilter,
     ...salesScopeFilter,
-    status: { $nin: [PURCHASE_ORDER_STATUS.FULFILLED, PURCHASE_ORDER_STATUS.CANCELLED] },
+    status: {
+      $nin: [PURCHASE_ORDER_STATUS.FULFILLED, PURCHASE_ORDER_STATUS.CANCELLED],
+    },
   }
 
   const [
@@ -1323,7 +1541,12 @@ export const getSalesDashboardCards = async ({ employeeId, branchId = null }) =>
       isDeleted: false,
       ...branchScopedFilter,
       ...salesScopeFilter,
-      status: { $nin: [PURCHASE_ORDER_STATUS.CANCELLED, PURCHASE_ORDER_STATUS.FULFILLED] },
+      status: {
+        $nin: [
+          PURCHASE_ORDER_STATUS.CANCELLED,
+          PURCHASE_ORDER_STATUS.FULFILLED,
+        ],
+      },
     })
       .select('products freightCharge packingCharge payments status')
       .lean(),
@@ -1340,13 +1563,16 @@ export const getSalesDashboardCards = async ({ employeeId, branchId = null }) =>
     PurchaseOrderModel.find(pendingPoFilter)
       .sort({ createdAt: -1 })
       .limit(25)
-      .select('poCode quotationId companyInfo status createdAt products freightCharge packingCharge payments')
+      .select(
+        'poCode quotationId companyInfo status createdAt products freightCharge packingCharge payments'
+      )
       .lean(),
   ])
 
   let pendingCollectionAmount = 0
   for (const po of posForOutstanding) {
-    pendingCollectionAmount += computePurchaseOrderFinancials(po).remainingAmount
+    pendingCollectionAmount +=
+      computePurchaseOrderFinancials(po).remainingAmount
   }
 
   const pendingQueries = pendingQueriesRaw.map((q) => ({
@@ -1375,35 +1601,37 @@ export const getSalesDashboardCards = async ({ employeeId, branchId = null }) =>
     createdAt: po.createdAt ? new Date(po.createdAt).toISOString() : null,
   }))
 
-  const { weeklyFrom, weeklyTo, monthlyFrom, monthlyTo } = getSalesTargetWeeklyMonthlyRanges()
-  const [weeklyTarget, monthlyTarget, weeklyBilling, monthlyBilling] = await Promise.all([
-    getZoneTargetAmountForPeriod({
-      areaObjectIds,
-      branchId,
-      period: 'weekly',
-      rangeFrom: weeklyFrom,
-      rangeTo: weeklyTo,
-    }),
-    getZoneTargetAmountForPeriod({
-      areaObjectIds,
-      branchId,
-      period: 'monthly',
-      rangeFrom: monthlyFrom,
-      rangeTo: monthlyTo,
-    }),
-    getScopedBillingForRange({
-      industryObjectIds,
-      branchId,
-      rangeFrom: weeklyFrom,
-      rangeTo: weeklyTo,
-    }),
-    getScopedBillingForRange({
-      industryObjectIds,
-      branchId,
-      rangeFrom: monthlyFrom,
-      rangeTo: monthlyTo,
-    }),
-  ])
+  const { weeklyFrom, weeklyTo, monthlyFrom, monthlyTo } =
+    getSalesTargetWeeklyMonthlyRanges()
+  const [weeklyTarget, monthlyTarget, weeklyBilling, monthlyBilling] =
+    await Promise.all([
+      getZoneTargetAmountForPeriod({
+        areaObjectIds,
+        branchId,
+        period: 'weekly',
+        rangeFrom: weeklyFrom,
+        rangeTo: weeklyTo,
+      }),
+      getZoneTargetAmountForPeriod({
+        areaObjectIds,
+        branchId,
+        period: 'monthly',
+        rangeFrom: monthlyFrom,
+        rangeTo: monthlyTo,
+      }),
+      getScopedBillingForRange({
+        industryObjectIds,
+        branchId,
+        rangeFrom: weeklyFrom,
+        rangeTo: weeklyTo,
+      }),
+      getScopedBillingForRange({
+        industryObjectIds,
+        branchId,
+        rangeFrom: monthlyFrom,
+        rangeTo: monthlyTo,
+      }),
+    ])
 
   return {
     monthlyFrom: monthStart.toISOString(),

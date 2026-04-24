@@ -77,7 +77,7 @@ export const getIndustryBranchByIdController = async (req, res) => {
 export const updateIndustryBranchController = async (req, res) => {
   const { error, value } = updateIndustryBranchSchema.validate(
     { ...req.body, ...req.query },
-    { abortEarly: false },
+    { abortEarly: false }
   )
   if (error) {
     return res.status(statusCodes.badRequest).json({

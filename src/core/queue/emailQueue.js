@@ -18,16 +18,22 @@ const sendEmail = async (mailOptions) => {
   try {
     // Check if email sending is enabled
     if (!EMAIL_CONFIG.enabled) {
-      logger.info(`Email sending is disabled. Would have sent email to: ${mailOptions.to} with subject: ${mailOptions.subject}`)
+      logger.info(
+        `Email sending is disabled. Would have sent email to: ${mailOptions.to} with subject: ${mailOptions.subject}`
+      )
       return
     }
 
     if (!mailOptions.from) {
       mailOptions.from = EMAIL_CONFIG.from
     }
-    
-    logger.info('Sending email via SendGrid:', mailOptions.to, mailOptions.subject)
-    
+
+    logger.info(
+      'Sending email via SendGrid:',
+      mailOptions.to,
+      mailOptions.subject
+    )
+
     // SendGrid message format
     const msg = {
       to: mailOptions.to,
@@ -35,11 +41,14 @@ const sendEmail = async (mailOptions) => {
       subject: mailOptions.subject,
       html: mailOptions.html,
     }
-    
+
     const response = await sgMail.send(msg)
     logger.info('Email sent successfully via SendGrid:', response[0].statusCode)
   } catch (error) {
-    logger.error('Error sending email via SendGrid:', error.response?.body || error.message)
+    logger.error(
+      'Error sending email via SendGrid:',
+      error.response?.body || error.message
+    )
   }
 }
 
@@ -47,20 +56,22 @@ const processEmailQueue = async () => {
   if (isProcessingQueue || emailQueue.length === 0) {
     return
   }
-  
+
   isProcessingQueue = true
-  
+
   // If email sending is disabled, clear the queue and log the action
   if (!EMAIL_CONFIG.enabled) {
     const queueLength = emailQueue.length
     emailQueue.length = 0 // Clear the queue
-    logger.info(`Email sending is disabled. Cleared ${queueLength} emails from queue.`)
+    logger.info(
+      `Email sending is disabled. Cleared ${queueLength} emails from queue.`
+    )
     isProcessingQueue = false
     return
   }
-  
+
   logger.info(`Processing ${emailQueue.length} emails from queue...`)
-  
+
   while (emailQueue.length > 0) {
     const mailOptions = emailQueue.shift()
     try {
@@ -69,7 +80,7 @@ const processEmailQueue = async () => {
       logger.error('Failed to process email from queue:', error)
     }
   }
-  
+
   isProcessingQueue = false
   logger.info('Email queue processing completed')
 }
@@ -78,7 +89,9 @@ const sendOTPEmail = async (email, otp, userName = null, userType = 'user') => {
   try {
     // Check if email sending is enabled
     if (!EMAIL_CONFIG.enabled) {
-      logger.info(`Email sending is disabled. Would have sent OTP email to: ${email}`)
+      logger.info(
+        `Email sending is disabled. Would have sent OTP email to: ${email}`
+      )
       return { status: false, message: Message.emailDisabled, disabled: true }
     }
 
@@ -86,30 +99,43 @@ const sendOTPEmail = async (email, otp, userName = null, userType = 'user') => {
       from: EMAIL_CONFIG.from,
       to: email,
       subject: 'Password Reset OTP - GCA',
-      html: forgotPasswordEmail(email, otp, userName, userType)
+      html: forgotPasswordEmail(email, otp, userName, userType),
     }
-    
+
     emailQueue.push(mailOptions)
-    logger.info(`OTP email added to queue for ${email}. Queue length: ${emailQueue.length}`)
-    
+    logger.info(
+      `OTP email added to queue for ${email}. Queue length: ${emailQueue.length}`
+    )
+
     setImmediate(() => {
-      processEmailQueue().catch(error => {
+      processEmailQueue().catch((error) => {
         logger.error('Error in queue processing:', error)
       })
     })
-    
-    return { status: true, queued: true, queueLength: emailQueue.length, message: Message.emailQueuedSuccessfully }
+
+    return {
+      status: true,
+      queued: true,
+      queueLength: emailQueue.length,
+      message: Message.emailQueuedSuccessfully,
+    }
   } catch (error) {
     logger.error('Error adding OTP email to queue:', error)
     return { status: false, error: error.message }
   }
 }
 
-const sendPasswordResetSuccessEmail = async (email, userName = null, userType = 'user') => {
+const sendPasswordResetSuccessEmail = async (
+  email,
+  userName = null,
+  userType = 'user'
+) => {
   try {
     // Check if email sending is enabled
     if (!EMAIL_CONFIG.enabled) {
-      logger.info(`Email sending is disabled. Would have sent password reset success email to: ${email}`)
+      logger.info(
+        `Email sending is disabled. Would have sent password reset success email to: ${email}`
+      )
       return { status: false, message: Message.emailDisabled, disabled: true }
     }
 
@@ -129,32 +155,45 @@ const sendPasswordResetSuccessEmail = async (email, userName = null, userType = 
             </p>
           </div>
         </div>
-      `
+      `,
     }
-    
+
     // Add email to queue instead of sending immediately
     emailQueue.push(mailOptions)
-    logger.info(`Password reset success email added to queue for ${email}. Queue length: ${emailQueue.length}`)
-    
+    logger.info(
+      `Password reset success email added to queue for ${email}. Queue length: ${emailQueue.length}`
+    )
+
     // Process queue asynchronously (non-blocking)
     setImmediate(() => {
-      processEmailQueue().catch(error => {
+      processEmailQueue().catch((error) => {
         logger.error('Error in queue processing:', error)
       })
     })
-    
-    return { status: true, queued: true, queueLength: emailQueue.length, message: Message.emailQueuedSuccessfully }
+
+    return {
+      status: true,
+      queued: true,
+      queueLength: emailQueue.length,
+      message: Message.emailQueuedSuccessfully,
+    }
   } catch (error) {
     logger.error('Error adding password reset success email to queue:', error)
     return { status: false, error: error.message }
   }
 }
 
-const sendAssociationWelcomeEmail = async (associationName, contactPersonName, email) => {
+const sendAssociationWelcomeEmail = async (
+  associationName,
+  contactPersonName,
+  email
+) => {
   try {
     // Check if email sending is enabled
     if (!EMAIL_CONFIG.enabled) {
-      logger.info(`Email sending is disabled. Would have sent association welcome email to: ${email}`)
+      logger.info(
+        `Email sending is disabled. Would have sent association welcome email to: ${email}`
+      )
       return { status: false, message: Message.emailDisabled, disabled: true }
     }
 
@@ -162,32 +201,45 @@ const sendAssociationWelcomeEmail = async (associationName, contactPersonName, e
       from: EMAIL_CONFIG.from,
       to: email,
       subject: `Welcome to GCA - ${associationName}`,
-      html: associationWelcomeEmail(associationName, contactPersonName, email)
+      html: associationWelcomeEmail(associationName, contactPersonName, email),
     }
-    
+
     // Add email to queue instead of sending immediately
     emailQueue.push(mailOptions)
-    logger.info(`Association welcome email added to queue for ${email}. Queue length: ${emailQueue.length}`)
-    
+    logger.info(
+      `Association welcome email added to queue for ${email}. Queue length: ${emailQueue.length}`
+    )
+
     // Process queue asynchronously (non-blocking)
     setImmediate(() => {
-      processEmailQueue().catch(error => {
+      processEmailQueue().catch((error) => {
         logger.error('Error in queue processing:', error)
       })
     })
-    
-    return { status: true, queued: true, queueLength: emailQueue.length, message: Message.emailQueuedSuccessfully }
+
+    return {
+      status: true,
+      queued: true,
+      queueLength: emailQueue.length,
+      message: Message.emailQueuedSuccessfully,
+    }
   } catch (error) {
     logger.error('Error adding association welcome email to queue:', error)
     return { status: false, error: error.message }
   }
 }
 
-const sendEnterpriseWelcomeEmail = async (enterpriseName, contactPersonName, email) => {
+const sendEnterpriseWelcomeEmail = async (
+  enterpriseName,
+  contactPersonName,
+  email
+) => {
   try {
     // Check if email sending is enabled
     if (!EMAIL_CONFIG.enabled) {
-      logger.info(`Email sending is disabled. Would have sent enterprise welcome email to: ${email}`)
+      logger.info(
+        `Email sending is disabled. Would have sent enterprise welcome email to: ${email}`
+      )
       return { status: false, message: Message.emailDisabled, disabled: true }
     }
 
@@ -195,21 +247,28 @@ const sendEnterpriseWelcomeEmail = async (enterpriseName, contactPersonName, ema
       from: EMAIL_CONFIG.from,
       to: email,
       subject: `Welcome to GCA - ${enterpriseName}`,
-      html: enterpriseWelcomeEmail(enterpriseName, contactPersonName, email)
+      html: enterpriseWelcomeEmail(enterpriseName, contactPersonName, email),
     }
-    
+
     // Add email to queue instead of sending immediately
     emailQueue.push(mailOptions)
-    logger.info(`Enterprise welcome email added to queue for ${email}. Queue length: ${emailQueue.length}`)
-    
+    logger.info(
+      `Enterprise welcome email added to queue for ${email}. Queue length: ${emailQueue.length}`
+    )
+
     // Process queue asynchronously (non-blocking)
     setImmediate(() => {
-      processEmailQueue().catch(error => {
+      processEmailQueue().catch((error) => {
         logger.error('Error in queue processing:', error)
       })
     })
-    
-    return { status: true, queued: true, queueLength: emailQueue.length, message: Message.emailQueuedSuccessfully }
+
+    return {
+      status: true,
+      queued: true,
+      queueLength: emailQueue.length,
+      message: Message.emailQueuedSuccessfully,
+    }
   } catch (error) {
     logger.error('Error adding enterprise welcome email to queue:', error)
     return { status: false, error: error.message }
@@ -220,7 +279,9 @@ const sendIndividualWelcomeEmail = async (name, email) => {
   try {
     // Check if email sending is enabled
     if (!EMAIL_CONFIG.enabled) {
-      logger.info(`Email sending is disabled. Would have sent individual welcome email to: ${email}`)
+      logger.info(
+        `Email sending is disabled. Would have sent individual welcome email to: ${email}`
+      )
       return { status: false, message: Message.emailDisabled, disabled: true }
     }
 
@@ -228,21 +289,28 @@ const sendIndividualWelcomeEmail = async (name, email) => {
       from: EMAIL_CONFIG.from,
       to: email,
       subject: `Welcome to GCA - ${name}`,
-      html: individualWelcomeEmail(name, email)
+      html: individualWelcomeEmail(name, email),
     }
-    
+
     // Add email to queue instead of sending immediately
     emailQueue.push(mailOptions)
-    logger.info(`Individual welcome email added to queue for ${email}. Queue length: ${emailQueue.length}`)
-    
+    logger.info(
+      `Individual welcome email added to queue for ${email}. Queue length: ${emailQueue.length}`
+    )
+
     // Process queue asynchronously (non-blocking)
     setImmediate(() => {
-      processEmailQueue().catch(error => {
+      processEmailQueue().catch((error) => {
         logger.error('Error in queue processing:', error)
       })
     })
-    
-    return { status: true, queued: true, queueLength: emailQueue.length, message: Message.emailQueuedSuccessfully }
+
+    return {
+      status: true,
+      queued: true,
+      queueLength: emailQueue.length,
+      message: Message.emailQueuedSuccessfully,
+    }
   } catch (error) {
     logger.error('Error adding individual welcome email to queue:', error)
     return { status: false, error: error.message }
@@ -253,7 +321,9 @@ const sendEmailVerification = async (name, email, verificationToken) => {
   try {
     // Check if email sending is enabled
     if (!EMAIL_CONFIG.enabled) {
-      logger.info(`Email sending is disabled. Would have sent email verification to: ${email}`)
+      logger.info(
+        `Email sending is disabled. Would have sent email verification to: ${email}`
+      )
       return { status: false, message: Message.emailDisabled, disabled: true }
     }
 
@@ -261,21 +331,28 @@ const sendEmailVerification = async (name, email, verificationToken) => {
       from: EMAIL_CONFIG.from,
       to: email,
       subject: 'Verify Your Email - GCA',
-      html: emailVerificationTemplate(name, verificationToken)
+      html: emailVerificationTemplate(name, verificationToken),
     }
-    
+
     // Add email to queue instead of sending immediately
     emailQueue.push(mailOptions)
-    logger.info(`Email verification added to queue for ${email}. Queue length: ${emailQueue.length}`)
-    
+    logger.info(
+      `Email verification added to queue for ${email}. Queue length: ${emailQueue.length}`
+    )
+
     // Process queue asynchronously (non-blocking)
     setImmediate(() => {
-      processEmailQueue().catch(error => {
+      processEmailQueue().catch((error) => {
         logger.error('Error in queue processing:', error)
       })
     })
-    
-    return { status: true, queued: true, queueLength: emailQueue.length, message: Message.emailQueuedSuccessfully }
+
+    return {
+      status: true,
+      queued: true,
+      queueLength: emailQueue.length,
+      message: Message.emailQueuedSuccessfully,
+    }
   } catch (error) {
     logger.error('Error adding email verification to queue:', error)
     return { status: false, error: error.message }
@@ -286,23 +363,30 @@ const sendMailToUser = async (mailOptions) => {
   try {
     // Check if email sending is enabled
     if (!EMAIL_CONFIG.enabled) {
-      logger.info(`Email sending is disabled. Would have sent email to: ${mailOptions.to || 'unknown'}`)
+      logger.info(
+        `Email sending is disabled. Would have sent email to: ${mailOptions.to || 'unknown'}`
+      )
       return { status: false, message: Message.emailDisabled, disabled: true }
     }
 
     // Add email to queue instead of sending immediately
     emailQueue.push(mailOptions)
     logger.info(`Email added to queue. Queue length: ${emailQueue.length}`)
-    
+
     // Process queue asynchronously (non-blocking)
     setImmediate(() => {
-      processEmailQueue().catch(error => {
+      processEmailQueue().catch((error) => {
         logger.error('Error in queue processing:', error)
       })
     })
-    
+
     // Return immediately - don't wait for email to be sent
-    return { status: true, queued: true, queueLength: emailQueue.length, message: Message.emailQueuedSuccessfully }
+    return {
+      status: true,
+      queued: true,
+      queueLength: emailQueue.length,
+      message: Message.emailQueuedSuccessfully,
+    }
   } catch (error) {
     logger.error('Error adding email to queue:', error)
     return { status: false, error: error.message }
@@ -315,7 +399,7 @@ const sendEmailSimple = async (to, subject, html) => {
     from: EMAIL_CONFIG.from,
     to,
     subject,
-    html
+    html,
   }
   return sendMailToUser(mailOptions)
 }
@@ -331,15 +415,15 @@ const stopEmailQueue = async () => {
   return true
 }
 
-export { 
-  startEmailQueue, 
-  stopEmailQueue, 
-  sendMailToUser, 
-  sendOTPEmail, 
+export {
+  startEmailQueue,
+  stopEmailQueue,
+  sendMailToUser,
+  sendOTPEmail,
   sendPasswordResetSuccessEmail,
   sendAssociationWelcomeEmail,
   sendEnterpriseWelcomeEmail,
   sendIndividualWelcomeEmail,
   sendEmailVerification,
-  sendEmailSimple as sendEmail
+  sendEmailSimple as sendEmail,
 }

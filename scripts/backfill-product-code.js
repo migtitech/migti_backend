@@ -23,7 +23,10 @@ const connectionOptions = {
   socketTimeoutMS: 45000,
 }
 
-const MONGO_URI = process.env.MONGO_URI || process.env.MONGODB_URI || 'mongodb+srv://migtitech_db_user:Migti01456@cluster0.hhjdyl9.mongodb.net/development?retryWrites=true&w=majority&appName=Cluster0'
+const MONGO_URI =
+  process.env.MONGO_URI ||
+  process.env.MONGODB_URI ||
+  'mongodb+srv://migtitech_db_user:Migti01456@cluster0.hhjdyl9.mongodb.net/development?retryWrites=true&w=majority&appName=Cluster0'
 
 async function backfillProductCodes() {
   try {
@@ -32,11 +35,17 @@ async function backfillProductCodes() {
     console.log('Connected.')
 
     const productsWithoutCode = await ProductModel.find({
-      $or: [{ productCode: { $exists: false } }, { productCode: null }, { productCode: '' }],
+      $or: [
+        { productCode: { $exists: false } },
+        { productCode: null },
+        { productCode: '' },
+      ],
       isDeleted: { $ne: true },
     }).lean()
 
-    console.log(`Found ${productsWithoutCode.length} products without productCode.`)
+    console.log(
+      `Found ${productsWithoutCode.length} products without productCode.`
+    )
 
     let updated = 0
     if (productsWithoutCode.length > 0) {
@@ -47,7 +56,9 @@ async function backfillProductCodes() {
         })
         await ProductModel.findByIdAndUpdate(p._id, { productCode: code })
         updated++
-        console.log(`[${updated}/${productsWithoutCode.length}] ${p.name} -> ${code}`)
+        console.log(
+          `[${updated}/${productsWithoutCode.length}] ${p.name} -> ${code}`
+        )
       }
     }
 
@@ -65,7 +76,9 @@ async function backfillProductCodes() {
       const vcs = p.variantCombinations || []
       if (vcs.length === 0) continue
 
-      const needsVariantCode = vcs.some((vc) => !vc.variantCode || vc.variantCode === '')
+      const needsVariantCode = vcs.some(
+        (vc) => !vc.variantCode || vc.variantCode === ''
+      )
       if (!needsVariantCode) continue
 
       const variantCombinations = vcs.map((vc, i) => ({
@@ -74,10 +87,14 @@ async function backfillProductCodes() {
       }))
       await ProductModel.findByIdAndUpdate(p._id, { variantCombinations })
       variantUpdated++
-      console.log(`  ${p.name} -> ${variantCombinations.map((vc) => vc.variantCode).join(', ')}`)
+      console.log(
+        `  ${p.name} -> ${variantCombinations.map((vc) => vc.variantCode).join(', ')}`
+      )
     }
 
-    console.log(`\nBackfill complete. Updated ${updated} products, ${variantUpdated} products with variant codes.`)
+    console.log(
+      `\nBackfill complete. Updated ${updated} products, ${variantUpdated} products with variant codes.`
+    )
   } catch (err) {
     console.error('Backfill failed:', err)
     process.exit(1)

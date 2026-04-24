@@ -5,7 +5,11 @@ import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 
 export const createTask = async (payload) => {
-  const { branchId: payloadBranchId, productInfo: rawProductInfo, ...rest } = payload
+  const {
+    branchId: payloadBranchId,
+    productInfo: rawProductInfo,
+    ...rest
+  } = payload
   const doc = {
     ...rest,
     status: rest.status || TASK_STATUS.DRAFT,
@@ -26,7 +30,10 @@ export const createTask = async (payload) => {
     doc.assignedDate = new Date()
     doc.status = TASK_STATUS.ASSIGNED
   }
-  if (rawProductInfo?.image && mongoose.Types.ObjectId.isValid(rawProductInfo.image)) {
+  if (
+    rawProductInfo?.image &&
+    mongoose.Types.ObjectId.isValid(rawProductInfo.image)
+  ) {
     doc.productInfo.image = new mongoose.Types.ObjectId(rawProductInfo.image)
   }
   if (rest.dueDate) doc.dueDate = new Date(rest.dueDate)
@@ -39,7 +46,8 @@ export const createTask = async (payload) => {
  * Used when a new query is created.
  */
 export const createDraftTasksForQueryProducts = async ({ query }) => {
-  if (!query || !Array.isArray(query.products) || query.products.length === 0) return []
+  if (!query || !Array.isArray(query.products) || query.products.length === 0)
+    return []
 
   const docs = []
   for (const p of query.products) {
@@ -55,11 +63,14 @@ export const createDraftTasksForQueryProducts = async ({ query }) => {
           typeof product.gstPercentage === 'number'
             ? product.gstPercentage
             : typeof product.gst === 'number'
-            ? product.gst
-            : null,
+              ? product.gst
+              : null,
         modelNumber: product.modelNumber || '',
         description: product.description || '',
-        image: Array.isArray(product.images) && product.images[0] ? product.images[0] : null,
+        image:
+          Array.isArray(product.images) && product.images[0]
+            ? product.images[0]
+            : null,
       },
       remark: (product.remark || '').toString(),
       targetRate: null,
@@ -124,7 +135,11 @@ export const listTasks = async ({
 
 export const getTaskById = async (taskId, branchFilter = {}) => {
   if (!taskId || !mongoose.Types.ObjectId.isValid(taskId)) {
-    throw new CustomError(statusCodes.badRequest, 'Invalid task ID', errorCodes.invalid_input)
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Invalid task ID',
+      errorCodes.invalid_input
+    )
   }
   const filter = { _id: new mongoose.Types.ObjectId(taskId), ...branchFilter }
   const task = await TaskManagementModel.findOne(filter)
@@ -133,22 +148,42 @@ export const getTaskById = async (taskId, branchFilter = {}) => {
     .populate('productInfo.image', 'path')
     .lean()
   if (!task) {
-    throw new CustomError(statusCodes.notFound, 'Task not found', errorCodes.not_found)
+    throw new CustomError(
+      statusCodes.notFound,
+      'Task not found',
+      errorCodes.not_found
+    )
   }
   return task
 }
 
-export const assignEmployeeToTask = async (taskId, employeeId, branchFilter = {}) => {
+export const assignEmployeeToTask = async (
+  taskId,
+  employeeId,
+  branchFilter = {}
+) => {
   if (!taskId || !mongoose.Types.ObjectId.isValid(taskId)) {
-    throw new CustomError(statusCodes.badRequest, 'Invalid task ID', errorCodes.invalid_input)
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Invalid task ID',
+      errorCodes.invalid_input
+    )
   }
   if (!employeeId || !mongoose.Types.ObjectId.isValid(employeeId)) {
-    throw new CustomError(statusCodes.badRequest, 'Invalid employee ID', errorCodes.invalid_input)
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Invalid employee ID',
+      errorCodes.invalid_input
+    )
   }
   const filter = { _id: new mongoose.Types.ObjectId(taskId), ...branchFilter }
   const task = await TaskManagementModel.findOne(filter)
   if (!task) {
-    throw new CustomError(statusCodes.notFound, 'Task not found', errorCodes.not_found)
+    throw new CustomError(
+      statusCodes.notFound,
+      'Task not found',
+      errorCodes.not_found
+    )
   }
   task.employeeId = new mongoose.Types.ObjectId(employeeId)
   task.assignedDate = new Date()
@@ -162,15 +197,28 @@ export const assignEmployeeToTask = async (taskId, employeeId, branchFilter = {}
   return updated
 }
 
-export const updateTaskSupplierInfo = async ({ taskId, payload, branchFilter = {}, currentUserId }) => {
+export const updateTaskSupplierInfo = async ({
+  taskId,
+  payload,
+  branchFilter = {},
+  currentUserId,
+}) => {
   if (!taskId || !mongoose.Types.ObjectId.isValid(taskId)) {
-    throw new CustomError(statusCodes.badRequest, 'Invalid task ID', errorCodes.invalid_input)
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Invalid task ID',
+      errorCodes.invalid_input
+    )
   }
 
   const filter = { _id: new mongoose.Types.ObjectId(taskId), ...branchFilter }
   const task = await TaskManagementModel.findOne(filter)
   if (!task) {
-    throw new CustomError(statusCodes.notFound, 'Task not found', errorCodes.not_found)
+    throw new CustomError(
+      statusCodes.notFound,
+      'Task not found',
+      errorCodes.not_found
+    )
   }
 
   const supplierInfo = task.supplierInfo || {}
@@ -197,7 +245,8 @@ export const updateTaskSupplierInfo = async ({ taskId, payload, branchFilter = {
   if (contactEmail !== undefined) supplierInfo.contactEmail = contactEmail || ''
   if (currency !== undefined) supplierInfo.currency = currency || 'INR'
   if (remark !== undefined) supplierInfo.remark = remark || ''
-  if (rate !== undefined) supplierInfo.rate = rate === null ? null : Number(rate)
+  if (rate !== undefined)
+    supplierInfo.rate = rate === null ? null : Number(rate)
 
   supplierInfo.updatedBy =
     currentUserId && mongoose.Types.ObjectId.isValid(currentUserId)
@@ -224,15 +273,27 @@ export const updateTaskSupplierInfo = async ({ taskId, payload, branchFilter = {
   return updated
 }
 
-export const updateTaskInfo = async ({ taskId, payload, branchFilter = {} }) => {
+export const updateTaskInfo = async ({
+  taskId,
+  payload,
+  branchFilter = {},
+}) => {
   if (!taskId || !mongoose.Types.ObjectId.isValid(taskId)) {
-    throw new CustomError(statusCodes.badRequest, 'Invalid task ID', errorCodes.invalid_input)
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Invalid task ID',
+      errorCodes.invalid_input
+    )
   }
 
   const filter = { _id: new mongoose.Types.ObjectId(taskId), ...branchFilter }
   const task = await TaskManagementModel.findOne(filter)
   if (!task) {
-    throw new CustomError(statusCodes.notFound, 'Task not found', errorCodes.not_found)
+    throw new CustomError(
+      statusCodes.notFound,
+      'Task not found',
+      errorCodes.not_found
+    )
   }
 
   const { title, productInfo, remark, targetRate, dueDate, priority } = payload
@@ -267,12 +328,20 @@ export const updateTaskInfo = async ({ taskId, payload, branchFilter = {} }) => 
 
 export const deleteTask = async ({ taskId, branchFilter = {} }) => {
   if (!taskId || !mongoose.Types.ObjectId.isValid(taskId)) {
-    throw new CustomError(statusCodes.badRequest, 'Invalid task ID', errorCodes.invalid_input)
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Invalid task ID',
+      errorCodes.invalid_input
+    )
   }
   const filter = { _id: new mongoose.Types.ObjectId(taskId), ...branchFilter }
   const task = await TaskManagementModel.findOne(filter)
   if (!task) {
-    throw new CustomError(statusCodes.notFound, 'Task not found', errorCodes.not_found)
+    throw new CustomError(
+      statusCodes.notFound,
+      'Task not found',
+      errorCodes.not_found
+    )
   }
   await task.softDelete()
   return { success: true }

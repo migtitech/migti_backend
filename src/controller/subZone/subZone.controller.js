@@ -16,7 +16,9 @@ import {
 } from '../../services/subZone/subZone.service.js'
 
 export const createSubZoneController = async (req, res) => {
-  const { error, value } = createSubZoneSchema.validate(req.body, { abortEarly: false })
+  const { error, value } = createSubZoneSchema.validate(req.body, {
+    abortEarly: false,
+  })
   if (error) {
     return res.status(statusCodes.badRequest).json({
       success: false,
@@ -35,7 +37,9 @@ export const createSubZoneController = async (req, res) => {
 }
 
 export const listSubZonesController = async (req, res) => {
-  const { error, value } = listSubZoneSchema.validate(req.query, { abortEarly: false })
+  const { error, value } = listSubZoneSchema.validate(req.query, {
+    abortEarly: false,
+  })
   if (error) {
     return res.status(statusCodes.badRequest).json({
       success: false,
@@ -54,7 +58,9 @@ export const listSubZonesController = async (req, res) => {
 }
 
 export const listSubZonesGroupedController = async (req, res) => {
-  const { error } = listSubZoneGroupedSchema.validate(req.query, { abortEarly: false })
+  const { error } = listSubZoneGroupedSchema.validate(req.query, {
+    abortEarly: false,
+  })
   if (error) {
     return res.status(statusCodes.badRequest).json({
       success: false,
@@ -73,7 +79,10 @@ export const listSubZonesGroupedController = async (req, res) => {
 }
 
 export const updateSubZoneController = async (req, res) => {
-  const { error, value } = updateSubZoneSchema.validate({ ...req.body, ...req.query }, { abortEarly: false })
+  const { error, value } = updateSubZoneSchema.validate(
+    { ...req.body, ...req.query },
+    { abortEarly: false }
+  )
   if (error) {
     return res.status(statusCodes.badRequest).json({
       success: false,
@@ -92,7 +101,9 @@ export const updateSubZoneController = async (req, res) => {
 }
 
 export const deleteSubZoneController = async (req, res) => {
-  const { error, value } = deleteSubZoneSchema.validate(req.query, { abortEarly: false })
+  const { error, value } = deleteSubZoneSchema.validate(req.query, {
+    abortEarly: false,
+  })
   if (error) {
     return res.status(statusCodes.badRequest).json({
       success: false,

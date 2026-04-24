@@ -1,5 +1,8 @@
 import { Message, statusCodes } from '../../core/common/constant.js'
-import { getBranchFilter, getEffectiveBranchIdForCreate } from '../../core/helpers/branchFilter.js'
+import {
+  getBranchFilter,
+  getEffectiveBranchIdForCreate,
+} from '../../core/helpers/branchFilter.js'
 import {
   createSupplierSchema,
   listSupplierSchema,
@@ -108,7 +111,7 @@ export const updateSupplierController = async (req, res) => {
     { ...req.body, ...req.query },
     {
       abortEarly: false,
-    },
+    }
   )
   if (error) {
     return res.status(statusCodes.badRequest).json({
@@ -151,7 +154,7 @@ export const deleteSupplierController = async (req, res) => {
 export const uploadSupplierCatalogController = async (req, res) => {
   const { error, value } = uploadCatalogSchema.validate(
     { supplierId: req.query.supplierId || req.body.supplierId },
-    { abortEarly: false },
+    { abortEarly: false }
   )
   if (error) {
     return res.status(statusCodes.badRequest).json({
@@ -169,7 +172,10 @@ export const uploadSupplierCatalogController = async (req, res) => {
   }
 
   const branchFilter = getBranchFilter(req)
-  const result = await uploadSupplierCatalog({ ...value, branchFilter }, req.file)
+  const result = await uploadSupplierCatalog(
+    { ...value, branchFilter },
+    req.file
+  )
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Catalog uploaded successfully',

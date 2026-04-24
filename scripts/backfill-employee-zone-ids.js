@@ -74,15 +74,17 @@ async function backfillEmployeeZoneIds() {
         {
           $set: { zoneIds: nextZoneIds },
           $unset: { zoneId: 1 },
-        },
+        }
       )
       updated++
       console.log(
-        `[${updated}] ${emp.name || emp._id} -> [${nextZoneIds.join(', ')}]`,
+        `[${updated}] ${emp.name || emp._id} -> [${nextZoneIds.join(', ')}]`
       )
     }
 
-    console.log(`\nBackfill complete. Updated ${updated}, unchanged ${unchanged}.`)
+    console.log(
+      `\nBackfill complete. Updated ${updated}, unchanged ${unchanged}.`
+    )
   } catch (err) {
     console.error('Migration failed:', err)
     process.exit(1)

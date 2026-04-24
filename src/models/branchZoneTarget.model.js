@@ -6,12 +6,32 @@ import { SchemaTypes } from '../core/common/schemaTypes.js'
 const branchZoneTargetSchema = new mongoose.Schema(
   {
     uniqueId: { type: String, unique: true, default: uuidv4 },
-    branchId: { type: SchemaTypes.ObjectId, ref: 'companyBranch', required: true, index: true },
-    zoneId: { type: SchemaTypes.ObjectId, ref: 'area', required: true, index: true },
-    period: { type: SchemaTypes.String, enum: ['weekly', 'monthly'], required: true, default: 'weekly' },
+    branchId: {
+      type: SchemaTypes.ObjectId,
+      ref: 'companyBranch',
+      required: true,
+      index: true,
+    },
+    zoneId: {
+      type: SchemaTypes.ObjectId,
+      ref: 'area',
+      required: true,
+      index: true,
+    },
+    period: {
+      type: SchemaTypes.String,
+      enum: ['weekly', 'monthly'],
+      required: true,
+      default: 'weekly',
+    },
     dateFrom: { type: SchemaTypes.Date, required: true, index: true },
     dateTo: { type: SchemaTypes.Date, required: true, index: true },
-    targetAmount: { type: SchemaTypes.Number, required: true, min: 0, default: 0 },
+    targetAmount: {
+      type: SchemaTypes.Number,
+      required: true,
+      min: 0,
+      default: 0,
+    },
     created_by: { type: SchemaTypes.ObjectId, ref: 'employee', default: null },
     updated_by: { type: SchemaTypes.ObjectId, ref: 'employee', default: null },
   },

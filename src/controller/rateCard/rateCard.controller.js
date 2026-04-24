@@ -1,5 +1,8 @@
 import { Message, statusCodes } from '../../core/common/constant.js'
-import { getBranchFilter, getBranchIdForCreate } from '../../core/helpers/branchFilter.js'
+import {
+  getBranchFilter,
+  getBranchIdForCreate,
+} from '../../core/helpers/branchFilter.js'
 import {
   upsertRateSchema,
   getByProductSchema,
@@ -18,7 +21,9 @@ import {
 } from '../../services/rateCard/rateCard.service.js'
 
 export const upsertRateController = async (req, res) => {
-  const { error, value } = upsertRateSchema.validate(req.body, { abortEarly: false })
+  const { error, value } = upsertRateSchema.validate(req.body, {
+    abortEarly: false,
+  })
   if (error) {
     return res.status(statusCodes.badRequest).json({
       success: false,
@@ -37,7 +42,9 @@ export const upsertRateController = async (req, res) => {
 }
 
 export const getByProductController = async (req, res) => {
-  const { error, value } = getByProductSchema.validate(req.query, { abortEarly: false })
+  const { error, value } = getByProductSchema.validate(req.query, {
+    abortEarly: false,
+  })
   if (error) {
     return res.status(statusCodes.badRequest).json({
       success: false,
@@ -56,7 +63,9 @@ export const getByProductController = async (req, res) => {
 }
 
 export const getBySupplierController = async (req, res) => {
-  const { error, value } = getBySupplierSchema.validate(req.query, { abortEarly: false })
+  const { error, value } = getBySupplierSchema.validate(req.query, {
+    abortEarly: false,
+  })
   if (error) {
     return res.status(statusCodes.badRequest).json({
       success: false,
@@ -75,7 +84,9 @@ export const getBySupplierController = async (req, res) => {
 }
 
 export const deleteRateCardController = async (req, res) => {
-  const { error, value } = deleteRateCardSchema.validate(req.query, { abortEarly: false })
+  const { error, value } = deleteRateCardSchema.validate(req.query, {
+    abortEarly: false,
+  })
   if (error) {
     return res.status(statusCodes.badRequest).json({
       success: false,
@@ -93,7 +104,9 @@ export const deleteRateCardController = async (req, res) => {
 }
 
 export const searchProductsController = async (req, res) => {
-  const { error, value } = searchProductsSchema.validate(req.query, { abortEarly: false })
+  const { error, value } = searchProductsSchema.validate(req.query, {
+    abortEarly: false,
+  })
   if (error) {
     return res.status(statusCodes.badRequest).json({
       success: false,
@@ -111,7 +124,9 @@ export const searchProductsController = async (req, res) => {
 }
 
 export const searchSuppliersController = async (req, res) => {
-  const { error, value } = searchSuppliersSchema.validate(req.query, { abortEarly: false })
+  const { error, value } = searchSuppliersSchema.validate(req.query, {
+    abortEarly: false,
+  })
   if (error) {
     return res.status(statusCodes.badRequest).json({
       success: false,

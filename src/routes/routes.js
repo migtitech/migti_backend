@@ -36,8 +36,14 @@ mainRoutes.get('/test', (req, res) => {
     message: 'API is working',
     data: {
       timestamp: new Date().toISOString(),
-      routes: ['/v1/admin', '/v1/companies', '/v1/company-branches', '/v1/employees', '/v1/raw-queries']
-    }
+      routes: [
+        '/v1/admin',
+        '/v1/companies',
+        '/v1/company-branches',
+        '/v1/employees',
+        '/v1/raw-queries',
+      ],
+    },
   })
 })
 

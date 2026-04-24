@@ -45,11 +45,14 @@ const employeeLocationSchema = new mongoose.Schema(
       default: null,
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 )
 
 employeeLocationSchema.plugin(commonFieldsPlugin)
 
-const EmployeeLocationModel = mongoose.model('employeeLocation', employeeLocationSchema)
+const EmployeeLocationModel = mongoose.model(
+  'employeeLocation',
+  employeeLocationSchema
+)
 
 export default EmployeeLocationModel

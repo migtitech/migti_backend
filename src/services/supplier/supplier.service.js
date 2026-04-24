@@ -28,12 +28,14 @@ const buildSupplierSearchFilter = (search = '') => {
 
 const ensureCategoriesExist = async (categoryIds) => {
   if (categoryIds.length === 0) return
-  const count = await CategoryModel.countDocuments({ _id: { $in: categoryIds } })
+  const count = await CategoryModel.countDocuments({
+    _id: { $in: categoryIds },
+  })
   if (count !== categoryIds.length) {
     throw new CustomError(
       statusCodes.badRequest,
       'One or more categories are invalid',
-      errorCodes.invalid_input,
+      errorCodes.invalid_input
     )
   }
 }
@@ -114,13 +116,19 @@ export const listSuppliers = async ({
   }
 }
 
-export const searchSuppliers = async ({ search = '', limit = 5, branchFilter = {} }) => {
+export const searchSuppliers = async ({
+  search = '',
+  limit = 5,
+  branchFilter = {},
+}) => {
   const take = Math.min(20, Math.max(1, parseInt(limit)))
   const filter = { ...buildSupplierSearchFilter(search), ...branchFilter }
   const sort = search ? { name: 1 } : { createdAt: -1 }
 
   const suppliers = await SupplierModel.find(filter)
-    .select('name shopname email phone_1 phone_2 other_contact label shop_location')
+    .select(
+      'name shopname email phone_1 phone_2 other_contact label shop_location'
+    )
     .sort(sort)
     .limit(take)
     .lean()
@@ -141,16 +149,27 @@ export const getSupplierById = async ({ supplierId, branchFilter = {} }) => {
     throw new CustomError(
       statusCodes.notFound,
       'Supplier not found',
-      errorCodes.not_found,
+      errorCodes.not_found
     )
   }
 
   return supplier
 }
 
-const ALLOWED_UPDATE_FIELDS = ['address', 'shippingAddress', 'billingAddress', 'phone_1', 'phone_2', 'categories', 'remark']
+const ALLOWED_UPDATE_FIELDS = [
+  'address',
+  'shippingAddress',
+  'billingAddress',
+  'phone_1',
+  'phone_2',
+  'categories',
+  'remark',
+]
 
-export const uploadSupplierCatalog = async ({ supplierId, branchFilter = {} }, file) => {
+export const uploadSupplierCatalog = async (
+  { supplierId, branchFilter = {} },
+  file
+) => {
   const supplier = await SupplierModel.findOne({
     _id: supplierId,
     isDeleted: false,
@@ -160,7 +179,7 @@ export const uploadSupplierCatalog = async ({ supplierId, branchFilter = {} }, f
     throw new CustomError(
       statusCodes.notFound,
       'Supplier not found',
-      errorCodes.not_found,
+      errorCodes.not_found
     )
   }
 
@@ -168,7 +187,7 @@ export const uploadSupplierCatalog = async ({ supplierId, branchFilter = {} }, f
     throw new CustomError(
       statusCodes.badRequest,
       'Catalog file is required',
-      errorCodes.invalid_input,
+      errorCodes.invalid_input
     )
   }
 
@@ -179,7 +198,7 @@ export const uploadSupplierCatalog = async ({ supplierId, branchFilter = {} }, f
     throw new CustomError(
       statusCodes.badRequest,
       result.message || 'Catalog upload failed',
-      errorCodes.invalid_input,
+      errorCodes.invalid_input
     )
   }
 
@@ -193,7 +212,7 @@ export const uploadSupplierCatalog = async ({ supplierId, branchFilter = {} }, f
   const updated = await SupplierModel.findByIdAndUpdate(
     supplierId,
     { catalog },
-    { new: true, runValidators: true },
+    { new: true, runValidators: true }
   )
     .populate('categories', 'name slug')
     .lean()
@@ -201,7 +220,11 @@ export const uploadSupplierCatalog = async ({ supplierId, branchFilter = {} }, f
   return updated
 }
 
-export const updateSupplier = async ({ supplierId, branchFilter = {}, ...updateData }) => {
+export const updateSupplier = async ({
+  supplierId,
+  branchFilter = {},
+  ...updateData
+}) => {
   const supplier = await SupplierModel.findOne({
     _id: supplierId,
     isDeleted: false,
@@ -211,7 +234,7 @@ export const updateSupplier = async ({ supplierId, branchFilter = {}, ...updateD
     throw new CustomError(
       statusCodes.notFound,
       'Supplier not found',
-      errorCodes.not_found,
+      errorCodes.not_found
     )
   }
 
@@ -227,10 +250,14 @@ export const updateSupplier = async ({ supplierId, branchFilter = {}, ...updateD
     await ensureCategoriesExist(allowedUpdate.categories)
   }
 
-  const updated = await SupplierModel.findByIdAndUpdate(supplierId, allowedUpdate, {
-    new: true,
-    runValidators: true,
-  })
+  const updated = await SupplierModel.findByIdAndUpdate(
+    supplierId,
+    allowedUpdate,
+    {
+      new: true,
+      runValidators: true,
+    }
+  )
     .populate('categories', 'name slug')
     .lean()
 
@@ -247,7 +274,7 @@ export const deleteSupplier = async ({ supplierId, branchFilter = {} }) => {
     throw new CustomError(
       statusCodes.notFound,
       'Supplier not found',
-      errorCodes.not_found,
+      errorCodes.not_found
     )
   }
 

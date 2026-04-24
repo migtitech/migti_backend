@@ -8,7 +8,8 @@ const gstNumberRule = Joi.string()
   .required()
   .pattern(GSTIN_REGEX)
   .messages({
-    'string.pattern.base': 'GST number must be valid 15-character GSTIN (e.g. 22AABCU9603R1ZX)',
+    'string.pattern.base':
+      'GST number must be valid 15-character GSTIN (e.g. 22AABCU9603R1ZX)',
   })
 
 export const createCompanyBranchSchema = Joi.object({
@@ -28,9 +29,13 @@ export const createCompanyBranchSchema = Joi.object({
   gstNumber: gstNumberRule,
   fullAddress: Joi.string().required().min(5).max(500),
   mapLocationUrl: Joi.string().optional().empty('').uri().max(500),
-  signature: Joi.string().optional().allow('').pattern(/^[0-9a-fA-F]{24}$/).messages({
-    'string.pattern.base': 'signature must be a valid document id',
-  }),
+  signature: Joi.string()
+    .optional()
+    .allow('')
+    .pattern(/^[0-9a-fA-F]{24}$/)
+    .messages({
+      'string.pattern.base': 'signature must be a valid document id',
+    }),
 })
 
 export const listCompanyBranchSchema = Joi.object({
@@ -65,13 +70,18 @@ export const updateCompanyBranchSchema = Joi.object({
     .allow('')
     .pattern(/^(|[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z])$/)
     .messages({
-      'string.pattern.base': 'GST number must be valid 15-character GSTIN (e.g. 22AABCU9603R1ZX)',
+      'string.pattern.base':
+        'GST number must be valid 15-character GSTIN (e.g. 22AABCU9603R1ZX)',
     }),
   fullAddress: Joi.string().min(5).max(500).optional(),
   mapLocationUrl: Joi.string().optional().empty('').uri().max(500),
-  signature: Joi.string().optional().allow('').pattern(/^[0-9a-fA-F]{24}$/).messages({
-    'string.pattern.base': 'signature must be a valid document id',
-  }),
+  signature: Joi.string()
+    .optional()
+    .allow('')
+    .pattern(/^[0-9a-fA-F]{24}$/)
+    .messages({
+      'string.pattern.base': 'signature must be a valid document id',
+    }),
 })
 
 export const deleteCompanyBranchSchema = Joi.object({

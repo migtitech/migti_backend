@@ -1,5 +1,9 @@
-export const enterpriseWelcomeEmail = (enterpriseName, contactPersonName, email) => {
-    return `
+export const enterpriseWelcomeEmail = (
+  enterpriseName,
+  contactPersonName,
+  email
+) => {
+  return `
 <!DOCTYPE html>
 <html lang="en">
 <head>

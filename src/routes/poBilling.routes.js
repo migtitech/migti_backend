@@ -15,28 +15,28 @@ poBillingRouter.post(
   '/po/create',
   authenticateToken,
   checkPermission(MODULES.PURCHASE_ORDERS, 'create'),
-  asyncHandler(createPoEntryController),
+  asyncHandler(createPoEntryController)
 )
 
 poBillingRouter.post(
   '/billing/create',
   authenticateToken,
   checkPermission(MODULES.PURCHASE_ORDERS, 'create'),
-  asyncHandler(createBillingEntryController),
+  asyncHandler(createBillingEntryController)
 )
 
 poBillingRouter.get(
   '/form-options',
   authenticateToken,
   checkPermission(MODULES.PURCHASE_ORDERS, 'read'),
-  asyncHandler(getPoBillingFormOptionsController),
+  asyncHandler(getPoBillingFormOptionsController)
 )
 
 poBillingRouter.get(
   '/analytics',
   authenticateToken,
   checkPermission(MODULES.PURCHASE_ORDERS, 'read'),
-  asyncHandler(getPoBillingAnalyticsController),
+  asyncHandler(getPoBillingAnalyticsController)
 )
 
 export default poBillingRouter

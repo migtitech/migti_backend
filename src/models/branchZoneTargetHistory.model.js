@@ -6,19 +6,56 @@ import { SchemaTypes } from '../core/common/schemaTypes.js'
 const branchZoneTargetHistorySchema = new mongoose.Schema(
   {
     uniqueId: { type: String, unique: true, default: uuidv4 },
-    sourceTargetId: { type: SchemaTypes.ObjectId, ref: 'branchZoneTarget', required: true, index: true },
-    branchId: { type: SchemaTypes.ObjectId, ref: 'companyBranch', required: true, index: true },
-    zoneId: { type: SchemaTypes.ObjectId, ref: 'area', required: true, index: true },
-    period: { type: SchemaTypes.String, enum: ['weekly', 'monthly'], required: true },
+    sourceTargetId: {
+      type: SchemaTypes.ObjectId,
+      ref: 'branchZoneTarget',
+      required: true,
+      index: true,
+    },
+    branchId: {
+      type: SchemaTypes.ObjectId,
+      ref: 'companyBranch',
+      required: true,
+      index: true,
+    },
+    zoneId: {
+      type: SchemaTypes.ObjectId,
+      ref: 'area',
+      required: true,
+      index: true,
+    },
+    period: {
+      type: SchemaTypes.String,
+      enum: ['weekly', 'monthly'],
+      required: true,
+    },
     dateFrom: { type: SchemaTypes.Date, required: true },
     dateTo: { type: SchemaTypes.Date, required: true, index: true },
-    targetAmount: { type: SchemaTypes.Number, required: true, min: 0, default: 0 },
-    actualBillingAmount: { type: SchemaTypes.Number, required: true, min: 0, default: 0 },
-    archivedAt: { type: SchemaTypes.Date, required: true, default: Date.now, index: true },
+    targetAmount: {
+      type: SchemaTypes.Number,
+      required: true,
+      min: 0,
+      default: 0,
+    },
+    actualBillingAmount: {
+      type: SchemaTypes.Number,
+      required: true,
+      min: 0,
+      default: 0,
+    },
+    archivedAt: {
+      type: SchemaTypes.Date,
+      required: true,
+      default: Date.now,
+      index: true,
+    },
   },
   { timestamps: true }
 )
 
 branchZoneTargetHistorySchema.plugin(commonFieldsPlugin)
 
-export default mongoose.model('branchZoneTargetHistory', branchZoneTargetHistorySchema)
+export default mongoose.model(
+  'branchZoneTargetHistory',
+  branchZoneTargetHistorySchema
+)

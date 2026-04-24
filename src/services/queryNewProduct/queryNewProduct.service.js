@@ -13,7 +13,9 @@ export const addQueryNewProduct = async ({
     unit: unit?.trim() || '',
     hsnNumber: hsnNumber?.trim() || '',
     modelNumber: modelNumber?.trim() || '',
-    variants: (variants || []).map((v) => (v || '').toString().trim()).filter(Boolean),
+    variants: (variants || [])
+      .map((v) => (v || '').toString().trim())
+      .filter(Boolean),
     images: (images || []).filter(Boolean),
   })
 
@@ -67,7 +69,10 @@ export const listQueryNewProducts = async ({
 }
 
 export const getQueryNewProductById = async ({ productId }) => {
-  const product = await QueryNewProductModel.findOne({ _id: productId, isDeleted: false })
+  const product = await QueryNewProductModel.findOne({
+    _id: productId,
+    isDeleted: false,
+  })
     .populate('images', 'path')
     .lean()
 
@@ -84,7 +89,7 @@ export const deleteQueryNewProduct = async ({ productId }) => {
   const product = await QueryNewProductModel.findOneAndUpdate(
     { _id: productId, isDeleted: false },
     { $set: { isDeleted: true } },
-    { new: true },
+    { new: true }
   ).lean()
 
   if (!product) {
@@ -95,4 +100,3 @@ export const deleteQueryNewProduct = async ({ productId }) => {
 
   return { _id: product._id }
 }
-

@@ -7,7 +7,7 @@ export const createCategorySchema = Joi.object({
   parent: Joi.string().optional().allow(null, ''),
   image: Joi.string().optional().allow(''),
   status: Joi.string().valid('active', 'inactive').optional().default('active'),
-  categoryCode: Joi.string().optional().default("new"),
+  categoryCode: Joi.string().optional().default('new'),
   sortOrder: Joi.number().integer().min(0).optional(),
 })
 

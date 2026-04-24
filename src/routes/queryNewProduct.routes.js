@@ -15,29 +15,28 @@ queryNewProductRouter.post(
   '/create',
   authenticateToken,
   checkPermission(MODULES.PRODUCTS, 'create'),
-  asyncHandler(createQueryNewProductController),
+  asyncHandler(createQueryNewProductController)
 )
 
 queryNewProductRouter.get(
   '/list',
   authenticateToken,
   checkPermission(MODULES.PRODUCTS, 'read'),
-  asyncHandler(listQueryNewProductsController),
+  asyncHandler(listQueryNewProductsController)
 )
 
 queryNewProductRouter.get(
   '/get-by-id',
   authenticateToken,
   checkPermission(MODULES.PRODUCTS, 'read'),
-  asyncHandler(getQueryNewProductByIdController),
+  asyncHandler(getQueryNewProductByIdController)
 )
 
 queryNewProductRouter.delete(
   '/delete',
   authenticateToken,
   checkPermission(MODULES.PRODUCTS, 'delete'),
-  asyncHandler(deleteQueryNewProductController),
+  asyncHandler(deleteQueryNewProductController)
 )
 
 export default queryNewProductRouter
-

@@ -5,7 +5,8 @@ import CustomError from '../../utils/exception.js'
 
 const agenda = new Agenda({
   db: {
-    address: 'mongodb+srv://prod:GCA10102025@gca.tjsqzuq.mongodb.net/gca_prod?retryWrites=true&w=majority&appName=gcaCluster&authSource=admin',
+    address:
+      'mongodb+srv://prod:GCA10102025@gca.tjsqzuq.mongodb.net/gca_prod?retryWrites=true&w=majority&appName=gcaCluster&authSource=admin',
     collection: 'agendaJobs',
   },
   processEvery: '10 seconds',

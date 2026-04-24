@@ -30,6 +30,9 @@ const rawQueryActivitySchema = new mongoose.Schema(
 
 rawQueryActivitySchema.index({ rawQueryId: 1, createdAt: -1 })
 
-const RawQueryActivityModel = mongoose.model('rawQueryActivity', rawQueryActivitySchema)
+const RawQueryActivityModel = mongoose.model(
+  'rawQueryActivity',
+  rawQueryActivitySchema
+)
 
 export default RawQueryActivityModel

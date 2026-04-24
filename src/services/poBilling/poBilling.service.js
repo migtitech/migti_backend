@@ -14,7 +14,11 @@ const normalizeAttachmentDocumentId = async (attachmentDocumentId) => {
   if (!id) return null
   const doc = await DocumentModel.findById(id).lean()
   if (!doc) {
-    throw new CustomError(statusCodes.badRequest, 'Attachment document not found', errorCodes.bad_request)
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Attachment document not found',
+      errorCodes.bad_request
+    )
   }
   return id
 }
@@ -33,22 +37,45 @@ const endOfUtcDay = (yyyyMmDd) => {
 
 const getRangeFromPeriod = (period = 'all') => {
   const now = new Date()
-  const end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999))
+  const end = new Date(
+    Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate(),
+      23,
+      59,
+      59,
+      999
+    )
+  )
   let start = null
   if (period === 'daily') {
-    start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0))
+    start = new Date(
+      Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate(),
+        0,
+        0,
+        0,
+        0
+      )
+    )
   } else if (period === 'weekly') {
     start = new Date(end)
     start.setUTCDate(start.getUTCDate() - 6)
     start.setUTCHours(0, 0, 0, 0)
   } else if (period === 'monthly') {
-    start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0))
+    start = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0)
+    )
   }
   return { start, end }
 }
 
 const buildDateFilter = ({ period = 'all', dateFrom = '', dateTo = '' }) => {
-  let fromD = dateFrom && String(dateFrom).trim() ? startOfUtcDay(dateFrom) : null
+  let fromD =
+    dateFrom && String(dateFrom).trim() ? startOfUtcDay(dateFrom) : null
   let toD = dateTo && String(dateTo).trim() ? endOfUtcDay(dateTo) : null
   if (!fromD && !toD && period && period !== 'all') {
     const range = getRangeFromPeriod(period)
@@ -60,7 +87,7 @@ const buildDateFilter = ({ period = 'all', dateFrom = '', dateTo = '' }) => {
     throw new CustomError(
       statusCodes.badRequest,
       'dateFrom must be on or before dateTo',
-      errorCodes.bad_request,
+      errorCodes.bad_request
     )
   }
 
@@ -77,9 +104,16 @@ const buildDateFilter = ({ period = 'all', dateFrom = '', dateTo = '' }) => {
  * - Client has subZoneId: match employee.subZoneId.
  * - Else client has area: match employee.zoneId or zoneIds containing that area.
  */
-const resolveSalespersonIdForIndustry = async ({ companyId, branchId = null }) => {
+const resolveSalespersonIdForIndustry = async ({
+  companyId,
+  branchId = null,
+}) => {
   if (!companyId || !mongoose.Types.ObjectId.isValid(String(companyId))) {
-    throw new CustomError(statusCodes.badRequest, 'Invalid company', errorCodes.bad_request)
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Invalid company',
+      errorCodes.bad_request
+    )
   }
   const industryFilter = {
     _id: new mongoose.Types.ObjectId(String(companyId)),
@@ -88,9 +122,15 @@ const resolveSalespersonIdForIndustry = async ({ companyId, branchId = null }) =
   if (branchId && mongoose.Types.ObjectId.isValid(String(branchId))) {
     industryFilter.branchId = new mongoose.Types.ObjectId(String(branchId))
   }
-  const industry = await IndustryModel.findOne(industryFilter).select('area subZoneId branchId').lean()
+  const industry = await IndustryModel.findOne(industryFilter)
+    .select('area subZoneId branchId')
+    .lean()
   if (!industry) {
-    throw new CustomError(statusCodes.notFound, 'Company not found', errorCodes.not_found)
+    throw new CustomError(
+      statusCodes.notFound,
+      'Company not found',
+      errorCodes.not_found
+    )
   }
 
   const empFilter = {
@@ -110,16 +150,19 @@ const resolveSalespersonIdForIndustry = async ({ companyId, branchId = null }) =
     throw new CustomError(
       statusCodes.badRequest,
       'Client has no zone assigned; cannot determine salesperson',
-      errorCodes.bad_request,
+      errorCodes.bad_request
     )
   }
 
-  const emp = await EmployeeModel.findOne(empFilter).select('_id').sort({ name: 1 }).lean()
+  const emp = await EmployeeModel.findOne(empFilter)
+    .select('_id')
+    .sort({ name: 1 })
+    .lean()
   if (!emp?._id) {
     throw new CustomError(
       statusCodes.badRequest,
       'No sales employee mapped to this client zone',
-      errorCodes.bad_request,
+      errorCodes.bad_request
     )
   }
   return emp._id
@@ -127,7 +170,10 @@ const resolveSalespersonIdForIndustry = async ({ companyId, branchId = null }) =
 
 export const getPoBillingFormOptions = async ({ branchFilter = {} }) => {
   const filter = { isDeleted: false, ...branchFilter }
-  const companies = await IndustryModel.find(filter).select('_id name').sort({ name: 1 }).lean()
+  const companies = await IndustryModel.find(filter)
+    .select('_id name')
+    .sort({ name: 1 })
+    .lean()
 
   return {
     companies: (companies || []).map((company) => ({
@@ -160,12 +206,17 @@ export const createPoEntry = async ({
       ? new Date(dispatchmentDate)
       : null
   const doc = await PoEntryModel.create({
-    poNumber: String(poNumber || '').trim().toUpperCase(),
+    poNumber: String(poNumber || '')
+      .trim()
+      .toUpperCase(),
     companyId,
     salespersonId: resolvedSalespersonId,
     amount: Number(amount) || 0,
     entryDate: entryDate ? new Date(entryDate) : new Date(),
-    dispatchmentDate: dispatchment && !Number.isNaN(dispatchment.getTime()) ? dispatchment : null,
+    dispatchmentDate:
+      dispatchment && !Number.isNaN(dispatchment.getTime())
+        ? dispatchment
+        : null,
     remark: String(remark || '').trim(),
     branchId: branchId || null,
     created_by: created_by || null,
@@ -191,7 +242,9 @@ export const createBillingEntry = async ({
     ? trimmedSalesId
     : await resolveSalespersonIdForIndustry({ companyId, branchId })
   const doc = await BillingEntryModel.create({
-    billingNumber: String(billingNumber || '').trim().toUpperCase(),
+    billingNumber: String(billingNumber || '')
+      .trim()
+      .toUpperCase(),
     companyId,
     salespersonId: resolvedSalespersonId,
     amount: Number(amount) || 0,
@@ -225,8 +278,14 @@ export const getPoBillingAnalytics = async ({
   const poFilter = { isDeleted: false, ...branchFilter, ...dateFilter }
   const billingFilter = { isDeleted: false, ...branchFilter, ...dateFilter }
 
-  if (industryId && String(industryId).trim() && mongoose.Types.ObjectId.isValid(String(industryId).trim())) {
-    const scopedIndustryId = new mongoose.Types.ObjectId(String(industryId).trim())
+  if (
+    industryId &&
+    String(industryId).trim() &&
+    mongoose.Types.ObjectId.isValid(String(industryId).trim())
+  ) {
+    const scopedIndustryId = new mongoose.Types.ObjectId(
+      String(industryId).trim()
+    )
     poFilter.companyId = scopedIndustryId
     billingFilter.companyId = scopedIndustryId
   }
@@ -250,7 +309,9 @@ export const getPoBillingAnalytics = async ({
       const areaIndustryIds = areaScopedIndustries.map((row) => row._id)
       if (poFilter.companyId && !Array.isArray(poFilter.companyId?.$in)) {
         const selectedCompanyId = String(poFilter.companyId)
-        const inArea = areaIndustryIds.some((id) => String(id) === selectedCompanyId)
+        const inArea = areaIndustryIds.some(
+          (id) => String(id) === selectedCompanyId
+        )
         const scopedIds = inArea ? [poFilter.companyId] : []
         poFilter.companyId = { $in: scopedIds }
         billingFilter.companyId = { $in: scopedIds }
@@ -270,11 +331,13 @@ export const getPoBillingAnalytics = async ({
     let scopedIds = territoryIndustryIds
     if (Array.isArray(poFilter.companyId?.$in)) {
       scopedIds = poFilter.companyId.$in.filter((id) =>
-        territoryIndustryIds.some((tid) => String(tid) === String(id)),
+        territoryIndustryIds.some((tid) => String(tid) === String(id))
       )
     } else if (poFilter.companyId) {
       const selectedCompanyId = String(poFilter.companyId)
-      scopedIds = territoryIndustryIds.some((id) => String(id) === selectedCompanyId)
+      scopedIds = territoryIndustryIds.some(
+        (id) => String(id) === selectedCompanyId
+      )
         ? [poFilter.companyId]
         : []
     }
@@ -283,18 +346,19 @@ export const getPoBillingAnalytics = async ({
     billingFilter.companyId = companyScope
   }
 
-  const [totalPoCount, totalBillingCount, poAmountAgg, billingAmountAgg] = await Promise.all([
-    PoEntryModel.countDocuments(poFilter),
-    BillingEntryModel.countDocuments(billingFilter),
-    PoEntryModel.aggregate([
-      { $match: poFilter },
-      { $group: { _id: null, total: { $sum: '$amount' } } },
-    ]),
-    BillingEntryModel.aggregate([
-      { $match: billingFilter },
-      { $group: { _id: null, total: { $sum: '$amount' } } },
-    ]),
-  ])
+  const [totalPoCount, totalBillingCount, poAmountAgg, billingAmountAgg] =
+    await Promise.all([
+      PoEntryModel.countDocuments(poFilter),
+      BillingEntryModel.countDocuments(billingFilter),
+      PoEntryModel.aggregate([
+        { $match: poFilter },
+        { $group: { _id: null, total: { $sum: '$amount' } } },
+      ]),
+      BillingEntryModel.aggregate([
+        { $match: billingFilter },
+        { $group: { _id: null, total: { $sum: '$amount' } } },
+      ]),
+    ])
 
   const poAmount = poAmountAgg?.[0]?.total || 0
   const billingAmount = billingAmountAgg?.[0]?.total || 0
@@ -328,7 +392,8 @@ export const getPoBillingAnalytics = async ({
       }
       return {
         _id: row._id,
-        number: tab === 'billing' ? row.billingNumber || '' : row.poNumber || '',
+        number:
+          tab === 'billing' ? row.billingNumber || '' : row.poNumber || '',
         companyId: row.companyId?._id || row.companyId || null,
         companyName: row.companyId?.name || '-',
         salespersonId: row.salespersonId?._id || row.salespersonId || null,
@@ -340,7 +405,7 @@ export const getPoBillingAnalytics = async ({
         createdAt: row.createdAt,
         attachment,
       }
-    }),
+    })
   )
 
   const totalPages = Math.max(1, Math.ceil(totalItems / limit))

@@ -1,4 +1,6 @@
-import CodeSequenceModel, { CODE_SEQUENCE_ID } from '../../models/codeSequence.model.js'
+import CodeSequenceModel, {
+  CODE_SEQUENCE_ID,
+} from '../../models/codeSequence.model.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 
@@ -43,7 +45,7 @@ export const getNextSequence = async (codeType) => {
     throw new CustomError(
       statusCodes.badRequest,
       `Invalid codeType: ${codeType}. Must be one of: ${Object.keys(DEFAULT_FORMATTERS).join(', ')}`,
-      errorCodes.validation_error,
+      errorCodes.validation_error
     )
   }
 
@@ -56,13 +58,13 @@ export const getNextSequence = async (codeType) => {
   // New sequence fields on existing singleton docs (Mongo $inc would start from 0 otherwise)
   await CodeSequenceModel.updateOne(
     { _id: CODE_SEQUENCE_ID, [codeType]: { $exists: false } },
-    { $set: { [codeType]: INITIAL_VALUE } },
+    { $set: { [codeType]: INITIAL_VALUE } }
   )
 
   const doc = await CodeSequenceModel.findByIdAndUpdate(
     CODE_SEQUENCE_ID,
     { $inc: { [codeType]: 1 } },
-    { new: true },
+    { new: true }
   ).lean()
 
   const value = doc[codeType]
@@ -70,7 +72,7 @@ export const getNextSequence = async (codeType) => {
     throw new CustomError(
       statusCodes.internal,
       `Code sequence for ${codeType} is in invalid state. Run: npm run seed:codeSequence`,
-      errorCodes.internal_error,
+      errorCodes.internal_error
     )
   }
   return value
@@ -124,6 +126,6 @@ export const generateUniqueCode = async (codeType, options = {}) => {
   throw new CustomError(
     statusCodes.conflict,
     `Could not generate unique ${codeType}. Please try again.`,
-    errorCodes.already_exist,
+    errorCodes.already_exist
   )
 }

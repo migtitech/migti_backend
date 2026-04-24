@@ -14,7 +14,7 @@ class NotificationQueue {
       ...notificationData,
       timestamp: new Date(),
     })
-    
+
     // Process queue if not already processing
     if (!this.isProcessing) {
       this.processQueue()
@@ -31,7 +31,7 @@ class NotificationQueue {
 
     while (this.queue.length > 0) {
       const notificationData = this.queue.shift()
-      
+
       try {
         await this.createNotification(notificationData)
       } catch (error) {
@@ -45,7 +45,14 @@ class NotificationQueue {
 
   // Create notification in database
   async createNotification(notificationData) {
-    const { userId, title, description, type = 'info', priority = 'medium', metadata = {} } = notificationData
+    const {
+      userId,
+      title,
+      description,
+      type = 'info',
+      priority = 'medium',
+      metadata = {},
+    } = notificationData
 
     // Validate required fields
     if (!userId || !title || !description) {
@@ -71,8 +78,9 @@ class NotificationQueue {
 
   // Batch create notifications
   async createBatchNotifications(notificationsData) {
-    const validNotifications = notificationsData.filter(notification => 
-      notification.userId && notification.title && notification.description
+    const validNotifications = notificationsData.filter(
+      (notification) =>
+        notification.userId && notification.title && notification.description
     )
 
     if (validNotifications.length === 0) {

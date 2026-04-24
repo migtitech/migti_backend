@@ -2,7 +2,13 @@ import IndustryBranchModel from '../../models/industryBranch.model.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 
-export const addIndustryBranch = async ({ industryId, name, location, address, gst }) => {
+export const addIndustryBranch = async ({
+  industryId,
+  name,
+  location,
+  address,
+  gst,
+}) => {
   const branchDoc = await IndustryBranchModel.create({
     industryId,
     name: name || '',
@@ -74,7 +80,7 @@ export const getIndustryBranchById = async ({ industryBranchId }) => {
     throw new CustomError(
       statusCodes.notFound,
       'Industry branch not found',
-      errorCodes.not_found,
+      errorCodes.not_found
     )
   }
 
@@ -98,7 +104,7 @@ export const updateIndustryBranch = async ({
     throw new CustomError(
       statusCodes.notFound,
       'Industry branch not found',
-      errorCodes.not_found,
+      errorCodes.not_found
     )
   }
 
@@ -112,7 +118,7 @@ export const updateIndustryBranch = async ({
   const updated = await IndustryBranchModel.findByIdAndUpdate(
     industryBranchId,
     updateData,
-    { new: true, runValidators: true },
+    { new: true, runValidators: true }
   )
     .populate('industryId', 'name location address gstNumber')
     .lean()
@@ -130,14 +136,14 @@ export const deleteIndustryBranch = async ({ industryBranchId }) => {
     throw new CustomError(
       statusCodes.notFound,
       'Industry branch not found',
-      errorCodes.not_found,
+      errorCodes.not_found
     )
   }
 
   await IndustryBranchModel.findByIdAndUpdate(
     industryBranchId,
     { $set: { isDeleted: true } },
-    { new: true },
+    { new: true }
   )
 
   return {

@@ -14,7 +14,7 @@ export const addGroup = async (data) => {
     throw new CustomError(
       statusCodes.conflict,
       'Group with this name already exists',
-      errorCodes.already_exist,
+      errorCodes.already_exist
     )
   }
 
@@ -81,7 +81,7 @@ export const getGroupById = async ({ groupId }) => {
     throw new CustomError(
       statusCodes.notFound,
       'Group not found',
-      errorCodes.not_found,
+      errorCodes.not_found
     )
   }
 
@@ -94,7 +94,7 @@ export const updateGroup = async ({ groupId, ...updateData }) => {
     throw new CustomError(
       statusCodes.notFound,
       'Group not found',
-      errorCodes.not_found,
+      errorCodes.not_found
     )
   }
 
@@ -114,7 +114,7 @@ export const deleteGroup = async ({ groupId }) => {
     throw new CustomError(
       statusCodes.notFound,
       'Group not found',
-      errorCodes.not_found,
+      errorCodes.not_found
     )
   }
 
@@ -126,7 +126,7 @@ export const deleteGroup = async ({ groupId }) => {
     throw new CustomError(
       statusCodes.conflict,
       'Cannot delete group with associated categories.',
-      errorCodes.conflict,
+      errorCodes.conflict
     )
   }
 

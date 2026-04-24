@@ -19,22 +19,45 @@ const endOfUtcDay = (yyyyMmDd) => {
 
 const getRangeFromPeriod = (period = 'all') => {
   const now = new Date()
-  const end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999))
+  const end = new Date(
+    Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate(),
+      23,
+      59,
+      59,
+      999
+    )
+  )
   let start = null
   if (period === 'daily') {
-    start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0))
+    start = new Date(
+      Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate(),
+        0,
+        0,
+        0,
+        0
+      )
+    )
   } else if (period === 'weekly') {
     start = new Date(end)
     start.setUTCDate(start.getUTCDate() - 6)
     start.setUTCHours(0, 0, 0, 0)
   } else if (period === 'monthly') {
-    start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0))
+    start = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0)
+    )
   }
   return { start, end }
 }
 
 const buildDateFilter = ({ period = 'all', dateFrom = '', dateTo = '' }) => {
-  let fromD = dateFrom && String(dateFrom).trim() ? startOfUtcDay(dateFrom) : null
+  let fromD =
+    dateFrom && String(dateFrom).trim() ? startOfUtcDay(dateFrom) : null
   let toD = dateTo && String(dateTo).trim() ? endOfUtcDay(dateTo) : null
   if (!fromD && !toD && period && period !== 'all') {
     const range = getRangeFromPeriod(period)
@@ -46,7 +69,7 @@ const buildDateFilter = ({ period = 'all', dateFrom = '', dateTo = '' }) => {
     throw new CustomError(
       statusCodes.badRequest,
       'dateFrom must be on or before dateTo',
-      errorCodes.bad_request,
+      errorCodes.bad_request
     )
   }
 
@@ -68,19 +91,38 @@ export const createVisit = async ({
   created_by = null,
 }) => {
   const [zone, employee] = await Promise.all([
-    AreaModel.findOne({ _id: zoneId, branchId, isDeleted: false, areaType: 'industry' }).lean(),
-    EmployeeModel.findOne({ _id: employeeId, branchId, isDeleted: false }).lean(),
+    AreaModel.findOne({
+      _id: zoneId,
+      branchId,
+      isDeleted: false,
+      areaType: 'industry',
+    }).lean(),
+    EmployeeModel.findOne({
+      _id: employeeId,
+      branchId,
+      isDeleted: false,
+    }).lean(),
   ])
 
   if (!zone) {
-    throw new CustomError(statusCodes.badRequest, 'Zone not found for selected branch', errorCodes.not_found)
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Zone not found for selected branch',
+      errorCodes.not_found
+    )
   }
 
   if (!employee) {
-    throw new CustomError(statusCodes.badRequest, 'Employee not found for selected branch', errorCodes.not_found)
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Employee not found for selected branch',
+      errorCodes.not_found
+    )
   }
 
-  const uniqueIndustryIds = Array.from(new Set((industryIds || []).map((id) => String(id))))
+  const uniqueIndustryIds = Array.from(
+    new Set((industryIds || []).map((id) => String(id)))
+  )
     .filter((id) => mongoose.Types.ObjectId.isValid(id))
     .map((id) => new mongoose.Types.ObjectId(id))
 
@@ -90,7 +132,10 @@ export const createVisit = async ({
     employeeId,
     industryIds: uniqueIndustryIds,
     instructions: String(instructions || '').trim(),
-    status: String(status || 'active').toLowerCase() === 'completed' ? 'completed' : 'active',
+    status:
+      String(status || 'active').toLowerCase() === 'completed'
+        ? 'completed'
+        : 'active',
     created_by: created_by || null,
   })
 
@@ -113,7 +158,13 @@ export const listVisits = async ({
 
   const dateFilter = buildDateFilter({ period, dateFrom, dateTo })
   const statusFilter = status ? { status } : {}
-  const filter = { isDeleted: false, ...branchFilter, ...extraFilter, ...statusFilter, ...dateFilter }
+  const filter = {
+    isDeleted: false,
+    ...branchFilter,
+    ...extraFilter,
+    ...statusFilter,
+    ...dateFilter,
+  }
   const totalItems = await VisitModel.countDocuments(filter)
 
   const visits = await VisitModel.find(filter)
@@ -159,14 +210,19 @@ export const listVisits = async ({
   }
 }
 
-export const completeVisitWithRemark = async ({ visitId, employeeId, branchFilter = {}, remark = '' }) => {
+export const completeVisitWithRemark = async ({
+  visitId,
+  employeeId,
+  branchFilter = {},
+  remark = '',
+}) => {
   const trimmedRemark = String(remark || '').trim()
   const words = trimmedRemark.split(/\s+/).filter(Boolean)
   if (words.length < 20) {
     throw new CustomError(
       statusCodes.badRequest,
       'Remark must contain at least 20 words',
-      errorCodes.bad_request,
+      errorCodes.bad_request
     )
   }
 
@@ -178,7 +234,11 @@ export const completeVisitWithRemark = async ({ visitId, employeeId, branchFilte
   }).lean()
 
   if (!visit) {
-    throw new CustomError(statusCodes.notFound, 'Visit not found', errorCodes.not_found)
+    throw new CustomError(
+      statusCodes.notFound,
+      'Visit not found',
+      errorCodes.not_found
+    )
   }
 
   const updated = await VisitModel.findByIdAndUpdate(
@@ -187,7 +247,7 @@ export const completeVisitWithRemark = async ({ visitId, employeeId, branchFilte
       remark: trimmedRemark,
       status: 'completed',
     },
-    { new: true, runValidators: true },
+    { new: true, runValidators: true }
   ).lean()
 
   return updated

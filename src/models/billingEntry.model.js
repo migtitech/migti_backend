@@ -63,7 +63,7 @@ const billingEntrySchema = new mongoose.Schema(
       default: null,
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 )
 
 billingEntrySchema.plugin(commonFieldsPlugin)

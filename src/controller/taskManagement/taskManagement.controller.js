@@ -1,5 +1,8 @@
 import { Message, statusCodes } from '../../core/common/constant.js'
-import { getBranchFilter, getEffectiveBranchIdForCreate } from '../../core/helpers/branchFilter.js'
+import {
+  getBranchFilter,
+  getEffectiveBranchIdForCreate,
+} from '../../core/helpers/branchFilter.js'
 import {
   createTaskSchema,
   listTasksSchema,
@@ -20,7 +23,9 @@ import {
 } from '../../services/taskManagement/taskManagement.service.js'
 
 export const createTaskController = async (req, res) => {
-  const { error, value } = createTaskSchema.validate(req.body, { abortEarly: false })
+  const { error, value } = createTaskSchema.validate(req.body, {
+    abortEarly: false,
+  })
   if (error) {
     return res.status(statusCodes.badRequest).json({
       success: false,
@@ -38,7 +43,9 @@ export const createTaskController = async (req, res) => {
 }
 
 export const listTasksController = async (req, res) => {
-  const { error, value } = listTasksSchema.validate(req.query, { abortEarly: false })
+  const { error, value } = listTasksSchema.validate(req.query, {
+    abortEarly: false,
+  })
   if (error) {
     return res.status(statusCodes.badRequest).json({
       success: false,
@@ -56,7 +63,9 @@ export const listTasksController = async (req, res) => {
 }
 
 export const listMyTasksController = async (req, res) => {
-  const { error, value } = listMyTasksSchema.validate(req.query, { abortEarly: false })
+  const { error, value } = listMyTasksSchema.validate(req.query, {
+    abortEarly: false,
+  })
   if (error) {
     return res.status(statusCodes.badRequest).json({
       success: false,
@@ -81,7 +90,7 @@ export const listMyTasksController = async (req, res) => {
 export const getTaskByIdController = async (req, res) => {
   const { error, value } = getTaskByIdSchema.validate(
     { taskId: req.params?.id || req.query?.taskId },
-    { abortEarly: false },
+    { abortEarly: false }
   )
   if (error) {
     return res.status(statusCodes.badRequest).json({
@@ -102,7 +111,7 @@ export const getTaskByIdController = async (req, res) => {
 export const assignEmployeeController = async (req, res) => {
   const { error, value } = assignEmployeeSchema.validate(
     { ...req.body, taskId: req.body?.taskId || req.params?.id },
-    { abortEarly: false },
+    { abortEarly: false }
   )
   if (error) {
     return res.status(statusCodes.badRequest).json({
@@ -112,7 +121,11 @@ export const assignEmployeeController = async (req, res) => {
     })
   }
   const branchFilter = getBranchFilter(req)
-  const result = await assignEmployeeToTask(value.taskId, value.employeeId, branchFilter)
+  const result = await assignEmployeeToTask(
+    value.taskId,
+    value.employeeId,
+    branchFilter
+  )
   const io = req.app.get('io')
   if (io && result) {
     const assignedToId =
@@ -137,7 +150,7 @@ export const assignEmployeeController = async (req, res) => {
 export const updateTaskSupplierController = async (req, res) => {
   const { error, value } = updateTaskSupplierSchema.validate(
     { ...req.body, taskId: req.body?.taskId || req.params?.id },
-    { abortEarly: false },
+    { abortEarly: false }
   )
   if (error) {
     return res.status(statusCodes.badRequest).json({
@@ -160,7 +173,9 @@ export const updateTaskSupplierController = async (req, res) => {
   const io = req.app.get('io')
   if (io && result) {
     const assignedToId =
-      result.employeeId?._id?.toString() || result.employeeId?.toString() || null
+      result.employeeId?._id?.toString() ||
+      result.employeeId?.toString() ||
+      null
     const payload = {
       taskId: result._id,
       title: result.title,
@@ -184,7 +199,7 @@ export const updateTaskSupplierController = async (req, res) => {
 export const updateTaskController = async (req, res) => {
   const { error, value } = updateTaskSchema.validate(
     { ...req.body, taskId: req.body?.taskId || req.params?.id },
-    { abortEarly: false },
+    { abortEarly: false }
   )
   if (error) {
     return res.status(statusCodes.badRequest).json({

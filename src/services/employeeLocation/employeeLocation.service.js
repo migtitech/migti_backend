@@ -13,9 +13,16 @@ export const createEmployeeLocation = async ({
   accuracyM = null,
   created_by = null,
 }) => {
-  const employee = await EmployeeModel.findOne({ _id: employeeId, isDeleted: false }).lean()
+  const employee = await EmployeeModel.findOne({
+    _id: employeeId,
+    isDeleted: false,
+  }).lean()
   if (!employee) {
-    throw new CustomError(statusCodes.badRequest, 'Employee not found', errorCodes.not_found)
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Employee not found',
+      errorCodes.not_found
+    )
   }
 
   const doc = await EmployeeLocationModel.create({
@@ -31,7 +38,11 @@ export const createEmployeeLocation = async ({
   return doc.toObject()
 }
 
-export const listEmployeeLocations = async ({ pageNumber = 1, pageSize = 10, employeeId = '' }) => {
+export const listEmployeeLocations = async ({
+  pageNumber = 1,
+  pageSize = 10,
+  employeeId = '',
+}) => {
   const page = Math.max(1, parseInt(pageNumber, 10))
   const limit = Math.min(100, Math.max(1, parseInt(pageSize, 10)))
   const skip = (page - 1) * limit
@@ -94,7 +105,10 @@ export const listTeamEmployeesWithLatestLocation = async () => {
           {
             $match: {
               $expr: {
-                $and: [{ $eq: ['$employeeId', '$$empId'] }, { $eq: ['$isDeleted', false] }],
+                $and: [
+                  { $eq: ['$employeeId', '$$empId'] },
+                  { $eq: ['$isDeleted', false] },
+                ],
               },
             },
           },
@@ -165,7 +179,11 @@ export const listEmployeeLocationHistoryBinned = async ({
     .lean()
 
   if (!employee) {
-    throw new CustomError(statusCodes.badRequest, 'Employee not found', errorCodes.not_found)
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Employee not found',
+      errorCodes.not_found
+    )
   }
 
   const page = Math.max(1, parseInt(pageNumber, 10))
@@ -180,7 +198,9 @@ export const listEmployeeLocationHistoryBinned = async ({
     { $sort: { createdAt: -1 } },
     {
       $addFields: {
-        bucket: { $floor: { $divide: [{ $toLong: '$createdAt' }, intervalMs] } },
+        bucket: {
+          $floor: { $divide: [{ $toLong: '$createdAt' }, intervalMs] },
+        },
       },
     },
     {

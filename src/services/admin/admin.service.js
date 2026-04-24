@@ -199,9 +199,7 @@ export const updateAdminAccess = async ({ adminId, access }) => {
 }
 
 export const getAdminById = async ({ adminId }) => {
-  const admin = await AdminModel.findById(adminId)
-    .select('-password')
-    .lean()
+  const admin = await AdminModel.findById(adminId).select('-password').lean()
 
   if (!admin) {
     throw new CustomError(

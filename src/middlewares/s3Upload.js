@@ -36,7 +36,7 @@ export const uploadSingle = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 10 * 1024 * 1024, 
+    fileSize: 10 * 1024 * 1024,
   },
 })
 
@@ -44,8 +44,8 @@ export const uploadMultiple = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 10 * 1024 * 1024, 
-    files: 5, 
+    fileSize: 10 * 1024 * 1024,
+    files: 5,
   },
 })
 
@@ -60,13 +60,16 @@ export const uploadChunk = multer({
       'video/flv',
       'video/webm',
       'video/mkv',
-      'video/quicktime'
+      'video/quicktime',
     ]
 
     if (allowedVideoTypes.includes(file.mimetype)) {
       cb(null, true)
     } else {
-      cb(new Error(`File type ${file.mimetype} not allowed for video uploads`), false)
+      cb(
+        new Error(`File type ${file.mimetype} not allowed for video uploads`),
+        false
+      )
     }
   },
   limits: {

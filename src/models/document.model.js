@@ -20,7 +20,7 @@ const documentSchema = new mongoose.Schema(
       default: '',
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 )
 
 const DocumentModel = mongoose.model('document', documentSchema)

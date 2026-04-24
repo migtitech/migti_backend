@@ -64,13 +64,17 @@ const buildExactMatchFilter = (doc) => ({
 })
 
 const resolveIndustryName = async ({ industry_id, fallbackName = '' }) => {
-  if (fallbackName && String(fallbackName).trim()) return String(fallbackName).trim()
+  if (fallbackName && String(fallbackName).trim())
+    return String(fallbackName).trim()
   if (!industry_id) return ''
-  const industry = await IndustryModel.findById(industry_id).select('name').lean()
+  const industry = await IndustryModel.findById(industry_id)
+    .select('name')
+    .lean()
   return industry?.name || ''
 }
 
-const escapeRegex = (text = '') => String(text).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+const escapeRegex = (text = '') =>
+  String(text).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
 export const captureRateLogsForProductChanges = async ({
   previousProducts = [],
@@ -84,9 +88,16 @@ export const captureRateLogsForProductChanges = async ({
   if (!Array.isArray(updatedProducts) || updatedProducts.length === 0) return
 
   // No rate-relevant change at all (same rates / notAvailable pattern, order-independent).
-  if (multisetRatesSignature(previousProducts) === multisetRatesSignature(updatedProducts)) return
+  if (
+    multisetRatesSignature(previousProducts) ===
+    multisetRatesSignature(updatedProducts)
+  )
+    return
 
-  const resolvedIndustryName = await resolveIndustryName({ industry_id, fallbackName: industry_name })
+  const resolvedIndustryName = await resolveIndustryName({
+    industry_id,
+    fallbackName: industry_name,
+  })
   const docsToCreate = []
 
   updatedProducts.forEach((nextProduct, index) => {
@@ -96,10 +107,16 @@ export const captureRateLogsForProductChanges = async ({
 
     const prevProduct = findPrevProduct(previousProducts, nextProduct, index)
     const prevRate = prevProduct?.rate
-    const prevRateNum = prevRate == null || prevRate === '' ? null : Number(prevRate)
+    const prevRateNum =
+      prevRate == null || prevRate === '' ? null : Number(prevRate)
 
     // Capture only new/changed rate entries.
-    if (prevRateNum != null && !Number.isNaN(prevRateNum) && prevRateNum === nextRate) return
+    if (
+      prevRateNum != null &&
+      !Number.isNaN(prevRateNum) &&
+      prevRateNum === nextRate
+    )
+      return
 
     docsToCreate.push({
       quotationId: quotationId || null,
@@ -129,11 +146,15 @@ export const captureRateLogsForProductChanges = async ({
   const existing = await RateLogModel.find({
     $or: uniqueDocs.map((doc) => buildExactMatchFilter(doc)),
   })
-    .select('quotationId product_title description variants amount unit industry_name')
+    .select(
+      'quotationId product_title description variants amount unit industry_name'
+    )
     .lean()
 
   const existingFp = new Set(existing.map(rateLogFingerprint))
-  const novel = uniqueDocs.filter((doc) => !existingFp.has(rateLogFingerprint(doc)))
+  const novel = uniqueDocs.filter(
+    (doc) => !existingFp.has(rateLogFingerprint(doc))
+  )
   if (!novel.length) return
 
   await RateLogModel.insertMany(novel, { ordered: false })
@@ -274,11 +295,19 @@ export const listRateLogs = async ({
     ]
 
     if (compactPattern) {
-      orSearch.push({ searchable_compact: { $regex: compactPattern, $options: 'i' } })
-      orSearch.push({ product_title_compact: { $regex: compactPattern, $options: 'i' } })
-      orSearch.push({ description_compact: { $regex: compactPattern, $options: 'i' } })
+      orSearch.push({
+        searchable_compact: { $regex: compactPattern, $options: 'i' },
+      })
+      orSearch.push({
+        product_title_compact: { $regex: compactPattern, $options: 'i' },
+      })
+      orSearch.push({
+        description_compact: { $regex: compactPattern, $options: 'i' },
+      })
     }
-    orSearch.push({ amount_text: { $regex: escapeRegex(rawSearch), $options: 'i' } })
+    orSearch.push({
+      amount_text: { $regex: escapeRegex(rawSearch), $options: 'i' },
+    })
 
     if (!Number.isNaN(numericSearch)) {
       orSearch.push({ amount: numericSearch })
@@ -307,7 +336,10 @@ export const listRateLogs = async ({
       },
     ]),
     RateLogModel.aggregate([...pipeline, { $count: 'total' }]),
-    RateLogModel.distinct('industry_name', { isDeleted: false, ...branchFilter }),
+    RateLogModel.distinct('industry_name', {
+      isDeleted: false,
+      ...branchFilter,
+    }),
   ])
 
   const totalItems = totalCountRows?.[0]?.total || 0
@@ -316,7 +348,9 @@ export const listRateLogs = async ({
   return {
     items,
     filters: {
-      industries: (industries || []).filter(Boolean).sort((a, b) => a.localeCompare(b)),
+      industries: (industries || [])
+        .filter(Boolean)
+        .sort((a, b) => a.localeCompare(b)),
     },
     pagination: {
       currentPage: page,

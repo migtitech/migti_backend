@@ -21,7 +21,10 @@ export const createSupplierSchema = Joi.object({
   billingAddress: Joi.string().optional().allow(''),
   phone_1: Joi.string().optional().allow(''),
   phone_2: Joi.string().optional().allow(''),
-  email: Joi.string().email({ tlds: { allow: false } }).optional().allow(''),
+  email: Joi.string()
+    .email({ tlds: { allow: false } })
+    .optional()
+    .allow(''),
   other_contact: Joi.string().optional().allow(''),
   label: Joi.string().optional().allow(''),
   labal: Joi.string().optional().allow(''),

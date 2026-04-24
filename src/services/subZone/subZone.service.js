@@ -37,24 +37,35 @@ const nextSubZoneCodeForZone = async (zoneId, baseToken) => {
 /**
  * Ensures subZone exists, is active, belongs to areaId, and area is visible under branchFilter.
  */
-export const assertSubZoneBelongsToArea = async ({ subZoneId, areaId, branchFilter = {} }) => {
+export const assertSubZoneBelongsToArea = async ({
+  subZoneId,
+  areaId,
+  branchFilter = {},
+}) => {
   if (!subZoneId || String(subZoneId).trim() === '') return
   if (!areaId || String(areaId).trim() === '') {
     throw new CustomError(
       statusCodes.badRequest,
       'Sub-zone requires a zone to be selected',
-      errorCodes.bad_request,
+      errorCodes.bad_request
     )
   }
-  const sub = await SubZoneModel.findOne({ _id: subZoneId, isDeleted: false }).lean()
+  const sub = await SubZoneModel.findOne({
+    _id: subZoneId,
+    isDeleted: false,
+  }).lean()
   if (!sub) {
-    throw new CustomError(statusCodes.badRequest, 'Invalid sub-zone', errorCodes.not_found)
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Invalid sub-zone',
+      errorCodes.not_found
+    )
   }
   if (String(sub.zoneId) !== String(areaId)) {
     throw new CustomError(
       statusCodes.badRequest,
       'Sub-zone does not belong to the selected zone',
-      errorCodes.bad_request,
+      errorCodes.bad_request
     )
   }
   const areaFilter = Object.keys(branchFilter).length
@@ -62,19 +73,35 @@ export const assertSubZoneBelongsToArea = async ({ subZoneId, areaId, branchFilt
     : { _id: areaId, isDeleted: false }
   const area = await AreaModel.findOne(areaFilter).lean()
   if (!area) {
-    throw new CustomError(statusCodes.badRequest, 'Zone not found for this branch', errorCodes.not_found)
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Zone not found for this branch',
+      errorCodes.not_found
+    )
   }
 }
 
 export const addSubZone = async ({ zoneId, name, branchFilter = {} }) => {
-  const area = await AreaModel.findOne({ _id: zoneId, isDeleted: false, ...branchFilter }).lean()
+  const area = await AreaModel.findOne({
+    _id: zoneId,
+    isDeleted: false,
+    ...branchFilter,
+  }).lean()
   if (!area) {
-    throw new CustomError(statusCodes.notFound, 'Zone not found', errorCodes.not_found)
+    throw new CustomError(
+      statusCodes.notFound,
+      'Zone not found',
+      errorCodes.not_found
+    )
   }
 
   const trimmed = (name || '').toString().trim()
   if (!trimmed) {
-    throw new CustomError(statusCodes.badRequest, 'Sub-zone name is required', errorCodes.bad_request)
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Sub-zone name is required',
+      errorCodes.bad_request
+    )
   }
 
   const baseToken = tokenizeZoneName(area.name)
@@ -88,13 +115,30 @@ export const addSubZone = async ({ zoneId, name, branchFilter = {} }) => {
   return doc.toObject()
 }
 
-export const listSubZones = async ({ zoneId, pageNumber = 1, pageSize = 100, branchFilter = {} }) => {
+export const listSubZones = async ({
+  zoneId,
+  pageNumber = 1,
+  pageSize = 100,
+  branchFilter = {},
+}) => {
   if (!zoneId || !mongoose.Types.ObjectId.isValid(String(zoneId))) {
-    throw new CustomError(statusCodes.badRequest, 'zoneId is required', errorCodes.bad_request)
+    throw new CustomError(
+      statusCodes.badRequest,
+      'zoneId is required',
+      errorCodes.bad_request
+    )
   }
-  const area = await AreaModel.findOne({ _id: zoneId, isDeleted: false, ...branchFilter }).lean()
+  const area = await AreaModel.findOne({
+    _id: zoneId,
+    isDeleted: false,
+    ...branchFilter,
+  }).lean()
   if (!area) {
-    throw new CustomError(statusCodes.notFound, 'Zone not found', errorCodes.not_found)
+    throw new CustomError(
+      statusCodes.notFound,
+      'Zone not found',
+      errorCodes.not_found
+    )
   }
 
   const page = Math.max(1, parseInt(pageNumber, 10))
@@ -136,7 +180,10 @@ export const listSubZonesGroupedByBranch = async ({ branchFilter = {} }) => {
   }
 
   const zoneIds = areas.map((a) => a._id)
-  const allSubs = await SubZoneModel.find({ zoneId: { $in: zoneIds }, isDeleted: false })
+  const allSubs = await SubZoneModel.find({
+    zoneId: { $in: zoneIds },
+    isDeleted: false,
+  })
     .sort({ subZoneCode: 1 })
     .lean()
 
@@ -156,42 +203,78 @@ export const listSubZonesGroupedByBranch = async ({ branchFilter = {} }) => {
 }
 
 export const updateSubZone = async ({ subZoneId, name, branchFilter = {} }) => {
-  const sub = await SubZoneModel.findOne({ _id: subZoneId, isDeleted: false }).lean()
+  const sub = await SubZoneModel.findOne({
+    _id: subZoneId,
+    isDeleted: false,
+  }).lean()
   if (!sub) {
-    throw new CustomError(statusCodes.notFound, 'Sub-zone not found', errorCodes.not_found)
+    throw new CustomError(
+      statusCodes.notFound,
+      'Sub-zone not found',
+      errorCodes.not_found
+    )
   }
 
-  const area = await AreaModel.findOne({ _id: sub.zoneId, isDeleted: false, ...branchFilter }).lean()
+  const area = await AreaModel.findOne({
+    _id: sub.zoneId,
+    isDeleted: false,
+    ...branchFilter,
+  }).lean()
   if (!area) {
-    throw new CustomError(statusCodes.notFound, 'Sub-zone not found', errorCodes.not_found)
+    throw new CustomError(
+      statusCodes.notFound,
+      'Sub-zone not found',
+      errorCodes.not_found
+    )
   }
 
   const trimmed = (name || '').toString().trim()
   if (!trimmed) {
-    throw new CustomError(statusCodes.badRequest, 'Sub-zone name is required', errorCodes.bad_request)
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Sub-zone name is required',
+      errorCodes.bad_request
+    )
   }
 
   const updated = await SubZoneModel.findByIdAndUpdate(
     subZoneId,
     { $set: { name: trimmed } },
-    { new: true, runValidators: true },
+    { new: true, runValidators: true }
   ).lean()
 
   return updated
 }
 
 export const deleteSubZone = async ({ subZoneId, branchFilter = {} }) => {
-  const sub = await SubZoneModel.findOne({ _id: subZoneId, isDeleted: false }).lean()
+  const sub = await SubZoneModel.findOne({
+    _id: subZoneId,
+    isDeleted: false,
+  }).lean()
   if (!sub) {
-    throw new CustomError(statusCodes.notFound, 'Sub-zone not found', errorCodes.not_found)
+    throw new CustomError(
+      statusCodes.notFound,
+      'Sub-zone not found',
+      errorCodes.not_found
+    )
   }
 
-  const area = await AreaModel.findOne({ _id: sub.zoneId, isDeleted: false, ...branchFilter }).lean()
+  const area = await AreaModel.findOne({
+    _id: sub.zoneId,
+    isDeleted: false,
+    ...branchFilter,
+  }).lean()
   if (!area) {
-    throw new CustomError(statusCodes.notFound, 'Sub-zone not found', errorCodes.not_found)
+    throw new CustomError(
+      statusCodes.notFound,
+      'Sub-zone not found',
+      errorCodes.not_found
+    )
   }
 
-  await SubZoneModel.findByIdAndUpdate(subZoneId, { $set: { isDeleted: true, isActive: false } })
+  await SubZoneModel.findByIdAndUpdate(subZoneId, {
+    $set: { isDeleted: true, isActive: false },
+  })
 
   return {
     deletedSubZone: {

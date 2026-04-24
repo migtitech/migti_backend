@@ -9,7 +9,8 @@ const gstRule = Joi.string()
   .allow('')
   .pattern(GSTIN_REGEX)
   .messages({
-    'string.pattern.base': 'GST number must be valid 15-character GSTIN (e.g. 22AABCU9603R1ZX)',
+    'string.pattern.base':
+      'GST number must be valid 15-character GSTIN (e.g. 22AABCU9603R1ZX)',
   })
 
 export const createCompanySchema = Joi.object({

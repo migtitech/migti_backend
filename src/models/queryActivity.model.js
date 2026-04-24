@@ -25,7 +25,7 @@ const queryActivitySchema = new mongoose.Schema(
       note: { type: String, default: '' },
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 )
 
 queryActivitySchema.index({ queryId: 1, createdAt: -1 })

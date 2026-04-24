@@ -47,17 +47,20 @@ const rateCombinationSchema = new mongoose.Schema(
       max: 100,
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 )
 
 rateCombinationSchema.index(
   { product: 1, combinationUniqueId: 1, supplier: 1, branchId: 1 },
-  { unique: true },
+  { unique: true }
 )
 rateCombinationSchema.index({ product: 1, supplier: 1, branchId: 1 })
 
 rateCombinationSchema.plugin(commonFieldsPlugin)
 
-const RateCombinationModel = mongoose.model('rateCombination', rateCombinationSchema)
+const RateCombinationModel = mongoose.model(
+  'rateCombination',
+  rateCombinationSchema
+)
 
 export default RateCombinationModel

@@ -12,10 +12,35 @@ import {
 
 const industryRouter = Router()
 
-industryRouter.post('/create', authenticateToken, checkPermission(MODULES.INDUSTRIES, 'create'), asyncHandler(createIndustryController))
-industryRouter.get('/list', authenticateToken, checkPermission(MODULES.INDUSTRIES, 'read'), asyncHandler(listIndustriesController))
-industryRouter.get('/get-by-id', authenticateToken, checkPermission(MODULES.INDUSTRIES, 'read'), asyncHandler(getIndustryByIdController))
-industryRouter.put('/update', authenticateToken, checkPermission(MODULES.INDUSTRIES, 'update'), asyncHandler(updateIndustryController))
-industryRouter.delete('/delete', authenticateToken, checkPermission(MODULES.INDUSTRIES, 'delete'), asyncHandler(deleteIndustryController))
+industryRouter.post(
+  '/create',
+  authenticateToken,
+  checkPermission(MODULES.INDUSTRIES, 'create'),
+  asyncHandler(createIndustryController)
+)
+industryRouter.get(
+  '/list',
+  authenticateToken,
+  checkPermission(MODULES.INDUSTRIES, 'read'),
+  asyncHandler(listIndustriesController)
+)
+industryRouter.get(
+  '/get-by-id',
+  authenticateToken,
+  checkPermission(MODULES.INDUSTRIES, 'read'),
+  asyncHandler(getIndustryByIdController)
+)
+industryRouter.put(
+  '/update',
+  authenticateToken,
+  checkPermission(MODULES.INDUSTRIES, 'update'),
+  asyncHandler(updateIndustryController)
+)
+industryRouter.delete(
+  '/delete',
+  authenticateToken,
+  checkPermission(MODULES.INDUSTRIES, 'delete'),
+  asyncHandler(deleteIndustryController)
+)
 
 export default industryRouter

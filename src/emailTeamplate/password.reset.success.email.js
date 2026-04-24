@@ -1,7 +1,11 @@
 /**
  * Password Reset Success Email Template
  */
-export const passwordResetSuccessEmail = (email, userName = null, userType = 'user') => ({
+export const passwordResetSuccessEmail = (
+  email,
+  userName = null,
+  userType = 'user'
+) => ({
   to: email,
   subject: 'Password Reset Successful - GCA',
   html: `
@@ -221,6 +225,5 @@ export const passwordResetSuccessEmail = (email, userName = null, userType = 'us
     </div>
 </body>
 
-</html>`
+</html>`,
 })
-

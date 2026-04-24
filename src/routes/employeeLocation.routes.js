@@ -11,14 +11,30 @@ import {
 
 const employeeLocationRouter = Router()
 
-employeeLocationRouter.post('/create', authenticateToken, asyncHandler(createEmployeeLocationController))
-employeeLocationRouter.get('/latest', authenticateToken, asyncHandler(getLatestEmployeeLocationController))
-employeeLocationRouter.get('/list', authenticateToken, asyncHandler(listEmployeeLocationsController))
-employeeLocationRouter.get('/team-latest', authenticateToken, asyncHandler(listTeamLatestLocationsController))
+employeeLocationRouter.post(
+  '/create',
+  authenticateToken,
+  asyncHandler(createEmployeeLocationController)
+)
+employeeLocationRouter.get(
+  '/latest',
+  authenticateToken,
+  asyncHandler(getLatestEmployeeLocationController)
+)
+employeeLocationRouter.get(
+  '/list',
+  authenticateToken,
+  asyncHandler(listEmployeeLocationsController)
+)
+employeeLocationRouter.get(
+  '/team-latest',
+  authenticateToken,
+  asyncHandler(listTeamLatestLocationsController)
+)
 employeeLocationRouter.get(
   '/history-binned',
   authenticateToken,
-  asyncHandler(listEmployeeLocationHistoryBinnedController),
+  asyncHandler(listEmployeeLocationHistoryBinnedController)
 )
 
 export default employeeLocationRouter

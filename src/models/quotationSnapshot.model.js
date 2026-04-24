@@ -30,11 +30,14 @@ const quotationSnapshotSchema = new mongoose.Schema(
       default: null,
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 )
 
 quotationSnapshotSchema.index({ quotationId: 1, revision: 1 }, { unique: true })
 
-const QuotationSnapshotModel = mongoose.model('quotationSnapshot', quotationSnapshotSchema)
+const QuotationSnapshotModel = mongoose.model(
+  'quotationSnapshot',
+  quotationSnapshotSchema
+)
 
 export default QuotationSnapshotModel

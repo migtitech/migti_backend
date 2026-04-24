@@ -29,7 +29,13 @@ const getAssetsDestination = (req, file, cb) => {
     let dir
     if (productId) {
       if (variantUniqueId) {
-        dir = path.join('assets', 'products', String(productId), 'variants', String(variantUniqueId))
+        dir = path.join(
+          'assets',
+          'products',
+          String(productId),
+          'variants',
+          String(variantUniqueId)
+        )
       } else {
         dir = path.join('assets', 'products', String(productId))
       }
@@ -45,7 +51,10 @@ const getAssetsDestination = (req, file, cb) => {
 
 const getAssetsFilename = (req, file, cb) => {
   const ext = path.extname(file.originalname) || '.jpg'
-  const base = path.basename(file.originalname, ext).replace(/\s+/g, '-').slice(0, 50)
+  const base = path
+    .basename(file.originalname, ext)
+    .replace(/\s+/g, '-')
+    .slice(0, 50)
   cb(null, `${base}-${Date.now()}-${uuidv4().slice(0, 8)}${ext}`)
 }
 
@@ -91,7 +100,12 @@ const catalogFilter = (_req, file, cb) => {
   if (allowed.includes(file.mimetype)) {
     cb(null, true)
   } else {
-    cb(new Error(`File type ${file.mimetype} not allowed. Use PDF, Excel, or images.`), false)
+    cb(
+      new Error(
+        `File type ${file.mimetype} not allowed. Use PDF, Excel, or images.`
+      ),
+      false
+    )
   }
 }
 

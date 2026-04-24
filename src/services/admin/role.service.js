@@ -16,17 +16,14 @@ export const addRole = async ({ name, description, permissions }) => {
   return role.toObject()
 }
 
-export const listRoles = async ( page = 1,
-  limit = 10,
-  search = ''
-) => {
+export const listRoles = async (page = 1, limit = 10, search = '') => {
   const skip = (page - 1) * limit
   const filter = {}
 
-    if (search) {
+  if (search) {
     filter.$or = [
       { name: { $regex: search, $options: 'i' } },
-      { permissions: { $regex: search, $options: 'i' } }
+      { permissions: { $regex: search, $options: 'i' } },
     ]
   }
 

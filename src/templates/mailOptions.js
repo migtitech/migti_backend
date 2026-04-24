@@ -12,32 +12,31 @@ import { customEmail } from '../emailTeamplate/custom.email.js'
 export const MAIL_CONFIG = {
   sendgrid: {
     service: 'sendgrid',
-    apiKey: process.env.SENDGRID_API_KEY
+    apiKey: process.env.SENDGRID_API_KEY,
   },
-  
+
   smtp: {
     service: process.env.EMAIL_SERVICE || 'sendgrid',
     host: process.env.EMAIL_HOST || 'smtp.sendgrid.net',
     port: process.env.EMAIL_PORT || 587,
     secure: false,
     tls: {
-      rejectUnauthorized: false
-    }
-  }
+      rejectUnauthorized: false,
+    },
+  },
 }
 
 export const AUTH_CONFIG = {
   user: process.env.EMAIL_FROM || 'info@globalculinaryalliance.com',
-  pass: process.env.EMAIL_APP_PASSWORD || ''
+  pass: process.env.EMAIL_APP_PASSWORD || '',
 }
-
 
 export const getMailOptions = (options = {}) => {
   const defaultOptions = {
     from: process.env.EMAIL_FROM || 'info@globalculinaryalliance.com',
-    encoding: 'utf-8'
+    encoding: 'utf-8',
   }
-  
+
   return { ...defaultOptions, ...options }
 }
 
@@ -69,25 +68,23 @@ export const EMAIL_TEMPLATES = {
   /**
    * Custom Email Template with subject and content
    */
-  custom: customEmail
+  custom: customEmail,
 }
-
 
 export const getTransporterConfig = () => {
   const emailService = process.env.EMAIL_SERVICE || 'sendgrid'
-  
+
   if (emailService === 'sendgrid') {
     return {
-      ...MAIL_CONFIG.sendgrid
+      ...MAIL_CONFIG.sendgrid,
     }
   }
-  
+
   return {
     ...MAIL_CONFIG.smtp,
-    auth: AUTH_CONFIG
+    auth: AUTH_CONFIG,
   }
 }
-
 
 export const EMAIL_SUBJECTS = {
   OTP_RESET: 'Password Reset OTP - GCA',
@@ -96,17 +93,17 @@ export const EMAIL_SUBJECTS = {
   NOTIFICATION: 'Notification - Global Culinary Alliance',
   TEAM_INVITATION: 'Team Invitation - GCA',
   WELCOME: 'Welcome to Global Culinary Alliance',
-  MEMBER_INVITATION: 'Invitation to Join Association - Member Portal'
+  MEMBER_INVITATION: 'Invitation to Join Association - Member Portal',
 }
 
 export const EMAIL_FIELDS = {
   USER_NAME: 'userName',
-  USER_TYPE: 'userType', 
+  USER_TYPE: 'userType',
   EMAIL: 'email',
   OTP: 'otp',
   TEAM_NAME: 'teamName',
   EVENT_NAME: 'eventName',
   FULL_NAME: 'fullName',
   LANGUAGE: 'language',
-  USER_TYPE_SELECT: 'type'
+  USER_TYPE_SELECT: 'type',
 }

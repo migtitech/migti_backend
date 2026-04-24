@@ -378,6 +378,5 @@ export const otpEmail = (email, otp, userName = null, userType = 'user') => ({
     </div>
 </body>
 
-</html>`
+</html>`,
 })
-

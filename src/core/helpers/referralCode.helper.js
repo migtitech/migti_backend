@@ -1,6 +1,5 @@
 import path from 'path'
-import fs from 'fs';
-
+import fs from 'fs'
 
 export const generateReferralCode = (length = 12) => {
   const characters = '1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
@@ -30,10 +29,10 @@ export const generateUniqueReferralCode = async (
 
 export const imageToBase64 = (filePath) => {
   try {
-    const file = fs.readFileSync(filePath);
-    return `data:image/png;base64,${Buffer.from(file).toString('base64')}`;
+    const file = fs.readFileSync(filePath)
+    return `data:image/png;base64,${Buffer.from(file).toString('base64')}`
   } catch (error) {
-    console.error('Error reading logo file:', error);
-    return null; // Return null if the logo can't be read
+    console.error('Error reading logo file:', error)
+    return null // Return null if the logo can't be read
   }
-};
+}

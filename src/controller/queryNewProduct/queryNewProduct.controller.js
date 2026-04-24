@@ -99,4 +99,3 @@ export const deleteQueryNewProductController = async (req, res) => {
     data: result,
   })
 }
-

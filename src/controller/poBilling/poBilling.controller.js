@@ -1,5 +1,12 @@
-import { Message, statusCodes, BRANCH_BYPASS_ROLES } from '../../core/common/constant.js'
-import { getBranchFilter, getEffectiveBranchIdForCreate } from '../../core/helpers/branchFilter.js'
+import {
+  Message,
+  statusCodes,
+  BRANCH_BYPASS_ROLES,
+} from '../../core/common/constant.js'
+import {
+  getBranchFilter,
+  getEffectiveBranchIdForCreate,
+} from '../../core/helpers/branchFilter.js'
 import {
   createPoEntrySchema,
   createBillingEntrySchema,
@@ -20,12 +27,19 @@ const normalizeRole = (role) =>
 
 const hasPoFormBypass = (role) => {
   const normalized = normalizeRole(role)
-  if (['back_office_exicutive', 'back_office_executive', 'boe'].includes(normalized)) return true
+  if (
+    ['back_office_exicutive', 'back_office_executive', 'boe'].includes(
+      normalized
+    )
+  )
+    return true
   return normalized.replace(/_/g, '').includes('backoffice')
 }
 
 export const createPoEntryController = async (req, res) => {
-  const { error, value } = createPoEntrySchema.validate(req.body, { abortEarly: false })
+  const { error, value } = createPoEntrySchema.validate(req.body, {
+    abortEarly: false,
+  })
   if (error) {
     return res.status(statusCodes.badRequest).json({
       success: false,
@@ -46,7 +60,9 @@ export const createPoEntryController = async (req, res) => {
 }
 
 export const createBillingEntryController = async (req, res) => {
-  const { error, value } = createBillingEntrySchema.validate(req.body, { abortEarly: false })
+  const { error, value } = createBillingEntrySchema.validate(req.body, {
+    abortEarly: false,
+  })
   if (error) {
     return res.status(statusCodes.badRequest).json({
       success: false,
@@ -67,7 +83,9 @@ export const createBillingEntryController = async (req, res) => {
 }
 
 export const getPoBillingAnalyticsController = async (req, res) => {
-  const { error, value } = poBillingAnalyticsSchema.validate(req.query, { abortEarly: false })
+  const { error, value } = poBillingAnalyticsSchema.validate(req.query, {
+    abortEarly: false,
+  })
   if (error) {
     return res.status(statusCodes.badRequest).json({
       success: false,
@@ -79,7 +97,9 @@ export const getPoBillingAnalyticsController = async (req, res) => {
   const branchFilter = getBranchFilter(req, { allowQueryBranchId: true })
   const currentUserId = req.user?.id || req.user?._id || null
   const normalizedRole = normalizeRole(req.user?.role)
-  const isFullAccessRole = BRANCH_BYPASS_ROLES.includes(normalizedRole) || hasPoFormBypass(normalizedRole)
+  const isFullAccessRole =
+    BRANCH_BYPASS_ROLES.includes(normalizedRole) ||
+    hasPoFormBypass(normalizedRole)
   const result = await getPoBillingAnalytics({
     ...value,
     branchFilter,

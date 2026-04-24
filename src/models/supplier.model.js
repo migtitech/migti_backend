@@ -91,7 +91,7 @@ const supplierSchema = new mongoose.Schema(
       index: true,
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 )
 
 supplierSchema.plugin(commonFieldsPlugin)

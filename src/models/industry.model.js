@@ -68,7 +68,7 @@ const industrySchema = new mongoose.Schema(
       index: true,
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 )
 
 industrySchema.plugin(commonFieldsPlugin)

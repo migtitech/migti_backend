@@ -32,7 +32,7 @@ const brandSchema = new mongoose.Schema(
       default: 'active',
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 )
 
 brandSchema.plugin(commonFieldsPlugin)

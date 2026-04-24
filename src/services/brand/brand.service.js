@@ -18,7 +18,7 @@ export const addBrand = async (data) => {
     throw new CustomError(
       statusCodes.conflict,
       'Brand already exists',
-      errorCodes.already_exist,
+      errorCodes.already_exist
     )
   }
 
@@ -79,7 +79,7 @@ export const getBrandById = async ({ brandId }) => {
     throw new CustomError(
       statusCodes.notFound,
       'Brand not found',
-      errorCodes.not_found,
+      errorCodes.not_found
     )
   }
 
@@ -92,7 +92,7 @@ export const updateBrand = async ({ brandId, ...updateData }) => {
     throw new CustomError(
       statusCodes.notFound,
       'Brand not found',
-      errorCodes.not_found,
+      errorCodes.not_found
     )
   }
 
@@ -117,7 +117,7 @@ export const deleteBrand = async ({ brandId }) => {
     throw new CustomError(
       statusCodes.notFound,
       'Brand not found',
-      errorCodes.not_found,
+      errorCodes.not_found
     )
   }
 
@@ -129,7 +129,7 @@ export const deleteBrand = async ({ brandId }) => {
     throw new CustomError(
       statusCodes.conflict,
       'Cannot delete brand with associated products.',
-      errorCodes.conflict,
+      errorCodes.conflict
     )
   }
 

@@ -80,7 +80,7 @@ export const getAreaByIdController = async (req, res) => {
 export const updateAreaController = async (req, res) => {
   const { error, value } = updateAreaSchema.validate(
     { ...req.body, ...req.query },
-    { abortEarly: false },
+    { abortEarly: false }
   )
   if (error) {
     return res.status(statusCodes.badRequest).json({

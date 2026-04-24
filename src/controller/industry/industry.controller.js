@@ -1,10 +1,26 @@
-import { Message, statusCodes, BRANCH_BYPASS_ROLES } from '../../core/common/constant.js'
-import { getBranchFilter, getEffectiveBranchIdForCreate } from '../../core/helpers/branchFilter.js'
+import {
+  Message,
+  statusCodes,
+  BRANCH_BYPASS_ROLES,
+} from '../../core/common/constant.js'
+import {
+  getBranchFilter,
+  getEffectiveBranchIdForCreate,
+} from '../../core/helpers/branchFilter.js'
 
-const normalizeRole = (role) => String(role || '').trim().toLowerCase().replace(/[\s-]+/g, '_')
+const normalizeRole = (role) =>
+  String(role || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, '_')
 const isBackOfficeRole = (role) => {
   const normalized = normalizeRole(role)
-  if (['back_office_exicutive', 'back_office_executive', 'boe'].includes(normalized)) return true
+  if (
+    ['back_office_exicutive', 'back_office_executive', 'boe'].includes(
+      normalized
+    )
+  )
+    return true
   return normalized.replace(/_/g, '').includes('backoffice')
 }
 const hasOwnershipBypass = (role) => {
@@ -109,7 +125,7 @@ export const updateIndustryController = async (req, res) => {
     { ...req.body, ...req.query },
     {
       abortEarly: false,
-    },
+    }
   )
   if (error) {
     return res.status(statusCodes.badRequest).json({

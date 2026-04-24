@@ -1,6 +1,10 @@
 import { Router } from 'express'
 import { asyncHandler } from '../utils/asyncWrapper.js'
-import { authenticateToken, checkPermission, authorizeRoles } from '../middlewares/jwtAuth.js'
+import {
+  authenticateToken,
+  checkPermission,
+  authorizeRoles,
+} from '../middlewares/jwtAuth.js'
 import { MODULES } from '../core/common/constant.js'
 import {
   listQuotationsController,
@@ -20,55 +24,55 @@ quotationRouter.get(
   '/list',
   authenticateToken,
   checkPermission(MODULES.QUOTATIONS, 'read'),
-  asyncHandler(listQuotationsController),
+  asyncHandler(listQuotationsController)
 )
 quotationRouter.get(
   '/by-industry',
   authenticateToken,
   checkPermission(MODULES.QUOTATIONS, 'read'),
-  asyncHandler(listQuotationsByIndustryController),
+  asyncHandler(listQuotationsByIndustryController)
 )
 quotationRouter.get(
   '/get-by-id',
   authenticateToken,
   checkPermission(MODULES.QUOTATIONS, 'read'),
-  asyncHandler(getQuotationByIdController),
+  asyncHandler(getQuotationByIdController)
 )
 quotationRouter.get(
   '/snapshots/list',
   authenticateToken,
   checkPermission(MODULES.QUOTATIONS, 'read'),
-  asyncHandler(listQuotationSnapshotsController),
+  asyncHandler(listQuotationSnapshotsController)
 )
 quotationRouter.put(
   '/update',
   authenticateToken,
   checkPermission(MODULES.QUOTATIONS, 'update'),
-  asyncHandler(updateQuotationController),
+  asyncHandler(updateQuotationController)
 )
 quotationRouter.put(
   '/update-status',
   authenticateToken,
   checkPermission(MODULES.QUOTATIONS, 'update'),
-  asyncHandler(updateQuotationStatusController),
+  asyncHandler(updateQuotationStatusController)
 )
 quotationRouter.get(
   '/export-pdf',
   authenticateToken,
   checkPermission(MODULES.QUOTATIONS, 'read'),
-  asyncHandler(exportQuotationPdfController),
+  asyncHandler(exportQuotationPdfController)
 )
 quotationRouter.get(
   '/rate-logs/list',
   authenticateToken,
   checkPermission(MODULES.QUOTATIONS, 'read'),
-  asyncHandler(listRateLogsController),
+  asyncHandler(listRateLogsController)
 )
 quotationRouter.delete(
   '/delete',
   authenticateToken,
   authorizeRoles(['admin']),
-  asyncHandler(deleteQuotationController),
+  asyncHandler(deleteQuotationController)
 )
 
 export default quotationRouter

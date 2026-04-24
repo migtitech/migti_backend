@@ -3,19 +3,28 @@ import Joi from 'joi'
 const purchaseManagerItemSchema = Joi.object({
   name: Joi.string().required().min(1).max(100),
   phone: Joi.string().optional().allow('').max(20),
-  email: Joi.string().email({ tlds: { allow: false } }).optional().allow(''),
+  email: Joi.string()
+    .email({ tlds: { allow: false } })
+    .optional()
+    .allow(''),
 })
 
 export const createIndustrySchema = Joi.object({
   name: Joi.string().required().min(2).max(100),
   category: Joi.string().valid('A', 'B', 'C', 'D').optional().allow('', null),
   area: Joi.string().optional().allow(null, ''),
-  subZoneId: Joi.string().pattern(/^[a-fA-F0-9]{24}$/).allow('', null).optional(),
+  subZoneId: Joi.string()
+    .pattern(/^[a-fA-F0-9]{24}$/)
+    .allow('', null)
+    .optional(),
   location: Joi.string().optional().allow(''),
   address: Joi.string().optional().allow(''),
   purchase_manager_name: Joi.string().optional().allow('', null),
   purchase_manager_phone: Joi.string().optional().allow('', null),
-  email: Joi.string().email({ tlds: { allow: false } }).optional().allow('', null),
+  email: Joi.string()
+    .email({ tlds: { allow: false } })
+    .optional()
+    .allow('', null),
   gstNumber: Joi.string()
     .trim()
     .uppercase()
@@ -24,9 +33,13 @@ export const createIndustrySchema = Joi.object({
     .messages({
       'any.required': 'GST number is required',
       'string.empty': 'GST number is required',
-      'string.pattern.base': 'GST number must be valid 15-character GSTIN (e.g. 22AABCU9603R1ZX)',
+      'string.pattern.base':
+        'GST number must be valid 15-character GSTIN (e.g. 22AABCU9603R1ZX)',
     }),
-  purchaseManagers: Joi.array().items(purchaseManagerItemSchema).optional().default([]),
+  purchaseManagers: Joi.array()
+    .items(purchaseManagerItemSchema)
+    .optional()
+    .default([]),
   branchId: Joi.string().optional().allow('', null),
 })
 
@@ -46,8 +59,14 @@ export const getIndustryByIdSchema = Joi.object({
 // Edit mode: location, address, purchase manager(s), and branch can be updated
 export const updateIndustrySchema = Joi.object({
   industryId: Joi.string().required(),
-  area: Joi.string().pattern(/^[a-fA-F0-9]{24}$/).allow('', null).optional(),
-  subZoneId: Joi.string().pattern(/^[a-fA-F0-9]{24}$/).allow('', null).optional(),
+  area: Joi.string()
+    .pattern(/^[a-fA-F0-9]{24}$/)
+    .allow('', null)
+    .optional(),
+  subZoneId: Joi.string()
+    .pattern(/^[a-fA-F0-9]{24}$/)
+    .allow('', null)
+    .optional(),
   location: Joi.string().optional().allow(''),
   address: Joi.string().optional().allow(''),
   purchase_manager_name: Joi.string().optional().allow('', null),

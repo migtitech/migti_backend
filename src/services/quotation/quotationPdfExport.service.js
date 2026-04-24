@@ -21,7 +21,11 @@ const toImageUrl = (img) => {
   if (!img) return ''
   const p = typeof img === 'string' ? img : img.path
   if (!p) return ''
-  if (typeof p === 'string' && (p.startsWith('http://') || p.startsWith('https://'))) return p
+  if (
+    typeof p === 'string' &&
+    (p.startsWith('http://') || p.startsWith('https://'))
+  )
+    return p
   const base = getAssetsBaseUrl()
   return `${base}/assets/${p.startsWith('/') ? p.slice(1) : p}`
 }
@@ -86,11 +90,15 @@ const formatCurrency = (value) => {
 
 const formatVariants = (variants) => {
   if (!Array.isArray(variants) || variants.length === 0) return '—'
-  return variants
-    .map((v) => (typeof v === 'object' ? (v?.variantName || '') : String(v || '')))
-    .map((v) => v.trim())
-    .filter(Boolean)
-    .join(', ') || '—'
+  return (
+    variants
+      .map((v) =>
+        typeof v === 'object' ? v?.variantName || '' : String(v || '')
+      )
+      .map((v) => v.trim())
+      .filter(Boolean)
+      .join(', ') || '—'
+  )
 }
 
 const parseChargeNumeric = (value) => {
@@ -107,18 +115,22 @@ const parseChargeNumeric = (value) => {
 const buildHtml = (quotation, orgContext = {}) => {
   const { branch, company } = orgContext || {}
   const ci = quotation.companyInfo || {}
-  const allProducts = Array.isArray(quotation.products) ? quotation.products : []
+  const allProducts = Array.isArray(quotation.products)
+    ? quotation.products
+    : []
 
   let totalTaxable = 0
   let totalGstAmount = 0
 
   const expectedDeliveryWithinDaysDisplay =
-    quotation.expectedDeliveryWithinDays != null && !Number.isNaN(Number(quotation.expectedDeliveryWithinDays))
+    quotation.expectedDeliveryWithinDays != null &&
+    !Number.isNaN(Number(quotation.expectedDeliveryWithinDays))
       ? `${Number(quotation.expectedDeliveryWithinDays)} Days`
       : 'NA'
 
   const quotationCode =
-    quotation.quotationCode || `QT-${String(quotation._id || quotation.id).slice(-6)}`
+    quotation.quotationCode ||
+    `QT-${String(quotation._id || quotation.id).slice(-6)}`
   const quotationDate = quotation.createdAt
     ? (() => {
         const d = new Date(quotation.createdAt)
@@ -135,13 +147,14 @@ const buildHtml = (quotation, orgContext = {}) => {
     (p) =>
       !p.notAvailable &&
       p.applyDiscount &&
-      (p.discountPercentage != null || p.discountAmount != null),
+      (p.discountPercentage != null || p.discountAmount != null)
   )
 
   // Fixed Migti header for PDF
   const migtiCompanyName = 'Migti Industrial Pvt Ltd'
   const migtiGstNumber = '23AARCM4143L1Z6'
-  const migtiAddress = '3rd Floor, M.S.-1, B-304, New Siyaganj, Indore, Madhya Pradesh 452003'
+  const migtiAddress =
+    '3rd Floor, M.S.-1, B-304, New Siyaganj, Indore, Madhya Pradesh 452003'
   const migtiEmail = 'sale.migtiindore@gmail.com'
   const migtiPhone1 = '+91 7898611052'
   const migtiPhone2 = ''
@@ -153,24 +166,17 @@ const buildHtml = (quotation, orgContext = {}) => {
       ? quotation.queryId.companyInfo
       : {}
 
-  const customerName =
-    ci.name || queryCompanyInfo.name || industry.name || ''
+  const customerName = ci.name || queryCompanyInfo.name || industry.name || ''
   const customerAddress =
     ci.address || queryCompanyInfo.address || industry.address || ''
 
   const pmList = Array.isArray(ci.purchaseManagers) ? ci.purchaseManagers : []
-  const primaryPm =
-    pmList[0] ||
-    null
+  const primaryPm = pmList[0] || null
 
   const customerContactPerson =
-    (primaryPm && primaryPm.name) ||
-    industry.purchase_manager_name ||
-    ''
+    (primaryPm && primaryPm.name) || industry.purchase_manager_name || ''
   const customerPhone =
-    (primaryPm && primaryPm.phone) ||
-    industry.purchase_manager_phone ||
-    ''
+    (primaryPm && primaryPm.phone) || industry.purchase_manager_phone || ''
   const customerEmail =
     (primaryPm && primaryPm.email) ||
     ci.email ||
@@ -178,10 +184,7 @@ const buildHtml = (quotation, orgContext = {}) => {
     industry.email ||
     ''
   const customerGstNumber =
-    ci.gstNumber ||
-    queryCompanyInfo.gstNumber ||
-    industry.gstNumber ||
-    ''
+    ci.gstNumber || queryCompanyInfo.gstNumber || industry.gstNumber || ''
 
   const shippingAddress = customerAddress
   const shippingContactPerson = customerContactPerson
@@ -192,20 +195,30 @@ const buildHtml = (quotation, orgContext = {}) => {
       const productRef = typeof p.product_id === 'object' ? p.product_id : null
       const imageSources =
         (Array.isArray(p.images) && p.images.length && p.images) ||
-        (Array.isArray(productRef?.images) && productRef.images.length && productRef.images) ||
+        (Array.isArray(productRef?.images) &&
+          productRef.images.length &&
+          productRef.images) ||
         []
       const firstImg = imageSources[0] || null
       const firstImgUrl = firstImg ? toImageUrl(firstImg) : ''
       const imgHtml = firstImgUrl
         ? `<img src="${escapeHtml(
-            firstImgUrl,
+            firstImgUrl
           )}" alt="" style="width:60px;height:60px;object-fit:cover;border:1px solid #ddd;" onerror="this.style.display='none'">`
         : '—'
 
       const hsn = p.hsnNumber || productRef?.hsnNumber || '—'
       const variantsText = formatVariants(p.variants || [])
-      const descriptionText = (p.description || productRef?.shortDescription || '').trim()
-      const reasonCell = escapeHtml(String(p.notAvailableRemark || (p.notAvailable ? 'Not available' : '')).trim())
+      const descriptionText = (
+        p.description ||
+        productRef?.shortDescription ||
+        ''
+      ).trim()
+      const reasonCell = escapeHtml(
+        String(
+          p.notAvailableRemark || (p.notAvailable ? 'Not available' : '')
+        ).trim()
+      )
 
       if (p.notAvailable) {
         return `
@@ -242,7 +255,9 @@ const buildHtml = (quotation, orgContext = {}) => {
       const gstPercent =
         typeof p.gstPercentage === 'number' && !Number.isNaN(p.gstPercentage)
           ? p.gstPercentage
-          : (productRef != null && typeof productRef.gstPercentage === 'number' && !Number.isNaN(productRef.gstPercentage))
+          : productRef != null &&
+              typeof productRef.gstPercentage === 'number' &&
+              !Number.isNaN(productRef.gstPercentage)
             ? productRef.gstPercentage
             : 0
       const gstAmount = taxable * (gstPercent / 100)
@@ -251,11 +266,9 @@ const buildHtml = (quotation, orgContext = {}) => {
       totalGstAmount += gstAmount
 
       const discountCell = hasDiscount
-        ? (
-            p.applyDiscount && p.discountPercentage != null
-              ? `${Number(p.discountPercentage).toFixed(2)}%`
-              : '—'
-          )
+        ? p.applyDiscount && p.discountPercentage != null
+          ? `${Number(p.discountPercentage).toFixed(2)}%`
+          : '—'
         : ''
 
       return `
@@ -282,7 +295,8 @@ const buildHtml = (quotation, orgContext = {}) => {
     .join('')
 
   const freightCharge = parseChargeNumeric(quotation.freightCharge)
-  const packingCharge = Number(quotation.packingCharge) >= 0 ? Number(quotation.packingCharge) : 0
+  const packingCharge =
+    Number(quotation.packingCharge) >= 0 ? Number(quotation.packingCharge) : 0
   const freightChargePdfCell = (() => {
     const raw = quotation.freightCharge
     if (raw == null || raw === '') return '—'
@@ -709,7 +723,7 @@ export const exportQuotationPdf = async ({
     throw new CustomError(
       statusCodes.forbidden,
       'Quotation can be exported only after HOD approval',
-      errorCodes.forbidden,
+      errorCodes.forbidden
     )
   }
 
@@ -722,15 +736,15 @@ export const exportQuotationPdf = async ({
     signatureUrl = toImageUrl(quotation.branchSignature.path)
   }
   if (quotation?.branchSignature?._id && !signatureUrl.startsWith('data:')) {
-    const inlineSignature = await toSignatureDataUri(quotation.branchSignature._id)
+    const inlineSignature = await toSignatureDataUri(
+      quotation.branchSignature._id
+    )
     if (inlineSignature) signatureUrl = inlineSignature
   }
 
   // 2) Resolve branch context from quotation branch, else query branch.
   const resolvedBranchId =
-    quotation?.branchId ||
-    quotation?.queryId?.branchId ||
-    null
+    quotation?.branchId || quotation?.queryId?.branchId || null
 
   if (resolvedBranchId) {
     branch = await CompanyBranchModel.findById(resolvedBranchId).lean()

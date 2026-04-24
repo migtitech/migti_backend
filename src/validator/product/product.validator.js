@@ -12,7 +12,9 @@ const variantDimensionsJoi = Joi.object({
 })
 
 const variantCombinationJoi = Joi.object({
-  _id: Joi.string().pattern(/^[0-9a-fA-F]{24}$/).optional(),
+  _id: Joi.string()
+    .pattern(/^[0-9a-fA-F]{24}$/)
+    .optional(),
   uniqueId: Joi.string().optional(),
   variantCode: Joi.string().allow('', null).optional().max(50),
   optionValues: Joi.array().items(variantOptionValueJoi).min(1).required(),
@@ -25,7 +27,10 @@ const variantCombinationJoi = Joi.object({
   weightUnit: Joi.string().valid('g', 'kg', 'lb', 'oz').optional().default('g'),
   dimensions: variantDimensionsJoi.optional(),
   dimensionUnit: Joi.string().valid('cm', 'in', 'm').optional().default('cm'),
-  images: Joi.array().items(Joi.string().pattern(/^[0-9a-fA-F]{24}$/)).optional().default([]),
+  images: Joi.array()
+    .items(Joi.string().pattern(/^[0-9a-fA-F]{24}$/))
+    .optional()
+    .default([]),
   modelNumber: Joi.string().allow('', null).optional().max(100).default(''),
   hsnNumber: Joi.string().allow('', null).optional().max(50).default(''),
   gstPercentage: Joi.number().min(0).max(100).allow(null).optional(),
@@ -61,14 +66,23 @@ export const createProductSchema = Joi.object({
   quantity: Joi.number().integer().min(0).optional().default(0),
   hasVariants: Joi.boolean().optional().default(false),
   variants: Joi.array().items(variantJoi).optional().default([]),
-  variantCombinations: Joi.array().items(variantCombinationJoi).optional().default([]),
-  images: Joi.array().items(Joi.string().pattern(/^[0-9a-fA-F]{24}$/)).optional().default([]),
+  variantCombinations: Joi.array()
+    .items(variantCombinationJoi)
+    .optional()
+    .default([]),
+  images: Joi.array()
+    .items(Joi.string().pattern(/^[0-9a-fA-F]{24}$/))
+    .optional()
+    .default([]),
   weight: Joi.number().min(0).optional().default(0),
   weightUnit: Joi.string().valid('g', 'kg', 'lb', 'oz').optional().default('g'),
   dimensions: dimensionsJoi.optional(),
   dimensionUnit: Joi.string().valid('cm', 'in', 'm').optional().default('cm'),
   tags: Joi.array().items(Joi.string()).optional().default([]),
-  status: Joi.string().valid('active', 'inactive', 'draft').optional().default('draft'),
+  status: Joi.string()
+    .valid('active', 'inactive', 'draft')
+    .optional()
+    .default('draft'),
   unit: Joi.string().optional().default('pcs'),
 })
 
@@ -82,7 +96,10 @@ export const listProductSchema = Joi.object({
   status: Joi.string().valid('active', 'inactive', 'draft').allow('', null),
   hsnNumber: Joi.string().allow('', null),
   modelNumber: Joi.string().allow('', null),
-  sortBy: Joi.string().valid('name', 'createdAt').optional().default('createdAt'),
+  sortBy: Joi.string()
+    .valid('name', 'createdAt')
+    .optional()
+    .default('createdAt'),
   sortOrder: Joi.string().valid('asc', 'desc').optional().default('desc'),
 })
 
@@ -109,7 +126,9 @@ export const updateProductSchema = Joi.object({
   hasVariants: Joi.boolean().optional(),
   variants: Joi.array().items(variantJoi).optional(),
   variantCombinations: Joi.array().items(variantCombinationJoi).optional(),
-  images: Joi.array().items(Joi.string().pattern(/^[0-9a-fA-F]{24}$/)).optional(),
+  images: Joi.array()
+    .items(Joi.string().pattern(/^[0-9a-fA-F]{24}$/))
+    .optional(),
   weight: Joi.number().min(0).optional(),
   weightUnit: Joi.string().valid('g', 'kg', 'lb', 'oz').optional(),
   dimensions: dimensionsJoi.optional(),

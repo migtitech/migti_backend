@@ -79,7 +79,7 @@ export const updateCategoryController = async (req, res) => {
     { ...req.body, ...req.query },
     {
       abortEarly: false,
-    },
+    }
   )
   if (error) {
     return res.status(statusCodes.badRequest).json({

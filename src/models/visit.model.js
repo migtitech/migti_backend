@@ -60,7 +60,7 @@ const visitSchema = new mongoose.Schema(
       default: null,
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 )
 
 visitSchema.plugin(commonFieldsPlugin)
