@@ -10,6 +10,7 @@ import {
   listQuotationsController,
   listQuotationsByIndustryController,
   getQuotationByIdController,
+  getQuotationProBucketLinesController,
   updateQuotationController,
   updateQuotationStatusController,
   exportQuotationPdfController,
@@ -37,6 +38,12 @@ quotationRouter.get(
   authenticateToken,
   checkPermission(MODULES.QUOTATIONS, 'read'),
   asyncHandler(getQuotationByIdController)
+)
+quotationRouter.get(
+  '/pro-bucket-lines',
+  authenticateToken,
+  checkPermission(MODULES.QUOTATIONS, 'read'),
+  asyncHandler(getQuotationProBucketLinesController)
 )
 quotationRouter.get(
   '/snapshots/list',

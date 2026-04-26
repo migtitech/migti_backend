@@ -20,6 +20,7 @@ import {
   resolveQueryAccessFilter,
   getTerritoryIndustryIdsForUser,
 } from '../../core/helpers/queryAccess.js'
+import { listQueryProductDocuments } from '../queryProduct/queryProduct.service.js'
 
 /** Persist quotation ref on the source query (deduped by quotationId). */
 export const appendConvertedQuotationOnQuery = async (
@@ -100,6 +101,7 @@ const buildQuotationSnapshotPayload = (doc) => {
         unit: p.unit ?? '',
         hsnNumber: p.hsnNumber ?? '',
         modelNumber: p.modelNumber ?? '',
+        rawProductCode: p.rawProductCode ?? '',
         gstPercentage: p.gstPercentage ?? null,
         variants: Array.isArray(p.variants)
           ? p.variants.map((v) => ({
@@ -260,6 +262,8 @@ export const createQuotationFromQuery = async ({
       unit: obj.unit || '',
       hsnNumber: obj.hsnNumber || '',
       modelNumber: obj.modelNumber || '',
+      rawProductCode:
+        (obj.rawProductCode && String(obj.rawProductCode).trim()) || '',
       gstPercentage: obj.gstPercentage ?? null,
       variants: Array.isArray(obj.variants) ? obj.variants : [],
       remark: obj.remark || '',
@@ -550,6 +554,97 @@ export const getQuotationById = async ({
   }
 
   return quotation
+}
+
+const matchQueryProductRow = (rows, quotLine, lineIdx) => {
+  const code =
+    (quotLine?.rawProductCode && String(quotLine.rawProductCode).trim()) || ''
+  if (code) {
+    const same = rows.filter(
+      (r) => (r.rawProductCode && String(r.rawProductCode).trim()) === code
+    )
+    if (same.length === 1) return same[0]
+    const withIdx = same.find((r) => r.lineIndex === lineIdx)
+    if (withIdx) return withIdx
+    return same[0] || null
+  }
+  return rows.find((r) => r.lineIndex === lineIdx) || null
+}
+
+const formatProBucketSupplier = (sup) => {
+  if (sup == null) return '—'
+  if (typeof sup === 'object') {
+    return String(sup.name || sup.shopname || sup.uniqueId || '—')
+  }
+  return String(sup)
+}
+
+const mapProBucketRatesForResponse = (rates) =>
+  (Array.isArray(rates) ? rates : []).map((r) => ({
+    rate: r.rate,
+    unit: (r.unit && String(r.unit).trim()) || '',
+    remark: (r.remark && String(r.remark)) || '',
+    submittedAt: r.submittedAt || null,
+    supplierName: formatProBucketSupplier(r.supplier),
+  }))
+
+/**
+ * Pro Bucket (query_products) line status and supplier rates for each quotation
+ * line, matched by `rawProductCode` and `lineIndex` against the linked query.
+ */
+export const getProBucketLinesForQuotation = async ({
+  quotationId,
+  branchFilter = {},
+  currentUserId: _currentUserId = null,
+  isFullAccessRole: _isFullAccessRole = true,
+  role: _role = '',
+}) => {
+  const quotation = await QuotationModel.findOne({
+    _id: quotationId,
+    isDeleted: false,
+    ...branchFilter,
+  })
+    .select('queryId products')
+    .lean()
+
+  if (!quotation) {
+    throw new CustomError(
+      statusCodes.notFound,
+      'Quotation not found',
+      errorCodes.not_found
+    )
+  }
+
+  const qid = quotation.queryId
+  if (!qid) {
+    return { queryId: null, lines: [] }
+  }
+
+  const rows = await listQueryProductDocuments(qid)
+  const products = Array.isArray(quotation.products) ? quotation.products : []
+  const lines = products.map((p, lineIdx) => {
+    const row = matchQueryProductRow(rows, p, lineIdx)
+    if (!row) {
+      return {
+        lineIndex: lineIdx,
+        status: null,
+        rates: [],
+        queryProductId: null,
+        rawProductCode:
+          (p?.rawProductCode && String(p.rawProductCode).trim()) || '',
+      }
+    }
+    return {
+      lineIndex: lineIdx,
+      status: row.status || 'pending',
+      rates: mapProBucketRatesForResponse(row.rates),
+      queryProductId: row._id ? String(row._id) : null,
+      rawProductCode:
+        (p?.rawProductCode && String(p.rawProductCode).trim()) || '',
+    }
+  })
+
+  return { queryId: String(qid), lines }
 }
 
 /**

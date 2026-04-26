@@ -36,6 +36,7 @@ const quotationProductItemSchema = Joi.object({
   unit: Joi.string().allow('').optional(),
   hsnNumber: Joi.string().allow('').optional(),
   modelNumber: Joi.string().allow('').optional(),
+  rawProductCode: Joi.string().allow('').max(100).optional(),
   gstPercentage: Joi.number().min(0).max(100).allow(null).optional(),
   variants: Joi.array().items(productVariantSchema).optional().default([]),
   remark: Joi.string().allow('').optional(),

@@ -125,6 +125,16 @@ const employeeSchema = new mongoose.Schema(
       default: '',
       trim: true,
     },
+    /** Product group ObjectIds (queries / procurement) — optional multi-assign */
+    assigned_groups: {
+      type: [
+        {
+          type: SchemaTypes.ObjectId,
+          ref: 'group',
+        },
+      ],
+      default: [],
+    },
   },
   { timestamps: true }
 )

@@ -15,9 +15,17 @@ const DEFAULT_FORMATTERS = {
   categoryCode: (n) => `CAT${n}`,
   productCode: (n) => `mig${n}`,
   queryCode: (n) => `QRY0${n}`,
+  /** `query_tracking_code` (queries + query_new_product records) */
+  ritems: (n) => `QTRK${n}`,
   quotationCode: (n) => `QUO0${n}`,
   purchaseOrderCode: (n) => `PO0${n}`,
 }
+
+/** Public formatter for the shared `productCode` sequence (same as catalog products, e.g. mig1000). */
+export const formatProductCodeValue = (n) => `mig${n}`
+
+/** Ritems sequence → `query_tracking_code` (QTRK1000) */
+export const formatRitemsValue = (n) => `QTRK${n}`
 
 /** Initial values for upsert so first generated code is 1000 */
 const SET_ON_INSERT = {
@@ -28,6 +36,7 @@ const SET_ON_INSERT = {
   categoryCode: INITIAL_VALUE,
   productCode: INITIAL_VALUE,
   queryCode: INITIAL_VALUE,
+  ritems: INITIAL_VALUE,
   quotationCode: INITIAL_VALUE,
   purchaseOrderCode: INITIAL_VALUE,
 }
@@ -37,7 +46,7 @@ const MAX_ATTEMPTS = 10000
 /**
  * Atomically increment the sequence for codeType and return the new value.
  * Ensures the code_sequence document exists (create with 999 if missing, then $inc only to avoid MongoDB conflict).
- * @param {string} codeType - One of: companyCode, branchCode, zoneCode, groupCode, categoryCode, productCode, queryCode, quotationCode, purchaseOrderCode
+ * @param {string} codeType - companyCode, branchCode, zoneCode, groupCode, categoryCode, productCode, queryCode, ritems, quotationCode, purchaseOrderCode
  * @returns {Promise<number>} Next sequence number (starts from 1000)
  */
 export const getNextSequence = async (codeType) => {

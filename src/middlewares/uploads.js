@@ -115,12 +115,23 @@ export const uploadCatalogMemory = multer({
   fileFilter: catalogFilter,
 })
 
-// PO / billing entry attachments: images and PDF only (same S3 flow as document upload)
+// PO / billing entry attachments: images, PDF, Excel (same S3 flow as document upload)
+const PO_BILLING_EXCEL_MIMES = new Set([
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+])
 const poBillingAttachmentFilter = (_req, file, cb) => {
-  if (/^image\//i.test(file.mimetype) || file.mimetype === 'application/pdf') {
+  if (
+    /^image\//i.test(file.mimetype) ||
+    file.mimetype === 'application/pdf' ||
+    PO_BILLING_EXCEL_MIMES.has(file.mimetype)
+  ) {
     cb(null, true)
   } else {
-    cb(new Error('Only images and PDF files are allowed'), false)
+    cb(
+      new Error('Only images, PDF, and Excel files are allowed'),
+      false
+    )
   }
 }
 

@@ -44,6 +44,8 @@ const quotationProductItemSchema = new mongoose.Schema(
     unit: { type: SchemaTypes.String, trim: true, default: '' },
     hsnNumber: { type: SchemaTypes.String, trim: true, default: '' },
     modelNumber: { type: SchemaTypes.String, trim: true, default: '' },
+    /** Snapshot from query line (e.g. mig1000 from query_new_product) */
+    rawProductCode: { type: SchemaTypes.String, trim: true, default: '' },
     gstPercentage: {
       type: SchemaTypes.Number,
       min: 0,

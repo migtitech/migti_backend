@@ -25,7 +25,12 @@ import {
   getQuotationByQueryId,
 } from '../quotation/quotation.service.js'
 import { createDraftTasksForQueryProducts } from '../taskManagement/taskManagement.service.js'
-import { getNextSequence } from '../codeSequence/codeSequence.service.js'
+import {
+  getNextSequence,
+  formatProductCodeValue,
+  formatRitemsValue,
+} from '../codeSequence/codeSequence.service.js'
+import ProductModel from '../../models/product.model.js'
 import {
   getTargetAnalytics as getTargetAnalyticsData,
   upsertTargetAnalytics as upsertTargetAnalyticsData,
@@ -43,6 +48,10 @@ import BranchZoneTargetModel from '../../models/branchZoneTarget.model.js'
 import TargetAnalyticsModel from '../../models/targetAnalytics.model.js'
 import { assertSubZoneBelongsToArea } from '../subZone/subZone.service.js'
 import { resolveQueryAccessFilter } from '../../core/helpers/queryAccess.js'
+import {
+  replaceQueryProductDocuments,
+  softDeleteQueryProductRowsForQuery,
+} from '../queryProduct/queryProduct.service.js'
 
 const OBJECT_ID_REGEX = /^[a-fA-F0-9]{24}$/
 
@@ -89,6 +98,63 @@ const mapProductsWithImages = (products) => {
     ...p,
     images: normalizeImageIds(p.images),
   }))
+}
+
+const normalizeQueryProductIds = (p) => {
+  const next = { ...p }
+  if (next.groupId && mongoose.Types.ObjectId.isValid(String(next.groupId))) {
+    next.groupId = new mongoose.Types.ObjectId(String(next.groupId))
+  } else {
+    next.groupId = null
+  }
+  if (
+    next.categoryId &&
+    mongoose.Types.ObjectId.isValid(String(next.categoryId))
+  ) {
+    next.categoryId = new mongoose.Types.ObjectId(String(next.categoryId))
+  } else {
+    next.categoryId = null
+  }
+  return next
+}
+
+/**
+ * Ensures each line has `rawProductCode` (shared productCode sequence, e.g. mig1000).
+ * Reuses catalog `productCode` when `product_id` is set; otherwise allocates from sequence.
+ */
+const enrichQueryProductsWithRawCodes = async (products) => {
+  if (!Array.isArray(products)) return []
+  const out = []
+  for (const p of products) {
+    let next = { ...p }
+    const hasCode =
+      next.rawProductCode != null &&
+      String(next.rawProductCode).trim() !== ''
+    if (!hasCode && next.product_id) {
+      const pid = mongoose.Types.ObjectId.isValid(String(next.product_id))
+        ? String(next.product_id)
+        : null
+      if (pid) {
+        const prod = await ProductModel.findById(pid)
+          .select('productCode')
+          .lean()
+        if (prod?.productCode) {
+          next.rawProductCode = String(prod.productCode).trim()
+        }
+      }
+    }
+    const stillNoCode =
+      next.rawProductCode == null ||
+      String(next.rawProductCode).trim() === ''
+    if (stillNoCode) {
+      const n = await getNextSequence('productCode')
+      next.rawProductCode = formatProductCodeValue(n)
+    } else {
+      next.rawProductCode = String(next.rawProductCode).trim()
+    }
+    out.push(normalizeQueryProductIds(next))
+  }
+  return out
 }
 
 const dedupeConvertedQuotationRefs = (refs = []) => {
@@ -147,13 +213,17 @@ export const addQuery = async ({
   const branchFilter = branchId ? { branchId } : {}
   const numericCode = await getNextSequence('queryCode')
   const queryCode = formatQueryCode(numericCode, companyInfo?.name)
+  const ritemsNum = await getNextSequence('ritems')
+  const query_tracking_code = formatRitemsValue(ritemsNum)
 
-  const normalizedProducts = mapProductsWithImages(products || [])
+  const mapped = mapProductsWithImages(products || [])
+  const normalizedProducts = await enrichQueryProductsWithRawCodes(mapped)
 
   await validateCompanyInfoSubZone(companyInfo, branchId)
 
   const doc = await QueryModel.create({
     queryCode,
+    query_tracking_code,
     status: status || 'drafted',
     companyInfo: companyInfo || {},
     industry_id: industry_id || null,
@@ -167,6 +237,16 @@ export const addQuery = async ({
     await createDraftTasksForQueryProducts({ query: queryObj })
   } catch (err) {
     console.error('Failed to create draft tasks for query products', err)
+  }
+
+  try {
+    await replaceQueryProductDocuments({
+      queryId: doc._id,
+      queryCode: doc.queryCode,
+      products: queryObj.products || [],
+    })
+  } catch (err) {
+    console.error('Failed to sync query_products for query', err)
   }
 
   return queryObj
@@ -322,6 +402,14 @@ export const getQueryById = async ({
       path: 'products.images',
       select: 'path',
       model: 'document',
+    })
+    .populate({
+      path: 'products.groupId',
+      select: 'name code',
+    })
+    .populate({
+      path: 'products.categoryId',
+      select: 'name categoryCode',
     })
     .lean()
 
@@ -530,8 +618,10 @@ export const updateQuery = async ({
     updatePayload.companyInfo = companyInfo
   }
   if (industry_id !== undefined) updatePayload.industry_id = industry_id || null
-  if (products !== undefined)
-    updatePayload.products = mapProductsWithImages(products)
+  if (products !== undefined) {
+    const mapped = mapProductsWithImages(products)
+    updatePayload.products = await enrichQueryProductsWithRawCodes(mapped)
+  }
   if (delivery !== undefined) updatePayload.delivery = delivery
   if (status !== undefined) updatePayload.status = status
   if (close_remark !== undefined) updatePayload.close_remark = close_remark
@@ -542,6 +632,18 @@ export const updateQuery = async ({
   })
     .populate('industry_id', 'name location email')
     .lean()
+
+  if (updated && products !== undefined) {
+    try {
+      await replaceQueryProductDocuments({
+        queryId: updated._id,
+        queryCode: updated.queryCode,
+        products: updated.products || [],
+      })
+    } catch (err) {
+      console.error('Failed to sync query_products for query update', err)
+    }
+  }
 
   return updated
 }
@@ -578,6 +680,12 @@ export const deleteQuery = async ({
     { isDeleted: true },
     { new: true }
   )
+
+  try {
+    await softDeleteQueryProductRowsForQuery(queryId)
+  } catch (err) {
+    console.error('Failed to soft-delete query_product rows for query', err)
+  }
 
   return {
     deletedQuery: {

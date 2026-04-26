@@ -13,6 +13,7 @@ import {
 import {
   listQuotations,
   getQuotationById,
+  getProBucketLinesForQuotation,
   updateQuotation,
   updateQuotationStatus,
   deleteQuotation,
@@ -164,6 +165,35 @@ export const getQuotationByIdController = async (req, res) => {
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Quotation details retrieved successfully',
+    data: result,
+  })
+}
+
+export const getQuotationProBucketLinesController = async (req, res) => {
+  const { error, value } = getQuotationByIdSchema.validate(req.query, {
+    abortEarly: false,
+  })
+  if (error) {
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: Message.validationError,
+      error: error.details.map((d) => d.message),
+    })
+  }
+
+  const branchFilter = resolveQuotationBranchFilter(req)
+  const currentUserId = req.user?.id || req.user?._id
+  const isFullAccessRole = hasOwnershipBypass(req.user?.role)
+  const result = await getProBucketLinesForQuotation({
+    ...value,
+    branchFilter,
+    currentUserId: currentUserId || null,
+    isFullAccessRole: !!isFullAccessRole,
+    role: req.user?.role || '',
+  })
+  return res.status(statusCodes.ok).json({
+    success: true,
+    message: 'Pro Bucket line info retrieved',
     data: result,
   })
 }

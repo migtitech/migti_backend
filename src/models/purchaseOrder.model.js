@@ -52,6 +52,9 @@ const purchaseOrderProductItemSchema = new mongoose.Schema(
     unit: { type: SchemaTypes.String, trim: true, default: '' },
     hsnNumber: { type: SchemaTypes.String, trim: true, default: '' },
     modelNumber: { type: SchemaTypes.String, trim: true, default: '' },
+    /** Snapshot from quotation/query line for linking to query_products rates */
+    rawProductCode: { type: SchemaTypes.String, trim: true, default: '' },
+    dispatchmentDate: { type: SchemaTypes.Date, default: null },
     gstPercentage: {
       type: SchemaTypes.Number,
       min: 0,
@@ -73,6 +76,12 @@ const purchaseOrderProductItemSchema = new mongoose.Schema(
     discountAmount: { type: SchemaTypes.Number, min: 0, default: null },
     notAvailable: { type: SchemaTypes.Boolean, default: false },
     notAvailableRemark: { type: SchemaTypes.String, default: '' },
+    priority: {
+      type: SchemaTypes.String,
+      enum: ['high', 'medium', 'low'],
+      default: 'medium',
+      trim: true,
+    },
   },
   { _id: true }
 )
@@ -85,6 +94,14 @@ export const PURCHASE_ORDER_STATUS = {
 }
 
 const purchaseOrderStatusValues = Object.values(PURCHASE_ORDER_STATUS)
+
+export const PO_PAYMENT_RECEIVED_STATUS = {
+  NONE: 'none',
+  PARTIAL_PAYMENT_RECEIVED: 'partial_payment_received',
+  FULL_PAYMENT_RECEIVED: 'full_payment_received',
+}
+
+const poPaymentReceivedStatusValues = Object.values(PO_PAYMENT_RECEIVED_STATUS)
 
 const purchaseOrderSchema = new mongoose.Schema(
   {
@@ -116,6 +133,13 @@ const purchaseOrderSchema = new mongoose.Schema(
       type: SchemaTypes.String,
       enum: purchaseOrderStatusValues,
       default: PURCHASE_ORDER_STATUS.DRAFT,
+      trim: true,
+    },
+    /** Receivable status from the client company (driven by PO → payment tracking). */
+    paymentReceivedStatus: {
+      type: SchemaTypes.String,
+      enum: poPaymentReceivedStatusValues,
+      default: PO_PAYMENT_RECEIVED_STATUS.NONE,
       trim: true,
     },
     companyInfo: {
@@ -164,6 +188,11 @@ const purchaseOrderSchema = new mongoose.Schema(
     payments: {
       type: [paymentEntrySchema],
       default: [],
+    },
+    attachmentDocumentId: {
+      type: SchemaTypes.ObjectId,
+      ref: 'document',
+      default: null,
     },
   },
   { timestamps: true }

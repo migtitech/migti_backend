@@ -386,6 +386,19 @@ export const MODULES = Object.freeze({
   VISITS: 'visits',
   VISIT_MANAGEMENT: 'visit_management',
   MY_VISITS: 'my_visits',
+  PRO_BUCKET: 'pro_bucket',
+  /** PO queue (/po-bucket) — separate from main purchase order list. */
+  PO_BUCKET: 'po_bucket',
+  /** Purchase queue (/purchase-bucket). */
+  PURCHASE_BUCKET: 'purchase_bucket',
+  /** Inventory queue (/inventory-bucket). */
+  INVENTORY_BUCKET: 'inventory_bucket',
+  /** PO / billing (e.g. purchase order sidebar, PO–billing actions). */
+  BILLING: 'billing',
+  /** Purchase billing requests list / workflow. */
+  REQUEST: 'request',
+  /** Dispatchment queue. */
+  DISPATCHMENT: 'dispatchment',
 })
 
 // RBAC Actions

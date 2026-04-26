@@ -4,6 +4,7 @@ import { getBranchFilter } from '../../core/helpers/branchFilter.js'
 import {
   listPurchaseOrderSchema,
   getPurchaseOrderByIdSchema,
+  listPoProductLinesSchema,
   getPurchaseOrderByQuotationIdSchema,
   createPurchaseOrderFromQuotationSchema,
   updatePurchaseOrderSchema,
@@ -13,6 +14,7 @@ import {
 import {
   listPurchaseOrders,
   getPurchaseOrderById,
+  listPoProductLinesForPurchaseOrder,
   getPurchaseOrderByQuotationId,
   createPurchaseOrderFromQuotation,
   updatePurchaseOrder,
@@ -97,6 +99,33 @@ export const getPurchaseOrderByIdController = async (req, res) => {
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Purchase order retrieved successfully',
+    data: result,
+  })
+}
+
+export const listPoProductLinesController = async (req, res) => {
+  const { error, value } = listPoProductLinesSchema.validate(req.query, {
+    abortEarly: false,
+  })
+  if (error) {
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: Message.validationError,
+      error: error.details.map((d) => d.message),
+    })
+  }
+  const branchFilter = resolvePoBranchFilter(req)
+  const currentUserId = req.user?.id || req.user?._id
+  const isFullAccessRole = hasOwnershipBypass(req.user?.role)
+  const result = await listPoProductLinesForPurchaseOrder({
+    ...value,
+    branchFilter,
+    currentUserId: currentUserId || null,
+    isFullAccessRole: !!isFullAccessRole,
+  })
+  return res.status(statusCodes.ok).json({
+    success: true,
+    message: 'PO product lines retrieved successfully',
     data: result,
   })
 }
