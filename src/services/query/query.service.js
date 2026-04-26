@@ -128,8 +128,7 @@ const enrichQueryProductsWithRawCodes = async (products) => {
   for (const p of products) {
     let next = { ...p }
     const hasCode =
-      next.rawProductCode != null &&
-      String(next.rawProductCode).trim() !== ''
+      next.rawProductCode != null && String(next.rawProductCode).trim() !== ''
     if (!hasCode && next.product_id) {
       const pid = mongoose.Types.ObjectId.isValid(String(next.product_id))
         ? String(next.product_id)
@@ -144,8 +143,7 @@ const enrichQueryProductsWithRawCodes = async (products) => {
       }
     }
     const stillNoCode =
-      next.rawProductCode == null ||
-      String(next.rawProductCode).trim() === ''
+      next.rawProductCode == null || String(next.rawProductCode).trim() === ''
     if (stillNoCode) {
       const n = await getNextSequence('productCode')
       next.rawProductCode = formatProductCodeValue(n)

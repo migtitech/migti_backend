@@ -50,7 +50,10 @@ export const replaceQueryProductDocuments = async ({
     .select('lineIndex rates')
     .lean()
   const ratesByLineIndex = new Map(
-    existingRows.map((d) => [d.lineIndex, Array.isArray(d.rates) ? d.rates : []])
+    existingRows.map((d) => [
+      d.lineIndex,
+      Array.isArray(d.rates) ? d.rates : [],
+    ])
   )
 
   await QueryProductModel.deleteMany({ queryId: qid })
@@ -78,7 +81,8 @@ export const replaceQueryProductDocuments = async ({
       product_id: toOid(p.product_id),
       groupId: toOid(p.groupId),
       categoryId: toOid(p.categoryId),
-      rawProductCode: (p.rawProductCode && String(p.rawProductCode).trim()) || '',
+      rawProductCode:
+        (p.rawProductCode && String(p.rawProductCode).trim()) || '',
       query_tracking_code:
         (p.query_tracking_code && String(p.query_tracking_code).trim()) || '',
       images: cleanImages(p.images),

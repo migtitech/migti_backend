@@ -24,8 +24,7 @@ const isFullAccessRole = (role) => {
 
 const supplierSnapshot = (sup) => {
   if (!sup) return null
-  const o =
-    typeof sup.toObject === 'function' ? sup.toObject() : { ...sup }
+  const o = typeof sup.toObject === 'function' ? sup.toObject() : { ...sup }
   delete o.password
   return o
 }
@@ -44,9 +43,7 @@ const buildBasePipeline = ({
       return null
     }
     baseMatch.groupId = {
-      $in: assignedGroups
-        .map((id) => toOid(id))
-        .filter((id) => id != null),
+      $in: assignedGroups.map((id) => toOid(id)).filter((id) => id != null),
     }
   }
 
@@ -110,7 +107,10 @@ export const listProBucketQueryProducts = async (q, user) => {
   }
 
   const fullAccess = isFullAccessRole(employee.role)
-  const page = Math.max(1, parseInt(String(q.page || q.pageNumber || 1), 10) || 1)
+  const page = Math.max(
+    1,
+    parseInt(String(q.page || q.pageNumber || 1), 10) || 1
+  )
   const pageSize = Math.min(
     100,
     Math.max(1, parseInt(String(q.pageSize || q.limit || 20), 10) || 20)
@@ -158,7 +158,11 @@ export const listProBucketQueryProducts = async (q, user) => {
     return {
       ...rest,
       query: qrow
-        ? { _id: qrow._id, queryCode: qrow.queryCode, createdAt: qrow.createdAt }
+        ? {
+            _id: qrow._id,
+            queryCode: qrow.queryCode,
+            createdAt: qrow.createdAt,
+          }
         : null,
     }
   })
@@ -197,7 +201,9 @@ export const getProBucketQueryProductById = async (id, user) => {
       return null
     }
     if (user?.branchId) {
-      const qu = await QueryModel.findById(doc.queryId).select('branchId').lean()
+      const qu = await QueryModel.findById(doc.queryId)
+        .select('branchId')
+        .lean()
       if (qu && String(qu.branchId) !== String(user.branchId)) {
         return null
       }

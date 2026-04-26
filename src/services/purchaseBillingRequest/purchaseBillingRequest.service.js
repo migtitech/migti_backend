@@ -65,11 +65,11 @@ const shapeRow = (doc, billUrl = null) => {
       : null
   const createdBy =
     doc.createdBy && typeof doc.createdBy === 'object' ? doc.createdBy : null
-  const productSnap = doc.productSnapshot && typeof doc.productSnapshot === 'object' ? doc.productSnapshot : null
-  const poCode =
-    (po && po.poCode) ||
-    (productSnap && productSnap.poCode) ||
-    ''
+  const productSnap =
+    doc.productSnapshot && typeof doc.productSnapshot === 'object'
+      ? doc.productSnapshot
+      : null
+  const poCode = (po && po.poCode) || (productSnap && productSnap.poCode) || ''
   return {
     _id: doc._id,
     uniqueId: doc.uniqueId || '',
@@ -90,8 +90,8 @@ const shapeRow = (doc, billUrl = null) => {
           url: billUrl,
           originalName:
             (doc.billDocumentId &&
-            typeof doc.billDocumentId === 'object' &&
-            doc.billDocumentId.originalName) ||
+              typeof doc.billDocumentId === 'object' &&
+              doc.billDocumentId.originalName) ||
             '',
         }
       : null,
@@ -219,7 +219,11 @@ export const getPurchaseBillingRequestById = async (id) => {
     approvedAt: doc.approvedAt || null,
     poProductId: doc.poProductId || null,
     billDocument: billUrl
-      ? { url: billUrl, originalName, mimeType: doc.billDocumentId?.mimeType || '' }
+      ? {
+          url: billUrl,
+          originalName,
+          mimeType: doc.billDocumentId?.mimeType || '',
+        }
       : null,
   }
 }
@@ -234,7 +238,11 @@ export const updatePurchaseBillingRequestRemark = async (id, statusRemark) => {
   }
   const next = String(statusRemark ?? '').trim()
   const doc = await PurchaseBillingRequestModel.findOneAndUpdate(
-    { _id: id, isDeleted: false, status: PURCHASE_BILLING_REQUEST_STATUS.PENDING },
+    {
+      _id: id,
+      isDeleted: false,
+      status: PURCHASE_BILLING_REQUEST_STATUS.PENDING,
+    },
     { $set: { statusRemark: next } },
     { new: true }
   )

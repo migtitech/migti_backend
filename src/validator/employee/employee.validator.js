@@ -177,7 +177,7 @@ export const loginEmployeeSchema = Joi.object({
       'finance',
       'delivery',
       'inventry_manager',
-      'dispatch_manager',
+      'dispatch_manager'
     )
     .required(),
 })

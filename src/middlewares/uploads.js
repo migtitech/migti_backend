@@ -128,10 +128,7 @@ const poBillingAttachmentFilter = (_req, file, cb) => {
   ) {
     cb(null, true)
   } else {
-    cb(
-      new Error('Only images, PDF, and Excel files are allowed'),
-      false
-    )
+    cb(new Error('Only images, PDF, and Excel files are allowed'), false)
   }
 }
 

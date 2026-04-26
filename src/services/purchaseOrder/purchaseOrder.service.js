@@ -49,9 +49,7 @@ const lineGstPctForProduct = (p) => {
 }
 
 const hasPoPaymentLedger = (poPaymentLean) =>
-  poPaymentLean &&
-  poPaymentLean._id &&
-  !poPaymentLean.isDeleted
+  poPaymentLean && poPaymentLean._id && !poPaymentLean.isDeleted
 
 /** Grand total (taxable + freight + packing + GST) and payment summary — matches quotation preview math.
  *  When a `po_payments` document exists, uses its `ledgers` only; otherwise uses embedded `payments`. */
@@ -129,7 +127,9 @@ const OBJECT_ID_REGEX = /^[a-fA-F0-9]{24}$/
 const PO_PRODUCT_PRIORITY = ['high', 'medium', 'low']
 
 const normalizeProductPriority = (value) => {
-  const s = String(value || '').toLowerCase().trim()
+  const s = String(value || '')
+    .toLowerCase()
+    .trim()
   return PO_PRODUCT_PRIORITY.includes(s) ? s : 'medium'
 }
 
@@ -190,7 +190,9 @@ const mapQueryRates = (queryProduct) => {
   return rates.map((r) => ({
     supplier: r?.supplier ?? null,
     rate:
-      typeof r?.rate === 'number' && !Number.isNaN(r.rate) ? Number(r.rate) : null,
+      typeof r?.rate === 'number' && !Number.isNaN(r.rate)
+        ? Number(r.rate)
+        : null,
     unit: String(r?.unit || ''),
     remark: String(r?.remark || ''),
     submittedAt: r?.submittedAt || null,
@@ -227,7 +229,9 @@ const syncPoProductsFromPurchaseOrder = async (poDoc) => {
     queryProductMap.get(code).push(row)
   }
 
-  const existingProcurement = await PoProductModel.find({ purchaseOrderId: poId })
+  const existingProcurement = await PoProductModel.find({
+    purchaseOrderId: poId,
+  })
     .select(
       'lineIndex procurementStatus paymentRequestAmount paymentRequestBillDocumentId paymentRequestRaisedAt paymentRequestRaisedBy purchaseBillingRequestId status inventoryStatus'
     )
@@ -263,7 +267,8 @@ const syncPoProductsFromPurchaseOrder = async (poDoc) => {
         ? 'purchased'
         : proc === 'finance_approved' || lineStatus === 'finance_approved'
           ? 'finance_approved'
-          : proc === 'payment_request_raised' || lineStatus === 'payment_request_raised'
+          : proc === 'payment_request_raised' ||
+              lineStatus === 'payment_request_raised'
             ? 'payment_request_raised'
             : lineStatus === 'ready_for_dispatchment' ||
                 lineStatus === 'inventory_received' ||
@@ -294,7 +299,9 @@ const syncPoProductsFromPurchaseOrder = async (poDoc) => {
           : null,
       remark: product?.remark || '',
       product_id: product?.product_id || null,
-      attachmentDocumentId: toAttachmentDocumentId(product?.attachmentDocumentId),
+      attachmentDocumentId: toAttachmentDocumentId(
+        product?.attachmentDocumentId
+      ),
       poRate:
         typeof product?.rate === 'number' && !Number.isNaN(product.rate)
           ? product.rate
@@ -674,7 +681,9 @@ export const getPurchaseOrderById = async ({
   if (poPay?.ledgers?.length) {
     for (const le of poPay.ledgers) {
       if (le?.paymentProofDocumentId?.path) {
-        const [signed] = await transformPathsToSignedUrls([le.paymentProofDocumentId])
+        const [signed] = await transformPathsToSignedUrls([
+          le.paymentProofDocumentId,
+        ])
         le.paymentProofDocumentId = signed || le.paymentProofDocumentId
       }
     }
@@ -743,9 +752,10 @@ export const appendPoPaymentLedger = async ({
     paidAt: paidAt ? new Date(paidAt) : new Date(),
     remark: String(remark || '').trim(),
     paymentProofDocumentId: proofId,
-    recordedBy: _currentUserId && OBJECT_ID_REGEX.test(String(_currentUserId))
-      ? _currentUserId
-      : null,
+    recordedBy:
+      _currentUserId && OBJECT_ID_REGEX.test(String(_currentUserId))
+        ? _currentUserId
+        : null,
   }
 
   const poPayDoc = await PoPaymentModel.findOne({
@@ -754,29 +764,36 @@ export const appendPoPaymentLedger = async ({
   })
 
   if (!poPayDoc) {
-    const migrated = (Array.isArray(existing.payments) ? existing.payments : []).map(
-      (p) => ({
-        amount: Number(p.amount) || 0,
-        paidAt: p.paidAt ? new Date(p.paidAt) : new Date(),
-        remark: String(p.remark || '').trim(),
-        paymentProofDocumentId: null,
-        recordedBy: null,
-      })
-    )
+    const migrated = (
+      Array.isArray(existing.payments) ? existing.payments : []
+    ).map((p) => ({
+      amount: Number(p.amount) || 0,
+      paidAt: p.paidAt ? new Date(p.paidAt) : new Date(),
+      remark: String(p.remark || '').trim(),
+      paymentProofDocumentId: null,
+      recordedBy: null,
+    }))
     const ledgers = [...migrated, newEntry]
     await PoPaymentModel.create({
       purchaseOrderId,
       ledgers,
     })
     if (migrated.length > 0) {
-      await PurchaseOrderModel.findByIdAndUpdate(purchaseOrderId, { $set: { payments: [] } })
+      await PurchaseOrderModel.findByIdAndUpdate(purchaseOrderId, {
+        $set: { payments: [] },
+      })
     }
   } else {
-    await PoPaymentModel.findByIdAndUpdate(poPayDoc._id, { $push: { ledgers: newEntry } })
+    await PoPaymentModel.findByIdAndUpdate(poPayDoc._id, {
+      $push: { ledgers: newEntry },
+    })
   }
 
   const freshPo = await PurchaseOrderModel.findById(purchaseOrderId).lean()
-  const finPay = await PoPaymentModel.findOne({ purchaseOrderId, isDeleted: false }).lean()
+  const finPay = await PoPaymentModel.findOne({
+    purchaseOrderId,
+    isDeleted: false,
+  }).lean()
   const fin = computePurchaseOrderFinancials(freshPo, finPay)
   const payStatus = resolvePaymentReceivedStatus(fin)
   const snapshot = buildPoSnapshotFromPo(freshPo, finPay)
@@ -795,7 +812,11 @@ export const appendPoPaymentLedger = async ({
     purchaseOrderId,
     branchFilter,
   })
-  return { purchaseOrder: full, financials: full.financials, poPayment: full.poPayment }
+  return {
+    purchaseOrder: full,
+    financials: full.financials,
+    poPayment: full.poPayment,
+  }
 }
 
 export const appendPurchaseOrderPayment = async ({
@@ -944,9 +965,8 @@ export const updatePurchaseOrder = async ({
       sid && OBJECT_ID_REGEX.test(sid) ? sid : null
   }
   if (attachmentDocumentId !== undefined) {
-    updatePayload.attachmentDocumentId = toAttachmentDocumentId(
-      attachmentDocumentId
-    )
+    updatePayload.attachmentDocumentId =
+      toAttachmentDocumentId(attachmentDocumentId)
   }
 
   const updated = await PurchaseOrderModel.findByIdAndUpdate(
@@ -976,8 +996,13 @@ export const updatePurchaseOrder = async ({
     }
   }
 
-  if (updated?.attachmentDocumentId && typeof updated.attachmentDocumentId === 'object') {
-    const [signed] = await transformPathsToSignedUrls([updated.attachmentDocumentId])
+  if (
+    updated?.attachmentDocumentId &&
+    typeof updated.attachmentDocumentId === 'object'
+  ) {
+    const [signed] = await transformPathsToSignedUrls([
+      updated.attachmentDocumentId,
+    ])
     updated.attachmentDocumentId = signed || updated.attachmentDocumentId
   }
 

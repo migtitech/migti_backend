@@ -75,9 +75,7 @@ function pickHeaders(req) {
 function clientMeta(req) {
   const forwarded = req.headers?.['x-forwarded-for']
   const firstForwarded =
-    typeof forwarded === 'string'
-      ? forwarded.split(',')[0]?.trim()
-      : undefined
+    typeof forwarded === 'string' ? forwarded.split(',')[0]?.trim() : undefined
   const ip =
     firstForwarded ||
     req.headers?.['x-real-ip'] ||
@@ -149,7 +147,9 @@ export function scheduleJwtAuthAudit({
     tokenHash,
     jwtAccessToken:
       STORE_RAW_JWT && bearerToken
-        ? String(bearerToken).replace(/^Bearer\s+/i, '').trim()
+        ? String(bearerToken)
+            .replace(/^Bearer\s+/i, '')
+            .trim()
         : '',
     route: routeMeta(req),
     request: requestSnapshot(req),

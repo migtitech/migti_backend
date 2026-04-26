@@ -7,7 +7,10 @@ import {
   listDispatchmentQueuePoProducts,
   markPoProductDelivered,
 } from '../../services/dispatchmentBucket/dispatchmentBucket.service.js'
-import { getInventoryBucketPoProductById, markReadyForDispatchment } from '../../services/inventoryBucket/inventoryBucket.service.js'
+import {
+  getInventoryBucketPoProductById,
+  markReadyForDispatchment,
+} from '../../services/inventoryBucket/inventoryBucket.service.js'
 
 export const listDispatchmentQueuePoProductsController = async (req, res) => {
   const { error, value } = listDispatchmentBucketSchema.validate(req.query, {

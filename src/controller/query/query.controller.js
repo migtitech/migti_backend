@@ -574,24 +574,20 @@ export const getZoneTargetAnalyticsController = async (req, res) => {
     abortEarly: false,
   })
   if (error)
-    return res
-      .status(statusCodes.badRequest)
-      .json({
-        success: false,
-        message: Message.validationError,
-        error: error.details.map((d) => d.message),
-      })
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: Message.validationError,
+      error: error.details.map((d) => d.message),
+    })
   const branchFilter = resolveQueryBranchFilter(req, {
     allowQueryBranchId: true,
   })
   const result = await getZoneTargetAnalytics({ ...value, branchFilter })
-  return res
-    .status(statusCodes.ok)
-    .json({
-      success: true,
-      message: 'Zone target analytics retrieved successfully',
-      data: result,
-    })
+  return res.status(statusCodes.ok).json({
+    success: true,
+    message: 'Zone target analytics retrieved successfully',
+    data: result,
+  })
 }
 
 export const upsertZoneTargetAnalyticsController = async (req, res) => {
@@ -599,13 +595,11 @@ export const upsertZoneTargetAnalyticsController = async (req, res) => {
     abortEarly: false,
   })
   if (error)
-    return res
-      .status(statusCodes.badRequest)
-      .json({
-        success: false,
-        message: Message.validationError,
-        error: error.details.map((d) => d.message),
-      })
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: Message.validationError,
+      error: error.details.map((d) => d.message),
+    })
   const branchFilter = resolveQueryBranchFilter(req, {
     allowQueryBranchId: true,
   })
@@ -615,13 +609,11 @@ export const upsertZoneTargetAnalyticsController = async (req, res) => {
     userId,
     branchFilter,
   })
-  return res
-    .status(statusCodes.ok)
-    .json({
-      success: true,
-      message: 'Zone target updated successfully',
-      data: result,
-    })
+  return res.status(statusCodes.ok).json({
+    success: true,
+    message: 'Zone target updated successfully',
+    data: result,
+  })
 }
 
 export const getZoneTargetSummaryController = async (req, res) => {
@@ -629,24 +621,20 @@ export const getZoneTargetSummaryController = async (req, res) => {
     abortEarly: false,
   })
   if (error)
-    return res
-      .status(statusCodes.badRequest)
-      .json({
-        success: false,
-        message: Message.validationError,
-        error: error.details.map((d) => d.message),
-      })
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: Message.validationError,
+      error: error.details.map((d) => d.message),
+    })
   const branchFilter = resolveQueryBranchFilter(req, {
     allowQueryBranchId: true,
   })
   const result = await getZoneTargetSummary({ ...value, branchFilter })
-  return res
-    .status(statusCodes.ok)
-    .json({
-      success: true,
-      message: 'Zone target summary retrieved successfully',
-      data: result,
-    })
+  return res.status(statusCodes.ok).json({
+    success: true,
+    message: 'Zone target summary retrieved successfully',
+    data: result,
+  })
 }
 
 export const getEmployeeTargetAnalyticsController = async (req, res) => {
@@ -655,24 +643,20 @@ export const getEmployeeTargetAnalyticsController = async (req, res) => {
     { abortEarly: false }
   )
   if (error)
-    return res
-      .status(statusCodes.badRequest)
-      .json({
-        success: false,
-        message: Message.validationError,
-        error: error.details.map((d) => d.message),
-      })
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: Message.validationError,
+      error: error.details.map((d) => d.message),
+    })
   const branchFilter = resolveQueryBranchFilter(req, {
     allowQueryBranchId: true,
   })
   const result = await getEmployeeTargetAnalytics({ ...value, branchFilter })
-  return res
-    .status(statusCodes.ok)
-    .json({
-      success: true,
-      message: 'Employee target analytics retrieved successfully',
-      data: result,
-    })
+  return res.status(statusCodes.ok).json({
+    success: true,
+    message: 'Employee target analytics retrieved successfully',
+    data: result,
+  })
 }
 
 export const upsertEmployeeTargetAnalyticsController = async (req, res) => {
@@ -680,13 +664,11 @@ export const upsertEmployeeTargetAnalyticsController = async (req, res) => {
     abortEarly: false,
   })
   if (error)
-    return res
-      .status(statusCodes.badRequest)
-      .json({
-        success: false,
-        message: Message.validationError,
-        error: error.details.map((d) => d.message),
-      })
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: Message.validationError,
+      error: error.details.map((d) => d.message),
+    })
   const branchFilter = resolveQueryBranchFilter(req, {
     allowQueryBranchId: true,
   })
@@ -696,13 +678,11 @@ export const upsertEmployeeTargetAnalyticsController = async (req, res) => {
     userId,
     branchFilter,
   })
-  return res
-    .status(statusCodes.ok)
-    .json({
-      success: true,
-      message: 'Employee target updated successfully',
-      data: result,
-    })
+  return res.status(statusCodes.ok).json({
+    success: true,
+    message: 'Employee target updated successfully',
+    data: result,
+  })
 }
 
 export const getEmployeeTargetSummaryController = async (req, res) => {
@@ -710,24 +690,20 @@ export const getEmployeeTargetSummaryController = async (req, res) => {
     abortEarly: false,
   })
   if (error)
-    return res
-      .status(statusCodes.badRequest)
-      .json({
-        success: false,
-        message: Message.validationError,
-        error: error.details.map((d) => d.message),
-      })
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: Message.validationError,
+      error: error.details.map((d) => d.message),
+    })
   const branchFilter = resolveQueryBranchFilter(req, {
     allowQueryBranchId: true,
   })
   const result = await getEmployeeTargetSummary({ ...value, branchFilter })
-  return res
-    .status(statusCodes.ok)
-    .json({
-      success: true,
-      message: 'Employee target summary retrieved successfully',
-      data: result,
-    })
+  return res.status(statusCodes.ok).json({
+    success: true,
+    message: 'Employee target summary retrieved successfully',
+    data: result,
+  })
 }
 
 export const getSalesDashboardCardsController = async (req, res) => {

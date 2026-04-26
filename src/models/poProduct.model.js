@@ -48,11 +48,24 @@ const poProductSchema = new mongoose.Schema(
       index: true,
     },
     poCode: { type: SchemaTypes.String, trim: true, default: '', index: true },
-    quotationId: { type: SchemaTypes.ObjectId, ref: 'quotation', default: null },
-    queryId: { type: SchemaTypes.ObjectId, ref: 'query', default: null, index: true },
+    quotationId: {
+      type: SchemaTypes.ObjectId,
+      ref: 'quotation',
+      default: null,
+    },
+    queryId: {
+      type: SchemaTypes.ObjectId,
+      ref: 'query',
+      default: null,
+      index: true,
+    },
     industry_id: { type: SchemaTypes.ObjectId, ref: 'industry', default: null },
     companyInfo: { type: companyInfoSchema, default: () => ({}) },
-    branchId: { type: SchemaTypes.ObjectId, ref: 'companyBranch', default: null },
+    branchId: {
+      type: SchemaTypes.ObjectId,
+      ref: 'companyBranch',
+      default: null,
+    },
     lineIndex: { type: SchemaTypes.Number, required: true, min: 0 },
     productName: { type: SchemaTypes.String, required: true, trim: true },
     description: { type: SchemaTypes.String, default: '' },
@@ -60,9 +73,19 @@ const poProductSchema = new mongoose.Schema(
     unit: { type: SchemaTypes.String, trim: true, default: '' },
     hsnNumber: { type: SchemaTypes.String, trim: true, default: '' },
     modelNumber: { type: SchemaTypes.String, trim: true, default: '' },
-    rawProductCode: { type: SchemaTypes.String, trim: true, default: '', index: true },
+    rawProductCode: {
+      type: SchemaTypes.String,
+      trim: true,
+      default: '',
+      index: true,
+    },
     dispatchmentDate: { type: SchemaTypes.Date, default: null },
-    gstPercentage: { type: SchemaTypes.Number, min: 0, max: 100, default: null },
+    gstPercentage: {
+      type: SchemaTypes.Number,
+      min: 0,
+      max: 100,
+      default: null,
+    },
     remark: { type: SchemaTypes.String, default: '' },
     product_id: { type: SchemaTypes.ObjectId, ref: 'product', default: null },
     attachmentDocumentId: {
@@ -72,7 +95,12 @@ const poProductSchema = new mongoose.Schema(
     },
     poRate: { type: SchemaTypes.Number, min: 0, default: null },
     applyDiscount: { type: SchemaTypes.Boolean, default: false },
-    discountPercentage: { type: SchemaTypes.Number, min: 0, max: 100, default: null },
+    discountPercentage: {
+      type: SchemaTypes.Number,
+      min: 0,
+      max: 100,
+      default: null,
+    },
     discountAmount: { type: SchemaTypes.Number, min: 0, default: null },
     notAvailable: { type: SchemaTypes.Boolean, default: false },
     notAvailableRemark: { type: SchemaTypes.String, default: '' },
@@ -159,7 +187,10 @@ export const resolvePoProductLineStatus = (doc) => {
   if (!doc || typeof doc !== 'object') return 'pending'
   const s0 = String((doc.status ?? doc.inventoryStatus) || '').trim()
   if (s0 === 'purchased') return 'purchased'
-  if (s0 === 'finance_approved' || String(doc.procurementStatus || '').trim() === 'finance_approved') {
+  if (
+    s0 === 'finance_approved' ||
+    String(doc.procurementStatus || '').trim() === 'finance_approved'
+  ) {
     return 'finance_approved'
   }
   const s = doc.status ?? doc.inventoryStatus

@@ -73,10 +73,7 @@ mainRoutes.use('/v1/queries', queryRouter)
 mainRoutes.use('/v1/quotations', quotationRouter)
 mainRoutes.use('/v1/purchase-orders', purchaseOrderRouter)
 mainRoutes.use('/v1/po-payments', poPaymentRouter)
-mainRoutes.use(
-  '/v1/purchase-billing-requests',
-  purchaseBillingRequestRouter
-)
+mainRoutes.use('/v1/purchase-billing-requests', purchaseBillingRequestRouter)
 mainRoutes.use('/v1/documents', documentRouter)
 mainRoutes.use('/v1/purchase-tasks', purchaseTaskRouter)
 mainRoutes.use('/v1/task-management', taskManagementRouter)

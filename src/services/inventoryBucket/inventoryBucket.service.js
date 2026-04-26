@@ -1,7 +1,11 @@
 import mongoose from 'mongoose'
 import PoProductModel from '../../models/poProduct.model.js'
 import EmployeeModel from '../../models/employee.model.js'
-import { FULL_ACCESS_ROLES, statusCodes, errorCodes } from '../../core/common/constant.js'
+import {
+  FULL_ACCESS_ROLES,
+  statusCodes,
+  errorCodes,
+} from '../../core/common/constant.js'
 import CustomError from '../../utils/exception.js'
 import {
   buildBaseStages,
@@ -37,7 +41,10 @@ export const listInventoryBucketPoProducts = async (q, user) => {
   }
 
   const fullAccess = isFullAccess(employee.role)
-  const page = Math.max(1, parseInt(String(q.page || q.pageNumber || 1), 10) || 1)
+  const page = Math.max(
+    1,
+    parseInt(String(q.page || q.pageNumber || 1), 10) || 1
+  )
   const pageSize = Math.min(
     100,
     Math.max(1, parseInt(String(q.pageSize || q.limit || 20), 10) || 20)

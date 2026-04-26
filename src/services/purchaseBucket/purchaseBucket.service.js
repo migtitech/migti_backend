@@ -10,11 +10,13 @@ import PurchaseBillingRequestModel, {
   PURCHASE_BILLING_REQUEST_STATUS,
 } from '../../models/purchaseBillingRequest.model.js'
 import CustomError from '../../utils/exception.js'
-import { FULL_ACCESS_ROLES, statusCodes, errorCodes } from '../../core/common/constant.js'
-import { PO_PRODUCT_PROCUREMENT_STATUS } from '../../models/poProduct.model.js'
 import {
-  transformPathsToSignedUrls,
-} from '../document/document.service.js'
+  FULL_ACCESS_ROLES,
+  statusCodes,
+  errorCodes,
+} from '../../core/common/constant.js'
+import { PO_PRODUCT_PROCUREMENT_STATUS } from '../../models/poProduct.model.js'
+import { transformPathsToSignedUrls } from '../document/document.service.js'
 
 const OBJECT_ID_REGEX = /^[a-fA-F0-9]{24}$/
 
@@ -35,7 +37,11 @@ export const resolvePoLineStatusKey = (doc) => {
   const st = String(doc.status || '').trim()
   const pr = String(doc.procurementStatus || '').trim()
   if (st === 'purchased') return 'purchased'
-  if (st === 'inventory_received' || st === 'ready_for_dispatchment' || st === 'delivered')
+  if (
+    st === 'inventory_received' ||
+    st === 'ready_for_dispatchment' ||
+    st === 'delivered'
+  )
     return st
   if (st === 'finance_approved' || pr === 'finance_approved') {
     return 'finance_approved'
@@ -151,7 +157,11 @@ export async function assertEmployeeCanAccessPoProduct(id, user) {
   const fullAccess = isFullAccessRole(employee.role)
   if (fullAccess) return doc
 
-  if (user?.branchId && doc.branchId && String(doc.branchId) !== String(user.branchId)) {
+  if (
+    user?.branchId &&
+    doc.branchId &&
+    String(doc.branchId) !== String(user.branchId)
+  ) {
     return null
   }
 
@@ -266,7 +276,10 @@ export const listPurchaseBucketPoProducts = async (q, user) => {
   }
 
   const fullAccess = isFullAccessRole(employee.role)
-  const page = Math.max(1, parseInt(String(q.page || q.pageNumber || 1), 10) || 1)
+  const page = Math.max(
+    1,
+    parseInt(String(q.page || q.pageNumber || 1), 10) || 1
+  )
   const pageSize = Math.min(
     100,
     Math.max(1, parseInt(String(q.pageSize || q.limit || 20), 10) || 20)
@@ -416,7 +429,11 @@ const sanitizeSupplierSnapshot = (sup) => {
 const getQueryProductLineRates = async (doc) => {
   const code = String(doc?.rawProductCode || '').trim()
   if (!code) {
-    return { queryProductMatch: null, queryLineRates: [], matchNote: 'missing_rawProductCode' }
+    return {
+      queryProductMatch: null,
+      queryLineRates: [],
+      matchNote: 'missing_rawProductCode',
+    }
   }
 
   const qid = doc?.queryId?._id != null ? doc.queryId._id : doc?.queryId
@@ -454,7 +471,11 @@ const getQueryProductLineRates = async (doc) => {
   }
 
   if (!qp) {
-    return { queryProductMatch: null, queryLineRates: [], matchNote: 'no_query_product' }
+    return {
+      queryProductMatch: null,
+      queryLineRates: [],
+      matchNote: 'no_query_product',
+    }
   }
 
   const rates = Array.isArray(qp.rates) ? qp.rates : []
@@ -462,7 +483,8 @@ const getQueryProductLineRates = async (doc) => {
     const sup = sanitizeSupplierSnapshot(r?.supplier)
     return {
       _id: r._id,
-      rate: typeof r?.rate === 'number' && !Number.isNaN(r.rate) ? r.rate : null,
+      rate:
+        typeof r?.rate === 'number' && !Number.isNaN(r.rate) ? r.rate : null,
       unit: (r?.unit && String(r.unit)) || '',
       remark: (r?.remark && String(r.remark)) || '',
       submittedAt: r?.submittedAt || null,
@@ -533,8 +555,13 @@ export const getPurchaseBucketPoProductById = async (id, user) => {
     groupName = g?.name || ''
   }
 
-  if (doc.attachmentDocumentId && typeof doc.attachmentDocumentId === 'object') {
-    const [signed] = await transformPathsToSignedUrls([doc.attachmentDocumentId])
+  if (
+    doc.attachmentDocumentId &&
+    typeof doc.attachmentDocumentId === 'object'
+  ) {
+    const [signed] = await transformPathsToSignedUrls([
+      doc.attachmentDocumentId,
+    ])
     doc.attachmentDocumentId = signed || doc.attachmentDocumentId
   }
   if (
@@ -544,7 +571,8 @@ export const getPurchaseBucketPoProductById = async (id, user) => {
     const [signed] = await transformPathsToSignedUrls([
       doc.paymentRequestBillDocumentId,
     ])
-    doc.paymentRequestBillDocumentId = signed || doc.paymentRequestBillDocumentId
+    doc.paymentRequestBillDocumentId =
+      signed || doc.paymentRequestBillDocumentId
   }
 
   if (
@@ -595,7 +623,10 @@ export const raisePurchaseBucketPaymentRequest = async ({
   const currentProcurement =
     allowed.procurementStatus || PO_PRODUCT_PROCUREMENT_STATUS.OPEN
   const lineStatus = String(allowed.status || 'pending')
-  if (lineStatus === 'purchased' || resolvePoLineStatusKey(allowed) === 'purchased') {
+  if (
+    lineStatus === 'purchased' ||
+    resolvePoLineStatusKey(allowed) === 'purchased'
+  ) {
     throw new CustomError(
       statusCodes.badRequest,
       'This line is already marked as purchased',
@@ -613,7 +644,8 @@ export const raisePurchaseBucketPaymentRequest = async ({
     )
   }
   if (
-    currentProcurement === PO_PRODUCT_PROCUREMENT_STATUS.PAYMENT_REQUEST_RAISED ||
+    currentProcurement ===
+      PO_PRODUCT_PROCUREMENT_STATUS.PAYMENT_REQUEST_RAISED ||
     lineStatus === 'payment_request_raised'
   ) {
     throw new CustomError(

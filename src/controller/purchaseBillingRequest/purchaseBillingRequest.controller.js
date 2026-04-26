@@ -51,7 +51,10 @@ export const getPurchaseBillingRequestByIdController = async (req, res) => {
   })
 }
 
-export const updatePurchaseBillingRequestRemarkController = async (req, res) => {
+export const updatePurchaseBillingRequestRemarkController = async (
+  req,
+  res
+) => {
   const { error: pErr, value: pVal } = idParamSchema.validate(req.params, {
     abortEarly: false,
   })
