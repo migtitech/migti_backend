@@ -14,6 +14,38 @@ const queryNewProductSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    qty: {
+      type: SchemaTypes.Number,
+      min: 0,
+      default: 1,
+    },
+    groupId: {
+      type: SchemaTypes.ObjectId,
+      ref: 'group',
+      default: null,
+    },
+    categoryId: {
+      type: SchemaTypes.ObjectId,
+      ref: 'category',
+      default: null,
+    },
+    /** Next value from shared productCode sequence (e.g. mig1001) */
+    rawProductCode: {
+      type: SchemaTypes.String,
+      trim: true,
+      default: '',
+    },
+    /** From codesequences.ritems (QTRK1000) */
+    query_tracking_code: {
+      type: SchemaTypes.String,
+      trim: true,
+      default: '',
+    },
+    description: {
+      type: SchemaTypes.String,
+      trim: true,
+      default: '',
+    },
     unit: {
       type: SchemaTypes.String,
       trim: true,

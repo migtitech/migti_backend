@@ -35,6 +35,8 @@ const purchaseOrderProductItemSchema = Joi.object({
   unit: Joi.string().allow('').optional(),
   hsnNumber: Joi.string().allow('').optional(),
   modelNumber: Joi.string().allow('').optional(),
+  rawProductCode: Joi.string().allow('').optional(),
+  dispatchmentDate: Joi.date().allow(null).optional(),
   gstPercentage: Joi.number().min(0).max(100).allow(null).optional(),
   variants: Joi.array().items(productVariantSchema).optional().default([]),
   remark: Joi.string().allow('').optional(),
@@ -46,6 +48,10 @@ const purchaseOrderProductItemSchema = Joi.object({
   discountAmount: Joi.number().min(0).allow(null).optional(),
   notAvailable: Joi.boolean().optional().default(false),
   notAvailableRemark: Joi.string().allow('').optional(),
+  priority: Joi.string()
+    .valid('high', 'medium', 'low')
+    .optional()
+    .default('medium'),
 })
 
 const purchaseOrderStatusValues = Object.values(PURCHASE_ORDER_STATUS)
@@ -65,6 +71,18 @@ export const getPurchaseOrderByIdSchema = Joi.object({
     'string.pattern.base': 'purchaseOrderId must be a valid Mongo ObjectId',
   }),
 })
+
+/** List `po_products` line rows: pass Mongo `purchaseOrderId` and/or `poCode` (PO number). */
+export const listPoProductLinesSchema = Joi.object({
+  purchaseOrderId: Joi.string().pattern(objectIdPattern).optional().messages({
+    'string.pattern.base': 'purchaseOrderId must be a valid Mongo ObjectId',
+  }),
+  poCode: Joi.string().trim().min(1).optional(),
+})
+  .or('purchaseOrderId', 'poCode')
+  .messages({
+    'object.missing': 'Either purchaseOrderId or poCode is required',
+  })
 
 export const getPurchaseOrderByQuotationIdSchema = Joi.object({
   quotationId: Joi.string().pattern(objectIdPattern).required().messages({
@@ -96,6 +114,13 @@ export const updatePurchaseOrderSchema = Joi.object({
     .optional(),
   remark: Joi.string().allow('').optional(),
   salesEmployeeId: Joi.string().allow(null, '').optional(),
+  attachmentDocumentId: Joi.alternatives()
+    .try(
+      Joi.string().pattern(objectIdPattern),
+      Joi.string().valid(''),
+      Joi.valid(null)
+    )
+    .optional(),
 })
 
 export const appendPurchaseOrderPaymentSchema = Joi.object({

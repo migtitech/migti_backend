@@ -17,6 +17,8 @@ const codeSequenceSchema = new mongoose.Schema(
     categoryCode: { type: Number, default: INITIAL_VALUE, required: true },
     productCode: { type: Number, default: INITIAL_VALUE, required: true },
     queryCode: { type: Number, default: INITIAL_VALUE, required: true },
+    /** Query / new-product tracking codes (QTRK1000) */
+    ritems: { type: Number, default: INITIAL_VALUE, required: true },
     quotationCode: { type: Number, default: INITIAL_VALUE, required: true },
     purchaseOrderCode: { type: Number, default: INITIAL_VALUE, required: true },
   },

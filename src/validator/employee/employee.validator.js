@@ -76,6 +76,9 @@ export const createEmployeeSchema = Joi.object({
   bankDetails: bankDetailsSchema.optional(),
   assets: assetsSchema.optional(),
   categories: Joi.string().allow('', null).optional(),
+  assigned_groups: Joi.array()
+    .items(Joi.string().pattern(/^[a-fA-F0-9]{24}$/))
+    .optional(),
 }).unknown(true)
 
 export const listEmployeeSchema = Joi.object({
@@ -137,6 +140,10 @@ export const updateEmployeeSchema = Joi.object({
   bankDetails: bankDetailsSchema.optional(),
   assets: assetsSchema.optional(),
   categories: Joi.string().allow('', null).optional(),
+  assigned_groups: Joi.array()
+    .items(Joi.string().pattern(/^[a-fA-F0-9]{24}$/))
+    .allow(null)
+    .optional(),
 }).unknown(true)
 
 export const deleteEmployeeSchema = Joi.object({
@@ -156,6 +163,7 @@ export const loginEmployeeSchema = Joi.object({
       'purchase_exicutive',
       'back_office_exicutive',
       'administrator',
+      'procurement',
       // Legacy role codes (kept for backward compatibility)
       'hod',
       'sm',
@@ -167,7 +175,9 @@ export const loginEmployeeSchema = Joi.object({
       'sales',
       'purchase',
       'finance',
-      'delivery'
+      'delivery',
+      'inventry_manager',
+      'dispatch_manager'
     )
     .required(),
 })

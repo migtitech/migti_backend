@@ -67,6 +67,16 @@ const productItemSchema = new mongoose.Schema(
     remark: { type: SchemaTypes.String, default: '' },
     description: { type: SchemaTypes.String, default: '' },
     product_id: { type: SchemaTypes.ObjectId, ref: 'product', default: null },
+    groupId: { type: SchemaTypes.ObjectId, ref: 'group', default: null },
+    categoryId: { type: SchemaTypes.ObjectId, ref: 'category', default: null },
+    /** From codesequences productCode (same format as main catalog, e.g. mig1000) */
+    rawProductCode: { type: SchemaTypes.String, trim: true, default: '' },
+    /**
+     * When the line was created from a `query_new_product` row, that record’s
+     * `query_tracking_code` (ritems) may be denormalized here for display.
+     * The parent query’s own tracking is on the root `query_tracking_code` field.
+     */
+    query_tracking_code: { type: SchemaTypes.String, trim: true, default: '' },
     images: [{ type: SchemaTypes.ObjectId, ref: 'document' }],
   },
   { _id: true }
@@ -85,6 +95,11 @@ const querySchema = new mongoose.Schema(
       uppercase: true,
       unique: true,
       sparse: true,
+    },
+    query_tracking_code: {
+      type: SchemaTypes.String,
+      trim: true,
+      default: '',
     },
     status: {
       type: SchemaTypes.String,

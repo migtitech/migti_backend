@@ -1,18 +1,77 @@
+import mongoose from 'mongoose'
 import QueryNewProductModel from '../../models/queryNewProduct.model.js'
+import CategoryModel from '../../models/category.model.js'
+import {
+  getNextSequence,
+  formatProductCodeValue,
+  formatRitemsValue,
+} from '../codeSequence/codeSequence.service.js'
+import CustomError from '../../utils/exception.js'
+import { statusCodes, errorCodes } from '../../core/common/constant.js'
+
+const toOidOrNull = (id) => {
+  if (id == null || id === '') return null
+  if (!mongoose.Types.ObjectId.isValid(String(id))) return null
+  return new mongoose.Types.ObjectId(String(id))
+}
 
 export const addQueryNewProduct = async ({
   name,
+  description,
   unit,
   hsnNumber,
   modelNumber,
+  qty: qtyIn,
+  groupId,
+  categoryId,
   variants = [],
   images = [],
 }) => {
+  const gId = toOidOrNull(groupId)
+  const cId = toOidOrNull(categoryId)
+
+  if (cId) {
+    const cat = await CategoryModel.findById(cId).select('group').lean()
+    if (!cat) {
+      throw new CustomError(
+        statusCodes.notFound,
+        'Category not found',
+        errorCodes.not_found
+      )
+    }
+    if (gId && String(cat.group || '') !== String(gId)) {
+      throw new CustomError(
+        statusCodes.badRequest,
+        'Category does not belong to the selected group',
+        errorCodes.validation_error
+      )
+    }
+  }
+
+  let qty = 1
+  if (qtyIn != null && qtyIn !== '') {
+    const n = Number(qtyIn)
+    if (Number.isFinite(n) && n >= 0) {
+      qty = Number.isInteger(n) ? n : Math.max(0, Math.floor(n))
+    }
+  }
+
+  const n = await getNextSequence('productCode')
+  const rawProductCode = formatProductCodeValue(n)
+  const rN = await getNextSequence('ritems')
+  const query_tracking_code = formatRitemsValue(rN)
+
   const doc = await QueryNewProductModel.create({
     name: name?.trim(),
+    description: description?.trim() || '',
     unit: unit?.trim() || '',
     hsnNumber: hsnNumber?.trim() || '',
     modelNumber: modelNumber?.trim() || '',
+    qty,
+    groupId: gId,
+    categoryId: cId,
+    rawProductCode,
+    query_tracking_code,
     variants: (variants || [])
       .map((v) => (v || '').toString().trim())
       .filter(Boolean),
@@ -26,22 +85,53 @@ export const listQueryNewProducts = async ({
   pageNumber = 1,
   pageSize = 10,
   search = '',
+  name: nameQuery = '',
+  description: descQuery = '',
+  hsnNumber: hsnQuery = '',
 }) => {
   const page = Math.max(1, parseInt(pageNumber, 10) || 1)
   const limit = Math.min(100, Math.max(1, parseInt(pageSize, 10) || 10))
   const skip = (page - 1) * limit
 
   const filter = { isDeleted: false }
+  const andParts = []
 
-  if (search && search.trim()) {
-    const term = search.trim()
-    filter.$or = [
-      { name: { $regex: term, $options: 'i' } },
-      { unit: { $regex: term, $options: 'i' } },
-      { hsnNumber: { $regex: term, $options: 'i' } },
-      { modelNumber: { $regex: term, $options: 'i' } },
-      { variants: { $regex: term, $options: 'i' } },
-    ]
+  if (search && String(search).trim()) {
+    const term = String(search).trim()
+    andParts.push({
+      $or: [
+        { name: { $regex: term, $options: 'i' } },
+        { description: { $regex: term, $options: 'i' } },
+        { unit: { $regex: term, $options: 'i' } },
+        { hsnNumber: { $regex: term, $options: 'i' } },
+        { modelNumber: { $regex: term, $options: 'i' } },
+        { rawProductCode: { $regex: term, $options: 'i' } },
+        { query_tracking_code: { $regex: term, $options: 'i' } },
+        { variants: { $regex: term, $options: 'i' } },
+      ],
+    })
+  }
+
+  if (nameQuery && String(nameQuery).trim()) {
+    andParts.push({
+      name: { $regex: String(nameQuery).trim(), $options: 'i' },
+    })
+  }
+  if (descQuery && String(descQuery).trim()) {
+    andParts.push({
+      description: { $regex: String(descQuery).trim(), $options: 'i' },
+    })
+  }
+  if (hsnQuery && String(hsnQuery).trim()) {
+    andParts.push({
+      hsnNumber: { $regex: String(hsnQuery).trim(), $options: 'i' },
+    })
+  }
+
+  if (andParts.length === 1) {
+    Object.assign(filter, andParts[0])
+  } else if (andParts.length > 1) {
+    filter.$and = andParts
   }
 
   const totalItems = await QueryNewProductModel.countDocuments(filter)
@@ -51,6 +141,8 @@ export const listQueryNewProducts = async ({
     .skip(skip)
     .limit(limit)
     .populate('images', 'path')
+    .populate('groupId', 'name code')
+    .populate('categoryId', 'name categoryCode')
     .lean()
 
   const totalPages = Math.ceil(totalItems / limit) || 1
@@ -74,6 +166,8 @@ export const getQueryNewProductById = async ({ productId }) => {
     isDeleted: false,
   })
     .populate('images', 'path')
+    .populate('groupId', 'name code')
+    .populate('categoryId', 'name categoryCode')
     .lean()
 
   if (!product) {

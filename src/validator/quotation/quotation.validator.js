@@ -36,6 +36,7 @@ const quotationProductItemSchema = Joi.object({
   unit: Joi.string().allow('').optional(),
   hsnNumber: Joi.string().allow('').optional(),
   modelNumber: Joi.string().allow('').optional(),
+  rawProductCode: Joi.string().allow('').max(100).optional(),
   gstPercentage: Joi.number().min(0).max(100).allow(null).optional(),
   variants: Joi.array().items(productVariantSchema).optional().default([]),
   remark: Joi.string().allow('').optional(),
@@ -70,24 +71,18 @@ export const listQuotationSchema = Joi.object({
     .try(Joi.string().valid(''), dateOnlySchema)
     .optional(),
   areaIds: Joi.string().allow('').optional(),
-  industryId: Joi.string()
-    .pattern(objectIdPattern)
-    .optional()
-    .messages({
-      'string.pattern.base': 'industryId must be a valid Mongo ObjectId',
-    }),
+  industryId: Joi.string().pattern(objectIdPattern).optional().messages({
+    'string.pattern.base': 'industryId must be a valid Mongo ObjectId',
+  }),
   includeTotalAmountSum: Joi.alternatives()
     .try(Joi.boolean(), Joi.string().valid('true', 'false', '1', '0'))
     .optional(),
 })
 
 export const listQuotationsByIndustrySchema = Joi.object({
-  industryId: Joi.string()
-    .pattern(objectIdPattern)
-    .required()
-    .messages({
-      'string.pattern.base': 'industryId must be a valid Mongo ObjectId',
-    }),
+  industryId: Joi.string().pattern(objectIdPattern).required().messages({
+    'string.pattern.base': 'industryId must be a valid Mongo ObjectId',
+  }),
   pageNumber: Joi.number().integer().min(1).default(1),
   pageSize: Joi.number().integer().min(1).max(100).default(10),
   status: Joi.string()

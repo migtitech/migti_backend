@@ -4,6 +4,7 @@ import {
 } from '../core/helpers/jwt.helper.js'
 import { statusCodes, errorCodes } from '../core/common/constant.js'
 import CustomError from '../utils/exception.js'
+import { scheduleJwtAuthAudit } from '../services/auditLog/auditLog.service.js'
 
 export const authenticateToken = (req, res, next) => {
   try {
@@ -11,11 +12,19 @@ export const authenticateToken = (req, res, next) => {
     const token = extractTokenFromHeader(authHeader)
 
     if (!token) {
-      throw new CustomError(
+      const err = new CustomError(
         statusCodes.unauthorized,
         'Access token is required',
         errorCodes.missing_auth_token
       )
+      scheduleJwtAuthAudit({
+        req,
+        outcome: 'failure',
+        jwtPayload: null,
+        bearerToken: '',
+        error: err,
+      })
+      throw err
     }
 
     const decoded = verifyToken(token)
@@ -24,8 +33,27 @@ export const authenticateToken = (req, res, next) => {
     req.token = token
     req.branchId = decoded.branchId || null
 
+    scheduleJwtAuthAudit({
+      req,
+      outcome: 'success',
+      jwtPayload: decoded,
+      bearerToken: token,
+      error: null,
+    })
+
     next()
   } catch (error) {
+    const authHeader = req.headers.authorization
+    const token = extractTokenFromHeader(authHeader)
+    if (token) {
+      scheduleJwtAuthAudit({
+        req,
+        outcome: 'failure',
+        jwtPayload: null,
+        bearerToken: token,
+        error,
+      })
+    }
     next(error)
   }
 }
@@ -40,10 +68,28 @@ export const optionalAuth = (req, res, next) => {
       req.user = decoded
       req.token = token
       req.branchId = decoded.branchId || null
+      scheduleJwtAuthAudit({
+        req,
+        outcome: 'success',
+        jwtPayload: decoded,
+        bearerToken: token,
+        error: null,
+      })
     }
 
     next()
   } catch (error) {
+    const authHeader = req.headers.authorization
+    const token = extractTokenFromHeader(authHeader)
+    if (token) {
+      scheduleJwtAuthAudit({
+        req,
+        outcome: 'failure',
+        jwtPayload: null,
+        bearerToken: token,
+        error,
+      })
+    }
     next()
   }
 }

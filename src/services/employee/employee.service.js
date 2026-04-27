@@ -40,6 +40,20 @@ const withNormalizedZones = (employee = {}) => {
   }
 }
 
+const normalizeAssignedGroups = (arr = []) => {
+  const out = []
+  if (!Array.isArray(arr)) {
+    return out
+  }
+  for (const id of arr) {
+    const v = asIdString(id).trim()
+    if (v && /^[a-fA-F0-9]{24}$/i.test(v) && !out.includes(v)) {
+      out.push(v)
+    }
+  }
+  return out
+}
+
 const SUB_ZONE_PERM_PREFIX = `${MODULES.SUB_ZONES}:`
 const SUB_ZONE_READ_PERM = `${MODULES.SUB_ZONES}:${ACTIONS.READ}`
 const SUB_ZONE_CREATE_PERM = `${MODULES.SUB_ZONES}:${ACTIONS.CREATE}`
@@ -118,6 +132,12 @@ export const addEmployee = async (payload) => {
     rest.permissions || [],
     rest.subZoneId
   )
+
+  if (rest.assigned_groups !== undefined) {
+    rest.assigned_groups = normalizeAssignedGroups(rest.assigned_groups)
+  } else {
+    rest.assigned_groups = []
+  }
 
   const existingEmployee = await EmployeeModel.findOne({
     $or: [{ email }, { idnumber }],
@@ -339,6 +359,12 @@ export const updateEmployee = async ({
     basePermissions,
     effSub
   )
+
+  if (Object.prototype.hasOwnProperty.call(updateData, 'assigned_groups')) {
+    updateData.assigned_groups = normalizeAssignedGroups(
+      updateData.assigned_groups
+    )
+  }
 
   const updatedEmployee = await EmployeeModel.findByIdAndUpdate(
     employeeId,

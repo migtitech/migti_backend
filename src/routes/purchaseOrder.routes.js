@@ -5,6 +5,7 @@ import { MODULES } from '../core/common/constant.js'
 import {
   listPurchaseOrdersController,
   getPurchaseOrderByIdController,
+  listPoProductLinesController,
   getPurchaseOrderByQuotationIdController,
   createPurchaseOrderFromQuotationController,
   updatePurchaseOrderController,
@@ -25,6 +26,12 @@ purchaseOrderRouter.get(
   authenticateToken,
   checkPermission(MODULES.PURCHASE_ORDERS, 'read'),
   asyncHandler(getPurchaseOrderByIdController)
+)
+purchaseOrderRouter.get(
+  '/po-product-lines',
+  authenticateToken,
+  checkPermission(MODULES.PURCHASE_ORDERS, 'read'),
+  asyncHandler(listPoProductLinesController)
 )
 purchaseOrderRouter.get(
   '/by-quotation',

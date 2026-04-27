@@ -1,7 +1,13 @@
 import PurchaseOrderModel, {
   PURCHASE_ORDER_STATUS,
+  PO_PAYMENT_RECEIVED_STATUS,
 } from '../../models/purchaseOrder.model.js'
+import PoPaymentModel from '../../models/poPayment.model.js'
 import QuotationModel from '../../models/quotation.model.js'
+import QueryProductModel from '../../models/queryProduct.model.js'
+import PoProductModel, {
+  resolvePoProductLineStatus,
+} from '../../models/poProduct.model.js'
 import CustomError from '../../utils/exception.js'
 import { getNextSequence } from '../codeSequence/codeSequence.service.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
@@ -42,8 +48,12 @@ const lineGstPctForProduct = (p) => {
   return 0
 }
 
-/** Grand total (taxable + freight + packing + GST) and payment summary — matches quotation preview math */
-export const computePurchaseOrderFinancials = (po) => {
+const hasPoPaymentLedger = (poPaymentLean) =>
+  poPaymentLean && poPaymentLean._id && !poPaymentLean.isDeleted
+
+/** Grand total (taxable + freight + packing + GST) and payment summary — matches quotation preview math.
+ *  When a `po_payments` document exists, uses its `ledgers` only; otherwise uses embedded `payments`. */
+export const computePurchaseOrderFinancials = (po, poPaymentLean = null) => {
   const products = po?.products || []
   let totalTaxable = 0
   let totalGst = 0
@@ -56,8 +66,15 @@ export const computePurchaseOrderFinancials = (po) => {
   const packing = Number(po?.packingCharge) || 0
   const taxableAfterCharges = totalTaxable + freight + packing
   const grandTotal = taxableAfterCharges + totalGst
-  const payments = Array.isArray(po?.payments) ? po.payments : []
-  const totalPaid = payments.reduce(
+  const useLedgers = hasPoPaymentLedger(poPaymentLean)
+  const paymentEntries = useLedgers
+    ? Array.isArray(poPaymentLean?.ledgers)
+      ? poPaymentLean.ledgers
+      : []
+    : Array.isArray(po?.payments)
+      ? po.payments
+      : []
+  const totalPaid = paymentEntries.reduce(
     (sum, e) => sum + (Number(e.amount) || 0),
     0
   )
@@ -71,6 +88,16 @@ export const computePurchaseOrderFinancials = (po) => {
     totalPaid,
     remainingAmount: Math.max(0, grandTotal - totalPaid),
   }
+}
+
+export const resolvePaymentReceivedStatus = (financials) => {
+  const totalPaid = Number(financials?.totalPaid) || 0
+  const remaining = Math.max(0, Number(financials?.remainingAmount) || 0)
+  if (totalPaid <= 0) return PO_PAYMENT_RECEIVED_STATUS.NONE
+  if (remaining <= 0.01) {
+    return PO_PAYMENT_RECEIVED_STATUS.FULL_PAYMENT_RECEIVED
+  }
+  return PO_PAYMENT_RECEIVED_STATUS.PARTIAL_PAYMENT_RECEIVED
 }
 
 const companyFirst5 = (name) => {
@@ -97,11 +124,29 @@ const quotationFreightToPoNumber = (value) => {
 
 const OBJECT_ID_REGEX = /^[a-fA-F0-9]{24}$/
 
+const PO_PRODUCT_PRIORITY = ['high', 'medium', 'low']
+
+const normalizeProductPriority = (value) => {
+  const s = String(value || '')
+    .toLowerCase()
+    .trim()
+  return PO_PRODUCT_PRIORITY.includes(s) ? s : 'medium'
+}
+
 const toImageIds = (imgs) => {
   if (!Array.isArray(imgs)) return []
   return imgs
     .map((img) => (typeof img === 'object' && img?._id ? img._id : img))
     .filter((id) => typeof id === 'string' && OBJECT_ID_REGEX.test(id))
+}
+
+const toAttachmentDocumentId = (value) => {
+  if (value && typeof value === 'object' && value._id != null) {
+    const id = String(value._id)
+    return OBJECT_ID_REGEX.test(id) ? id : null
+  }
+  const raw = value != null ? String(value).trim() : ''
+  return raw && OBJECT_ID_REGEX.test(raw) ? raw : null
 }
 
 const cloneProductsFromQuotation = (products = []) => {
@@ -119,6 +164,8 @@ const cloneProductsFromQuotation = (products = []) => {
       unit: obj.unit || '',
       hsnNumber: obj.hsnNumber || '',
       modelNumber: obj.modelNumber || '',
+      rawProductCode: obj.rawProductCode || '',
+      dispatchmentDate: obj.dispatchmentDate ?? null,
       gstPercentage: obj.gstPercentage ?? null,
       variants: Array.isArray(obj.variants) ? obj.variants : [],
       remark: obj.remark || '',
@@ -133,8 +180,162 @@ const cloneProductsFromQuotation = (products = []) => {
       discountAmount: obj.discountAmount ?? null,
       notAvailable: !!obj.notAvailable,
       notAvailableRemark: obj.notAvailableRemark || '',
+      priority: normalizeProductPriority(obj.priority),
     }
   })
+}
+
+const mapQueryRates = (queryProduct) => {
+  const rates = Array.isArray(queryProduct?.rates) ? queryProduct.rates : []
+  return rates.map((r) => ({
+    supplier: r?.supplier ?? null,
+    rate:
+      typeof r?.rate === 'number' && !Number.isNaN(r.rate)
+        ? Number(r.rate)
+        : null,
+    unit: String(r?.unit || ''),
+    remark: String(r?.remark || ''),
+    submittedAt: r?.submittedAt || null,
+    submittedBy: r?.submittedBy || null,
+  }))
+}
+
+const syncPoProductsFromPurchaseOrder = async (poDoc) => {
+  if (!poDoc?._id) return
+
+  const poId = poDoc._id
+  const queryId = poDoc.queryId
+  const products = Array.isArray(poDoc.products) ? poDoc.products : []
+  const rawCodes = products
+    .map((p) => String(p?.rawProductCode || '').trim())
+    .filter(Boolean)
+
+  const queryProductRows =
+    queryId && rawCodes.length
+      ? await QueryProductModel.find({
+          queryId,
+          isDeleted: false,
+          rawProductCode: { $in: rawCodes },
+        })
+          .select('rawProductCode rates lineIndex')
+          .lean()
+      : []
+
+  const queryProductMap = new Map()
+  for (const row of queryProductRows) {
+    const code = String(row?.rawProductCode || '').trim()
+    if (!code) continue
+    if (!queryProductMap.has(code)) queryProductMap.set(code, [])
+    queryProductMap.get(code).push(row)
+  }
+
+  const existingProcurement = await PoProductModel.find({
+    purchaseOrderId: poId,
+  })
+    .select(
+      'lineIndex procurementStatus paymentRequestAmount paymentRequestBillDocumentId paymentRequestRaisedAt paymentRequestRaisedBy purchaseBillingRequestId status inventoryStatus'
+    )
+    .lean()
+  const procurementByLine = new Map(
+    (existingProcurement || []).map((row) => [
+      Number(row.lineIndex),
+      {
+        procurementStatus: row.procurementStatus,
+        paymentRequestAmount: row.paymentRequestAmount,
+        paymentRequestBillDocumentId: row.paymentRequestBillDocumentId,
+        paymentRequestRaisedAt: row.paymentRequestRaisedAt,
+        paymentRequestRaisedBy: row.paymentRequestRaisedBy,
+        purchaseBillingRequestId: row.purchaseBillingRequestId,
+        lineStatus: row.status ?? row.inventoryStatus,
+      },
+    ])
+  )
+
+  await PoProductModel.deleteMany({ purchaseOrderId: poId })
+  if (!products.length) return
+
+  const docs = products.map((product, index) => {
+    const rawCode = String(product?.rawProductCode || '').trim()
+    const matches = rawCode ? queryProductMap.get(rawCode) || [] : []
+    const preferred =
+      matches.find((m) => Number(m?.lineIndex) === index) || matches[0] || null
+    const preserved = procurementByLine.get(index) || {}
+    const lineStatus = preserved.lineStatus
+    const proc = preserved.procurementStatus
+    const status =
+      lineStatus === 'purchased'
+        ? 'purchased'
+        : proc === 'finance_approved' || lineStatus === 'finance_approved'
+          ? 'finance_approved'
+          : proc === 'payment_request_raised' ||
+              lineStatus === 'payment_request_raised'
+            ? 'payment_request_raised'
+            : lineStatus === 'ready_for_dispatchment' ||
+                lineStatus === 'inventory_received' ||
+                lineStatus === 'delivered'
+              ? lineStatus
+              : 'pending'
+    return {
+      purchaseOrderId: poId,
+      poCode: poDoc.poCode || '',
+      quotationId: poDoc.quotationId || null,
+      queryId: poDoc.queryId || null,
+      industry_id: poDoc.industry_id || null,
+      companyInfo: poDoc.companyInfo || {},
+      branchId: poDoc.branchId || null,
+      lineIndex: index,
+      productName: product?.productName || '',
+      description: product?.description || '',
+      quantity: Number(product?.quantity) || 0,
+      unit: product?.unit || '',
+      hsnNumber: product?.hsnNumber || '',
+      modelNumber: product?.modelNumber || '',
+      rawProductCode: rawCode,
+      dispatchmentDate: product?.dispatchmentDate || null,
+      gstPercentage:
+        typeof product?.gstPercentage === 'number' &&
+        !Number.isNaN(product.gstPercentage)
+          ? product.gstPercentage
+          : null,
+      remark: product?.remark || '',
+      product_id: product?.product_id || null,
+      attachmentDocumentId: toAttachmentDocumentId(
+        product?.attachmentDocumentId
+      ),
+      poRate:
+        typeof product?.rate === 'number' && !Number.isNaN(product.rate)
+          ? product.rate
+          : null,
+      applyDiscount: !!product?.applyDiscount,
+      discountPercentage:
+        typeof product?.discountPercentage === 'number' &&
+        !Number.isNaN(product.discountPercentage)
+          ? product.discountPercentage
+          : null,
+      discountAmount:
+        typeof product?.discountAmount === 'number' &&
+        !Number.isNaN(product.discountAmount)
+          ? product.discountAmount
+          : null,
+      notAvailable: !!product?.notAvailable,
+      notAvailableRemark: product?.notAvailableRemark || '',
+      priority: normalizeProductPriority(product?.priority),
+      queryRate: mapQueryRates(preferred),
+      procurementStatus: preserved.procurementStatus || 'open',
+      paymentRequestAmount:
+        preserved.paymentRequestAmount != null
+          ? preserved.paymentRequestAmount
+          : null,
+      paymentRequestBillDocumentId:
+        preserved.paymentRequestBillDocumentId || null,
+      paymentRequestRaisedAt: preserved.paymentRequestRaisedAt || null,
+      paymentRequestRaisedBy: preserved.paymentRequestRaisedBy || null,
+      purchaseBillingRequestId: preserved.purchaseBillingRequestId || null,
+      status,
+    }
+  })
+
+  await PoProductModel.insertMany(docs)
 }
 
 const assertQuotationAccess = async () => {
@@ -175,7 +376,10 @@ export const createPurchaseOrderFromQuotation = async ({
       quotationId: quotation._id,
       isDeleted: false,
     }).lean()
-    if (existing) return existing
+    if (existing) {
+      await syncPoProductsFromPurchaseOrder(existing)
+      return existing
+    }
   }
 
   const numericCode = await getNextSequence('purchaseOrderCode')
@@ -200,14 +404,16 @@ export const createPurchaseOrderFromQuotation = async ({
     expectedDeliveryWithinDays: quotation.expectedDeliveryWithinDays ?? null,
   })
 
-  return doc.toObject()
+  const plain = doc.toObject()
+  await syncPoProductsFromPurchaseOrder(plain)
+  return plain
 }
 
 export const getPurchaseOrderByQuotationId = async ({
   quotationId,
   branchFilter = {},
-  currentUserId: _currentUserId = null,
-  isFullAccessRole: _isFullAccessRole = true,
+  currentUserId = null,
+  isFullAccessRole = true,
 }) => {
   const quotation = await QuotationModel.findOne({
     _id: quotationId,
@@ -239,6 +445,74 @@ export const getPurchaseOrderByQuotationId = async ({
   }).lean()
 
   return po
+}
+
+/**
+ * Lines from `po_products` for a purchase order, with resolved line `status` (read-only for PO bucket).
+ * Access matches {@link getPurchaseOrderById} (branch filter, etc.).
+ */
+export const listPoProductLinesForPurchaseOrder = async ({
+  purchaseOrderId,
+  poCode,
+  branchFilter = {},
+  currentUserId: _currentUserId = null,
+  isFullAccessRole: _isFullAccessRole = true,
+}) => {
+  const filter = { isDeleted: false, ...branchFilter }
+  if (purchaseOrderId) {
+    filter._id = purchaseOrderId
+  } else {
+    filter.poCode = String(poCode || '').trim()
+  }
+  const po = await PurchaseOrderModel.findOne(filter)
+    .select('_id poCode')
+    .lean()
+  if (!po) {
+    throw new CustomError(
+      statusCodes.notFound,
+      'Purchase order not found',
+      errorCodes.not_found
+    )
+  }
+  const rawLines = await PoProductModel.find({
+    purchaseOrderId: po._id,
+    isDeleted: false,
+  })
+    .sort({ lineIndex: 1 })
+    .lean()
+  const lines = rawLines.map((line) => ({
+    _id: line._id,
+    lineIndex: line.lineIndex,
+    productName: line.productName,
+    rawProductCode: line.rawProductCode || '',
+    quantity: line.quantity,
+    unit: line.unit || '',
+    status: resolvePoProductLineStatus(line),
+  }))
+  return {
+    poCode: po.poCode || '',
+    purchaseOrderId: String(po._id),
+    lines,
+  }
+}
+
+/**
+ * Synced `po_products` lines with inventory line status (detail view / PO bucket item).
+ */
+const loadPoProductLineStatusesForOrder = async (purchaseOrderId) => {
+  if (!purchaseOrderId) return []
+  const lines = await PoProductModel.find({
+    purchaseOrderId,
+    isDeleted: false,
+  })
+    .select('lineIndex productName status inventoryStatus')
+    .sort({ lineIndex: 1 })
+    .lean()
+  return lines.map((line) => ({
+    lineIndex: line.lineIndex,
+    productName: line.productName,
+    status: line.status || line.inventoryStatus || 'pending',
+  }))
 }
 
 export const listPurchaseOrders = async ({
@@ -282,10 +556,24 @@ export const listPurchaseOrders = async ({
 
   const totalPages = Math.ceil(totalItems / limit)
 
-  const purchaseOrders = rows.map((row) => ({
-    ...row,
-    totalAmount: computeTotalAmountFromProducts(row.products),
-  }))
+  const ids = rows.map((r) => r._id).filter(Boolean)
+  const payRows =
+    ids.length > 0
+      ? await PoPaymentModel.find({
+          purchaseOrderId: { $in: ids },
+          isDeleted: false,
+        }).lean()
+      : []
+  const payMap = new Map(payRows.map((p) => [String(p.purchaseOrderId), p]))
+
+  const purchaseOrders = rows.map((row) => {
+    const pPay = payMap.get(String(row._id)) || null
+    return {
+      ...row,
+      totalAmount: computeTotalAmountFromProducts(row.products),
+      financials: computePurchaseOrderFinancials(row, pPay),
+    }
+  })
 
   return {
     purchaseOrders,
@@ -335,6 +623,11 @@ export const getPurchaseOrderById = async ({
       select: 'path',
       model: 'document',
     })
+    .populate({
+      path: 'attachmentDocumentId',
+      select: 'path mimeType originalName',
+      model: 'document',
+    })
     .lean()
 
   if (!po) {
@@ -356,6 +649,11 @@ export const getPurchaseOrderById = async ({
     }
   }
 
+  if (po.attachmentDocumentId && typeof po.attachmentDocumentId === 'object') {
+    const [signed] = await transformPathsToSignedUrls([po.attachmentDocumentId])
+    po.attachmentDocumentId = signed || po.attachmentDocumentId
+  }
+
   if (po.branchId) {
     const branch = await CompanyBranchModel.findById(po.branchId)
       .select('signature')
@@ -372,9 +670,153 @@ export const getPurchaseOrderById = async ({
     }
   }
 
-  po.financials = computePurchaseOrderFinancials(po)
+  const poPay = await PoPaymentModel.findOne({
+    purchaseOrderId: po._id,
+    isDeleted: false,
+  })
+    .populate('ledgers.paymentProofDocumentId', 'path mimeType originalName')
+    .populate('ledgers.recordedBy', 'name email')
+    .lean()
+
+  if (poPay?.ledgers?.length) {
+    for (const le of poPay.ledgers) {
+      if (le?.paymentProofDocumentId?.path) {
+        const [signed] = await transformPathsToSignedUrls([
+          le.paymentProofDocumentId,
+        ])
+        le.paymentProofDocumentId = signed || le.paymentProofDocumentId
+      }
+    }
+  }
+
+  po.financials = computePurchaseOrderFinancials(po, poPay)
+  po.poPayment = poPay || null
+
+  po.poProductLineStatuses = await loadPoProductLineStatusesForOrder(po._id)
 
   return po
+}
+
+const buildPoSnapshotFromPo = (poLean, poPayLean) => ({
+  poCode: poLean?.poCode,
+  companyInfo: poLean?.companyInfo,
+  products: poLean?.products,
+  remark: poLean?.remark,
+  freightCharge: poLean?.freightCharge,
+  packingCharge: poLean?.packingCharge,
+  status: poLean?.status,
+  expectedDeliveryDate: poLean?.expectedDeliveryDate,
+  expectedDeliveryWithinDays: poLean?.expectedDeliveryWithinDays,
+  financials: computePurchaseOrderFinancials(poLean, poPayLean),
+})
+
+/**
+ * New payment with optional proof: stored in `po_payments` (ledger) and PO `paymentReceivedStatus` updated.
+ */
+export const appendPoPaymentLedger = async ({
+  purchaseOrderId,
+  amount,
+  paidAt,
+  remark = '',
+  paymentProofDocumentId = null,
+  branchFilter = {},
+  currentUserId: _currentUserId = null,
+  isFullAccessRole: _isFullAccessRole = true,
+}) => {
+  const existing = await PurchaseOrderModel.findOne({
+    _id: purchaseOrderId,
+    isDeleted: false,
+    ...branchFilter,
+  }).lean()
+
+  if (!existing) {
+    throw new CustomError(
+      statusCodes.notFound,
+      'Purchase order not found',
+      errorCodes.not_found
+    )
+  }
+
+  const amt = Number(amount)
+  if (Number.isNaN(amt) || amt <= 0) {
+    throw new CustomError(
+      statusCodes.badRequest,
+      'amount must be a positive number',
+      errorCodes.validation_error
+    )
+  }
+
+  const proofId = toAttachmentDocumentId(paymentProofDocumentId)
+  const newEntry = {
+    amount: amt,
+    paidAt: paidAt ? new Date(paidAt) : new Date(),
+    remark: String(remark || '').trim(),
+    paymentProofDocumentId: proofId,
+    recordedBy:
+      _currentUserId && OBJECT_ID_REGEX.test(String(_currentUserId))
+        ? _currentUserId
+        : null,
+  }
+
+  const poPayDoc = await PoPaymentModel.findOne({
+    purchaseOrderId,
+    isDeleted: false,
+  })
+
+  if (!poPayDoc) {
+    const migrated = (
+      Array.isArray(existing.payments) ? existing.payments : []
+    ).map((p) => ({
+      amount: Number(p.amount) || 0,
+      paidAt: p.paidAt ? new Date(p.paidAt) : new Date(),
+      remark: String(p.remark || '').trim(),
+      paymentProofDocumentId: null,
+      recordedBy: null,
+    }))
+    const ledgers = [...migrated, newEntry]
+    await PoPaymentModel.create({
+      purchaseOrderId,
+      ledgers,
+    })
+    if (migrated.length > 0) {
+      await PurchaseOrderModel.findByIdAndUpdate(purchaseOrderId, {
+        $set: { payments: [] },
+      })
+    }
+  } else {
+    await PoPaymentModel.findByIdAndUpdate(poPayDoc._id, {
+      $push: { ledgers: newEntry },
+    })
+  }
+
+  const freshPo = await PurchaseOrderModel.findById(purchaseOrderId).lean()
+  const finPay = await PoPaymentModel.findOne({
+    purchaseOrderId,
+    isDeleted: false,
+  }).lean()
+  const fin = computePurchaseOrderFinancials(freshPo, finPay)
+  const payStatus = resolvePaymentReceivedStatus(fin)
+  const snapshot = buildPoSnapshotFromPo(freshPo, finPay)
+
+  await Promise.all([
+    PurchaseOrderModel.findByIdAndUpdate(purchaseOrderId, {
+      $set: { paymentReceivedStatus: payStatus },
+    }),
+    PoPaymentModel.findOneAndUpdate(
+      { purchaseOrderId, isDeleted: false },
+      { $set: { poSnapshot: snapshot, snapshotAt: new Date() } }
+    ),
+  ])
+
+  const full = await getPurchaseOrderById({
+    purchaseOrderId,
+    branchFilter,
+  })
+  return {
+    purchaseOrder: full,
+    financials: full.financials,
+    poPayment: full.poPayment,
+  }
 }
 
 export const appendPurchaseOrderPayment = async ({
@@ -409,6 +851,25 @@ export const appendPurchaseOrderPayment = async ({
     )
   }
 
+  const hasPoPay = await PoPaymentModel.findOne({
+    purchaseOrderId,
+    isDeleted: false,
+  })
+    .select('_id')
+    .lean()
+  if (hasPoPay) {
+    return appendPoPaymentLedger({
+      purchaseOrderId,
+      amount: amt,
+      paidAt,
+      remark,
+      paymentProofDocumentId: null,
+      branchFilter,
+      currentUserId: _currentUserId,
+      isFullAccessRole: _isFullAccessRole,
+    })
+  }
+
   const entry = {
     amount: amt,
     paidAt: paidAt ? new Date(paidAt) : new Date(),
@@ -436,7 +897,12 @@ export const appendPurchaseOrderPayment = async ({
     }
   }
 
-  const financials = computePurchaseOrderFinancials(updated)
+  const financials = computePurchaseOrderFinancials(updated, null)
+  const payStatus = resolvePaymentReceivedStatus(financials)
+  await PurchaseOrderModel.findByIdAndUpdate(purchaseOrderId, {
+    $set: { paymentReceivedStatus: payStatus },
+  })
+  updated.paymentReceivedStatus = payStatus
   return { purchaseOrder: updated, financials }
 }
 
@@ -451,6 +917,7 @@ export const updatePurchaseOrder = async ({
   expectedDeliveryWithinDays,
   remark,
   salesEmployeeId,
+  attachmentDocumentId,
   branchFilter = {},
   currentUserId: _currentUserId = null,
   isFullAccessRole: _isFullAccessRole = true,
@@ -497,6 +964,10 @@ export const updatePurchaseOrder = async ({
     updatePayload.salesEmployeeId =
       sid && OBJECT_ID_REGEX.test(sid) ? sid : null
   }
+  if (attachmentDocumentId !== undefined) {
+    updatePayload.attachmentDocumentId =
+      toAttachmentDocumentId(attachmentDocumentId)
+  }
 
   const updated = await PurchaseOrderModel.findByIdAndUpdate(
     purchaseOrderId,
@@ -511,6 +982,11 @@ export const updatePurchaseOrder = async ({
     .populate('industry_id', 'name location email')
     .populate('salesEmployeeId', 'name email phone role designation')
     .populate({ path: 'products.images', select: 'path' })
+    .populate({
+      path: 'attachmentDocumentId',
+      select: 'path mimeType originalName',
+      model: 'document',
+    })
     .lean()
 
   if (updated?.products?.length) {
@@ -520,8 +996,30 @@ export const updatePurchaseOrder = async ({
     }
   }
 
+  if (
+    updated?.attachmentDocumentId &&
+    typeof updated.attachmentDocumentId === 'object'
+  ) {
+    const [signed] = await transformPathsToSignedUrls([
+      updated.attachmentDocumentId,
+    ])
+    updated.attachmentDocumentId = signed || updated.attachmentDocumentId
+  }
+
   if (updated) {
-    updated.financials = computePurchaseOrderFinancials(updated)
+    const poPayUp = await PoPaymentModel.findOne({
+      purchaseOrderId: updated._id,
+      isDeleted: false,
+    }).lean()
+    updated.financials = computePurchaseOrderFinancials(updated, poPayUp)
+    const payUp = resolvePaymentReceivedStatus(updated.financials)
+    if (String(updated.paymentReceivedStatus || '') !== payUp) {
+      await PurchaseOrderModel.findByIdAndUpdate(purchaseOrderId, {
+        $set: { paymentReceivedStatus: payUp },
+      })
+      updated.paymentReceivedStatus = payUp
+    }
+    await syncPoProductsFromPurchaseOrder(updated)
   }
 
   return updated

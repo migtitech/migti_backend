@@ -52,7 +52,9 @@ async function seedCodeSequence() {
       categoryCode: INITIAL_VALUE,
       productCode: INITIAL_VALUE,
       queryCode: INITIAL_VALUE,
+      ritems: INITIAL_VALUE,
       quotationCode: INITIAL_VALUE,
+      purchaseOrderCode: INITIAL_VALUE,
     })
     console.log(
       'Code sequence document created with all counters at',

@@ -45,6 +45,11 @@ const productItemSchema = Joi.object({
   remark: Joi.string().allow('').optional(),
   description: Joi.string().allow('').optional(),
   product_id: Joi.string().allow(null, '').optional(),
+  groupId: objectIdSchema.allow(null, '').optional(),
+  categoryId: objectIdSchema.allow(null, '').optional(),
+  rawProductCode: Joi.string().allow('', null).max(100).optional(),
+  /** NQP row’s `query_tracking_code` (denormalized) when the line is from “mark as new” */
+  query_tracking_code: Joi.string().allow('', null).max(100).optional(),
   images: Joi.array().items(imageItemSchema).optional().default([]),
 })
 
@@ -285,6 +290,7 @@ export const convertQueryToQuotationSchema = Joi.object({
           .optional(),
         remark: Joi.string().allow('', null).optional(),
         description: Joi.string().allow('', null).optional(),
+        rawProductCode: Joi.string().allow('', null).max(100).optional(),
         product_id: Joi.alternatives()
           .try(
             Joi.string().allow(null, ''),
