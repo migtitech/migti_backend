@@ -1,15 +1,9 @@
-import mongoose from 'mongoose'
 import PoProductModel from '../../models/poProduct.model.js'
-import EmployeeModel from '../../models/employee.model.js'
-import {
-  FULL_ACCESS_ROLES,
-  statusCodes,
-  errorCodes,
-} from '../../core/common/constant.js'
+import { statusCodes, errorCodes } from '../../core/common/constant.js'
 import CustomError from '../../utils/exception.js'
 import {
   buildBaseStages,
-  assertEmployeeCanAccessPoProduct,
+  loadPoProductForAccess,
   getPurchaseBucketPoProductById,
 } from '../purchaseBucket/purchaseBucket.service.js'
 import {
@@ -17,30 +11,9 @@ import {
   resolvePoProductLineStatus,
 } from '../../models/poProduct.model.js'
 
-const OBJECT_ID_REGEX = /^[a-fA-F0-9]{24}$/
-
-const toOid = (v) => {
-  if (v == null || v === '') return null
-  if (!OBJECT_ID_REGEX.test(String(v))) return null
-  return new mongoose.Types.ObjectId(String(v))
-}
-
 const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
-const isFullAccess = (role) => {
-  if (!role) return false
-  return FULL_ACCESS_ROLES.map(String).includes(String(role))
-}
-
-export const listInventoryBucketPoProducts = async (q, user) => {
-  const employee = await EmployeeModel.findById(user?.id)
-    .select('assigned_groups role branchId')
-    .lean()
-  if (!employee) {
-    return { data: [], total: 0, pendingCount: 0, page: 1, pageSize: 20 }
-  }
-
-  const fullAccess = isFullAccess(employee.role)
+export const listInventoryBucketPoProducts = async (q, _user) => {
   const page = Math.max(
     1,
     parseInt(String(q.page || q.pageNumber || 1), 10) || 1
@@ -50,21 +23,8 @@ export const listInventoryBucketPoProducts = async (q, user) => {
     Math.max(1, parseInt(String(q.pageSize || q.limit || 20), 10) || 20)
   )
   const { search, from, to, status } = q
-  const branchId = user?.branchId
 
-  const assignedGroupIds = (employee.assigned_groups || [])
-    .map((g) => toOid(g))
-    .filter((id) => id != null)
-
-  const base = buildBaseStages({
-    assignedGroupIds,
-    fullAccess,
-    branchId,
-  })
-  if (!base) {
-    return { data: [], total: 0, pendingCount: 0, page, pageSize }
-  }
-
+  const base = buildBaseStages()
   const stages = [...base]
   stages.push({
     $addFields: {
@@ -165,7 +125,7 @@ export const getInventoryBucketPoProductById = async (id, user) => {
 }
 
 export const markInventoryReceived = async (id, user) => {
-  const allowed = await assertEmployeeCanAccessPoProduct(id, user)
+  const allowed = await loadPoProductForAccess(id)
   if (!allowed) return null
   const cur = resolvePoProductLineStatus(allowed)
   if (cur === 'finance_approved') {
@@ -195,7 +155,7 @@ export const markInventoryReceived = async (id, user) => {
  * After goods are received, mark line ready for dispatch (next step in workflow).
  */
 export const markReadyForDispatchment = async (id, user) => {
-  const allowed = await assertEmployeeCanAccessPoProduct(id, user)
+  const allowed = await loadPoProductForAccess(id)
   if (!allowed) return null
   const cur = resolvePoProductLineStatus(allowed)
   if (cur === PO_PRODUCT_INVENTORY_STATUS.READY_FOR_DISPATCHMENT) {

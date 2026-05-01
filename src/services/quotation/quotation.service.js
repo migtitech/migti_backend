@@ -21,6 +21,9 @@ import {
   getTerritoryIndustryIdsForUser,
 } from '../../core/helpers/queryAccess.js'
 import { listQueryProductDocuments } from '../queryProduct/queryProduct.service.js'
+import QueryProductModel, {
+  PRO_BUCKET_STATUS,
+} from '../../models/queryProduct.model.js'
 
 /** Persist quotation ref on the source query (deduped by quotationId). */
 export const appendConvertedQuotationOnQuery = async (
@@ -464,10 +467,82 @@ export const listQuotations = async ({
 
   const totalPages = Math.ceil(totalItems / limit)
 
-  const quotationsWithTotal = quotations.map((q) => ({
-    ...q,
-    totalAmount: computeTotalAmountFromProducts(q.products),
-  }))
+  const queryIdsOnPage = []
+  for (const q of quotations) {
+    const raw = q.queryId
+    const id = raw && typeof raw === 'object' && raw._id ? raw._id : raw
+    if (id && mongoose.Types.ObjectId.isValid(String(id))) {
+      queryIdsOnPage.push(new mongoose.Types.ObjectId(String(id)))
+    }
+  }
+
+  /** Per-queryId: total `query_products` lines and lines with pro-bucket status rate_submitted or fulfilled */
+  let queryProductStatsByQueryId = new Map()
+  if (queryIdsOnPage.length) {
+    const uniqueIds = [
+      ...new Map(queryIdsOnPage.map((oid) => [String(oid), oid])).values(),
+    ]
+    const agg = await QueryProductModel.aggregate([
+      {
+        $match: {
+          queryId: { $in: uniqueIds },
+          isDeleted: false,
+        },
+      },
+      {
+        $group: {
+          _id: '$queryId',
+          queryProductItemCount: { $sum: 1 },
+          queryProductRateSubmittedOrFulfilledCount: {
+            $sum: {
+              $cond: [
+                {
+                  $in: [
+                    '$status',
+                    [
+                      PRO_BUCKET_STATUS.RATE_SUBMITTED,
+                      PRO_BUCKET_STATUS.FULFILLED,
+                    ],
+                  ],
+                },
+                1,
+                0,
+              ],
+            },
+          },
+        },
+      },
+    ])
+    queryProductStatsByQueryId = new Map(
+      agg.map((row) => [
+        String(row._id),
+        {
+          queryProductItemCount: row.queryProductItemCount || 0,
+          queryProductRateSubmittedOrFulfilledCount:
+            row.queryProductRateSubmittedOrFulfilledCount || 0,
+        },
+      ])
+    )
+  }
+
+  const quotationsWithTotal = quotations.map((q) => {
+    const raw = q.queryId
+    const qid = raw && typeof raw === 'object' && raw._id ? raw._id : raw
+    const stats =
+      qid && queryProductStatsByQueryId.has(String(qid))
+        ? queryProductStatsByQueryId.get(String(qid))
+        : {
+            queryProductItemCount: 0,
+            queryProductRateSubmittedOrFulfilledCount: 0,
+          }
+    return {
+      ...q,
+      totalAmount: computeTotalAmountFromProducts(q.products),
+      queryProductItemCount: stats.queryProductItemCount,
+      queryProductRateSubmittedOrFulfilledCount:
+        stats.queryProductRateSubmittedOrFulfilledCount,
+    }
+  })
 
   return {
     quotations: quotationsWithTotal,

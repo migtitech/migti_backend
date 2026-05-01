@@ -84,6 +84,8 @@ const purchaseBillingRequestSchema = new mongoose.Schema(
     },
     approvedAt: { type: SchemaTypes.Date, default: null },
     statusRemark: { type: SchemaTypes.String, trim: true, default: '' },
+    /** Optional note from submitter when raising the payment request */
+    requestRemark: { type: SchemaTypes.String, trim: true, default: '' },
   },
   { timestamps: true, collection: 'purchase_billing_requests' }
 )

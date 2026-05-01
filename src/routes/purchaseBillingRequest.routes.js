@@ -14,25 +14,25 @@ const purchaseBillingRequestRouter = Router()
 purchaseBillingRequestRouter.get(
   '/list',
   authenticateToken,
-  checkPermission(MODULES.PURCHASE_ORDERS, 'read'),
+  checkPermission(MODULES.BILLING_REQUEST, 'read'),
   asyncHandler(listPurchaseBillingRequestsController)
 )
 purchaseBillingRequestRouter.get(
   '/:id',
   authenticateToken,
-  checkPermission(MODULES.PURCHASE_ORDERS, 'read'),
+  checkPermission(MODULES.BILLING_REQUEST, 'read'),
   asyncHandler(getPurchaseBillingRequestByIdController)
 )
 purchaseBillingRequestRouter.put(
   '/:id/remark',
   authenticateToken,
-  checkPermission(MODULES.REQUEST, 'update'),
+  checkPermission(MODULES.BILLING_REQUEST, 'update'),
   asyncHandler(updatePurchaseBillingRequestRemarkController)
 )
 purchaseBillingRequestRouter.put(
   '/:id/approve',
   authenticateToken,
-  checkPermission(MODULES.REQUEST, 'update'),
+  checkPermission(MODULES.BILLING_REQUEST, 'update'),
   asyncHandler(approvePurchaseBillingRequestController)
 )
 

@@ -40,4 +40,12 @@ export const purchaseBucketIdParamSchema = Joi.object({
 export const raisePaymentRequestBodySchema = Joi.object({
   amount: Joi.number().positive().required(),
   attachmentDocumentId: objectIdJoi.required(),
+  remark: Joi.string().max(4000).allow('').optional(),
+})
+
+/** Sets `po_products.attachmentDocumentId` (product image on the line). */
+export const updatePoProductLineAttachmentBodySchema = Joi.object({
+  attachmentDocumentId: Joi.alternatives()
+    .try(objectIdJoi, Joi.valid(null), Joi.string().valid(''))
+    .required(),
 })

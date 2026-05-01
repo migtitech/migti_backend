@@ -24,3 +24,8 @@ export const listDispatchmentBucketSchema = Joi.object({
 export const dispatchmentBucketIdParamSchema = Joi.object({
   id: objectIdJoi.required(),
 })
+
+export const markDeliveredBodySchema = Joi.object({
+  receivingDocumentId: objectIdJoi.allow(null, '').optional(),
+  receivingRemark: Joi.string().allow('', null).max(4000).optional(),
+}).unknown(true)

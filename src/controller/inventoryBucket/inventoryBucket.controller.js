@@ -45,7 +45,7 @@ export const getInventoryBucketPoProductByIdController = async (req, res) => {
   if (!doc) {
     return res.status(statusCodes.notFound).json({
       success: false,
-      message: 'Item not found or not allowed',
+      message: 'Item not found',
     })
   }
   return res.status(statusCodes.ok).json({
@@ -71,7 +71,7 @@ export const markInventoryReceivedController = async (req, res) => {
   if (!doc) {
     return res.status(statusCodes.notFound).json({
       success: false,
-      message: 'Item not found or not allowed',
+      message: 'Item not found',
     })
   }
   return res.status(statusCodes.ok).json({
@@ -97,7 +97,7 @@ export const markReadyForDispatchmentController = async (req, res) => {
   if (!doc) {
     return res.status(statusCodes.notFound).json({
       success: false,
-      message: 'Item not found or not allowed',
+      message: 'Item not found',
     })
   }
   return res.status(statusCodes.ok).json({

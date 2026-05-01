@@ -4,6 +4,7 @@ import { authenticateToken, checkPermission } from '../middlewares/jwtAuth.js'
 import { MODULES } from '../core/common/constant.js'
 import {
   listPurchaseOrdersController,
+  listMyAssignedPurchaseOrdersController,
   getPurchaseOrderByIdController,
   listPoProductLinesController,
   getPurchaseOrderByQuotationIdController,
@@ -15,6 +16,12 @@ import {
 
 const purchaseOrderRouter = Router()
 
+purchaseOrderRouter.get(
+  '/my-assigned',
+  authenticateToken,
+  checkPermission(MODULES.PURCHASE_ORDERS, 'read'),
+  asyncHandler(listMyAssignedPurchaseOrdersController)
+)
 purchaseOrderRouter.get(
   '/list',
   authenticateToken,

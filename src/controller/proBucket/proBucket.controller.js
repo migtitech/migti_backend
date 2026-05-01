@@ -23,7 +23,7 @@ export const listProBucketQueryProductsController = async (req, res) => {
       error: error.details.map((d) => d.message),
     })
   }
-  const data = await listProBucketQueryProducts(value, req.user)
+  const data = await listProBucketQueryProducts(value)
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Pro Bucket items retrieved',
@@ -43,11 +43,11 @@ export const getProBucketQueryProductByIdController = async (req, res) => {
       error: error.details.map((d) => d.message),
     })
   }
-  const doc = await getProBucketQueryProductById(value.id, req.user)
+  const doc = await getProBucketQueryProductById(value.id)
   if (!doc) {
     return res.status(statusCodes.notFound).json({
       success: false,
-      message: 'Item not found or not allowed',
+      message: 'Item not found',
     })
   }
   return res.status(statusCodes.ok).json({
@@ -88,7 +88,7 @@ export const appendProBucketRatesController = async (req, res) => {
     if (!doc) {
       return res.status(statusCodes.notFound).json({
         success: false,
-        message: 'Item not found or not allowed',
+        message: 'Item not found',
       })
     }
     return res.status(statusCodes.ok).json({

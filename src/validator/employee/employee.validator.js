@@ -87,6 +87,12 @@ export const listEmployeeSchema = Joi.object({
   branchId: Joi.string().optional().allow('', null),
   /** Case-insensitive: role must start with this string (e.g. "sales" → sales_executive, sales_manager) */
   rolePrefix: Joi.string().trim().allow('', null).optional(),
+  /**
+   * Comma-separated role keywords (OR). Each matches as substring in `role` (case-insensitive).
+   * Special case: keyword "hod" also matches roles `hod` and `head_of_department`.
+   * When non-empty, overrides `rolePrefix` for role filtering.
+   */
+  roleKeywords: Joi.string().trim().allow('', null).optional(),
 })
 
 export const getEmployeeByIdSchema = Joi.object({

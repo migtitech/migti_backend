@@ -1,7 +1,6 @@
 import mongoose from 'mongoose'
 import PoProductModel from '../../models/poProduct.model.js'
 import EmployeeModel from '../../models/employee.model.js'
-import PurchaseOrderModel from '../../models/purchaseOrder.model.js'
 import ProductModel from '../../models/product.model.js'
 import QueryProductModel from '../../models/queryProduct.model.js'
 import DocumentModel from '../../models/document.model.js'
@@ -10,11 +9,7 @@ import PurchaseBillingRequestModel, {
   PURCHASE_BILLING_REQUEST_STATUS,
 } from '../../models/purchaseBillingRequest.model.js'
 import CustomError from '../../utils/exception.js'
-import {
-  FULL_ACCESS_ROLES,
-  statusCodes,
-  errorCodes,
-} from '../../core/common/constant.js'
+import { statusCodes, errorCodes } from '../../core/common/constant.js'
 import { PO_PRODUCT_PROCUREMENT_STATUS } from '../../models/poProduct.model.js'
 import { transformPathsToSignedUrls } from '../document/document.service.js'
 
@@ -78,11 +73,6 @@ const buildPoLineProductSnapshot = (poLine) => {
   }
 }
 
-const isFullAccessRole = (role) => {
-  if (!role) return false
-  return FULL_ACCESS_ROLES.map(String).includes(String(role))
-}
-
 const normalizeBillDocumentId = async (attachmentDocumentId) => {
   const id = attachmentDocumentId && String(attachmentDocumentId).trim()
   if (!id) {
@@ -101,6 +91,48 @@ const normalizeBillDocumentId = async (attachmentDocumentId) => {
     )
   }
   return id
+}
+
+/** Optional line attachment: `null` / empty clears; otherwise document must exist. */
+const resolveOptionalAttachmentDocumentIdForLine = async (raw) => {
+  if (raw == null || raw === '') return null
+  const id = String(raw).trim()
+  if (!OBJECT_ID_REGEX.test(id)) {
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Invalid attachment document id',
+      errorCodes.validation_error
+    )
+  }
+  const doc = await DocumentModel.findById(id).lean()
+  if (!doc) {
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Attachment document not found',
+      errorCodes.bad_request
+    )
+  }
+  return id
+}
+
+export const updatePoProductLineAttachment = async ({
+  id,
+  attachmentDocumentId,
+  user,
+}) => {
+  const allowed = await loadPoProductForAccess(id)
+  if (!allowed) {
+    return null
+  }
+  const resolved = await resolveOptionalAttachmentDocumentIdForLine(
+    attachmentDocumentId
+  )
+  const oid = toOid(id)
+  await PoProductModel.findOneAndUpdate(
+    { _id: oid, isDeleted: false },
+    { $set: { attachmentDocumentId: resolved } }
+  )
+  return getPurchaseBucketPoProductById(String(oid), user)
 }
 
 export async function resolveEffectiveGroupIdForPoProduct(doc) {
@@ -131,50 +163,14 @@ export async function resolveEffectiveGroupIdForPoProduct(doc) {
   return null
 }
 
-async function loadPoProductForAccess(id) {
+export async function loadPoProductForAccess(id) {
   const oid = toOid(id)
   if (!oid) return null
   return PoProductModel.findOne({ _id: oid, isDeleted: false }).lean()
 }
 
-export async function assertEmployeeCanAccessPoProduct(id, user) {
-  const doc = await loadPoProductForAccess(id)
-  if (!doc) return null
-
-  const employee = await EmployeeModel.findById(user?.id)
-    .select('assigned_groups role branchId')
-    .lean()
-  if (!employee) return null
-
-  const po = await PurchaseOrderModel.findOne({
-    _id: doc.purchaseOrderId,
-    isDeleted: false,
-  })
-    .select('_id')
-    .lean()
-  if (!po) return null
-
-  const fullAccess = isFullAccessRole(employee.role)
-  if (fullAccess) return doc
-
-  if (
-    user?.branchId &&
-    doc.branchId &&
-    String(doc.branchId) !== String(user.branchId)
-  ) {
-    return null
-  }
-
-  const gids = (employee.assigned_groups || []).map((g) => String(g))
-  if (!gids.length) return null
-
-  const eg = await resolveEffectiveGroupIdForPoProduct(doc)
-  if (!eg || !gids.includes(String(eg))) return null
-
-  return doc
-}
-
-export const buildBaseStages = ({ assignedGroupIds, fullAccess, branchId }) => {
+/** Aggregation stages for PO product lists — no role/group/branch filtering. */
+export const buildBaseStages = () => {
   const stages = []
   stages.push({ $match: { isDeleted: false } })
   stages.push({
@@ -196,6 +192,7 @@ export const buildBaseStages = ({ assignedGroupIds, fullAccess, branchId }) => {
           { $eq: ['$procurementStatus', 'finance_approved'] },
         ],
       },
+      isPurchased: { $eq: ['$status', 'purchased'] },
     },
   })
   stages.push({
@@ -253,29 +250,10 @@ export const buildBaseStages = ({ assignedGroupIds, fullAccess, branchId }) => {
     },
   })
 
-  if (!fullAccess) {
-    const bid = toOid(branchId)
-    if (bid) {
-      stages.push({ $match: { branchId: bid } })
-    }
-    if (!assignedGroupIds?.length) {
-      return null
-    }
-    stages.push({ $match: { effectiveGroupId: { $in: assignedGroupIds } } })
-  }
-
   return stages
 }
 
-export const listPurchaseBucketPoProducts = async (q, user) => {
-  const employee = await EmployeeModel.findById(user?.id)
-    .select('assigned_groups role branchId')
-    .lean()
-  if (!employee) {
-    return { data: [], total: 0, pendingCount: 0, page: 1, pageSize: 20 }
-  }
-
-  const fullAccess = isFullAccessRole(employee.role)
+export const listPurchaseBucketPoProducts = async (q, _user) => {
   const page = Math.max(
     1,
     parseInt(String(q.page || q.pageNumber || 1), 10) || 1
@@ -285,21 +263,8 @@ export const listPurchaseBucketPoProducts = async (q, user) => {
     Math.max(1, parseInt(String(q.pageSize || q.limit || 20), 10) || 20)
   )
   const { search, from, to, status } = q
-  const branchId = user?.branchId
 
-  const assignedGroupIds = (employee.assigned_groups || [])
-    .map((g) => toOid(g))
-    .filter((id) => id != null)
-
-  const base = buildBaseStages({
-    assignedGroupIds,
-    fullAccess,
-    branchId,
-  })
-  if (!base) {
-    return { data: [], total: 0, pendingCount: 0, page, pageSize }
-  }
-
+  const base = buildBaseStages()
   const stages = [...base]
 
   if (from || to) {
@@ -395,18 +360,12 @@ export const listPurchaseBucketPoProducts = async (q, user) => {
     },
     {
       $project: {
-        _id: 1,
-        productName: 1,
-        poCode: 1,
-        dispatchmentDate: 1,
-        status: 1,
-        purchaseOrderId: 1,
-        lineIndex: 1,
-        quantity: 1,
-        unit: 1,
-        companyInfo: 1,
-        effectiveGroupId: 1,
-        createdAt: 1,
+        poArr: 0,
+        prodArr: 0,
+        qpRows: 0,
+        isPaymentRequestRaised: 0,
+        isFinanceApproved: 0,
+        isPurchased: 0,
       },
     },
   ]
@@ -527,6 +486,7 @@ const withPoProductPopulates = (q) =>
       populate: { path: 'group', select: 'name' },
     })
     .populate('attachmentDocumentId', 'path mimeType originalName')
+    .populate('receivingDocumentId', 'path mimeType originalName')
     .populate('paymentRequestBillDocumentId', 'path mimeType originalName')
     .populate('paymentRequestRaisedBy', 'name email')
     .populate({
@@ -541,8 +501,8 @@ const withPoProductPopulates = (q) =>
     })
     .lean()
 
-export const getPurchaseBucketPoProductById = async (id, user) => {
-  const allowed = await assertEmployeeCanAccessPoProduct(id, user)
+export const getPurchaseBucketPoProductById = async (id, _user) => {
+  const allowed = await loadPoProductForAccess(id)
   if (!allowed) return null
 
   const doc = await withPoProductPopulates(PoProductModel.findById(allowed._id))
@@ -563,6 +523,15 @@ export const getPurchaseBucketPoProductById = async (id, user) => {
       doc.attachmentDocumentId,
     ])
     doc.attachmentDocumentId = signed || doc.attachmentDocumentId
+  }
+  if (
+    doc.receivingDocumentId &&
+    typeof doc.receivingDocumentId === 'object'
+  ) {
+    const [signed] = await transformPathsToSignedUrls([
+      doc.receivingDocumentId,
+    ])
+    doc.receivingDocumentId = signed || doc.receivingDocumentId
   }
   if (
     doc.paymentRequestBillDocumentId &&
@@ -606,17 +575,24 @@ export const getPurchaseBucketPoProductById = async (id, user) => {
   }
 }
 
+const normalizeRequestRemark = (remark) => {
+  if (remark == null || remark === '') return ''
+  const s = String(remark).trim()
+  return s.length > 4000 ? s.slice(0, 4000) : s
+}
+
 export const raisePurchaseBucketPaymentRequest = async ({
   id,
   amount,
   attachmentDocumentId,
+  remark,
   user,
 }) => {
-  const allowed = await assertEmployeeCanAccessPoProduct(id, user)
+  const allowed = await loadPoProductForAccess(id)
   if (!allowed) {
     throw new CustomError(
       statusCodes.notFound,
-      'PO line not found or not allowed',
+      'PO line not found',
       errorCodes.not_found
     )
   }
@@ -695,6 +671,7 @@ export const raisePurchaseBucketPaymentRequest = async ({
     createdBySnapshot: employeeSnapshot,
     productSnapshot,
     branchId: allowed.branchId || null,
+    requestRemark: normalizeRequestRemark(remark),
   })
 
   try {
@@ -717,15 +694,36 @@ export const raisePurchaseBucketPaymentRequest = async ({
   return getPurchaseBucketPoProductById(String(oid), user)
 }
 
+/** Counts of purchase billing requests by approval status (for dashboard widgets). */
+export const getPurchaseBillingRequestStatusCounts = async () => {
+  const base = { isDeleted: false }
+  const [pending, approved, rejected, total] = await Promise.all([
+    PurchaseBillingRequestModel.countDocuments({
+      ...base,
+      status: PURCHASE_BILLING_REQUEST_STATUS.PENDING,
+    }),
+    PurchaseBillingRequestModel.countDocuments({
+      ...base,
+      status: PURCHASE_BILLING_REQUEST_STATUS.APPROVED,
+    }),
+    PurchaseBillingRequestModel.countDocuments({
+      ...base,
+      status: PURCHASE_BILLING_REQUEST_STATUS.REJECTED,
+    }),
+    PurchaseBillingRequestModel.countDocuments(base),
+  ])
+  return { pending, approved, rejected, total }
+}
+
 /**
  * Set line `status` to `purchased` when the line is finance-approved (canonical status key).
  */
 export const markPurchaseBucketLinePurchased = async ({ id, user }) => {
-  const allowed = await assertEmployeeCanAccessPoProduct(id, user)
+  const allowed = await loadPoProductForAccess(id)
   if (!allowed) {
     throw new CustomError(
       statusCodes.notFound,
-      'PO line not found or not allowed',
+      'PO line not found',
       errorCodes.not_found
     )
   }

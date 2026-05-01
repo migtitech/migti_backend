@@ -393,10 +393,10 @@ export const MODULES = Object.freeze({
   PURCHASE_BUCKET: 'purchase_bucket',
   /** Inventory queue (/inventory-bucket). */
   INVENTORY_BUCKET: 'inventory_bucket',
-  /** PO / billing (e.g. purchase order sidebar, PO–billing actions). */
-  BILLING: 'billing',
-  /** Purchase billing requests list / workflow. */
-  REQUEST: 'request',
+  /** PO payment screen, PO–billing entries (po-billing API). */
+  PO_PAYMENT: 'po_payment',
+  /** Purchase billing requests list / approve workflow. */
+  BILLING_REQUEST: 'billing_request',
   /** Dispatchment queue. */
   DISPATCHMENT: 'dispatchment',
 })

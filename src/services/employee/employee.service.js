@@ -161,12 +161,35 @@ export const addEmployee = async (payload) => {
   return employee
 }
 
+const escapeRegex = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+/** OR conditions on `role` from comma-separated keywords (see listEmployeeSchema). */
+const roleConditionsFromKeywords = (roleKeywordsCsv) => {
+  const parts = String(roleKeywordsCsv || '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
+  if (!parts.length) return null
+  const or = []
+  for (const part of parts) {
+    const lower = part.toLowerCase()
+    if (lower === 'hod') {
+      or.push({ role: /^head_of_department$/i })
+      or.push({ role: /^hod$/i })
+    } else {
+      or.push({ role: new RegExp(escapeRegex(part), 'i') })
+    }
+  }
+  return or.length ? { $or: or } : null
+}
+
 export const listEmployees = async ({
   pageNumber = 1,
   pageSize = 10,
   branchId,
   branchFilter = {},
   rolePrefix = '',
+  roleKeywords = '',
 }) => {
   const page = Math.max(1, parseInt(pageNumber))
   const limit = Math.min(100, Math.max(1, parseInt(pageSize)))
@@ -175,10 +198,16 @@ export const listEmployees = async ({
   const filter = { ...branchFilter }
   if (Object.keys(filter).length === 0 && branchId) filter.branchId = branchId
 
-  const rp = String(rolePrefix || '').trim()
-  if (rp) {
-    const escaped = rp.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-    filter.role = new RegExp(`^${escaped}`, 'i')
+  const rk = String(roleKeywords || '').trim()
+  const roleOr = rk ? roleConditionsFromKeywords(rk) : null
+  if (roleOr) {
+    Object.assign(filter, roleOr)
+  } else {
+    const rp = String(rolePrefix || '').trim()
+    if (rp) {
+      const escaped = escapeRegex(rp)
+      filter.role = new RegExp(`^${escaped}`, 'i')
+    }
   }
 
   const totalItems = await EmployeeModel.countDocuments(filter)

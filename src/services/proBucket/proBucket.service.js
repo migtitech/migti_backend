@@ -2,10 +2,7 @@ import mongoose from 'mongoose'
 import QueryProductModel, {
   deriveProBucketStatus,
 } from '../../models/queryProduct.model.js'
-import QueryModel from '../../models/query.model.js'
-import EmployeeModel from '../../models/employee.model.js'
 import SupplierModel from '../../models/supplier.model.js'
-import { FULL_ACCESS_ROLES } from '../../core/common/constant.js'
 
 const OBJECT_ID_REGEX = /^[a-fA-F0-9]{24}$/
 
@@ -15,13 +12,6 @@ const toOid = (v) => {
   return new mongoose.Types.ObjectId(String(v))
 }
 
-const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-
-const isFullAccessRole = (role) => {
-  if (!role) return false
-  return FULL_ACCESS_ROLES.map(String).includes(String(role))
-}
-
 const supplierSnapshot = (sup) => {
   if (!sup) return null
   const o = typeof sup.toObject === 'function' ? sup.toObject() : { ...sup }
@@ -29,84 +19,56 @@ const supplierSnapshot = (sup) => {
   return o
 }
 
-const buildBasePipeline = ({
-  assignedGroups,
-  fullAccess,
-  branchId,
-  from,
-  to,
-  search,
-}) => {
-  const baseMatch = { isDeleted: false }
-  if (!fullAccess) {
-    if (!assignedGroups?.length) {
-      return null
-    }
-    baseMatch.groupId = {
-      $in: assignedGroups.map((id) => toOid(id)).filter((id) => id != null),
-    }
-  }
+const PRO_BUCKET_LIST_STATUSES = new Set([
+  'pending',
+  'rate_submitted',
+  'fulfilled',
+])
 
-  const pipeline = []
-  pipeline.push({ $match: baseMatch })
-  pipeline.push({
-    $lookup: {
-      from: 'queries',
-      localField: 'queryId',
-      foreignField: '_id',
-      as: 'q',
-    },
-  })
-  pipeline.push({ $unwind: { path: '$q' } })
-  pipeline.push({ $match: { 'q.isDeleted': false } })
-
-  if (!fullAccess && branchId) {
-    const bid = toOid(branchId)
-    if (bid) {
-      pipeline.push({ $match: { 'q.branchId': bid } })
-    }
-  }
-
-  if (from || to) {
-    const dr = {}
-    if (from) {
-      const d = new Date(from)
+/** `createdAt` range (document timestamps); start/end of local calendar day. */
+const createdAtRangeFilter = (from, to) => {
+  const range = {}
+  if (from != null && String(from).trim() !== '') {
+    const d = new Date(from)
+    if (!Number.isNaN(d.getTime())) {
       d.setHours(0, 0, 0, 0)
-      dr.$gte = d
+      range.$gte = d
     }
-    if (to) {
-      const d = new Date(to)
+  }
+  if (to != null && String(to).trim() !== '') {
+    const d = new Date(to)
+    if (!Number.isNaN(d.getTime())) {
       d.setHours(23, 59, 59, 999)
-      dr.$lte = d
+      range.$lte = d
     }
-    pipeline.push({ $match: { 'q.createdAt': dr } })
   }
+  return Object.keys(range).length ? { createdAt: range } : {}
+}
 
-  if (search && String(search).trim()) {
-    const rx = new RegExp(escapeRegex(String(search).trim()), 'i')
-    pipeline.push({
-      $match: {
-        $or: [{ productName: rx }, { queryCode: rx }],
-      },
-    })
+const escapeRegex = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+/** Case-insensitive substring match on `query_products` text fields. */
+const textSearchFilter = (search) => {
+  const t = search != null ? String(search).trim() : ''
+  if (!t) return {}
+  const rx = new RegExp(escapeRegex(t), 'i')
+  return {
+    $or: [
+      { queryCode: rx },
+      { productName: rx },
+      { unit: rx },
+      { hsnNumber: rx },
+      { description: rx },
+    ],
   }
-
-  return pipeline
 }
 
 /**
+ * List `query_products` with pagination (no server-side RBAC; optional filters only).
+ * Optional `status`, `from` / `to` on `createdAt`, `search` on text fields.
  * @param {object} q
- * @param {import('express').Request['user']} user
  */
-export const listProBucketQueryProducts = async (q, user) => {
-  const employee = await EmployeeModel.findById(user?.id)
-    .select('assigned_groups role')
-    .lean()
-  if (!employee) {
-    return { data: [], total: 0, pendingCount: 0, page: 1, pageSize: 20 }
-  }
-
-  const fullAccess = isFullAccessRole(employee.role)
+export const listProBucketQueryProducts = async (q) => {
   const page = Math.max(
     1,
     parseInt(String(q.page || q.pageNumber || 1), 10) || 1
@@ -115,59 +77,43 @@ export const listProBucketQueryProducts = async (q, user) => {
     100,
     Math.max(1, parseInt(String(q.pageSize || q.limit || 20), 10) || 20)
   )
-  const { search, from, to, status } = q
-  const branchId = user?.branchId
 
-  const base = buildBasePipeline({
-    assignedGroups: employee.assigned_groups,
-    fullAccess,
-    branchId,
-    from,
-    to,
-    search,
-  })
-
-  if (!base) {
-    return { data: [], total: 0, pendingCount: 0, page, pageSize }
+  const statusRaw =
+    q.status != null && q.status !== '' ? String(q.status).trim() : ''
+  const filter = {
+    isDeleted: false,
+    ...(statusRaw && PRO_BUCKET_LIST_STATUSES.has(statusRaw)
+      ? { status: statusRaw }
+      : {}),
+    ...createdAtRangeFilter(q.from, q.to),
+    ...textSearchFilter(q.search),
   }
 
-  const pendingPipeline = [
-    ...base,
-    { $match: { status: 'pending' } },
-    { $count: 'c' },
-  ]
-  const pendingRes = await QueryProductModel.aggregate(pendingPipeline)
-  const pendingCount = pendingRes[0]?.c || 0
-
-  const listPipeline = [...base]
-  if (status && String(status).trim()) {
-    listPipeline.push({ $match: { status: String(status).trim() } })
+  const pendingFilter = {
+    isDeleted: false,
+    status: 'pending',
+    ...createdAtRangeFilter(q.from, q.to),
+    ...textSearchFilter(q.search),
   }
-  const countPipeline = [...listPipeline, { $count: 'c' }]
-  const countRes = await QueryProductModel.aggregate(countPipeline)
-  const total = countRes[0]?.c || 0
 
-  listPipeline.push(
-    { $sort: { 'q.createdAt': -1, lineIndex: 1 } },
-    { $skip: (page - 1) * pageSize },
-    { $limit: pageSize }
-  )
-  const data = await QueryProductModel.aggregate(listPipeline)
-  const slim = data.map((row) => {
-    const { q: qrow, ...rest } = row
-    return {
-      ...rest,
-      query: qrow
-        ? {
-            _id: qrow._id,
-            queryCode: qrow.queryCode,
-            createdAt: qrow.createdAt,
-          }
-        : null,
-    }
-  })
+  const [total, pendingCount, rows] = await Promise.all([
+    QueryProductModel.countDocuments(filter),
+    QueryProductModel.countDocuments(pendingFilter),
+    QueryProductModel.find(filter)
+      .sort({ createdAt: -1, lineIndex: 1 })
+      .skip((page - 1) * pageSize)
+      .limit(pageSize)
+      .lean(),
+  ])
 
-  return { data: slim, total, pendingCount, page, pageSize }
+  return {
+    data: rows,
+    total,
+    pendingCount,
+    page,
+    pageSize,
+    assignedGroups: [],
+  }
 }
 
 const withQueryProductPopulates = (q) =>
@@ -179,36 +125,16 @@ const withQueryProductPopulates = (q) =>
     .populate('images', 'name path mimetype')
     .lean()
 
-export const getProBucketQueryProductById = async (id, user) => {
+/** Load one `query_product` by id (not deleted). No group/branch checks. */
+export const getProBucketQueryProductById = async (id) => {
   const oid = toOid(id)
   if (!oid) return null
 
-  const employee = await EmployeeModel.findById(user?.id)
-    .select('assigned_groups role branchId')
-    .lean()
-  if (!employee) return null
-
-  const fullAccess = isFullAccessRole(employee.role)
   const doc = await QueryProductModel.findOne({
     _id: oid,
     isDeleted: false,
   }).lean()
   if (!doc) return null
-
-  if (!fullAccess) {
-    const gids = (employee.assigned_groups || []).map((g) => String(g))
-    if (doc.groupId == null || !gids.includes(String(doc.groupId))) {
-      return null
-    }
-    if (user?.branchId) {
-      const qu = await QueryModel.findById(doc.queryId)
-        .select('branchId')
-        .lean()
-      if (qu && String(qu.branchId) !== String(user.branchId)) {
-        return null
-      }
-    }
-  }
 
   return withQueryProductPopulates(QueryProductModel.findById(oid))
 }
@@ -217,7 +143,10 @@ export const appendProBucketRates = async (id, ratesInput, user) => {
   const oid = toOid(id)
   if (!oid) throw new Error('Invalid id')
 
-  const existing = await getProBucketQueryProductById(String(id), user)
+  const existing = await QueryProductModel.findOne({
+    _id: oid,
+    isDeleted: false,
+  }).lean()
   if (!existing) {
     return null
   }
@@ -244,12 +173,12 @@ export const appendProBucketRates = async (id, ratesInput, user) => {
       unit: (r.unit && String(r.unit).trim()) || '',
       remark: (r.remark && String(r.remark)) || '',
       submittedAt: new Date(),
-      submittedBy: toOid(user?.id),
+      submittedBy: toOid(user?.id ?? user?._id),
     })
   }
 
   if (!toPush.length) {
-    return existing
+    return getProBucketQueryProductById(String(oid))
   }
 
   const newLen = (existing.rates?.length || 0) + toPush.length
@@ -260,5 +189,5 @@ export const appendProBucketRates = async (id, ratesInput, user) => {
     $set: { status: nextStatus },
   })
 
-  return getProBucketQueryProductById(String(oid), user)
+  return getProBucketQueryProductById(String(oid))
 }
