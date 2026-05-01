@@ -9,7 +9,7 @@ const poPaymentRouter = Router()
 poPaymentRouter.post(
   '/append-ledger',
   authenticateToken,
-  checkPermission(MODULES.PURCHASE_ORDERS, 'update'),
+  checkPermission(MODULES.PO_PAYMENT, 'update'),
   asyncHandler(appendPoPaymentLedgerController)
 )
 

@@ -1,35 +1,30 @@
-import mongoose from 'mongoose'
 import PoProductModel from '../../models/poProduct.model.js'
-import EmployeeModel from '../../models/employee.model.js'
-import {
-  FULL_ACCESS_ROLES,
-  statusCodes,
-  errorCodes,
-} from '../../core/common/constant.js'
+import { statusCodes, errorCodes } from '../../core/common/constant.js'
 import CustomError from '../../utils/exception.js'
+
+const OBJECT_ID_REGEX = /^[a-fA-F0-9]{24}$/
+
+const normalizeReceivingRemark = (remark) => {
+  if (remark == null || remark === '') return ''
+  const s = String(remark).trim()
+  return s.length > 4000 ? s.slice(0, 4000) : s
+}
+
+const toObjectIdOrNull = (v) => {
+  if (v == null || v === '') return null
+  const s = String(v).trim()
+  return OBJECT_ID_REGEX.test(s) ? s : null
+}
 import {
   buildBaseStages,
-  assertEmployeeCanAccessPoProduct,
+  loadPoProductForAccess,
 } from '../purchaseBucket/purchaseBucket.service.js'
 import {
   PO_PRODUCT_INVENTORY_STATUS,
   resolvePoProductLineStatus,
 } from '../../models/poProduct.model.js'
 
-const OBJECT_ID_REGEX = /^[a-fA-F0-9]{24}$/
-
-const toOid = (v) => {
-  if (v == null || v === '') return null
-  if (!OBJECT_ID_REGEX.test(String(v))) return null
-  return new mongoose.Types.ObjectId(String(v))
-}
-
 const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-
-const isFullAccess = (role) => {
-  if (!role) return false
-  return FULL_ACCESS_ROLES.map(String).includes(String(role))
-}
 
 const DISPATCH_LINE_STATUSES = [
   PO_PRODUCT_INVENTORY_STATUS.INVENTORY_RECEIVED,
@@ -39,15 +34,7 @@ const DISPATCH_LINE_STATUSES = [
 /**
  * PO product lines in the dispatch queue: `inventory_received` or `ready_for_dispatchment` only.
  */
-export const listDispatchmentQueuePoProducts = async (q, user) => {
-  const employee = await EmployeeModel.findById(user?.id)
-    .select('assigned_groups role branchId')
-    .lean()
-  if (!employee) {
-    return { data: [], total: 0, page: 1, pageSize: 20 }
-  }
-
-  const fullAccess = isFullAccess(employee.role)
+export const listDispatchmentQueuePoProducts = async (q, _user) => {
   const page = Math.max(
     1,
     parseInt(String(q.page || q.pageNumber || 1), 10) || 1
@@ -57,21 +44,8 @@ export const listDispatchmentQueuePoProducts = async (q, user) => {
     Math.max(1, parseInt(String(q.pageSize || q.limit || 20), 10) || 20)
   )
   const { search, from, to } = q
-  const branchId = user?.branchId
 
-  const assignedGroupIds = (employee.assigned_groups || [])
-    .map((g) => toOid(g))
-    .filter((id) => id != null)
-
-  const base = buildBaseStages({
-    assignedGroupIds,
-    fullAccess,
-    branchId,
-  })
-  if (!base) {
-    return { data: [], total: 0, page, pageSize }
-  }
-
+  const base = buildBaseStages()
   const stages = [...base]
   stages.push({
     $addFields: {
@@ -148,10 +122,15 @@ export const listDispatchmentQueuePoProducts = async (q, user) => {
 }
 
 /**
- * Mark line delivered (from `ready_for_dispatchment` only). Updates `po_products.status`.
+ * Mark line delivered (from `ready_for_dispatchment` only). Updates `po_products.status`,
+ * and optionally `receivingDocumentId` + `receivingRemark`.
  */
-export const markPoProductDelivered = async (id, user) => {
-  const allowed = await assertEmployeeCanAccessPoProduct(id, user)
+export const markPoProductDelivered = async (
+  id,
+  _user,
+  { receivingDocumentId = null, receivingRemark } = {}
+) => {
+  const allowed = await loadPoProductForAccess(id)
   if (!allowed) return null
   const cur = resolvePoProductLineStatus(allowed)
   if (cur === PO_PRODUCT_INVENTORY_STATUS.DELIVERED) {
@@ -164,10 +143,20 @@ export const markPoProductDelivered = async (id, user) => {
       errorCodes.bad_request
     )
   }
+  const docId = toObjectIdOrNull(receivingDocumentId)
+  const setPayload = {
+    status: PO_PRODUCT_INVENTORY_STATUS.DELIVERED,
+  }
+  if (docId) {
+    setPayload.receivingDocumentId = docId
+  }
+  if (receivingRemark !== undefined) {
+    setPayload.receivingRemark = normalizeReceivingRemark(receivingRemark)
+  }
   return await PoProductModel.findOneAndUpdate(
     { _id: allowed._id, isDeleted: false },
     {
-      $set: { status: PO_PRODUCT_INVENTORY_STATUS.DELIVERED },
+      $set: setPayload,
       $unset: { inventoryStatus: 1 },
     },
     { new: true }

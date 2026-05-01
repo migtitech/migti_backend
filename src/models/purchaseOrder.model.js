@@ -194,6 +194,11 @@ const purchaseOrderSchema = new mongoose.Schema(
       ref: 'document',
       default: null,
     },
+    /** Snapshot of assigned employee (sales / HOD) at assignment time — not a live ref. */
+    assigned_employee: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
+    },
   },
   { timestamps: true }
 )

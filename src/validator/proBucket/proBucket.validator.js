@@ -25,6 +25,8 @@ export const listProBucketQueryProductsSchema = Joi.object({
     .valid(...PRO_BUCKET_STATUSES)
     .allow(null, '')
     .optional(),
+  /** Comma-separated group ObjectIds; must be subset of employee assigned_groups */
+  groupIds: Joi.string().allow('', null).optional(),
 }).unknown(true)
 
 export const getProBucketByIdParamSchema = Joi.object({

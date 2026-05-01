@@ -1,3 +1,4 @@
+import mongoose from 'mongoose'
 import PurchaseOrderModel, {
   PURCHASE_ORDER_STATUS,
   PO_PAYMENT_RECEIVED_STATUS,
@@ -588,6 +589,104 @@ export const listPurchaseOrders = async ({
   }
 }
 
+/**
+ * Purchase orders where `salesEmployeeId` matches the given employee (typically the logged-in user).
+ * Includes `financials` and `poPayment.ledgers` from `po_payments` (newest ledger first).
+ */
+export const listMyAssignedPurchaseOrders = async ({
+  employeeId,
+  pageNumber = 1,
+  pageSize = 10,
+  search = '',
+  branchFilter = {},
+}) => {
+  const emptyPagination = (limit) => ({
+    currentPage: 1,
+    totalPages: 0,
+    totalItems: 0,
+    itemsPerPage: limit,
+    hasNextPage: false,
+    hasPrevPage: false,
+  })
+
+  if (!employeeId || !mongoose.Types.ObjectId.isValid(String(employeeId))) {
+    const limit = Math.min(100, Math.max(1, parseInt(pageSize) || 10))
+    return { purchaseOrders: [], pagination: emptyPagination(limit) }
+  }
+
+  const employeeObjectId = new mongoose.Types.ObjectId(String(employeeId))
+
+  const page = Math.max(1, parseInt(pageNumber))
+  const limit = Math.min(100, Math.max(1, parseInt(pageSize)))
+  const skip = (page - 1) * limit
+
+  const filter = {
+    isDeleted: false,
+    ...branchFilter,
+    salesEmployeeId: employeeObjectId,
+  }
+
+  if (search && search.trim()) {
+    const term = search.trim()
+    filter.$or = [
+      { poCode: { $regex: term, $options: 'i' } },
+      { 'companyInfo.name': { $regex: term, $options: 'i' } },
+      { 'companyInfo.location': { $regex: term, $options: 'i' } },
+      { 'products.productName': { $regex: term, $options: 'i' } },
+    ]
+  }
+
+  const totalItems = await PurchaseOrderModel.countDocuments(filter)
+
+  const rows = await PurchaseOrderModel.find(filter)
+    .populate('quotationId', 'quotationCode status')
+    .populate('queryId', 'queryCode status')
+    .populate('industry_id', 'name location email')
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit)
+    .lean()
+
+  const totalPages = Math.ceil(totalItems / limit) || 1
+
+  const ids = rows.map((r) => r._id).filter(Boolean)
+  const payRows =
+    ids.length > 0
+      ? await PoPaymentModel.find({
+          purchaseOrderId: { $in: ids },
+          isDeleted: false,
+        }).lean()
+      : []
+  const payMap = new Map(payRows.map((p) => [String(p.purchaseOrderId), p]))
+
+  const purchaseOrders = rows.map((row) => {
+    const pPay = payMap.get(String(row._id)) || null
+    const ledgers = pPay?.ledgers?.length
+      ? [...pPay.ledgers].sort(
+          (a, b) => new Date(b.paidAt) - new Date(a.paidAt)
+        )
+      : []
+    return {
+      ...row,
+      totalAmount: computeTotalAmountFromProducts(row.products),
+      financials: computePurchaseOrderFinancials(row, pPay),
+      poPayment: { ledgers },
+    }
+  })
+
+  return {
+    purchaseOrders,
+    pagination: {
+      currentPage: page,
+      totalPages,
+      totalItems,
+      itemsPerPage: limit,
+      hasNextPage: page < totalPages,
+      hasPrevPage: page > 1,
+    },
+  }
+}
+
 export const getPurchaseOrderById = async ({
   purchaseOrderId,
   branchFilter = {},
@@ -611,7 +710,7 @@ export const getPurchaseOrderById = async ({
       'industry_id',
       'name location address email purchase_manager_name purchase_manager_phone'
     )
-    .populate('created_by', 'name email')
+    .populate('created_by', 'name email phone role')
     .populate('salesEmployeeId', 'name email phone role designation')
     .populate({
       path: 'products.product_id',
@@ -906,6 +1005,14 @@ export const appendPurchaseOrderPayment = async ({
   return { purchaseOrder: updated, financials }
 }
 
+const sanitizeAssignedEmployeeSnapshot = (raw) => {
+  if (raw == null) return null
+  if (typeof raw !== 'object' || Array.isArray(raw)) return null
+  const o = { ...raw }
+  delete o.password
+  return o
+}
+
 export const updatePurchaseOrder = async ({
   purchaseOrderId,
   products,
@@ -917,6 +1024,7 @@ export const updatePurchaseOrder = async ({
   expectedDeliveryWithinDays,
   remark,
   salesEmployeeId,
+  assigned_employee,
   attachmentDocumentId,
   branchFilter = {},
   currentUserId: _currentUserId = null,
@@ -963,6 +1071,11 @@ export const updatePurchaseOrder = async ({
     const sid = salesEmployeeId && String(salesEmployeeId).trim()
     updatePayload.salesEmployeeId =
       sid && OBJECT_ID_REGEX.test(sid) ? sid : null
+  }
+  if (assigned_employee !== undefined) {
+    updatePayload.assigned_employee = sanitizeAssignedEmployeeSnapshot(
+      assigned_employee
+    )
   }
   if (attachmentDocumentId !== undefined) {
     updatePayload.attachmentDocumentId =

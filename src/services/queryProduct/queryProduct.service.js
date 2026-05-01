@@ -27,9 +27,43 @@ const cleanVariants = (variants) => {
     .filter((v) => v.variantName)
 }
 
+/** Match key for carrying Pro Bucket `rates` across sync: same as query line `rawProductCode`. */
+const legacyRatesKey = (rawProductCode, lineIndex) => {
+  const c =
+    rawProductCode != null ? String(rawProductCode).trim() : ''
+  return c || `__line:${lineIndex}`
+}
+
+/**
+ * Build FIFO queues of prior `rates` per match key so reordered / edited lines keep the right bucket data.
+ */
+const buildRatesQueuesFromExisting = (existingRows) => {
+  const queues = new Map()
+  const sorted = [...existingRows].sort(
+    (a, b) => (a.lineIndex ?? 0) - (b.lineIndex ?? 0)
+  )
+  for (const d of sorted) {
+    const key = legacyRatesKey(d.rawProductCode, d.lineIndex)
+    const rates = Array.isArray(d.rates) ? d.rates : []
+    if (!queues.has(key)) queues.set(key, [])
+    queues.get(key).push(rates)
+  }
+  return queues
+}
+
+const shiftPriorRates = (queues, rawProductCode, lineIndex) => {
+  const key = legacyRatesKey(rawProductCode, lineIndex)
+  const q = queues.get(key)
+  if (q && q.length) return q.shift()
+  const lineOnly = queues.get(`__line:${lineIndex}`)
+  if (lineOnly && lineOnly.length) return lineOnly.shift()
+  return []
+}
+
 /**
  * Replace all `query_products` for a query with a fresh snapshot of `query.products[]`.
- * Uses deleteMany + insertMany (only non-deleted rows; soft-deleted parents clear via softDeleteQueryProductRowsForQuery).
+ * Prior Pro Bucket `rates` are matched by `rawProductCode` (same as query `products[]`), then by line index for legacy rows.
+ * Uses deleteMany + insertMany (soft-deleted parents clear via softDeleteQueryProductRowsForQuery).
  */
 export const replaceQueryProductDocuments = async ({
   queryId,
@@ -47,14 +81,9 @@ export const replaceQueryProductDocuments = async ({
     queryId: qid,
     isDeleted: false,
   })
-    .select('lineIndex rates')
+    .select('lineIndex rawProductCode rates')
     .lean()
-  const ratesByLineIndex = new Map(
-    existingRows.map((d) => [
-      d.lineIndex,
-      Array.isArray(d.rates) ? d.rates : [],
-    ])
-  )
+  const ratesQueues = buildRatesQueuesFromExisting(existingRows)
 
   await QueryProductModel.deleteMany({ queryId: qid })
 
@@ -63,7 +92,9 @@ export const replaceQueryProductDocuments = async ({
   }
 
   const rows = products.map((p, lineIndex) => {
-    const prevRates = ratesByLineIndex.get(lineIndex) || []
+    const rawCode =
+      (p.rawProductCode && String(p.rawProductCode).trim()) || ''
+    const prevRates = shiftPriorRates(ratesQueues, rawCode, lineIndex)
     return {
       queryId: qid,
       queryCode: code,

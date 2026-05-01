@@ -93,6 +93,14 @@ const poProductSchema = new mongoose.Schema(
       ref: 'document',
       default: null,
     },
+    /** Client receiving / delivery proof (dispatchment) */
+    receivingDocumentId: {
+      type: SchemaTypes.ObjectId,
+      ref: 'document',
+      default: null,
+    },
+    /** Remark when marking received / delivered (dispatchment) */
+    receivingRemark: { type: SchemaTypes.String, default: '' },
     poRate: { type: SchemaTypes.Number, min: 0, default: null },
     applyDiscount: { type: SchemaTypes.Boolean, default: false },
     discountPercentage: {

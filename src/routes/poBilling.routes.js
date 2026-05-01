@@ -14,28 +14,28 @@ const poBillingRouter = Router()
 poBillingRouter.post(
   '/po/create',
   authenticateToken,
-  checkPermission(MODULES.BILLING, 'create'),
+  checkPermission(MODULES.PO_PAYMENT, 'create'),
   asyncHandler(createPoEntryController)
 )
 
 poBillingRouter.post(
   '/billing/create',
   authenticateToken,
-  checkPermission(MODULES.BILLING, 'create'),
+  checkPermission(MODULES.PO_PAYMENT, 'create'),
   asyncHandler(createBillingEntryController)
 )
 
 poBillingRouter.get(
   '/form-options',
   authenticateToken,
-  checkPermission(MODULES.BILLING, 'read'),
+  checkPermission(MODULES.PO_PAYMENT, 'read'),
   asyncHandler(getPoBillingFormOptionsController)
 )
 
 poBillingRouter.get(
   '/analytics',
   authenticateToken,
-  checkPermission(MODULES.BILLING, 'read'),
+  checkPermission(MODULES.PO_PAYMENT, 'read'),
   asyncHandler(getPoBillingAnalyticsController)
 )
 

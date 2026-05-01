@@ -66,6 +66,13 @@ export const listPurchaseOrderSchema = Joi.object({
     .optional(),
 })
 
+/** POs assigned to the authenticated employee (`salesEmployeeId`). */
+export const listMyAssignedPurchaseOrderSchema = Joi.object({
+  pageNumber: Joi.number().integer().min(1).default(1),
+  pageSize: Joi.number().integer().min(1).max(100).default(10),
+  search: Joi.string().allow('').optional(),
+})
+
 export const getPurchaseOrderByIdSchema = Joi.object({
   purchaseOrderId: Joi.string().pattern(objectIdPattern).required().messages({
     'string.pattern.base': 'purchaseOrderId must be a valid Mongo ObjectId',
@@ -114,6 +121,8 @@ export const updatePurchaseOrderSchema = Joi.object({
     .optional(),
   remark: Joi.string().allow('').optional(),
   salesEmployeeId: Joi.string().allow(null, '').optional(),
+  /** Full employee snapshot (password stripped server-side); null clears assignment. */
+  assigned_employee: Joi.object().unknown(true).allow(null).optional(),
   attachmentDocumentId: Joi.alternatives()
     .try(
       Joi.string().pattern(objectIdPattern),

@@ -2,6 +2,7 @@ import { statusCodes, Message } from '../../core/common/constant.js'
 import {
   listDispatchmentBucketSchema,
   dispatchmentBucketIdParamSchema,
+  markDeliveredBodySchema,
 } from '../../validator/dispatchmentBucket/dispatchmentBucket.validator.js'
 import {
   listDispatchmentQueuePoProducts,
@@ -47,7 +48,7 @@ export const getDispatchmentQueuePoProductByIdController = async (req, res) => {
   if (!doc) {
     return res.status(statusCodes.notFound).json({
       success: false,
-      message: 'Item not found or not allowed',
+      message: 'Item not found',
     })
   }
   return res.status(statusCodes.ok).json({
@@ -73,7 +74,7 @@ export const markReadyForDispatchmentFromQueueController = async (req, res) => {
   if (!doc) {
     return res.status(statusCodes.notFound).json({
       success: false,
-      message: 'Item not found or not allowed',
+      message: 'Item not found',
     })
   }
   return res.status(statusCodes.ok).json({
@@ -95,11 +96,28 @@ export const markPoProductDeliveredController = async (req, res) => {
       error: error.details.map((d) => d.message),
     })
   }
-  const doc = await markPoProductDelivered(value.id, req.user)
+  const bodyRes = markDeliveredBodySchema.validate(req.body || {}, {
+    abortEarly: false,
+  })
+  if (bodyRes.error) {
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: Message.validationError,
+      error: bodyRes.error.details.map((d) => d.message),
+    })
+  }
+  const { receivingDocumentId, receivingRemark } = bodyRes.value
+  const doc = await markPoProductDelivered(value.id, req.user, {
+    receivingDocumentId:
+      receivingDocumentId === '' || receivingDocumentId == null
+        ? null
+        : receivingDocumentId,
+    receivingRemark,
+  })
   if (!doc) {
     return res.status(statusCodes.notFound).json({
       success: false,
-      message: 'Item not found or not allowed',
+      message: 'Item not found',
     })
   }
   return res.status(statusCodes.ok).json({

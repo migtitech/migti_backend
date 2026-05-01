@@ -179,7 +179,14 @@ export const getPurchaseBillingRequestById = async (id) => {
     isDeleted: false,
   })
     .populate('purchaseOrderId', 'poCode companyInfo')
-    .populate('poProductId', 'productName lineIndex companyInfo')
+    .populate({
+      path: 'poProductId',
+      select: 'productName lineIndex companyInfo attachmentDocumentId',
+      populate: {
+        path: 'attachmentDocumentId',
+        select: 'path originalName mimeType',
+      },
+    })
     .populate('createdBy', 'name email phone role')
     .populate('approvedBy', 'name email phone role')
     .populate('billDocumentId', 'path originalName mimeType')
@@ -210,6 +217,24 @@ export const getPurchaseBillingRequestById = async (id) => {
     billUrl
   )
 
+  let poProductResolved = doc.poProductId || null
+  if (
+    poProductResolved?.attachmentDocumentId &&
+    typeof poProductResolved.attachmentDocumentId === 'object' &&
+    poProductResolved.attachmentDocumentId.path
+  ) {
+    const signedPath = await toDisplayPath(
+      poProductResolved.attachmentDocumentId.path
+    )
+    poProductResolved = {
+      ...poProductResolved,
+      attachmentDocumentId: {
+        ...poProductResolved.attachmentDocumentId,
+        path: signedPath,
+      },
+    }
+  }
+
   return {
     ...line,
     productSnapshot: doc.productSnapshot || null,
@@ -217,7 +242,7 @@ export const getPurchaseBillingRequestById = async (id) => {
     approvedBy: doc.approvedBy || null,
     approvedBySnapshot: doc.approvedBySnapshot || null,
     approvedAt: doc.approvedAt || null,
-    poProductId: doc.poProductId || null,
+    poProductId: poProductResolved,
     billDocument: billUrl
       ? {
           url: billUrl,

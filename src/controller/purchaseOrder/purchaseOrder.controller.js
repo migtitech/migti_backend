@@ -3,6 +3,7 @@ import { BRANCH_BYPASS_ROLES } from '../../core/common/constant.js'
 import { getBranchFilter } from '../../core/helpers/branchFilter.js'
 import {
   listPurchaseOrderSchema,
+  listMyAssignedPurchaseOrderSchema,
   getPurchaseOrderByIdSchema,
   listPoProductLinesSchema,
   getPurchaseOrderByQuotationIdSchema,
@@ -13,6 +14,7 @@ import {
 } from '../../validator/purchaseOrder/purchaseOrder.validator.js'
 import {
   listPurchaseOrders,
+  listMyAssignedPurchaseOrders,
   getPurchaseOrderById,
   listPoProductLinesForPurchaseOrder,
   getPurchaseOrderByQuotationId,
@@ -71,6 +73,49 @@ export const listPurchaseOrdersController = async (req, res) => {
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Purchase orders retrieved successfully',
+    data: result,
+  })
+}
+
+/** POs where `salesEmployeeId` is the logged-in employee; includes PO payment ledger summary. */
+export const listMyAssignedPurchaseOrdersController = async (req, res) => {
+  const { error, value } = listMyAssignedPurchaseOrderSchema.validate(
+    req.query,
+    { abortEarly: false }
+  )
+  if (error) {
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: Message.validationError,
+      error: error.details.map((d) => d.message),
+    })
+  }
+
+  const employeeId = req.user?.id || req.user?._id
+  if (!employeeId) {
+    return res.status(statusCodes.unauthorized).json({
+      success: false,
+      message: 'Authentication required',
+    })
+  }
+
+  const userRole = normalizeRole(req.user?.role)
+  if (!String(userRole).toLowerCase().startsWith('sales')) {
+    return res.status(statusCodes.forbidden).json({
+      success: false,
+      message: 'This endpoint is only available to sales roles',
+    })
+  }
+
+  const branchFilter = resolvePoBranchFilter(req, { allowQueryBranchId: true })
+  const result = await listMyAssignedPurchaseOrders({
+    ...value,
+    employeeId,
+    branchFilter,
+  })
+  return res.status(statusCodes.ok).json({
+    success: true,
+    message: 'Assigned purchase orders retrieved successfully',
     data: result,
   })
 }
