@@ -53,3 +53,6 @@ jobs:
               -p 7200:7200 \
               --restart always \
               migittech/migti_crm_backend:dev
+
+              
+
