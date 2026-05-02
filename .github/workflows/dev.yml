@@ -43,6 +43,7 @@ jobs:
           script: |
             docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
             docker pull migittech/migti_crm_backend:dev
+            docker rm -f migti_backend || true
             docker run -d \
             --name migti_backend \
             -p 7200:7200 \
