@@ -8,6 +8,10 @@ export const listPurchaseBillingRequestsSchema = Joi.object({
   poCode: Joi.string().allow('').optional(),
   dateFrom: Joi.string().allow('').optional(),
   dateTo: Joi.string().allow('').optional(),
+  status: Joi.string()
+    .valid('pending', 'approved', 'rejected')
+    .allow('', null)
+    .optional(),
 })
 
 export const idParamSchema = Joi.object({
@@ -20,4 +24,11 @@ export const updateRemarkBodySchema = Joi.object({
 
 export const approveBodySchema = Joi.object({
   statusRemark: Joi.string().allow('').optional(),
+})
+
+/** Set or clear optional proof attachment (`null` or `""` clears). */
+export const updateProofBodySchema = Joi.object({
+  proofDocumentId: Joi.alternatives()
+    .try(Joi.string().pattern(objectIdPattern), Joi.valid(null, ''))
+    .required(),
 })

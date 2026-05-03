@@ -802,6 +802,8 @@ export const linkConvertedQuotationToQuery = async ({
     queryId: String(queryId),
     quotationId: String(quotationId),
     quotationCode: String(quotationCode || '').trim(),
+    branchId: existing.branchId || null,
+    queryCode: existing.queryCode || '',
   }
 }
 

@@ -1,4 +1,5 @@
 import { statusCodes, Message } from '../../core/common/constant.js'
+import { notifyBranchHods } from '../../services/notification/notification.service.js'
 import {
   listPurchaseBucketSchema,
   purchaseBucketIdParamSchema,
@@ -89,6 +90,18 @@ export const raisePurchaseBucketPaymentRequestController = async (req, res) => {
       remark: value.remark,
       user: req.user,
     })
+    const io = req.app.get('io')
+    await notifyBranchHods(
+      io,
+      doc?.branchId,
+      'Purchase billing request raised',
+      `PO ${doc?.poCode || '—'} · ${doc?.productName || 'Line'} — payment request ₹${Number(value.amount).toLocaleString('en-IN')}.`,
+      {
+        eventType: 'billing_request_raised',
+        poProductId: String(param.value.id),
+        poCode: doc?.poCode,
+      }
+    )
     return res.status(statusCodes.ok).json({
       success: true,
       message: 'Payment request raised',
@@ -181,6 +194,18 @@ export const markPurchaseBucketLinePurchasedController = async (req, res) => {
       id: value.id,
       user: req.user,
     })
+    const io = req.app.get('io')
+    await notifyBranchHods(
+      io,
+      doc?.branchId,
+      'PO line marked purchased',
+      `PO ${doc?.poCode || '—'} · ${doc?.productName || 'Line'} marked as purchased.`,
+      {
+        eventType: 'po_line_purchased',
+        poProductId: String(value.id),
+        poCode: doc?.poCode,
+      }
+    )
     return res.status(statusCodes.ok).json({
       success: true,
       message: 'Line marked as purchased',

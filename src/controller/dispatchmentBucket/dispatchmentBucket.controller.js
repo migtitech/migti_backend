@@ -1,4 +1,5 @@
 import { statusCodes, Message } from '../../core/common/constant.js'
+import { notifyBranchHods } from '../../services/notification/notification.service.js'
 import {
   listDispatchmentBucketSchema,
   dispatchmentBucketIdParamSchema,
@@ -70,12 +71,31 @@ export const markReadyForDispatchmentFromQueueController = async (req, res) => {
       error: error.details.map((d) => d.message),
     })
   }
+  const before = await getInventoryBucketPoProductById(value.id, req.user)
+  const prev = before?.status ? String(before.status) : ''
   const doc = await markReadyForDispatchment(value.id, req.user)
   if (!doc) {
     return res.status(statusCodes.notFound).json({
       success: false,
       message: 'Item not found',
     })
+  }
+  const next = String(doc.status || '')
+  if (
+    doc.branchId &&
+    next === 'ready_for_dispatchment' &&
+    prev !== 'ready_for_dispatchment'
+  ) {
+    await notifyBranchHods(
+      req.app.get('io'),
+      doc.branchId,
+      'Ready for dispatchment',
+      `PO ${doc.poCode || '—'} · ${doc.productName || 'Line'} is ready for dispatchment.`,
+      {
+        eventType: 'ready_for_dispatchment',
+        poProductId: String(value.id),
+      }
+    )
   }
   return res.status(statusCodes.ok).json({
     success: true,
@@ -107,6 +127,8 @@ export const markPoProductDeliveredController = async (req, res) => {
     })
   }
   const { receivingDocumentId, receivingRemark } = bodyRes.value
+  const before = await getInventoryBucketPoProductById(value.id, req.user)
+  const prev = before?.status ? String(before.status) : ''
   const doc = await markPoProductDelivered(value.id, req.user, {
     receivingDocumentId:
       receivingDocumentId === '' || receivingDocumentId == null
@@ -119,6 +141,16 @@ export const markPoProductDeliveredController = async (req, res) => {
       success: false,
       message: 'Item not found',
     })
+  }
+  const next = String(doc.status || '')
+  if (doc.branchId && next === 'delivered' && prev !== 'delivered') {
+    await notifyBranchHods(
+      req.app.get('io'),
+      doc.branchId,
+      'PO line delivered',
+      `PO ${doc.poCode || '—'} · ${doc.productName || 'Line'} was marked delivered.`,
+      { eventType: 'po_line_delivered', poProductId: String(value.id) }
+    )
   }
   return res.status(statusCodes.ok).json({
     success: true,

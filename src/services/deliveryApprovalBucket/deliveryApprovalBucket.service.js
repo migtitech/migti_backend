@@ -1,40 +1,34 @@
 import PoProductModel from '../../models/poProduct.model.js'
-import { statusCodes, errorCodes } from '../../core/common/constant.js'
 import CustomError from '../../utils/exception.js'
-
-const OBJECT_ID_REGEX = /^[a-fA-F0-9]{24}$/
-
-const normalizeReceivingRemark = (remark) => {
-  if (remark == null || remark === '') return ''
-  const s = String(remark).trim()
-  return s.length > 4000 ? s.slice(0, 4000) : s
-}
-
-const toObjectIdOrNull = (v) => {
-  if (v == null || v === '') return null
-  const s = String(v).trim()
-  return OBJECT_ID_REGEX.test(s) ? s : null
-}
+import { statusCodes, errorCodes } from '../../core/common/constant.js'
 import {
   buildBaseStages,
   loadPoProductForAccess,
+  getPurchaseBucketPoProductById,
 } from '../purchaseBucket/purchaseBucket.service.js'
 import {
   PO_PRODUCT_INVENTORY_STATUS,
   resolvePoProductLineStatus,
 } from '../../models/poProduct.model.js'
+import mongoose from 'mongoose'
+
+const OBJECT_ID_REGEX = /^[a-fA-F0-9]{24}$/
+
+const toOid = (v) => {
+  if (v == null || v === '') return null
+  if (!OBJECT_ID_REGEX.test(String(v))) return null
+  return new mongoose.Types.ObjectId(String(v))
+}
+
+export const DELIVERY_SUBSTATUS_HOD_PENDING = 'hod_approval_pending'
+export const DELIVERY_SUBSTATUS_HOD_APPROVED = 'delivery_approved_by_hod'
 
 const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
-const DISPATCH_LINE_STATUSES = [
-  PO_PRODUCT_INVENTORY_STATUS.READY_FOR_DISPATCHMENT,
-  PO_PRODUCT_INVENTORY_STATUS.DELIVERED,
-]
-
 /**
- * PO product lines: `ready_for_dispatchment` and `delivered` (dispatch / fulfillment history).
+ * PO lines marked delivered and awaiting HOD sign-off (`deliverySubStatus`).
  */
-export const listDispatchmentQueuePoProducts = async (q, _user) => {
+export const listDeliveryApprovalQueuePoProducts = async (q, _user) => {
   const page = Math.max(
     1,
     parseInt(String(q.page || q.pageNumber || 1), 10) || 1
@@ -43,7 +37,7 @@ export const listDispatchmentQueuePoProducts = async (q, _user) => {
     100,
     Math.max(1, parseInt(String(q.pageSize || q.limit || 20), 10) || 20)
   )
-  const { search, from, to, status } = q
+  const { search, from, to } = q
 
   const base = buildBaseStages()
   const stages = [...base]
@@ -56,16 +50,11 @@ export const listDispatchmentQueuePoProducts = async (q, _user) => {
   })
 
   stages.push({
-    $match: { _lineStatus: { $in: DISPATCH_LINE_STATUSES } },
+    $match: {
+      _lineStatus: PO_PRODUCT_INVENTORY_STATUS.DELIVERED,
+      deliverySubStatus: DELIVERY_SUBSTATUS_HOD_PENDING,
+    },
   })
-
-  const statusTrim = status != null ? String(status).trim() : ''
-  if (
-    statusTrim === PO_PRODUCT_INVENTORY_STATUS.READY_FOR_DISPATCHMENT ||
-    statusTrim === PO_PRODUCT_INVENTORY_STATUS.DELIVERED
-  ) {
-    stages.push({ $match: { _lineStatus: statusTrim } })
-  }
 
   if (from || to) {
     const dr = {}
@@ -102,7 +91,7 @@ export const listDispatchmentQueuePoProducts = async (q, _user) => {
 
   const listPipeline = [
     ...stages,
-    { $sort: { dispatchmentDate: 1, createdAt: -1 } },
+    { $sort: { updatedAt: -1, createdAt: -1 } },
     { $skip: (page - 1) * pageSize },
     { $limit: pageSize },
     {
@@ -112,6 +101,7 @@ export const listDispatchmentQueuePoProducts = async (q, _user) => {
         rawProductCode: 1,
         poCode: 1,
         dispatchmentDate: 1,
+        deliverySubStatus: 1,
         status: '$_lineStatus',
         procurementStatus: { $ifNull: ['$procurementStatus', 'open'] },
         purchaseOrderId: 1,
@@ -121,6 +111,7 @@ export const listDispatchmentQueuePoProducts = async (q, _user) => {
         companyInfo: 1,
         effectiveGroupId: 1,
         createdAt: 1,
+        updatedAt: 1,
       },
     },
   ]
@@ -129,47 +120,50 @@ export const listDispatchmentQueuePoProducts = async (q, _user) => {
   return { data, total, page, pageSize }
 }
 
-/**
- * Mark line delivered (from `ready_for_dispatchment` only). Updates `po_products.status`,
- * and optionally `receivingDocumentId` + `receivingRemark`.
- */
-export const markPoProductDelivered = async (
-  id,
-  _user,
-  { receivingDocumentId = null, receivingRemark } = {}
-) => {
+export const getDeliveryApprovalPoProductById = async (id, user) => {
+  const doc = await getPurchaseBucketPoProductById(id, user)
+  if (!doc) return null
+  const line = resolvePoProductLineStatus(doc)
+  if (line !== PO_PRODUCT_INVENTORY_STATUS.DELIVERED) return null
+  if (String(doc.deliverySubStatus || '').trim() !== DELIVERY_SUBSTATUS_HOD_PENDING) {
+    return null
+  }
+  return doc
+}
+
+export const approveDeliveryByHod = async (id, user) => {
   const allowed = await loadPoProductForAccess(id)
   if (!allowed) return null
   const cur = resolvePoProductLineStatus(allowed)
-  if (cur === PO_PRODUCT_INVENTORY_STATUS.DELIVERED) {
-    return await PoProductModel.findById(allowed._id).lean()
-  }
-  if (cur !== PO_PRODUCT_INVENTORY_STATUS.READY_FOR_DISPATCHMENT) {
+  if (cur !== PO_PRODUCT_INVENTORY_STATUS.DELIVERED) {
     throw new CustomError(
       statusCodes.badRequest,
-      'Mark ready for dispatchment before marking delivered',
+      'Line must be marked delivered before HOD approval',
       errorCodes.bad_request
     )
   }
-  const docId = toObjectIdOrNull(receivingDocumentId)
-  const setPayload = {
-    status: PO_PRODUCT_INVENTORY_STATUS.DELIVERED,
-    deliverySubStatus: 'hod_approval_pending',
-    deliveryApprovedBy: null,
-    deliveryApprovedAt: null,
+  if (
+    String(allowed.deliverySubStatus || '').trim() !==
+    DELIVERY_SUBSTATUS_HOD_PENDING
+  ) {
+    throw new CustomError(
+      statusCodes.badRequest,
+      'This line is not awaiting HOD delivery approval',
+      errorCodes.bad_request
+    )
   }
-  if (docId) {
-    setPayload.receivingDocumentId = docId
-  }
-  if (receivingRemark !== undefined) {
-    setPayload.receivingRemark = normalizeReceivingRemark(receivingRemark)
-  }
-  return await PoProductModel.findOneAndUpdate(
+  const approverId = toOid(user?.id || user?._id)
+  await PoProductModel.findOneAndUpdate(
     { _id: allowed._id, isDeleted: false },
     {
-      $set: setPayload,
+      $set: {
+        deliverySubStatus: DELIVERY_SUBSTATUS_HOD_APPROVED,
+        deliveryApprovedBy: approverId,
+        deliveryApprovedAt: new Date(),
+      },
       $unset: { inventoryStatus: 1 },
     },
     { new: true }
-  ).lean()
+  )
+  return getPurchaseBucketPoProductById(String(allowed._id), user)
 }

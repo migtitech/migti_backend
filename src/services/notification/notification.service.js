@@ -75,6 +75,31 @@ export const notifyEmployeesByBranchRoles = async ({
   }
 }
 
+const HOD_ROLES = ['head_of_department']
+
+/** Notify branch HODs (DB + optional realtime). Errors are swallowed so callers are not blocked. */
+export const notifyBranchHods = async (
+  io,
+  branchId,
+  title,
+  description = '',
+  metadata = {}
+) => {
+  if (!branchId || !title) return
+  try {
+    await notifyEmployeesByBranchRoles({
+      branchId,
+      roles: HOD_ROLES,
+      title: String(title).trim(),
+      description: String(description ?? '').trim(),
+      io: io || null,
+      metadata: metadata && typeof metadata === 'object' ? metadata : {},
+    })
+  } catch {
+    // non-blocking for business flows
+  }
+}
+
 export const listNotificationsForUser = async ({
   userId,
   unreadOnly = false,

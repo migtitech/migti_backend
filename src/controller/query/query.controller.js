@@ -4,6 +4,7 @@ import {
   BRANCH_BYPASS_ROLES,
   FULL_ACCESS_ROLES,
 } from '../../core/common/constant.js'
+import { notifyBranchHods } from '../../services/notification/notification.service.js'
 import {
   getBranchFilter,
   getBranchIdForCreate,
@@ -116,6 +117,19 @@ export const createQueryController = async (req, res) => {
   const branchId = getBranchIdForCreate(req)
   const created_by = req.user?.id || req.user?._id || value.created_by
   const result = await addQuery({ ...value, created_by, branchId })
+  const io = req.app.get('io')
+  const qc =
+    result?.queryCode ||
+    result?.query_tracking_code ||
+    String(result?._id || '').slice(-8) ||
+    '—'
+  await notifyBranchHods(
+    io,
+    result?.branchId,
+    'New query created',
+    `Query ${qc} was created in your branch.`,
+    { eventType: 'query_created', queryId: String(result?._id || '') }
+  )
   return res.status(statusCodes.created).json({
     success: true,
     message: 'Query created successfully',
@@ -355,6 +369,18 @@ export const linkConvertedQuotationController = async (req, res) => {
     isFullAccessRole: !!isFullAccessRole,
     role: req.user?.role || '',
   })
+  const io = req.app.get('io')
+  await notifyBranchHods(
+    io,
+    result?.branchId,
+    'Query linked to quotation',
+    `Query ${result?.queryCode || ''} linked to quotation ${result?.quotationCode || ''}.`,
+    {
+      eventType: 'query_linked_quotation',
+      queryId: result?.queryId,
+      quotationId: result?.quotationId,
+    }
+  )
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Quotation linked to query successfully',
@@ -388,6 +414,21 @@ export const convertQueryToQuotationController = async (req, res) => {
     isFullAccessRole: !!isFullAccessRole,
     role: req.user?.role || '',
   })
+  const io = req.app.get('io')
+  const branchId = result?.query?.branchId || result?.quotation?.branchId
+  const qCode = result?.query?.queryCode || value.queryCode || ''
+  const quotCode = result?.quotation?.quotationCode || ''
+  await notifyBranchHods(
+    io,
+    branchId,
+    'Query converted to quotation',
+    `Query ${qCode} was converted to quotation ${quotCode}.`,
+    {
+      eventType: 'query_converted_quotation',
+      queryId: String(result?.query?._id || ''),
+      quotationId: String(result?.quotation?._id || ''),
+    }
+  )
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Query converted to quotation successfully',

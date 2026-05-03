@@ -33,9 +33,12 @@ const httpServer = http.createServer(app)
 
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.CORS_ORIGIN || '*',
+    // Reflect request Origin (needed when UI is on :3000 and API/socket on :7200)
+    origin: true,
     methods: ['GET', 'POST'],
+    credentials: true,
   },
+  allowEIO3: true,
 })
 
 app.set('io', io)

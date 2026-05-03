@@ -101,6 +101,22 @@ const poProductSchema = new mongoose.Schema(
     },
     /** Remark when marking received / delivered (dispatchment) */
     receivingRemark: { type: SchemaTypes.String, default: '' },
+    /**
+     * After mark-delivered: `hod_approval_pending` until HOD approves (`delivery_approved_by_hod`).
+     * Empty / unset means no HOD gate (legacy lines) or already finalized.
+     */
+    deliverySubStatus: {
+      type: SchemaTypes.String,
+      trim: true,
+      default: '',
+      index: true,
+    },
+    deliveryApprovedBy: {
+      type: SchemaTypes.ObjectId,
+      ref: 'employee',
+      default: null,
+    },
+    deliveryApprovedAt: { type: SchemaTypes.Date, default: null },
     poRate: { type: SchemaTypes.Number, min: 0, default: null },
     applyDiscount: { type: SchemaTypes.Boolean, default: false },
     discountPercentage: {

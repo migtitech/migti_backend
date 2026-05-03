@@ -30,6 +30,7 @@ import proBucketRouter from './proBucket.routes.js'
 import purchaseBucketRouter from './purchaseBucket.routes.js'
 import inventoryBucketRouter from './inventoryBucket.routes.js'
 import dispatchmentBucketRouter from './dispatchmentBucket.routes.js'
+import deliveryApprovalBucketRouter from './deliveryApprovalBucket.routes.js'
 import notificationRouter from './notification.routes.js'
 
 const mainRoutes = express.Router()
@@ -86,6 +87,7 @@ mainRoutes.use('/v1/pro-bucket', proBucketRouter)
 mainRoutes.use('/v1/purchase-bucket', purchaseBucketRouter)
 mainRoutes.use('/v1/inventory-bucket', inventoryBucketRouter)
 mainRoutes.use('/v1/dispatchment-bucket', dispatchmentBucketRouter)
+mainRoutes.use('/v1/delivery-approval', deliveryApprovalBucketRouter)
 mainRoutes.use('/v1/notifications', notificationRouter)
 
 export default mainRoutes

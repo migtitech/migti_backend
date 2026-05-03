@@ -6,6 +6,7 @@ import {
   listPurchaseBillingRequestsController,
   getPurchaseBillingRequestByIdController,
   updatePurchaseBillingRequestRemarkController,
+  updatePurchaseBillingRequestProofController,
   approvePurchaseBillingRequestController,
 } from '../controller/purchaseBillingRequest/purchaseBillingRequest.controller.js'
 
@@ -28,6 +29,12 @@ purchaseBillingRequestRouter.put(
   authenticateToken,
   checkPermission(MODULES.BILLING_REQUEST, 'update'),
   asyncHandler(updatePurchaseBillingRequestRemarkController)
+)
+purchaseBillingRequestRouter.put(
+  '/:id/proof',
+  authenticateToken,
+  checkPermission(MODULES.BILLING_REQUEST, 'update'),
+  asyncHandler(updatePurchaseBillingRequestProofController)
 )
 purchaseBillingRequestRouter.put(
   '/:id/approve',
