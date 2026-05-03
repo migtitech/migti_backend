@@ -401,6 +401,11 @@ const getQueryProductLineRates = async (doc) => {
   const lineOk =
     lineNum != null && Number.isFinite(Number(lineNum)) && Number(lineNum) >= 0
 
+  const qpPopulates = [
+    { path: 'rates.submittedBy', select: 'name email' },
+    { path: 'images', select: 'path mimeType originalName' },
+  ]
+
   let qp = null
   const baseByCode = { rawProductCode: code, isDeleted: false }
 
@@ -411,13 +416,13 @@ const getQueryProductLineRates = async (doc) => {
         ...scoped,
         lineIndex: Number(lineNum),
       })
-        .populate({ path: 'rates.submittedBy', select: 'name email' })
+        .populate(qpPopulates)
         .lean()
     }
     if (!qp) {
       qp = await QueryProductModel.findOne(scoped)
         .sort({ lineIndex: 1 })
-        .populate({ path: 'rates.submittedBy', select: 'name email' })
+        .populate(qpPopulates)
         .lean()
     }
   }
@@ -425,7 +430,7 @@ const getQueryProductLineRates = async (doc) => {
   if (!qp) {
     qp = await QueryProductModel.findOne(baseByCode)
       .sort({ updatedAt: -1, lineIndex: 1 })
-      .populate({ path: 'rates.submittedBy', select: 'name email' })
+      .populate(qpPopulates)
       .lean()
   }
 
@@ -436,6 +441,9 @@ const getQueryProductLineRates = async (doc) => {
       matchNote: 'no_query_product',
     }
   }
+
+  const rawImages = Array.isArray(qp.images) ? qp.images : []
+  const queryProductImages = await transformPathsToSignedUrls(rawImages)
 
   const rates = Array.isArray(qp.rates) ? qp.rates : []
   const queryLineRates = rates.map((r) => {
@@ -467,6 +475,7 @@ const getQueryProductLineRates = async (doc) => {
       productName: qp.productName,
       rawProductCode: qp.rawProductCode,
       proBucketStatus: qp.status,
+      images: queryProductImages,
     },
     queryLineRates,
     matchNote: 'ok',
@@ -489,12 +498,14 @@ const withPoProductPopulates = (q) =>
     .populate('receivingDocumentId', 'path mimeType originalName')
     .populate('paymentRequestBillDocumentId', 'path mimeType originalName')
     .populate('paymentRequestRaisedBy', 'name email')
+    .populate('deliveryApprovedBy', 'name email role')
     .populate({
       path: 'purchaseBillingRequestId',
       select:
-        'uniqueId amount status billDocumentId createdBy createdBySnapshot productSnapshot approvedBy approvedBySnapshot approvedAt statusRemark createdAt updatedAt',
+        'uniqueId amount status billDocumentId proofDocumentId createdBy createdBySnapshot productSnapshot approvedBy approvedBySnapshot approvedAt statusRemark createdAt updatedAt',
       populate: [
         { path: 'billDocumentId', select: 'path originalName mimeType' },
+        { path: 'proofDocumentId', select: 'path originalName mimeType' },
         { path: 'createdBy', select: 'name email phone role designation' },
         { path: 'approvedBy', select: 'name email phone role designation' },
       ],
@@ -557,6 +568,22 @@ export const getPurchaseBucketPoProductById = async (id, _user) => {
       doc.purchaseBillingRequestId = {
         ...doc.purchaseBillingRequestId,
         billDocumentId: signed,
+      }
+    }
+  }
+  if (
+    doc.purchaseBillingRequestId &&
+    typeof doc.purchaseBillingRequestId === 'object' &&
+    doc.purchaseBillingRequestId.proofDocumentId &&
+    typeof doc.purchaseBillingRequestId.proofDocumentId === 'object'
+  ) {
+    const [signedProof] = await transformPathsToSignedUrls([
+      doc.purchaseBillingRequestId.proofDocumentId,
+    ])
+    if (signedProof) {
+      doc.purchaseBillingRequestId = {
+        ...doc.purchaseBillingRequestId,
+        proofDocumentId: signedProof,
       }
     }
   }

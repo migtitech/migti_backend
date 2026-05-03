@@ -39,6 +39,12 @@ const purchaseBillingRequestSchema = new mongoose.Schema(
       ref: 'document',
       required: true,
     },
+    /** Optional payment / approval proof (uploaded from billing request review) */
+    proofDocumentId: {
+      type: SchemaTypes.ObjectId,
+      ref: 'document',
+      default: null,
+    },
     status: {
       type: SchemaTypes.String,
       enum: Object.values(PURCHASE_BILLING_REQUEST_STATUS),

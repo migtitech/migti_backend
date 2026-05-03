@@ -5,7 +5,7 @@ const objectIdJoi = Joi.string().pattern(objectIdPattern).messages({
   'string.pattern.base': 'id must be a valid Mongo ObjectId',
 })
 
-export const listDispatchmentBucketSchema = Joi.object({
+export const listDeliveryApprovalBucketSchema = Joi.object({
   page: Joi.number().integer().min(1).optional(),
   pageNumber: Joi.number().integer().min(1).optional(),
   pageSize: Joi.number().integer().min(1).max(100).optional(),
@@ -19,17 +19,8 @@ export const listDispatchmentBucketSchema = Joi.object({
     .try(Joi.string(), Joi.date())
     .allow(null, '')
     .optional(),
-  status: Joi.string()
-    .valid('', 'ready_for_dispatchment', 'delivered')
-    .allow(null)
-    .optional(),
 }).unknown(true)
 
-export const dispatchmentBucketIdParamSchema = Joi.object({
+export const deliveryApprovalBucketIdParamSchema = Joi.object({
   id: objectIdJoi.required(),
 })
-
-export const markDeliveredBodySchema = Joi.object({
-  receivingDocumentId: objectIdJoi.allow(null, '').optional(),
-  receivingRemark: Joi.string().allow('', null).max(4000).optional(),
-}).unknown(true)

@@ -572,7 +572,7 @@ export const getQuotationById = async ({
   })
     .populate(
       'queryId',
-      'queryCode status companyInfo industry_id products created_by'
+      'queryCode status companyInfo industry_id products created_by branchId'
     )
     .populate(
       'industry_id',
@@ -612,12 +612,33 @@ export const getQuotationById = async ({
   }
 
   // Attach branch signature (if configured) for quotation preview.
-  if (quotation.branchId) {
-    const branch = await CompanyBranchModel.findById(quotation.branchId)
+  // Prefer quotation.branchId; fall back to linked query's branch (same as PDF export).
+  const effectiveBranchId = (() => {
+    const fromQuotation = quotation.branchId
+    const fromQuery =
+      quotation.queryId &&
+      typeof quotation.queryId === 'object' &&
+      quotation.queryId.branchId != null
+        ? quotation.queryId.branchId
+        : null
+    const raw = fromQuotation || fromQuery
+    if (raw == null) return null
+    if (typeof raw === 'object' && raw._id) return raw._id
+    return raw
+  })()
+
+  if (effectiveBranchId) {
+    const branch = await CompanyBranchModel.findById(effectiveBranchId)
       .select('signature')
       .lean()
-    const signatureId = branch?.signature ? String(branch.signature) : ''
-    if (signatureId) {
+    const rawSig = branch?.signature
+    const signatureId =
+      rawSig == null
+        ? ''
+        : typeof rawSig === 'object' && rawSig._id != null
+          ? String(rawSig._id)
+          : String(rawSig)
+    if (signatureId && signatureId !== '[object Object]') {
       const signatureDoc = await getDocumentById(signatureId)
       if (signatureDoc?._id && signatureDoc?.path) {
         quotation.branchSignature = {

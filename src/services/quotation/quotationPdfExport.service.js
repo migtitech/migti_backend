@@ -743,8 +743,14 @@ export const exportQuotationPdf = async ({
   }
 
   // 2) Resolve branch context from quotation branch, else query branch.
-  const resolvedBranchId =
+  const rawBranchId =
     quotation?.branchId || quotation?.queryId?.branchId || null
+  const resolvedBranchId =
+    rawBranchId &&
+    typeof rawBranchId === 'object' &&
+    rawBranchId._id != null
+      ? rawBranchId._id
+      : rawBranchId
 
   if (resolvedBranchId) {
     branch = await CompanyBranchModel.findById(resolvedBranchId).lean()

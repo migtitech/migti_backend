@@ -4,6 +4,7 @@ import PoProductModel, {
   PO_PRODUCT_PROCUREMENT_STATUS,
 } from '../../models/poProduct.model.js'
 import EmployeeModel from '../../models/employee.model.js'
+import DocumentModel from '../../models/document.model.js'
 import PurchaseBillingRequestModel, {
   PURCHASE_BILLING_REQUEST_STATUS,
 } from '../../models/purchaseBillingRequest.model.js'
@@ -20,6 +21,27 @@ const toOid = (v) => {
 }
 
 const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+const resolveOptionalProofDocumentId = async (raw) => {
+  if (raw == null || raw === '') return null
+  const id = String(raw).trim()
+  if (!OBJECT_ID_REGEX.test(id)) {
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Invalid proof document id',
+      errorCodes.validation_error
+    )
+  }
+  const doc = await DocumentModel.findById(id).lean()
+  if (!doc) {
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Proof document not found',
+      errorCodes.bad_request
+    )
+  }
+  return id
+}
 
 const startOfUtcDay = (yyyyMmDd) => {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(yyyyMmDd || '').trim())
@@ -76,6 +98,7 @@ const shapeRow = (doc, billUrl = null) => {
     amount: Number(doc.amount) || 0,
     status: doc.status || PURCHASE_BILLING_REQUEST_STATUS.PENDING,
     statusRemark: String(doc.statusRemark || ''),
+    branchId: doc.branchId || null,
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,
     purchaseOrderId: po?._id || doc.purchaseOrderId || null,
@@ -104,12 +127,21 @@ export const listPurchaseBillingRequests = async ({
   poCode = '',
   dateFrom = '',
   dateTo = '',
+  status = '',
 }) => {
   const page = Math.max(1, parseInt(pageNumber, 10) || 1)
   const limit = Math.min(100, Math.max(1, parseInt(pageSize, 10) || 20))
   const skip = (page - 1) * limit
 
   const base = { isDeleted: false }
+  const statusTrim = status != null ? String(status).trim().toLowerCase() : ''
+  if (
+    statusTrim === PURCHASE_BILLING_REQUEST_STATUS.PENDING ||
+    statusTrim === PURCHASE_BILLING_REQUEST_STATUS.APPROVED ||
+    statusTrim === PURCHASE_BILLING_REQUEST_STATUS.REJECTED
+  ) {
+    base.status = statusTrim
+  }
   applyCreatedAtRange(base, dateFrom, dateTo)
 
   const q = (poCode && String(poCode).trim()) || ''
@@ -190,6 +222,7 @@ export const getPurchaseBillingRequestById = async (id) => {
     .populate('createdBy', 'name email phone role')
     .populate('approvedBy', 'name email phone role')
     .populate('billDocumentId', 'path originalName mimeType')
+    .populate('proofDocumentId', 'path originalName mimeType')
     .lean()
 
   if (!doc) {
@@ -205,6 +238,15 @@ export const getPurchaseBillingRequestById = async (id) => {
   if (doc.billDocumentId && doc.billDocumentId.path) {
     billUrl = await toDisplayPath(doc.billDocumentId.path)
     originalName = doc.billDocumentId.originalName || ''
+  }
+
+  let proofUrl = null
+  let proofOriginalName = ''
+  let proofMime = ''
+  if (doc.proofDocumentId && doc.proofDocumentId.path) {
+    proofUrl = await toDisplayPath(doc.proofDocumentId.path)
+    proofOriginalName = doc.proofDocumentId.originalName || ''
+    proofMime = doc.proofDocumentId.mimeType || ''
   }
 
   const line = shapeRow(
@@ -250,7 +292,43 @@ export const getPurchaseBillingRequestById = async (id) => {
           mimeType: doc.billDocumentId?.mimeType || '',
         }
       : null,
+    proofDocument: proofUrl
+      ? {
+          url: proofUrl,
+          originalName: proofOriginalName,
+          mimeType: proofMime,
+        }
+      : null,
   }
+}
+
+export const updatePurchaseBillingRequestProof = async (id, proofDocumentId) => {
+  if (!id || !OBJECT_ID_REGEX.test(String(id))) {
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Invalid billing request id',
+      errorCodes.bad_request
+    )
+  }
+  const resolved = await resolveOptionalProofDocumentId(proofDocumentId)
+
+  const existing = await PurchaseBillingRequestModel.findOne({
+    _id: id,
+    isDeleted: false,
+  }).lean()
+  if (!existing) {
+    throw new CustomError(
+      statusCodes.notFound,
+      'Billing request not found',
+      errorCodes.not_found
+    )
+  }
+
+  await PurchaseBillingRequestModel.findByIdAndUpdate(id, {
+    $set: { proofDocumentId: resolved },
+  })
+
+  return getPurchaseBillingRequestById(id)
 }
 
 export const updatePurchaseBillingRequestRemark = async (id, statusRemark) => {

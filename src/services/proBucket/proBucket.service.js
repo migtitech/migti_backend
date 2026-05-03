@@ -1,8 +1,11 @@
 import mongoose from 'mongoose'
+import QueryModel from '../../models/query.model.js'
 import QueryProductModel, {
   deriveProBucketStatus,
 } from '../../models/queryProduct.model.js'
 import SupplierModel from '../../models/supplier.model.js'
+import { transformPathsToSignedUrls } from '../document/document.service.js'
+import { notifyBranchHods } from '../notification/notification.service.js'
 
 const OBJECT_ID_REGEX = /^[a-fA-F0-9]{24}$/
 
@@ -56,6 +59,7 @@ const textSearchFilter = (search) => {
     $or: [
       { queryCode: rx },
       { productName: rx },
+      { rawProductCode: rx },
       { unit: rx },
       { hsnNumber: rx },
       { description: rx },
@@ -121,7 +125,10 @@ const withQueryProductPopulates = (q) =>
     .populate('groupId', 'name')
     .populate('categoryId', 'name')
     .populate('product_id', 'name')
-    .populate('queryId', 'queryCode query_tracking_code status companyInfo')
+    .populate(
+      'queryId',
+      'queryCode query_tracking_code status companyInfo branchId'
+    )
     .populate('images', 'name path mimetype')
     .lean()
 
@@ -130,16 +137,22 @@ export const getProBucketQueryProductById = async (id) => {
   const oid = toOid(id)
   if (!oid) return null
 
-  const doc = await QueryProductModel.findOne({
+  const exists = await QueryProductModel.findOne({
     _id: oid,
     isDeleted: false,
-  }).lean()
-  if (!doc) return null
+  })
+    .select('_id')
+    .lean()
+  if (!exists) return null
 
-  return withQueryProductPopulates(QueryProductModel.findById(oid))
+  const doc = await withQueryProductPopulates(QueryProductModel.findById(oid))
+  if (doc?.images?.length) {
+    doc.images = await transformPathsToSignedUrls(doc.images)
+  }
+  return doc
 }
 
-export const appendProBucketRates = async (id, ratesInput, user) => {
+export const appendProBucketRates = async (id, ratesInput, user, io = null) => {
   const oid = toOid(id)
   if (!oid) throw new Error('Invalid id')
 
@@ -150,6 +163,7 @@ export const appendProBucketRates = async (id, ratesInput, user) => {
   if (!existing) {
     return null
   }
+  const previousStatus = String(existing.status || 'pending')
 
   const toPush = []
   for (const r of ratesInput) {
@@ -189,5 +203,55 @@ export const appendProBucketRates = async (id, ratesInput, user) => {
     $set: { status: nextStatus },
   })
 
-  return getProBucketQueryProductById(String(oid))
+  const doc = await getProBucketQueryProductById(String(oid))
+  const nextStatusStr = String(doc?.status || '')
+  if (
+    io &&
+    previousStatus !== nextStatusStr &&
+    (nextStatusStr === 'rate_submitted' || nextStatusStr === 'fulfilled')
+  ) {
+    let branchId =
+      doc?.queryId &&
+      typeof doc.queryId === 'object' &&
+      doc.queryId.branchId != null
+        ? doc.queryId.branchId
+        : null
+    if (!branchId && existing.queryId) {
+      const q = await QueryModel.findById(existing.queryId)
+        .select('branchId')
+        .lean()
+      branchId = q?.branchId || null
+    }
+    if (branchId) {
+      const qCode = doc?.queryCode || doc?.queryId?.queryCode || ''
+      const prod = doc?.productName || 'Product line'
+      if (nextStatusStr === 'fulfilled') {
+        await notifyBranchHods(
+          io,
+          branchId,
+          'Pro bucket: rates complete',
+          `Query ${qCode}: "${prod}" has three rates (fulfilled).`,
+          {
+            eventType: 'pro_bucket_fulfilled',
+            queryProductId: String(oid),
+            queryCode: qCode,
+          }
+        )
+      } else {
+        await notifyBranchHods(
+          io,
+          branchId,
+          'Pro bucket: rate submitted',
+          `Query ${qCode}: "${prod}" has new supplier rate(s) submitted.`,
+          {
+            eventType: 'pro_bucket_rate_submitted',
+            queryProductId: String(oid),
+            queryCode: qCode,
+          }
+        )
+      }
+    }
+  }
+
+  return doc
 }

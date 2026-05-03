@@ -167,6 +167,7 @@ export const loginEmployeeSchema = Joi.object({
       'sales_exicutive',
       'purchase_manager',
       'purchase_exicutive',
+      'procurement',
       'back_office_exicutive',
       'administrator',
       'procurement',

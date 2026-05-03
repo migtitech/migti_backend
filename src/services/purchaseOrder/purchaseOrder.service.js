@@ -4,7 +4,9 @@ import PurchaseOrderModel, {
   PO_PAYMENT_RECEIVED_STATUS,
 } from '../../models/purchaseOrder.model.js'
 import PoPaymentModel from '../../models/poPayment.model.js'
-import QuotationModel from '../../models/quotation.model.js'
+import QuotationModel, {
+  QUOTATION_STATUS,
+} from '../../models/quotation.model.js'
 import QueryProductModel from '../../models/queryProduct.model.js'
 import PoProductModel, {
   resolvePoProductLineStatus,
@@ -372,6 +374,14 @@ export const createPurchaseOrderFromQuotation = async ({
     isFullAccessRole,
   })
 
+  if (quotation.status !== QUOTATION_STATUS.HOD_APPROVED) {
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Quotation must be HOD approved before converting to a purchase order',
+      errorCodes.bad_request
+    )
+  }
+
   if (reuseExisting) {
     const existing = await PurchaseOrderModel.findOne({
       quotationId: quotation._id,
@@ -479,17 +489,90 @@ export const listPoProductLinesForPurchaseOrder = async ({
     purchaseOrderId: po._id,
     isDeleted: false,
   })
+    .populate('attachmentDocumentId', 'path mimeType originalName')
+    .populate('receivingDocumentId', 'path mimeType originalName')
+    .populate('paymentRequestBillDocumentId', 'path mimeType originalName')
+    .populate({
+      path: 'product_id',
+      select: 'name images',
+      populate: {
+        path: 'images',
+        select: 'path mimeType originalName',
+        model: 'document',
+      },
+    })
     .sort({ lineIndex: 1 })
     .lean()
-  const lines = rawLines.map((line) => ({
-    _id: line._id,
-    lineIndex: line.lineIndex,
-    productName: line.productName,
-    rawProductCode: line.rawProductCode || '',
-    quantity: line.quantity,
-    unit: line.unit || '',
-    status: resolvePoProductLineStatus(line),
-  }))
+
+  const lines = []
+  for (const line of rawLines) {
+    let attachmentDocumentId = line.attachmentDocumentId
+    if (
+      attachmentDocumentId &&
+      typeof attachmentDocumentId === 'object' &&
+      attachmentDocumentId.path
+    ) {
+      const [signed] = await transformPathsToSignedUrls([attachmentDocumentId])
+      attachmentDocumentId = signed || attachmentDocumentId
+    }
+    let receivingDocumentId = line.receivingDocumentId
+    if (
+      receivingDocumentId &&
+      typeof receivingDocumentId === 'object' &&
+      receivingDocumentId.path
+    ) {
+      const [signed] = await transformPathsToSignedUrls([receivingDocumentId])
+      receivingDocumentId = signed || receivingDocumentId
+    }
+    let paymentRequestBillDocumentId = line.paymentRequestBillDocumentId
+    if (
+      paymentRequestBillDocumentId &&
+      typeof paymentRequestBillDocumentId === 'object' &&
+      paymentRequestBillDocumentId.path
+    ) {
+      const [signed] = await transformPathsToSignedUrls([
+        paymentRequestBillDocumentId,
+      ])
+      paymentRequestBillDocumentId = signed || paymentRequestBillDocumentId
+    }
+    let product_id = line.product_id
+    if (product_id && typeof product_id === 'object') {
+      product_id = await transformProductImagesToSigned(product_id)
+    }
+
+    const serializeDoc = (doc) => {
+      if (!doc || typeof doc !== 'object' || !doc._id) return null
+      return {
+        _id: String(doc._id),
+        path: doc.path || '',
+        originalName: doc.originalName || '',
+        mimeType: doc.mimeType || '',
+      }
+    }
+
+    const lineAttachment = serializeDoc(attachmentDocumentId)
+    const catalogFirst =
+      product_id &&
+      Array.isArray(product_id.images) &&
+      product_id.images[0] &&
+      typeof product_id.images[0] === 'object'
+        ? serializeDoc(product_id.images[0])
+        : null
+    const productImageDocument = lineAttachment || catalogFirst
+
+    lines.push({
+      _id: line._id,
+      lineIndex: line.lineIndex,
+      productName: line.productName,
+      rawProductCode: line.rawProductCode || '',
+      quantity: line.quantity,
+      unit: line.unit || '',
+      status: resolvePoProductLineStatus(line),
+      productImageDocument,
+      paymentProofDocument: serializeDoc(paymentRequestBillDocumentId),
+      receivingProofDocument: serializeDoc(receivingDocumentId),
+    })
+  }
   return {
     poCode: po.poCode || '',
     purchaseOrderId: String(po._id),

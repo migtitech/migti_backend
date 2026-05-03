@@ -42,7 +42,9 @@ export const uploadDocumentsController = async (req, res) => {
 }
 
 /**
- * Serve document image by id (auth required). Streams local file or redirects to S3 signed URL.
+ * Serve document image by id (auth required). Streams local file or proxies S3
+ * (presigned URL) through this origin so clients can load images with axios+blob
+ * without cross-origin redirect/CORS failures.
  */
 export const serveDocumentController = async (req, res) => {
   const { id } = req.params
@@ -58,7 +60,26 @@ export const serveDocumentController = async (req, res) => {
       .json({ success: false, message: 'Document not found' })
   }
   if (info.type === 's3') {
-    return res.redirect(302, info.signedUrl)
+    try {
+      const upstream = await fetch(info.signedUrl, { redirect: 'follow' })
+      if (!upstream.ok) {
+        return res.status(statusCodes.notFound).json({
+          success: false,
+          message: 'Document not found',
+        })
+      }
+      const contentType =
+        upstream.headers.get('content-type') || 'application/octet-stream'
+      res.setHeader('Content-Type', contentType)
+      res.setHeader('Cache-Control', 'private, max-age=300')
+      const buffer = Buffer.from(await upstream.arrayBuffer())
+      return res.send(buffer)
+    } catch (_err) {
+      return res.status(statusCodes.internalServerError).json({
+        success: false,
+        message: 'Failed to load document',
+      })
+    }
   }
   res.sendFile(path.resolve(info.filePath), (err) => {
     if (err)

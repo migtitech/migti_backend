@@ -14,7 +14,7 @@ import {
 export const listProBucketQueryProductsController = async (req, res) => {
   const { error, value } = listProBucketQueryProductsSchema.validate(
     req.query,
-    { abortEarly: false }
+    { abortEarly: false, convert: true }
   )
   if (error) {
     return res.status(statusCodes.badRequest).json({
@@ -83,7 +83,8 @@ export const appendProBucketRatesController = async (req, res) => {
     const doc = await appendProBucketRates(
       param.value.id,
       value.rates,
-      req.user
+      req.user,
+      req.app.get('io')
     )
     if (!doc) {
       return res.status(statusCodes.notFound).json({
