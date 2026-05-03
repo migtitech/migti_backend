@@ -48,7 +48,7 @@ jobs:
             --name migti_backend \
             -p 7200:7200 \
             --restart always \
-            --env-file /crm/uat/.env \
+            --env-file /crm/prod/.env \
             migittech/migti_crm_backend:latest
 
 
