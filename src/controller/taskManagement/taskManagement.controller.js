@@ -21,6 +21,7 @@ import {
   updateTaskInfo,
   deleteTask,
 } from '../../services/taskManagement/taskManagement.service.js'
+import { notifyEmployeesByBranchRoles } from '../../services/notification/notification.service.js'
 
 export const createTaskController = async (req, res) => {
   const { error, value } = createTaskSchema.validate(req.body, {
@@ -138,6 +139,32 @@ export const assignEmployeeController = async (req, res) => {
         title: result.title,
         assignedAt: result.assignedDate,
       })
+    }
+    const branchRef = result.branchId
+    const branchIdForNotify =
+      branchRef && typeof branchRef === 'object' && branchRef._id
+        ? branchRef._id
+        : branchRef
+    if (branchIdForNotify) {
+      const assigneeName =
+        result.employeeId && typeof result.employeeId === 'object'
+          ? result.employeeId.name || 'Employee'
+          : 'Employee'
+      try {
+        await notifyEmployeesByBranchRoles({
+          branchId: branchIdForNotify,
+          roles: ['head_of_department'],
+          title: 'Task assigned',
+          description: `${assigneeName} was assigned to "${result.title || 'Task'}".`,
+          io,
+          metadata: {
+            eventType: 'task_assigned',
+            taskId: String(result._id),
+          },
+        })
+      } catch {
+        // Do not fail assign if notification persistence fails
+      }
     }
   }
   return res.status(statusCodes.ok).json({

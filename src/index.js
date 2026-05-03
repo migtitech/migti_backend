@@ -22,6 +22,7 @@ import {
   stopDatabaseBackupCron,
 } from './services/databaseBackup/databaseBackup.cron.js'
 import { fileURLToPath } from 'url'
+import { verifyToken } from './core/helpers/jwt.helper.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -39,7 +40,32 @@ const io = new Server(httpServer, {
 
 app.set('io', io)
 
+io.use((socket, next) => {
+  try {
+    const rawToken =
+      socket.handshake.auth?.token ||
+      (typeof socket.handshake.headers?.authorization === 'string'
+        ? socket.handshake.headers.authorization.replace(/^Bearer\s+/i, '')
+        : null)
+    if (rawToken) {
+      const decoded = verifyToken(rawToken)
+      const uid = decoded?.id || decoded?._id
+      if (uid) {
+        socket.authenticatedUserId = String(uid)
+      }
+    }
+  } catch {
+    // Expired/invalid token: client may still emit register (legacy)
+  }
+  next()
+})
+
 io.on('connection', (socket) => {
+  if (socket.authenticatedUserId) {
+    const room = `user:${socket.authenticatedUserId}`
+    socket.join(room)
+    logger.info(`Socket joined room (JWT): ${room}`)
+  }
   socket.on('register', (payload) => {
     const userId = payload?.userId || payload?.user_id
     if (userId) {

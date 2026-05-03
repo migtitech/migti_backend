@@ -14,7 +14,7 @@ import {
 export const listProBucketQueryProductsController = async (req, res) => {
   const { error, value } = listProBucketQueryProductsSchema.validate(
     req.query,
-    { abortEarly: false }
+    { abortEarly: false, convert: true }
   )
   if (error) {
     return res.status(statusCodes.badRequest).json({

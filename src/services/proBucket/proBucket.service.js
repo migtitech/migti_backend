@@ -3,6 +3,7 @@ import QueryProductModel, {
   deriveProBucketStatus,
 } from '../../models/queryProduct.model.js'
 import SupplierModel from '../../models/supplier.model.js'
+import { transformPathsToSignedUrls } from '../document/document.service.js'
 
 const OBJECT_ID_REGEX = /^[a-fA-F0-9]{24}$/
 
@@ -56,6 +57,7 @@ const textSearchFilter = (search) => {
     $or: [
       { queryCode: rx },
       { productName: rx },
+      { rawProductCode: rx },
       { unit: rx },
       { hsnNumber: rx },
       { description: rx },
@@ -130,13 +132,19 @@ export const getProBucketQueryProductById = async (id) => {
   const oid = toOid(id)
   if (!oid) return null
 
-  const doc = await QueryProductModel.findOne({
+  const exists = await QueryProductModel.findOne({
     _id: oid,
     isDeleted: false,
-  }).lean()
-  if (!doc) return null
+  })
+    .select('_id')
+    .lean()
+  if (!exists) return null
 
-  return withQueryProductPopulates(QueryProductModel.findById(oid))
+  const doc = await withQueryProductPopulates(QueryProductModel.findById(oid))
+  if (doc?.images?.length) {
+    doc.images = await transformPathsToSignedUrls(doc.images)
+  }
+  return doc
 }
 
 export const appendProBucketRates = async (id, ratesInput, user) => {
