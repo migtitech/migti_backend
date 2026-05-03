@@ -13,13 +13,8 @@
     "lint": "eslint src --fix",
     "test": "echo \"Error: no test specified\" && exit 1",
     "prestart": "npm run build",
-    "seed:preferences": "node seed-preferences.js",
-    "seed:countries": "node seed-countries.js",
-    "seed:superadmin": "node seed-superadmin.js",
-    "backfill:productCode": "node scripts/backfill-product-code.js",
-    "backfill:queryConvertedQuotations": "node scripts/backfill-query-converted-quotations.js",
-    "backfill:employeeZoneIds": "node scripts/backfill-employee-zone-ids.js",
-    "seed:codeSequence": "node scripts/seed-code-sequence.js"
+    "docker:build:dev": "docker build -t migittech/migti_crm_backend:dev .",
+    "docker:push:dev": "docker push migittech/migti_crm_backend:dev"
   },
   "author": "",
   "license": "ISC",

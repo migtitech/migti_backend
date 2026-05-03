@@ -1,33 +1,26 @@
-# migti_backend - Node/Express API
-FROM node:20-alpine AS base
-
+FROM node:20-bookworm
 WORKDIR /app
 
-# Install dependencies (npm install so xlsx is resolved from registry if lockfile is stale)
-FROM base AS deps
-COPY package.json package-lock.json* ./
-RUN npm install --omit=dev --no-audit --no-fund
+# MongoDB Database Tools (mongodump) for scheduled backups
+ARG MONGO_TOOLS_VERSION=100.10.0
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends ca-certificates curl \
+  && arch="$(dpkg --print-architecture)" \
+  && case "$arch" in \
+       amd64) mongo_os=debian12; mongo_arch=x86_64 ;; \
+       arm64) mongo_os=ubuntu2204; mongo_arch=arm64 ;; \
+       *) echo "unsupported arch: $arch"; exit 1 ;; \
+     esac \
+  && curl -fsSL "https://fastdl.mongodb.org/tools/db/mongodb-database-tools-${mongo_os}-${mongo_arch}-${MONGO_TOOLS_VERSION}.tgz" \
+    | tar -xz -C /tmp \
+  && mv "/tmp/mongodb-database-tools-${mongo_os}-${mongo_arch}-${MONGO_TOOLS_VERSION}/bin/"* /usr/local/bin/ \
+  && rm -rf "/tmp/mongodb-database-tools-${mongo_os}-${mongo_arch}-${MONGO_TOOLS_VERSION}" \
+  && apt-get purge -y curl \
+  && apt-get autoremove -y \
+  && rm -rf /var/lib/apt/lists/*
 
-# Build (Babel compile src -> dist)
-FROM base AS builder
-COPY package.json package-lock.json* ./
-RUN npm install --no-audit --no-fund
+COPY package*.json ./
+RUN npm install
 COPY . .
-RUN npm run build
-
-# Production image
-FROM base AS runner
-ENV NODE_ENV=production
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/package.json ./
-RUN mkdir -p dist/public assets assets/temp uploads
-
-# Optional: create non-root user
-RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 nodejs && \
-    chown -R nodejs:nodejs /app
-USER nodejs
-
 EXPOSE 7200
-CMD ["node", "dist/index.js"]
+CMD ["node", "src/index.js"]

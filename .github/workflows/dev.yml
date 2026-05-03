@@ -6,20 +6,32 @@ on:
       - development
 
 jobs:
-  build:
+  build-and-push:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
         with:
-          node-version: 18
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build & Push Docker Image
+        run: |
+          docker build -t migittech/migti_crm_backend:dev .
+          docker push migittech/migti_crm_backend:dev
+
 
   deploy:
-    needs: build
+    needs: build-and-push
     runs-on: ubuntu-latest
+
     steps:
       - name: Deploy to Server via SSH
         uses: appleboy/ssh-action@v1.0.3
@@ -29,12 +41,15 @@ jobs:
           password: ${{ secrets.SERVER_PASSWORD }}
           port: 22
           script: |
-            export NVM_DIR="$HOME/.nvm"
-            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+            docker pull migittech/migti_crm_backend:dev
+            docker rm -f migti_backend || true
+            docker run -d \
+            --name migti_backend \
+            -p 7200:7200 \
+            --restart always \
+            --env-file /crm/uat/.env \
+            migittech/migti_crm_backend:dev
 
-            cd /var/www/migtidev/migti_backend
-            git checkout development
-            git stash 
-            git pull origin development
-            git stash pop
-            pm2 restart migtibedev
+
+
