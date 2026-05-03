@@ -17,6 +17,10 @@ import {
   startTargetAnalyticsCron,
   stopTargetAnalyticsCron,
 } from './services/targetAnalytics/targetAnalytics.cron.js'
+import {
+  startDatabaseBackupCron,
+  stopDatabaseBackupCron,
+} from './services/databaseBackup/databaseBackup.cron.js'
 import { fileURLToPath } from 'url'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -88,6 +92,7 @@ connectDB()
 // Ensure assets folders exist at runtime (created dynamically on first upload if missing)
 ensureAssetsDir('assets')
 ensureAssetsDir('assets/temp')
+ensureAssetsDir('backups')
 
 // Initialize Agenda queues
 startAgenda().catch((error) => {
@@ -99,6 +104,7 @@ startEmailQueue().catch((error) => {
 })
 
 startTargetAnalyticsCron()
+startDatabaseBackupCron()
 
 // Graceful shutdown
 process.on('SIGINT', async () => {
@@ -106,6 +112,7 @@ process.on('SIGINT', async () => {
   await stopAgenda()
   await stopEmailQueue()
   await stopTargetAnalyticsCron()
+  await stopDatabaseBackupCron()
   process.exit(0)
 })
 
@@ -114,6 +121,7 @@ process.on('SIGTERM', async () => {
   await stopAgenda()
   await stopEmailQueue()
   await stopTargetAnalyticsCron()
+  await stopDatabaseBackupCron()
   process.exit(0)
 })
 
