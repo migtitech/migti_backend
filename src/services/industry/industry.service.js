@@ -220,6 +220,7 @@ const nullIfEmpty = (v) => (v === '' || v == null ? null : v)
 const ALLOWED_UPDATE_FIELDS = [
   'location',
   'address',
+  'gstNumber',
   'purchase_manager_name',
   'purchase_manager_phone',
   'branchId',
@@ -263,8 +264,28 @@ export const updateIndustry = async ({
         allowedUpdate[key] = null
       } else if (key === 'area' || key === 'subZoneId') {
         allowedUpdate[key] = nullIfEmpty(updateData[key])
+      } else if (key === 'gstNumber') {
+        allowedUpdate[key] = normalizeGstNumber(updateData[key])
       } else {
         allowedUpdate[key] = updateData[key]
+      }
+    }
+  }
+
+  if (Object.prototype.hasOwnProperty.call(allowedUpdate, 'gstNumber')) {
+    const nextGst = allowedUpdate.gstNumber
+    const prevGst = normalizeGstNumber(industry.gstNumber)
+    if (nextGst && nextGst !== prevGst) {
+      const existingByGst = await findActiveIndustryByGstNumber(nextGst)
+      if (
+        existingByGst &&
+        String(existingByGst._id) !== String(industryId)
+      ) {
+        throw new CustomError(
+          statusCodes.conflict,
+          'Industry already present',
+          errorCodes.already_exist
+        )
       }
     }
   }

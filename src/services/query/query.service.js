@@ -48,12 +48,86 @@ import BranchZoneTargetModel from '../../models/branchZoneTarget.model.js'
 import TargetAnalyticsModel from '../../models/targetAnalytics.model.js'
 import { assertSubZoneBelongsToArea } from '../subZone/subZone.service.js'
 import { resolveQueryAccessFilter } from '../../core/helpers/queryAccess.js'
+<<<<<<< Updated upstream
 import {
   replaceQueryProductDocuments,
   softDeleteQueryProductRowsForQuery,
 } from '../queryProduct/queryProduct.service.js'
+=======
+import QueryProductModel from '../../models/queryProduct.model.js'
+>>>>>>> Stashed changes
 
 const OBJECT_ID_REGEX = /^[a-fA-F0-9]{24}$/
+
+/** Pro bucket / query_products line statuses that count as “rate available”. */
+const QUERY_PRODUCT_RATE_STATUSES = ['rate_submitted', 'fulfilled']
+
+const attachQueryProductRateAvailableCounts = async (queries = []) => {
+  if (!queries?.length) return queries
+  const codesUpper = [
+    ...new Set(
+      queries
+        .map((q) => String(q?.queryCode ?? '').trim().toUpperCase())
+        .filter(Boolean)
+    ),
+  ]
+  if (!codesUpper.length) {
+    return queries.map((q) => ({
+      ...q,
+      queryProductRateAvailableCount: 0,
+    }))
+  }
+
+  let grouped = []
+  try {
+    grouped = await QueryProductModel.aggregate([
+      {
+        $match: {
+          isDeleted: { $ne: true },
+          status: { $in: QUERY_PRODUCT_RATE_STATUSES },
+        },
+      },
+      {
+        $addFields: {
+          _codeKey: {
+            $toUpper: {
+              $trim: {
+                input: {
+                  $ifNull: [
+                    '$queryCode',
+                    { $ifNull: ['$query_code', ''] },
+                  ],
+                },
+              },
+            },
+          },
+        },
+      },
+      { $match: { _codeKey: { $in: codesUpper } } },
+      {
+        $group: {
+          _id: '$_codeKey',
+          count: { $sum: 1 },
+        },
+      },
+    ])
+  } catch (err) {
+    console.error('query_products rate count aggregation failed', err)
+    grouped = []
+  }
+
+  const byCodeUpper = new Map(
+    grouped.map((g) => [String(g._id || '').trim().toUpperCase(), g.count || 0])
+  )
+
+  return queries.map((q) => {
+    const key = String(q?.queryCode ?? '').trim().toUpperCase()
+    return {
+      ...q,
+      queryProductRateAvailableCount: key ? byCodeUpper.get(key) || 0 : 0,
+    }
+  })
+}
 
 const validateCompanyInfoSubZone = async (companyInfo, branchId) => {
   if (!companyInfo || typeof companyInfo !== 'object') return
@@ -351,11 +425,13 @@ export const listQueries = async ({
     .lean()
 
   const queriesWithRefs = await mergeQuotationRefsForQueries(queries)
+  const queriesWithRateCounts =
+    await attachQueryProductRateAvailableCounts(queriesWithRefs)
 
   const totalPages = Math.ceil(totalItems / limit)
 
   return {
-    queries: queriesWithRefs,
+    queries: queriesWithRateCounts,
     pagination: {
       currentPage: page,
       totalPages,
