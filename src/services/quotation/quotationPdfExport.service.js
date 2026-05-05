@@ -782,7 +782,7 @@ export const exportQuotationPdf = async ({
   try {
     const page = await browser.newPage()
     await page.setContent(html, {
-      waitUntil: ['networkidle0', 'load'],
+      waitUntil: 'load',
       timeout: 30000,
     })
     const pdfBuffer = await page.pdf({
