@@ -22,6 +22,14 @@ const toOid = (v) => {
 
 const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
+const isImageDocumentRecord = (doc) => {
+  if (!doc || typeof doc !== 'object') return false
+  const mime = doc.mimeType != null ? String(doc.mimeType) : ''
+  if (mime && /^image\//i.test(mime)) return true
+  const path = doc.path != null ? String(doc.path) : ''
+  return path ? /\.(jpe?g|png|gif|webp|bmp)$/i.test(path) : false
+}
+
 const resolveOptionalProofDocumentId = async (raw) => {
   if (raw == null || raw === '') return null
   const id = String(raw).trim()
@@ -37,6 +45,13 @@ const resolveOptionalProofDocumentId = async (raw) => {
     throw new CustomError(
       statusCodes.badRequest,
       'Proof document not found',
+      errorCodes.bad_request
+    )
+  }
+  if (!isImageDocumentRecord(doc)) {
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Payment proof must be an image file',
       errorCodes.bad_request
     )
   }
@@ -401,6 +416,27 @@ export const approvePurchaseBillingRequest = async (id, statusRemark, user) => {
     throw new CustomError(
       statusCodes.badRequest,
       'This billing request is not pending',
+      errorCodes.bad_request
+    )
+  }
+  const proofRef = existing.proofDocumentId
+  const proofId =
+    proofRef && typeof proofRef === 'object' && proofRef._id != null
+      ? proofRef._id
+      : proofRef
+  const proofOid = toOid(proofId)
+  if (!proofOid) {
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Upload payment proof before approving this billing request',
+      errorCodes.bad_request
+    )
+  }
+  const proofDoc = await DocumentModel.findById(proofOid).lean()
+  if (!proofDoc || !isImageDocumentRecord(proofDoc)) {
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Payment proof must be an image file before approval',
       errorCodes.bad_request
     )
   }

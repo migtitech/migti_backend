@@ -30,6 +30,6 @@ export const dispatchmentBucketIdParamSchema = Joi.object({
 })
 
 export const markDeliveredBodySchema = Joi.object({
-  receivingDocumentId: objectIdJoi.allow(null, '').optional(),
+  receivingDocumentId: objectIdJoi.required(),
   receivingRemark: Joi.string().allow('', null).max(4000).optional(),
 }).unknown(true)

@@ -195,6 +195,7 @@ export const createPoEntry = async ({
   branchId = null,
   created_by = null,
   attachmentDocumentId = null,
+  purchaseOrderId = null,
 }) => {
   const attachmentId = await normalizeAttachmentDocumentId(attachmentDocumentId)
   const trimmedSalesId = salespersonId && String(salespersonId).trim()
@@ -204,6 +205,11 @@ export const createPoEntry = async ({
   const dispatchment =
     dispatchmentDate != null && String(dispatchmentDate).trim() !== ''
       ? new Date(dispatchmentDate)
+      : null
+  const poRef =
+    purchaseOrderId &&
+    mongoose.Types.ObjectId.isValid(String(purchaseOrderId).trim())
+      ? String(purchaseOrderId).trim()
       : null
   const doc = await PoEntryModel.create({
     poNumber: String(poNumber || '')
@@ -221,6 +227,124 @@ export const createPoEntry = async ({
     branchId: branchId || null,
     created_by: created_by || null,
     attachmentDocumentId: attachmentId,
+    purchaseOrderId: poRef,
+  })
+  return doc.toObject()
+}
+
+const pickEarliestDispatchmentFromProducts = (products = []) => {
+  let best = null
+  for (const p of products) {
+    const raw = p?.dispatchmentDate
+    if (raw == null || raw === '') continue
+    const dt = new Date(raw)
+    if (Number.isNaN(dt.getTime())) continue
+    if (!best || dt < best) best = dt
+  }
+  return best
+}
+
+const resolveIndustryIdForPo = (purchaseOrder) => {
+  const raw = purchaseOrder?.industry_id
+  if (raw && typeof raw === 'object' && raw._id != null) return raw._id
+  return raw || null
+}
+
+const resolveSalespersonIdForLinkedPurchaseOrder = async ({
+  purchaseOrder,
+  companyId,
+  branchId,
+}) => {
+  const assigned = purchaseOrder?.assigned_employee
+  if (assigned && typeof assigned === 'object') {
+    const aid = assigned._id ?? assigned.id
+    if (aid != null && mongoose.Types.ObjectId.isValid(String(aid))) {
+      return String(aid)
+    }
+  }
+  const se = purchaseOrder?.salesEmployeeId
+  if (se) {
+    const sid =
+      typeof se === 'object' && se._id != null ? String(se._id) : String(se)
+    if (mongoose.Types.ObjectId.isValid(sid)) return sid
+  }
+  return resolveSalespersonIdForIndustry({ companyId, branchId })
+}
+
+const safeNormalizeAttachmentId = async (attachmentDocumentId) => {
+  if (attachmentDocumentId == null || attachmentDocumentId === '') return null
+  try {
+    return await normalizeAttachmentDocumentId(attachmentDocumentId)
+  } catch {
+    return null
+  }
+}
+
+/**
+ * One poEntry per purchase order (sparse unique purchaseOrderId).
+ * Call when a PO is created from quotation or when totals / assignee / attachment change.
+ */
+export const upsertPoEntryLinkedToPurchaseOrder = async ({
+  purchaseOrder,
+  amount,
+  created_by = null,
+}) => {
+  if (!purchaseOrder?._id) return null
+  const companyId = resolveIndustryIdForPo(purchaseOrder)
+  if (!companyId || !mongoose.Types.ObjectId.isValid(String(companyId))) {
+    return null
+  }
+  const branchId = purchaseOrder.branchId || null
+  const salespersonId = await resolveSalespersonIdForLinkedPurchaseOrder({
+    purchaseOrder,
+    companyId,
+    branchId,
+  })
+  const attRaw = purchaseOrder.attachmentDocumentId
+  const attIdStr =
+    attRaw && typeof attRaw === 'object' && attRaw._id != null
+      ? String(attRaw._id)
+      : attRaw
+        ? String(attRaw)
+        : null
+  const attachmentDocumentId = await safeNormalizeAttachmentId(attIdStr)
+  const dispatchmentDate = pickEarliestDispatchmentFromProducts(
+    purchaseOrder.products || []
+  )
+  const base = {
+    poNumber: String(purchaseOrder.poCode || '')
+      .trim()
+      .toUpperCase(),
+    companyId,
+    salespersonId,
+    amount: Math.max(0, Number(amount) || 0),
+    remark: String(purchaseOrder.remark || '').trim(),
+    branchId: branchId || null,
+    dispatchmentDate:
+      dispatchmentDate && !Number.isNaN(dispatchmentDate.getTime())
+        ? dispatchmentDate
+        : null,
+    attachmentDocumentId,
+  }
+  const poOid = new mongoose.Types.ObjectId(String(purchaseOrder._id))
+  const existing = await PoEntryModel.findOne({
+    purchaseOrderId: poOid,
+    isDeleted: false,
+  })
+    .select('_id')
+    .lean()
+  if (existing?._id) {
+    await PoEntryModel.updateOne(
+      { _id: existing._id },
+      { $set: { ...base, purchaseOrderId: poOid } }
+    )
+    return PoEntryModel.findById(existing._id).lean()
+  }
+  const doc = await PoEntryModel.create({
+    ...base,
+    purchaseOrderId: poOid,
+    entryDate: new Date(),
+    created_by: created_by || null,
   })
   return doc.toObject()
 }

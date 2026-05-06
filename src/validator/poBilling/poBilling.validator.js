@@ -17,6 +17,10 @@ export const createPoEntrySchema = Joi.object({
     .pattern(objectIdPattern)
     .optional()
     .allow(null, ''),
+  purchaseOrderId: Joi.string()
+    .pattern(objectIdPattern)
+    .optional()
+    .allow(null, ''),
 })
 
 export const createBillingEntrySchema = Joi.object({

@@ -73,6 +73,14 @@ const buildPoLineProductSnapshot = (poLine) => {
   }
 }
 
+const isImageDocumentRecord = (doc) => {
+  if (!doc || typeof doc !== 'object') return false
+  const mime = doc.mimeType != null ? String(doc.mimeType) : ''
+  if (mime && /^image\//i.test(mime)) return true
+  const path = doc.path != null ? String(doc.path) : ''
+  return path ? /\.(jpe?g|png|gif|webp|bmp)$/i.test(path) : false
+}
+
 const normalizeBillDocumentId = async (attachmentDocumentId) => {
   const id = attachmentDocumentId && String(attachmentDocumentId).trim()
   if (!id) {
@@ -664,6 +672,28 @@ export const raisePurchaseBucketPaymentRequest = async ({
       statusCodes.badRequest,
       'amount must be a positive number',
       errorCodes.validation_error
+    )
+  }
+
+  const lineAttRaw = allowed.attachmentDocumentId
+  const lineAttRef =
+    lineAttRaw && typeof lineAttRaw === 'object' && lineAttRaw._id != null
+      ? lineAttRaw._id
+      : lineAttRaw
+  const lineAttOid = toOid(lineAttRef)
+  if (!lineAttOid) {
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Product image is required on this line. Upload an image or take a photo before raising a billing request.',
+      errorCodes.bad_request
+    )
+  }
+  const lineImageDoc = await DocumentModel.findById(lineAttOid).lean()
+  if (!lineImageDoc || !isImageDocumentRecord(lineImageDoc)) {
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Product image is required on this line. Upload an image or take a photo before raising a billing request.',
+      errorCodes.bad_request
     )
   }
 

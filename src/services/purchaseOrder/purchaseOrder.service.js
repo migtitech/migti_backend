@@ -93,6 +93,28 @@ export const computePurchaseOrderFinancials = (po, poPaymentLean = null) => {
   }
 }
 
+/** Keeps `poEntry` (PO billing tab) in sync with a purchase order; avoids static import cycle with poBilling. */
+const syncPoEntryAfterPurchaseOrderLean = async (poLean, created_by = null) => {
+  if (!poLean?._id) return
+  try {
+    const { upsertPoEntryLinkedToPurchaseOrder } = await import(
+      '../poBilling/poBilling.service.js'
+    )
+    const poPayUp = await PoPaymentModel.findOne({
+      purchaseOrderId: poLean._id,
+      isDeleted: false,
+    }).lean()
+    const financials = computePurchaseOrderFinancials(poLean, poPayUp)
+    await upsertPoEntryLinkedToPurchaseOrder({
+      purchaseOrder: poLean,
+      amount: financials.grandTotal,
+      created_by,
+    })
+  } catch (err) {
+    console.error('[syncPoEntryAfterPurchaseOrder]', err?.message || err)
+  }
+}
+
 export const resolvePaymentReceivedStatus = (financials) => {
   const totalPaid = Number(financials?.totalPaid) || 0
   const remaining = Math.max(0, Number(financials?.remainingAmount) || 0)
@@ -389,6 +411,7 @@ export const createPurchaseOrderFromQuotation = async ({
     }).lean()
     if (existing) {
       await syncPoProductsFromPurchaseOrder(existing)
+      await syncPoEntryAfterPurchaseOrderLean(existing, created_by)
       return existing
     }
   }
@@ -417,6 +440,7 @@ export const createPurchaseOrderFromQuotation = async ({
 
   const plain = doc.toObject()
   await syncPoProductsFromPurchaseOrder(plain)
+  await syncPoEntryAfterPurchaseOrderLean(plain, created_by)
   return plain
 }
 
@@ -1216,6 +1240,7 @@ export const updatePurchaseOrder = async ({
       updated.paymentReceivedStatus = payUp
     }
     await syncPoProductsFromPurchaseOrder(updated)
+    await syncPoEntryAfterPurchaseOrderLean(updated, null)
   }
 
   return updated

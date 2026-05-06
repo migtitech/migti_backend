@@ -66,6 +66,15 @@ const poEntrySchema = new mongoose.Schema(
       ref: 'document',
       default: null,
     },
+    /** When set, this row is kept in sync with the purchase order (amount, assignee, attachment). */
+    purchaseOrderId: {
+      type: SchemaTypes.ObjectId,
+      ref: 'purchaseOrder',
+      default: null,
+      unique: true,
+      sparse: true,
+      index: true,
+    },
   },
   { timestamps: true }
 )

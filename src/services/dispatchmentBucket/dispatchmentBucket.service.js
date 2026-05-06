@@ -1,8 +1,25 @@
 import PoProductModel from '../../models/poProduct.model.js'
+import DocumentModel from '../../models/document.model.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 import CustomError from '../../utils/exception.js'
+import {
+  buildBaseStages,
+  loadPoProductForAccess,
+} from '../purchaseBucket/purchaseBucket.service.js'
+import {
+  PO_PRODUCT_INVENTORY_STATUS,
+  resolvePoProductLineStatus,
+} from '../../models/poProduct.model.js'
 
 const OBJECT_ID_REGEX = /^[a-fA-F0-9]{24}$/
+
+const isImageDocumentRecord = (doc) => {
+  if (!doc || typeof doc !== 'object') return false
+  const mime = doc.mimeType != null ? String(doc.mimeType) : ''
+  if (mime && /^image\//i.test(mime)) return true
+  const path = doc.path != null ? String(doc.path) : ''
+  return path ? /\.(jpe?g|png|gif|webp|bmp)$/i.test(path) : false
+}
 
 const normalizeReceivingRemark = (remark) => {
   if (remark == null || remark === '') return ''
@@ -15,14 +32,6 @@ const toObjectIdOrNull = (v) => {
   const s = String(v).trim()
   return OBJECT_ID_REGEX.test(s) ? s : null
 }
-import {
-  buildBaseStages,
-  loadPoProductForAccess,
-} from '../purchaseBucket/purchaseBucket.service.js'
-import {
-  PO_PRODUCT_INVENTORY_STATUS,
-  resolvePoProductLineStatus,
-} from '../../models/poProduct.model.js'
 
 const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
@@ -152,14 +161,27 @@ export const markPoProductDelivered = async (
     )
   }
   const docId = toObjectIdOrNull(receivingDocumentId)
+  if (!docId) {
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Receiving proof image is required to mark delivered',
+      errorCodes.bad_request
+    )
+  }
+  const recvDoc = await DocumentModel.findById(docId).lean()
+  if (!recvDoc || !isImageDocumentRecord(recvDoc)) {
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Receiving proof must be an image file',
+      errorCodes.bad_request
+    )
+  }
   const setPayload = {
     status: PO_PRODUCT_INVENTORY_STATUS.DELIVERED,
     deliverySubStatus: 'hod_approval_pending',
     deliveryApprovedBy: null,
     deliveryApprovedAt: null,
-  }
-  if (docId) {
-    setPayload.receivingDocumentId = docId
+    receivingDocumentId: docId,
   }
   if (receivingRemark !== undefined) {
     setPayload.receivingRemark = normalizeReceivingRemark(receivingRemark)
