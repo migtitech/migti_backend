@@ -18,42 +18,65 @@ export const serializeNotificationDoc = (doc) => {
 }
 
 /**
- * Resolve employees by branch + roles, insert one notification per user, emit socket events.
+ * Resolve employee ObjectIds by roles (and optional branch). Pure read helper, no side effects.
+ *
+ * @param {Object} args
+ * @param {string[]} args.roles - role keys (e.g. ['head_of_department'])
+ * @param {string|mongoose.Types.ObjectId} [args.branchId] - optional branch filter
+ * @returns {Promise<mongoose.Types.ObjectId[]>}
  */
-export const notifyEmployeesByBranchRoles = async ({
-  branchId,
-  roles,
+export const getEmployeeIdsByRoles = async ({ roles, branchId } = {}) => {
+  if (!Array.isArray(roles) || roles.length === 0) return []
+
+  const filter = {
+    role: { $in: roles },
+    isDeleted: false,
+  }
+
+  if (branchId !== undefined && branchId !== null && branchId !== '') {
+    if (!mongoose.Types.ObjectId.isValid(String(branchId))) return []
+    filter.branchId = new mongoose.Types.ObjectId(String(branchId))
+  }
+
+  const employees = await EmployeeModel.find(filter).select('_id').lean()
+  return employees.map((e) => e._id)
+}
+
+/**
+ * Insert one notification per employeeId and emit `notification:new` to each user's room.
+ *
+ * @param {Object} args
+ * @param {string} args.title
+ * @param {string} [args.description]
+ * @param {Array<string|mongoose.Types.ObjectId>} args.employeeIds
+ * @param {import('socket.io').Server} [args.io]
+ * @param {Object} [args.metadata]
+ * @returns {Promise<{ created: Array, count: number }>}
+ */
+export const createNotifications = async ({
   title,
-  description,
+  description = '',
+  employeeIds,
   io,
   metadata = {},
-}) => {
-  if (!title || !branchId || !Array.isArray(roles) || roles.length === 0) {
+} = {}) => {
+  if (!title || !Array.isArray(employeeIds) || employeeIds.length === 0) {
     return { created: [], count: 0 }
   }
 
-  const bid = mongoose.Types.ObjectId.isValid(String(branchId))
-    ? new mongoose.Types.ObjectId(String(branchId))
-    : null
-  if (!bid) return { created: [], count: 0 }
-
-  const employees = await EmployeeModel.find({
-    branchId: bid,
-    role: { $in: roles },
-    isDeleted: false,
-  })
-    .select('_id')
-    .lean()
-
-  if (!employees.length) return { created: [], count: 0 }
-
-  const meta = {
-    ...metadata,
-    branchId: bid.toString(),
+  const validIds = []
+  for (const id of employeeIds) {
+    if (!id) continue
+    const s = String(id)
+    if (!mongoose.Types.ObjectId.isValid(s)) continue
+    validIds.push(new mongoose.Types.ObjectId(s))
   }
+  if (!validIds.length) return { created: [], count: 0 }
 
-  const docs = employees.map((e) => ({
-    userId: e._id,
+  const meta = metadata && typeof metadata === 'object' ? metadata : {}
+
+  const docs = validIds.map((uid) => ({
+    userId: uid,
     title: String(title).trim(),
     description: String(description ?? '').trim(),
     isRead: false,
@@ -73,6 +96,37 @@ export const notifyEmployeesByBranchRoles = async ({
     created: inserted.map((d) => serializeNotificationDoc(d)),
     count: inserted.length,
   }
+}
+
+/**
+ * Resolve employees by branch + roles, insert one notification per user, emit socket events.
+ * Composes `getEmployeeIdsByRoles` + `createNotifications`.
+ */
+export const notifyEmployeesByBranchRoles = async ({
+  branchId,
+  roles,
+  title,
+  description,
+  io,
+  metadata = {},
+}) => {
+  if (!title || !branchId || !Array.isArray(roles) || roles.length === 0) {
+    return { created: [], count: 0 }
+  }
+
+  const employeeIds = await getEmployeeIdsByRoles({ roles, branchId })
+  if (!employeeIds.length) return { created: [], count: 0 }
+
+  return createNotifications({
+    title,
+    description,
+    employeeIds,
+    io,
+    metadata: {
+      ...(metadata && typeof metadata === 'object' ? metadata : {}),
+      branchId: String(branchId),
+    },
+  })
 }
 
 const HOD_ROLES = ['head_of_department']

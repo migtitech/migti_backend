@@ -14,6 +14,7 @@ import {
   listQuerySchema,
   listQueriesByIndustrySchema,
   getQueryByIdSchema,
+  getQueryLineProcurementRatesSchema,
   updateQuerySchema,
   deleteQuerySchema,
   listQueryActivitiesSchema,
@@ -35,6 +36,7 @@ import {
   addQuery,
   listQueries,
   getQueryById,
+  getQueryLineProcurementRates,
   updateQuery,
   deleteQuery,
   listQueryActivities,
@@ -55,6 +57,7 @@ import {
   getSalesDashboardCards,
   getRecentSalesBillings,
   getHodDashboardCards,
+  notifyEmployeesForCreatedQuery,
 } from '../../services/query/query.service.js'
 import { archiveExpiredTargets } from '../../services/targetAnalytics/targetAnalytics.service.js'
 import { exportQueryPdf } from '../../services/query/queryPdfExport.service.js'
@@ -118,18 +121,7 @@ export const createQueryController = async (req, res) => {
   const created_by = req.user?.id || req.user?._id || value.created_by
   const result = await addQuery({ ...value, created_by, branchId })
   const io = req.app.get('io')
-  const qc =
-    result?.queryCode ||
-    result?.query_tracking_code ||
-    String(result?._id || '').slice(-8) ||
-    '—'
-  await notifyBranchHods(
-    io,
-    result?.branchId,
-    'New query created',
-    `Query ${qc} was created in your branch.`,
-    { eventType: 'query_created', queryId: String(result?._id || '') }
-  )
+  await notifyEmployeesForCreatedQuery({ query: result, io })
   return res.status(statusCodes.created).json({
     success: true,
     message: 'Query created successfully',
@@ -224,6 +216,36 @@ export const getQueryByIdController = async (req, res) => {
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Query details retrieved successfully',
+    data: result,
+  })
+}
+
+export const getQueryLineProcurementRatesController = async (req, res) => {
+  const { error, value } = getQueryLineProcurementRatesSchema.validate(
+    req.query,
+    { abortEarly: false }
+  )
+  if (error) {
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: Message.validationError,
+      error: error.details.map((d) => d.message),
+    })
+  }
+
+  const branchFilter = resolveQueryBranchFilter(req)
+  const currentUserId = req.user?.id || req.user?._id
+  const isFullAccessRole = hasOwnershipBypass(req.user?.role)
+  const result = await getQueryLineProcurementRates({
+    ...value,
+    branchFilter,
+    currentUserId: currentUserId || null,
+    isFullAccessRole: !!isFullAccessRole,
+    role: req.user?.role || '',
+  })
+  return res.status(statusCodes.ok).json({
+    success: true,
+    message: 'Procurement rates retrieved successfully',
     data: result,
   })
 }

@@ -234,6 +234,12 @@ export const getQueryByIdSchema = Joi.object({
   queryId: Joi.string().required(),
 })
 
+export const getQueryLineProcurementRatesSchema = Joi.object({
+  queryId: Joi.string().required(),
+  rawProductCode: Joi.string().trim().min(1).max(100).required(),
+  lineIndex: Joi.number().integer().min(0).optional(),
+})
+
 export const updateQuerySchema = Joi.object({
   queryId: Joi.string().required(),
   companyInfo: companyInfoSchema.optional(),

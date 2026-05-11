@@ -501,3 +501,107 @@ export const approvePurchaseBillingRequest = async (id, statusRemark, user) => {
   }
   return shapeRow(doc, url)
 }
+
+export const rejectPurchaseBillingRequest = async (id, statusRemark, user) => {
+  if (!id || !OBJECT_ID_REGEX.test(String(id))) {
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Invalid billing request id',
+      errorCodes.bad_request
+    )
+  }
+  const userId = user?.id || user?._id
+  const reviewerId = toOid(userId)
+  if (!reviewerId) {
+    throw new CustomError(
+      statusCodes.unauthorized,
+      'Invalid user',
+      errorCodes.unauthorized
+    )
+  }
+
+  const remark = String(statusRemark ?? '').trim()
+  const wordCount = remark ? remark.split(/\s+/).filter(Boolean).length : 0
+  if (wordCount < 10) {
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Reject remark must contain at least 10 words',
+      errorCodes.bad_request
+    )
+  }
+
+  const existing = await PurchaseBillingRequestModel.findOne({
+    _id: id,
+    isDeleted: false,
+  }).lean()
+  if (!existing) {
+    throw new CustomError(
+      statusCodes.notFound,
+      'Billing request not found',
+      errorCodes.not_found
+    )
+  }
+  if (existing.status !== PURCHASE_BILLING_REQUEST_STATUS.PENDING) {
+    throw new CustomError(
+      statusCodes.badRequest,
+      'This billing request is not pending',
+      errorCodes.bad_request
+    )
+  }
+
+  const reviewerSnapshot = await buildEmployeeSnapshot(reviewerId)
+  const poProductId = toOid(existing.poProductId)
+
+  const doc = await PurchaseBillingRequestModel.findByIdAndUpdate(
+    id,
+    {
+      $set: {
+        status: PURCHASE_BILLING_REQUEST_STATUS.REJECTED,
+        approvedBy: reviewerId,
+        approvedAt: new Date(),
+        approvedBySnapshot: reviewerSnapshot,
+        statusRemark: remark,
+      },
+    },
+    { new: true }
+  )
+    .populate('purchaseOrderId', 'poCode companyInfo')
+    .populate('createdBy', 'name email')
+    .populate('approvedBy', 'name email')
+    .populate('billDocumentId', 'path originalName')
+    .lean()
+
+  if (poProductId) {
+    const lineUpdate = await PoProductModel.updateOne(
+      { _id: poProductId, isDeleted: false },
+      {
+        $set: {
+          status: 'billing_request_rejected',
+          procurementStatus: PO_PRODUCT_PROCUREMENT_STATUS.OPEN,
+        },
+      }
+    )
+    if (lineUpdate.matchedCount === 0) {
+      await PurchaseBillingRequestModel.findByIdAndUpdate(id, {
+        $set: {
+          status: PURCHASE_BILLING_REQUEST_STATUS.PENDING,
+          approvedBy: null,
+          approvedAt: null,
+          approvedBySnapshot: null,
+          statusRemark: existing.statusRemark,
+        },
+      })
+      throw new CustomError(
+        statusCodes.notFound,
+        'Linked PO product line not found; rejection was reverted',
+        errorCodes.not_found
+      )
+    }
+  }
+
+  let url = null
+  if (doc.billDocumentId && doc.billDocumentId.path) {
+    url = await toDisplayPath(doc.billDocumentId.path)
+  }
+  return shapeRow(doc, url)
+}

@@ -7,6 +7,7 @@ import {
   listQueriesController,
   listQueriesByIndustryController,
   getQueryByIdController,
+  getQueryLineProcurementRatesController,
   updateQueryController,
   deleteQueryController,
   listQueryActivitiesController,
@@ -146,6 +147,12 @@ queryRouter.get(
   authenticateToken,
   checkPermission(MODULES.QUERIES, 'read'),
   asyncHandler(getQueryByIdController)
+)
+queryRouter.get(
+  '/query-line-procurement-rates',
+  authenticateToken,
+  checkPermission(MODULES.QUERIES, 'read'),
+  asyncHandler(getQueryLineProcurementRatesController)
 )
 queryRouter.get(
   '/export-pdf',

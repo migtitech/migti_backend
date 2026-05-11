@@ -91,6 +91,8 @@ export const PURCHASE_ORDER_STATUS = {
   CONFIRMED: 'confirmed',
   FULFILLED: 'fulfilled',
   CANCELLED: 'cancelled',
+  /** HOD-only close from PO bucket — lines move to `po_closed` on `po_products`. */
+  CLOSED: 'closed',
 }
 
 const purchaseOrderStatusValues = Object.values(PURCHASE_ORDER_STATUS)

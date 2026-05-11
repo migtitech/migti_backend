@@ -11,6 +11,7 @@ import {
   updatePurchaseOrderSchema,
   updatePurchaseOrderStatusSchema,
   appendPurchaseOrderPaymentSchema,
+  closePurchaseOrderAsHodSchema,
 } from '../../validator/purchaseOrder/purchaseOrder.validator.js'
 import {
   listPurchaseOrders,
@@ -22,6 +23,7 @@ import {
   updatePurchaseOrder,
   updatePurchaseOrderStatus,
   appendPurchaseOrderPayment,
+  closePurchaseOrderAsHod,
 } from '../../services/purchaseOrder/purchaseOrder.service.js'
 
 const normalizeRole = (role) =>
@@ -29,6 +31,8 @@ const normalizeRole = (role) =>
     .trim()
     .toLowerCase()
     .replace(/[\s-]+/g, '_')
+
+const PO_BUCKET_HOD_ROLES = new Set(['head_of_department', 'hod'])
 const isBackOfficeRole = (role) => {
   const normalized = normalizeRole(role)
   if (
@@ -329,6 +333,40 @@ export const updatePurchaseOrderStatusController = async (req, res) => {
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Purchase order status updated successfully',
+    data: result,
+  })
+}
+
+export const closePurchaseOrderAsHodController = async (req, res) => {
+  const role = normalizeRole(req.user?.role)
+  if (!PO_BUCKET_HOD_ROLES.has(role)) {
+    return res.status(statusCodes.forbidden).json({
+      success: false,
+      message:
+        'Only Head of Department can close purchase orders from the PO bucket',
+    })
+  }
+
+  const { error, value } = closePurchaseOrderAsHodSchema.validate(
+    { ...req.body, ...req.query },
+    { abortEarly: false }
+  )
+  if (error) {
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: Message.validationError,
+      error: error.details.map((d) => d.message),
+    })
+  }
+
+  const branchFilter = resolvePoBranchFilter(req)
+  const result = await closePurchaseOrderAsHod({
+    purchaseOrderId: value.purchaseOrderId,
+    branchFilter,
+  })
+  return res.status(statusCodes.ok).json({
+    success: true,
+    message: 'Purchase order closed',
     data: result,
   })
 }

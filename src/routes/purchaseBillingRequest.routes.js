@@ -8,6 +8,7 @@ import {
   updatePurchaseBillingRequestRemarkController,
   updatePurchaseBillingRequestProofController,
   approvePurchaseBillingRequestController,
+  rejectPurchaseBillingRequestController,
 } from '../controller/purchaseBillingRequest/purchaseBillingRequest.controller.js'
 
 const purchaseBillingRequestRouter = Router()
@@ -41,6 +42,12 @@ purchaseBillingRequestRouter.put(
   authenticateToken,
   checkPermission(MODULES.BILLING_REQUEST, 'update'),
   asyncHandler(approvePurchaseBillingRequestController)
+)
+purchaseBillingRequestRouter.put(
+  '/:id/reject',
+  authenticateToken,
+  checkPermission(MODULES.BILLING_REQUEST, 'update'),
+  asyncHandler(rejectPurchaseBillingRequestController)
 )
 
 export default purchaseBillingRequestRouter

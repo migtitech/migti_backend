@@ -8,16 +8,20 @@ import {
   listEmployeeSchema,
   getEmployeeByIdSchema,
   updateEmployeeSchema,
+  updateEmployeePasswordSchema,
   deleteEmployeeSchema,
   loginEmployeeSchema,
+  passwordResetRequestSchema,
 } from '../../validator/employee/employee.validator.js'
 import {
   addEmployee,
   listEmployees,
   getEmployeeById,
   updateEmployee,
+  updateEmployeePassword,
   deleteEmployee,
   employeeLogin,
+  createPasswordResetRequest,
 } from '../../services/employee/employee.service.js'
 
 export const createEmployeeController = async (req, res) => {
@@ -107,6 +111,29 @@ export const updateEmployeeController = async (req, res) => {
   })
 }
 
+export const updateEmployeePasswordController = async (req, res) => {
+  const { error, value } = updateEmployeePasswordSchema.validate(
+    { ...req.body, ...req.query },
+    { abortEarly: false }
+  )
+  if (error) {
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: Message.validationError,
+      error: error.details.map((d) => d.message),
+    })
+  }
+
+  const { employeeId, newPassword } = value
+  const branchFilter = getBranchFilter(req)
+  await updateEmployeePassword({ employeeId, newPassword, branchFilter })
+  return res.status(statusCodes.ok).json({
+    success: true,
+    message: 'Password updated successfully',
+    data: { updated: true },
+  })
+}
+
 export const deleteEmployeeController = async (req, res) => {
   const { error, value } = deleteEmployeeSchema.validate(req.query, {
     abortEarly: false,
@@ -148,6 +175,30 @@ export const loginEmployeeController = async (req, res) => {
   return res.status(statusCodes.ok).json({
     success: true,
     message: Message.loginSuccessfully,
+    data: result,
+  })
+}
+
+export const createPasswordResetRequestController = async (req, res) => {
+  const { error, value } = passwordResetRequestSchema.validate(req.body, {
+    abortEarly: false,
+  })
+  if (error) {
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: Message.validationError,
+      data: null,
+      error: {
+        errorCode: 'VALIDATION_ERROR',
+        detail: error.details.map((d) => d.message),
+      },
+    })
+  }
+
+  const result = await createPasswordResetRequest(value)
+  return res.status(statusCodes.ok).json({
+    success: true,
+    message: 'Request sent successfully.',
     data: result,
   })
 }

@@ -12,13 +12,19 @@ const purchaseManagerItemSchema = Joi.object({
 export const createIndustrySchema = Joi.object({
   name: Joi.string().required().min(2).max(100),
   category: Joi.string().valid('A', 'B', 'C', 'D').optional().allow('', null),
-  area: Joi.string().optional().allow(null, ''),
+  area: Joi.string().trim().required().messages({
+    'any.required': 'Zone is required',
+    'string.empty': 'Zone is required',
+  }),
   subZoneId: Joi.string()
     .pattern(/^[a-fA-F0-9]{24}$/)
     .allow('', null)
     .optional(),
   location: Joi.string().optional().allow(''),
-  address: Joi.string().optional().allow(''),
+  address: Joi.string().trim().required().messages({
+    'any.required': 'Address is required',
+    'string.empty': 'Address is required',
+  }),
   purchase_manager_name: Joi.string().optional().allow('', null),
   purchase_manager_phone: Joi.string().optional().allow('', null),
   email: Joi.string()
@@ -28,11 +34,10 @@ export const createIndustrySchema = Joi.object({
   gstNumber: Joi.string()
     .trim()
     .uppercase()
-    .required()
+    .optional()
+    .allow('', null)
     .pattern(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/)
     .messages({
-      'any.required': 'GST number is required',
-      'string.empty': 'GST number is required',
       'string.pattern.base':
         'GST number must be valid 15-character GSTIN (e.g. 22AABCU9603R1ZX)',
     }),
@@ -59,12 +64,13 @@ export const getIndustryByIdSchema = Joi.object({
 const gstNumberUpdateRule = Joi.string()
   .trim()
   .uppercase()
+  .optional()
+  .allow('', null)
   .pattern(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/)
   .messages({
     'string.pattern.base':
       'GST number must be valid 15-character GSTIN (e.g. 22AABCU9603R1ZX)',
   })
-  .optional()
 
 // Edit mode: location, address, GST, purchase manager(s), and branch can be updated
 export const updateIndustrySchema = Joi.object({

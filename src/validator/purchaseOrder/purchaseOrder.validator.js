@@ -141,11 +141,21 @@ export const appendPurchaseOrderPaymentSchema = Joi.object({
   remark: Joi.string().allow('').optional(),
 })
 
+const purchaseOrderStatusValuesWithoutClosed = purchaseOrderStatusValues.filter(
+  (s) => s !== PURCHASE_ORDER_STATUS.CLOSED
+)
+
 export const updatePurchaseOrderStatusSchema = Joi.object({
   purchaseOrderId: Joi.string().pattern(objectIdPattern).required().messages({
     'string.pattern.base': 'purchaseOrderId must be a valid Mongo ObjectId',
   }),
   status: Joi.string()
-    .valid(...purchaseOrderStatusValues)
+    .valid(...purchaseOrderStatusValuesWithoutClosed)
     .required(),
+})
+
+export const closePurchaseOrderAsHodSchema = Joi.object({
+  purchaseOrderId: Joi.string().pattern(objectIdPattern).required().messages({
+    'string.pattern.base': 'purchaseOrderId must be a valid Mongo ObjectId',
+  }),
 })

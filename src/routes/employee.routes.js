@@ -7,8 +7,10 @@ import {
   listEmployeesController,
   getEmployeeByIdController,
   updateEmployeeController,
+  updateEmployeePasswordController,
   deleteEmployeeController,
   loginEmployeeController,
+  createPasswordResetRequestController,
 } from '../controller/employee/employee.controller.js'
 
 const employeeRouter = Router()
@@ -20,6 +22,10 @@ employeeRouter.post(
   asyncHandler(createEmployeeController)
 )
 employeeRouter.post('/login', asyncHandler(loginEmployeeController))
+employeeRouter.post(
+  '/password-reset-request',
+  asyncHandler(createPasswordResetRequestController)
+)
 employeeRouter.get(
   '/list',
   authenticateToken,
@@ -37,6 +43,12 @@ employeeRouter.put(
   authenticateToken,
   checkPermission(MODULES.EMPLOYEES, 'update'),
   asyncHandler(updateEmployeeController)
+)
+employeeRouter.put(
+  '/update-password',
+  authenticateToken,
+  checkPermission(MODULES.EMPLOYEES, 'update'),
+  asyncHandler(updateEmployeePasswordController)
 )
 employeeRouter.delete(
   '/delete',

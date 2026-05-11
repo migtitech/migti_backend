@@ -9,6 +9,7 @@ import QuotationModel, {
 } from '../../models/quotation.model.js'
 import QueryProductModel from '../../models/queryProduct.model.js'
 import PoProductModel, {
+  PO_PRODUCT_PROCUREMENT_STATUS,
   resolvePoProductLineStatus,
 } from '../../models/poProduct.model.js'
 import CustomError from '../../utils/exception.js'
@@ -1048,6 +1049,14 @@ export const appendPurchaseOrderPayment = async ({
     )
   }
 
+  if (String(existing.status || '') === PURCHASE_ORDER_STATUS.CLOSED) {
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Purchase order is closed',
+      errorCodes.action_not_allowed
+    )
+  }
+
   const amt = Number(amount)
   if (Number.isNaN(amt) || amt <= 0) {
     throw new CustomError(
@@ -1148,6 +1157,14 @@ export const updatePurchaseOrder = async ({
       statusCodes.notFound,
       'Purchase order not found',
       errorCodes.not_found
+    )
+  }
+
+  if (String(existing.status || '') === PURCHASE_ORDER_STATUS.CLOSED) {
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Purchase order is closed and cannot be updated',
+      errorCodes.action_not_allowed
     )
   }
 
@@ -1267,11 +1284,94 @@ export const updatePurchaseOrderStatus = async ({
     )
   }
 
+  if (String(existing.status || '') === PURCHASE_ORDER_STATUS.CLOSED) {
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Purchase order is closed',
+      errorCodes.action_not_allowed
+    )
+  }
+
   const updated = await PurchaseOrderModel.findByIdAndUpdate(
     purchaseOrderId,
     { $set: { status } },
     { new: true, runValidators: true }
   )
+    .populate('quotationId', 'quotationCode status')
+    .populate('queryId', 'queryCode status')
+    .populate('industry_id', 'name location email')
+    .lean()
+
+  return updated
+}
+
+/** Head of department: set PO `closed` and all `po_products` lines to `po_closed`. */
+export const closePurchaseOrderAsHod = async ({
+  purchaseOrderId,
+  branchFilter = {},
+}) => {
+  const existing = await PurchaseOrderModel.findOne({
+    _id: purchaseOrderId,
+    isDeleted: false,
+    ...branchFilter,
+  }).lean()
+
+  if (!existing) {
+    throw new CustomError(
+      statusCodes.notFound,
+      'Purchase order not found',
+      errorCodes.not_found
+    )
+  }
+
+  if (String(existing.status || '') === PURCHASE_ORDER_STATUS.CANCELLED) {
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Cannot close a cancelled purchase order',
+      errorCodes.action_not_allowed
+    )
+  }
+
+  if (String(existing.status || '') === PURCHASE_ORDER_STATUS.CLOSED) {
+    await PoProductModel.updateMany(
+      {
+        purchaseOrderId,
+        isDeleted: false,
+      },
+      {
+        $set: {
+          status: 'po_closed',
+          procurementStatus: PO_PRODUCT_PROCUREMENT_STATUS.PO_CLOSED,
+        },
+      }
+    )
+    return PurchaseOrderModel.findById(purchaseOrderId)
+      .populate('quotationId', 'quotationCode status')
+      .populate('queryId', 'queryCode status')
+      .populate('industry_id', 'name location email')
+      .lean()
+  }
+
+  await PurchaseOrderModel.findByIdAndUpdate(
+    purchaseOrderId,
+    { $set: { status: PURCHASE_ORDER_STATUS.CLOSED } },
+    { new: true, runValidators: true }
+  )
+
+  await PoProductModel.updateMany(
+    {
+      purchaseOrderId,
+      isDeleted: false,
+    },
+    {
+      $set: {
+        status: 'po_closed',
+        procurementStatus: PO_PRODUCT_PROCUREMENT_STATUS.PO_CLOSED,
+      },
+    }
+  )
+
+  const updated = await PurchaseOrderModel.findById(purchaseOrderId)
     .populate('quotationId', 'quotationCode status')
     .populate('queryId', 'queryCode status')
     .populate('industry_id', 'name location email')

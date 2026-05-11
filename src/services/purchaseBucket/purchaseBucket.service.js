@@ -41,6 +41,9 @@ export const resolvePoLineStatusKey = (doc) => {
   if (st === 'finance_approved' || pr === 'finance_approved') {
     return 'finance_approved'
   }
+  if (st === 'billing_request_rejected') {
+    return 'billing_request_rejected'
+  }
   if (st === 'payment_request_raised' || pr === 'payment_request_raised') {
     return 'payment_request_raised'
   }
@@ -634,6 +637,7 @@ export const raisePurchaseBucketPaymentRequest = async ({
   const currentProcurement =
     allowed.procurementStatus || PO_PRODUCT_PROCUREMENT_STATUS.OPEN
   const lineStatus = String(allowed.status || 'pending')
+  const isRejectedResubmit = lineStatus === 'billing_request_rejected'
   if (
     lineStatus === 'purchased' ||
     resolvePoLineStatusKey(allowed) === 'purchased'
@@ -655,9 +659,10 @@ export const raisePurchaseBucketPaymentRequest = async ({
     )
   }
   if (
-    currentProcurement ===
+    !isRejectedResubmit &&
+    (currentProcurement ===
       PO_PRODUCT_PROCUREMENT_STATUS.PAYMENT_REQUEST_RAISED ||
-    lineStatus === 'payment_request_raised'
+      lineStatus === 'payment_request_raised')
   ) {
     throw new CustomError(
       statusCodes.badRequest,
@@ -718,6 +723,77 @@ export const raisePurchaseBucketPaymentRequest = async ({
   }
 
   const productSnapshot = buildPoLineProductSnapshot(allowed)
+
+  if (isRejectedResubmit) {
+    const brRaw = allowed.purchaseBillingRequestId
+    const brRef =
+      brRaw && typeof brRaw === 'object' && brRaw._id != null
+        ? brRaw._id
+        : brRaw
+    const brOid = toOid(brRef)
+    if (!brOid) {
+      throw new CustomError(
+        statusCodes.badRequest,
+        'No purchase billing request is linked for this line; cannot resubmit.',
+        errorCodes.bad_request
+      )
+    }
+    const existingBr = await PurchaseBillingRequestModel.findOne({
+      _id: brOid,
+      isDeleted: false,
+    }).lean()
+    if (!existingBr) {
+      throw new CustomError(
+        statusCodes.notFound,
+        'Linked billing request not found',
+        errorCodes.not_found
+      )
+    }
+    if (existingBr.status !== PURCHASE_BILLING_REQUEST_STATUS.REJECTED) {
+      throw new CustomError(
+        statusCodes.badRequest,
+        'This billing request is not in a rejected state and cannot be resubmitted this way.',
+        errorCodes.bad_request
+      )
+    }
+    const existingLineId = toOid(existingBr.poProductId)
+    if (!existingLineId || String(existingLineId) !== String(oid)) {
+      throw new CustomError(
+        statusCodes.badRequest,
+        'Billing request does not match this PO line',
+        errorCodes.bad_request
+      )
+    }
+
+    await PurchaseBillingRequestModel.findByIdAndUpdate(brOid, {
+      $set: {
+        status: PURCHASE_BILLING_REQUEST_STATUS.PENDING,
+        amount: amt,
+        billDocumentId: billId,
+        requestRemark: normalizeRequestRemark(remark),
+        productSnapshot,
+        approvedBy: null,
+        approvedAt: null,
+        approvedBySnapshot: null,
+        proofDocumentId: null,
+      },
+    })
+
+    await PoProductModel.findByIdAndUpdate(oid, {
+      $set: {
+        procurementStatus: PO_PRODUCT_PROCUREMENT_STATUS.PAYMENT_REQUEST_RAISED,
+        status: 'payment_request_raised',
+        paymentRequestAmount: amt,
+        paymentRequestBillDocumentId: billId,
+        paymentRequestRaisedAt: new Date(),
+        paymentRequestRaisedBy: creatorId,
+        purchaseBillingRequestId: brOid,
+      },
+    })
+
+    return getPurchaseBucketPoProductById(String(oid), user)
+  }
+
   const billingRequest = await PurchaseBillingRequestModel.create({
     poProductId: oid,
     purchaseOrderId: allowed.purchaseOrderId || null,

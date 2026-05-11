@@ -5,9 +5,18 @@ import QueryProductModel, {
 } from '../../models/queryProduct.model.js'
 import SupplierModel from '../../models/supplier.model.js'
 import { transformPathsToSignedUrls } from '../document/document.service.js'
-import { notifyBranchHods } from '../notification/notification.service.js'
+import {
+  createNotifications,
+  getEmployeeIdsByRoles,
+} from '../notification/notification.service.js'
 
 const OBJECT_ID_REGEX = /^[a-fA-F0-9]{24}$/
+const PRO_BUCKET_HOD_ROLES = ['head_of_department', 'hod']
+const BACK_OFFICE_ROLES = [
+  'back_office_exicutive',
+  'back_office_executive',
+  'boe',
+]
 
 const toOid = (v) => {
   if (v == null || v === '') return null
@@ -20,6 +29,113 @@ const supplierSnapshot = (sup) => {
   const o = typeof sup.toObject === 'function' ? sup.toObject() : { ...sup }
   delete o.password
   return o
+}
+
+const mergeUniqueIds = (...lists) => {
+  const seen = new Set()
+  const out = []
+  for (const list of lists) {
+    for (const id of list || []) {
+      const key = String(id || '')
+      if (!key || seen.has(key)) continue
+      seen.add(key)
+      out.push(key)
+    }
+  }
+  return out
+}
+
+const notifyRateSubmittedRecipients = async ({
+  io,
+  queryBranchId,
+  submitterBranchId,
+  doc,
+  queryProductId,
+  status,
+}) => {
+  if (!doc?._id) return
+
+  try {
+    const branchIdsForHods = mergeUniqueIds([queryBranchId, submitterBranchId])
+
+    const [hodResults, backOfficeEmployeeIds] = await Promise.all([
+      Promise.all(
+        branchIdsForHods.map((bid) =>
+          getEmployeeIdsByRoles({
+            branchId: bid,
+            roles: PRO_BUCKET_HOD_ROLES,
+          })
+        )
+      ),
+      getEmployeeIdsByRoles({ roles: BACK_OFFICE_ROLES }),
+    ])
+    const queryBranchHodIds = queryBranchId ? hodResults[0] || [] : []
+    const submitterBranchHodIds = submitterBranchId
+      ? hodResults[branchIdsForHods.indexOf(String(submitterBranchId))] || []
+      : []
+    const hodEmployeeIds = mergeUniqueIds(...hodResults)
+    const recipientEmployeeIds = mergeUniqueIds(
+      hodEmployeeIds,
+      backOfficeEmployeeIds
+    )
+
+    console.info(
+      '[proBucket][notify] queryProductId=%s queryBranchId=%s submitterBranchId=%s hodCount=%d boeCount=%d totalRecipients=%d',
+      String(queryProductId),
+      queryBranchId ? String(queryBranchId) : 'null',
+      submitterBranchId ? String(submitterBranchId) : 'null',
+      hodEmployeeIds.length,
+      backOfficeEmployeeIds.length,
+      recipientEmployeeIds.length
+    )
+
+    if (!recipientEmployeeIds.length) {
+      console.warn(
+        '[proBucket][notify] No HOD/BOE recipients resolved; skipping notification'
+      )
+      return
+    }
+
+    const qCode = doc?.queryCode || doc?.queryId?.queryCode || ''
+    const productName = doc?.productName || 'Product line'
+    const isFulfilled = String(status || '') === 'fulfilled'
+
+    const result = await createNotifications({
+      title: isFulfilled
+        ? 'Pro bucket: rates complete'
+        : 'Pro bucket: rate submitted',
+      description: isFulfilled
+        ? `Query ${qCode}: "${productName}" has three rates (fulfilled).`
+        : `Query ${qCode}: "${productName}" has new supplier rate(s) submitted.`,
+      employeeIds: recipientEmployeeIds,
+      io,
+      metadata: {
+        eventType: isFulfilled
+          ? 'pro_bucket_fulfilled'
+          : 'pro_bucket_rate_submitted',
+        queryProductId: String(queryProductId),
+        queryId: String(doc?.queryId?._id || doc?.queryId || ''),
+        queryCode: String(qCode || ''),
+        queryBranchId: queryBranchId ? String(queryBranchId) : '',
+        submitterBranchId: submitterBranchId ? String(submitterBranchId) : '',
+        productName,
+        status: String(status || ''),
+        recipientEmployeeIds,
+        hodEmployeeIds: hodEmployeeIds.map(String),
+        queryBranchHodIds: queryBranchHodIds.map(String),
+        submitterBranchHodIds: submitterBranchHodIds.map(String),
+        backOfficeEmployeeIds: backOfficeEmployeeIds.map(String),
+      },
+    })
+
+    console.info(
+      '[proBucket][notify] inserted=%d socketEmitted=%s',
+      result?.count || 0,
+      io ? 'yes' : 'no'
+    )
+  } catch (err) {
+    console.error('Failed to notify pro bucket rate recipients', err)
+  }
 }
 
 const PRO_BUCKET_LIST_STATUSES = new Set([
@@ -163,7 +279,6 @@ export const appendProBucketRates = async (id, ratesInput, user, io = null) => {
   if (!existing) {
     return null
   }
-  const previousStatus = String(existing.status || 'pending')
 
   const toPush = []
   for (const r of ratesInput) {
@@ -205,53 +320,38 @@ export const appendProBucketRates = async (id, ratesInput, user, io = null) => {
 
   const doc = await getProBucketQueryProductById(String(oid))
   const nextStatusStr = String(doc?.status || '')
-  if (
-    io &&
-    previousStatus !== nextStatusStr &&
-    (nextStatusStr === 'rate_submitted' || nextStatusStr === 'fulfilled')
-  ) {
-    let branchId =
-      doc?.queryId &&
-      typeof doc.queryId === 'object' &&
-      doc.queryId.branchId != null
-        ? doc.queryId.branchId
-        : null
-    if (!branchId && existing.queryId) {
-      const q = await QueryModel.findById(existing.queryId)
-        .select('branchId')
-        .lean()
-      branchId = q?.branchId || null
-    }
-    if (branchId) {
-      const qCode = doc?.queryCode || doc?.queryId?.queryCode || ''
-      const prod = doc?.productName || 'Product line'
-      if (nextStatusStr === 'fulfilled') {
-        await notifyBranchHods(
-          io,
-          branchId,
-          'Pro bucket: rates complete',
-          `Query ${qCode}: "${prod}" has three rates (fulfilled).`,
-          {
-            eventType: 'pro_bucket_fulfilled',
-            queryProductId: String(oid),
-            queryCode: qCode,
-          }
-        )
-      } else {
-        await notifyBranchHods(
-          io,
-          branchId,
-          'Pro bucket: rate submitted',
-          `Query ${qCode}: "${prod}" has new supplier rate(s) submitted.`,
-          {
-            eventType: 'pro_bucket_rate_submitted',
-            queryProductId: String(oid),
-            queryCode: qCode,
-          }
-        )
-      }
-    }
+
+  let queryBranchId =
+    doc?.queryId &&
+    typeof doc.queryId === 'object' &&
+    doc.queryId.branchId != null
+      ? doc.queryId.branchId
+      : null
+  if (!queryBranchId && existing.queryId) {
+    const q = await QueryModel.findById(existing.queryId)
+      .select('branchId')
+      .lean()
+    queryBranchId = q?.branchId || null
   }
+  const submitterBranchId = user?.branchId || null
+
+  console.info(
+    '[proBucket][rates] appended id=%s addedRates=%d newStatus=%s queryBranchId=%s submitterBranchId=%s',
+    String(oid),
+    toPush.length,
+    nextStatusStr,
+    queryBranchId ? String(queryBranchId) : 'null',
+    submitterBranchId ? String(submitterBranchId) : 'null'
+  )
+
+  await notifyRateSubmittedRecipients({
+    io,
+    queryBranchId,
+    submitterBranchId,
+    doc,
+    queryProductId: oid,
+    status: nextStatusStr,
+  })
 
   return doc
 }

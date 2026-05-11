@@ -12,6 +12,7 @@ import {
   updatePurchaseOrderController,
   updatePurchaseOrderStatusController,
   appendPurchaseOrderPaymentController,
+  closePurchaseOrderAsHodController,
 } from '../controller/purchaseOrder/purchaseOrder.controller.js'
 
 const purchaseOrderRouter = Router()
@@ -57,6 +58,11 @@ purchaseOrderRouter.put(
   authenticateToken,
   checkPermission(MODULES.PURCHASE_ORDERS, 'update'),
   asyncHandler(updatePurchaseOrderController)
+)
+purchaseOrderRouter.put(
+  '/hod-close',
+  authenticateToken,
+  asyncHandler(closePurchaseOrderAsHodController)
 )
 purchaseOrderRouter.put(
   '/update-status',

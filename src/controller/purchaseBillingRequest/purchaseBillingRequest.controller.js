@@ -5,6 +5,7 @@ import {
   idParamSchema,
   updateRemarkBodySchema,
   approveBodySchema,
+  rejectBodySchema,
   updateProofBodySchema,
 } from '../../validator/purchaseBillingRequest/purchaseBillingRequest.validator.js'
 import {
@@ -13,6 +14,7 @@ import {
   updatePurchaseBillingRequestRemark,
   updatePurchaseBillingRequestProof,
   approvePurchaseBillingRequest,
+  rejectPurchaseBillingRequest,
 } from '../../services/purchaseBillingRequest/purchaseBillingRequest.service.js'
 
 export const listPurchaseBillingRequestsController = async (req, res) => {
@@ -165,6 +167,51 @@ export const approvePurchaseBillingRequestController = async (req, res) => {
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Billing request approved',
+    data,
+  })
+}
+
+export const rejectPurchaseBillingRequestController = async (req, res) => {
+  const { error: pErr, value: pVal } = idParamSchema.validate(req.params, {
+    abortEarly: false,
+  })
+  if (pErr) {
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: Message.validationError,
+      error: pErr.details.map((d) => d.message),
+    })
+  }
+  const { error, value } = rejectBodySchema.validate(req.body, {
+    abortEarly: false,
+  })
+  if (error) {
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: Message.validationError,
+      error: error.details.map((d) => d.message),
+    })
+  }
+  const data = await rejectPurchaseBillingRequest(
+    pVal.id,
+    value.statusRemark,
+    req.user
+  )
+  const io = req.app.get('io')
+  await notifyBranchHods(
+    io,
+    data?.branchId,
+    'Billing request rejected',
+    `Purchase billing request for ${data?.poCode || 'PO'} · ${data?.productName || 'product'} was rejected (₹${Number(data?.amount || 0).toLocaleString('en-IN')}).`,
+    {
+      eventType: 'billing_request_rejected',
+      purchaseBillingRequestId: String(pVal.id),
+      poCode: data?.poCode,
+    }
+  )
+  return res.status(statusCodes.ok).json({
+    success: true,
+    message: 'Billing request rejected',
     data,
   })
 }

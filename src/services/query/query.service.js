@@ -53,8 +53,12 @@ import {
   softDeleteQueryProductRowsForQuery,
 } from '../queryProduct/queryProduct.service.js'
 import QueryProductModel from '../../models/queryProduct.model.js'
+import { createNotifications } from '../notification/notification.service.js'
 
 const OBJECT_ID_REGEX = /^[a-fA-F0-9]{24}$/
+const PROCUREMENT_QUERY_ROLES = ['procurement']
+const QUERY_ZONE_HOD_ROLES = ['head_of_department', 'hod']
+const QUERY_ZONE_SALES_ROLES = ['sales_manager', 'sales_exicutive', 'sales']
 
 /** Pro bucket / query_products line statuses that count as “rate available”. */
 const QUERY_PRODUCT_RATE_STATUSES = ['rate_submitted', 'fulfilled']
@@ -187,6 +191,166 @@ const normalizeQueryProductIds = (p) => {
     next.categoryId = null
   }
   return next
+}
+
+const toObjectIdOrNull = (value) => {
+  if (!value) return null
+  const id = typeof value === 'object' && value._id ? value._id : value
+  return mongoose.Types.ObjectId.isValid(String(id))
+    ? new mongoose.Types.ObjectId(String(id))
+    : null
+}
+
+const collectQueryGroupIds = (products = []) => {
+  const seen = new Set()
+  const out = []
+  for (const product of Array.isArray(products) ? products : []) {
+    const oid = toObjectIdOrNull(product?.groupId)
+    if (!oid) continue
+    const key = String(oid)
+    if (seen.has(key)) continue
+    seen.add(key)
+    out.push(oid)
+  }
+  return out
+}
+
+const resolveQueryZoneId = async (query = {}) => {
+  const industryId = toObjectIdOrNull(query.industry_id)
+  if (industryId) {
+    const industry = await IndustryModel.findById(industryId)
+      .select('area')
+      .lean()
+    const zoneId = toObjectIdOrNull(industry?.area)
+    if (zoneId) return zoneId
+  }
+  return toObjectIdOrNull(query?.companyInfo?.area)
+}
+
+const collectEmployeeIds = (employees = []) => {
+  const out = []
+  const seen = new Set()
+  for (const employee of employees) {
+    const id = employee?._id
+    if (!id) continue
+    const key = String(id)
+    if (seen.has(key)) continue
+    seen.add(key)
+    out.push(key)
+  }
+  return out
+}
+
+const mergeUniqueIds = (...lists) => {
+  const seen = new Set()
+  const out = []
+  for (const list of lists) {
+    for (const id of list || []) {
+      const key = String(id)
+      if (!key || seen.has(key)) continue
+      seen.add(key)
+      out.push(key)
+    }
+  }
+  return out
+}
+
+/**
+ * Notify procurement employees assigned to query item groups and zone owners
+ * (HOD + sales roles) for the client zone. Non-throwing by design so query
+ * creation is never blocked by notification delivery.
+ */
+export const notifyEmployeesForCreatedQuery = async ({ query, io } = {}) => {
+  if (!query?._id) return { created: [], count: 0 }
+
+  try {
+    const branchId = toObjectIdOrNull(query.branchId)
+    const branchFilter = branchId ? { branchId } : {}
+    const groupIds = collectQueryGroupIds(query.products)
+    const zoneId = await resolveQueryZoneId(query)
+
+    let procurementEmployeeIds = []
+    let hodEmployeeIds = []
+    let salesEmployeeIds = []
+
+    if (groupIds.length) {
+      const procurementEmployees = await EmployeeModel.find({
+        ...branchFilter,
+        role: { $in: PROCUREMENT_QUERY_ROLES },
+        assigned_groups: { $in: groupIds },
+        isDeleted: false,
+      })
+        .select('_id')
+        .lean()
+      procurementEmployeeIds = collectEmployeeIds(procurementEmployees)
+    }
+
+    if (zoneId) {
+      const zoneMatch = {
+        $or: [{ zoneIds: zoneId }, { zoneId }],
+      }
+
+      const [hodZoneEmployees, salesZoneEmployees] = await Promise.all([
+        EmployeeModel.find({
+          ...branchFilter,
+          role: { $in: QUERY_ZONE_HOD_ROLES },
+          ...zoneMatch,
+          isDeleted: false,
+        })
+          .select('_id')
+          .lean(),
+        EmployeeModel.find({
+          ...branchFilter,
+          role: { $in: QUERY_ZONE_SALES_ROLES },
+          ...zoneMatch,
+          isDeleted: false,
+        })
+          .select('_id')
+          .lean(),
+      ])
+      hodEmployeeIds = collectEmployeeIds(hodZoneEmployees)
+      salesEmployeeIds = collectEmployeeIds(salesZoneEmployees)
+    }
+
+    const recipientIds = mergeUniqueIds(
+      procurementEmployeeIds,
+      hodEmployeeIds,
+      salesEmployeeIds
+    )
+
+    if (!recipientIds.length) return { created: [], count: 0 }
+
+    const queryCode =
+      query.queryCode ||
+      query.query_tracking_code ||
+      String(query._id || '').slice(-8)
+    const companyName = String(query?.companyInfo?.name || '').trim()
+    const description = companyName
+      ? `Query ${queryCode} was created for ${companyName}.`
+      : `Query ${queryCode} was created.`
+
+    return createNotifications({
+      title: 'New query created',
+      description,
+      employeeIds: recipientIds,
+      io,
+      metadata: {
+        eventType: 'query_created',
+        queryId: String(query._id),
+        queryCode: String(queryCode || ''),
+        branchId: branchId ? String(branchId) : '',
+        zoneId: zoneId ? String(zoneId) : '',
+        groupIds: groupIds.map(String),
+        recipientEmployeeIds: recipientIds,
+        procurementEmployeeIds,
+        hodEmployeeIds,
+        salesEmployeeIds,
+      },
+    })
+  } catch (err) {
+    console.error('Failed to notify employees for created query', err)
+    return { created: [], count: 0 }
+  }
 }
 
 /**
@@ -505,6 +669,118 @@ export const getQueryById = async ({
 
   const [withRefs] = await mergeQuotationRefsForQueries([query])
   return withRefs
+}
+
+/**
+ * Procurement (Pro Bucket) rates for one query line, from `query_products`.
+ * Respects the same branch + ownership rules as {@link getQueryById}.
+ */
+export const getQueryLineProcurementRates = async ({
+  queryId,
+  rawProductCode,
+  lineIndex,
+  branchFilter = {},
+  currentUserId = null,
+  isFullAccessRole = true,
+  role = '',
+}) => {
+  if (!queryId || !mongoose.Types.ObjectId.isValid(String(queryId))) {
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Invalid query id',
+      errorCodes.bad_request
+    )
+  }
+  const code = String(rawProductCode ?? '').trim()
+  if (!code) {
+    throw new CustomError(
+      statusCodes.badRequest,
+      'rawProductCode is required',
+      errorCodes.bad_request
+    )
+  }
+
+  const ownershipFilter = await resolveQueryAccessFilter({
+    currentUserId,
+    isFullAccessRole,
+    role,
+    branchFilter,
+  })
+  const queryOk = await QueryModel.findOne({
+    _id: queryId,
+    isDeleted: false,
+    ...branchFilter,
+    ...ownershipFilter,
+  })
+    .select('_id')
+    .lean()
+  if (!queryOk) {
+    throw new CustomError(
+      statusCodes.notFound,
+      'Query not found',
+      errorCodes.not_found
+    )
+  }
+
+  const qid = new mongoose.Types.ObjectId(String(queryId))
+  let doc = null
+
+  if (lineIndex != null && lineIndex !== '') {
+    const li = Number(lineIndex)
+    if (Number.isFinite(li) && li >= 0) {
+      doc = await QueryProductModel.findOne({
+        queryId: qid,
+        lineIndex: li,
+        isDeleted: false,
+      })
+        .select('rawProductCode rates productName lineIndex status')
+        .lean()
+      if (doc && String(doc.rawProductCode || '').trim() !== code) {
+        doc = null
+      }
+    }
+  }
+  if (!doc) {
+    doc = await QueryProductModel.findOne({
+      queryId: qid,
+      rawProductCode: code,
+      isDeleted: false,
+    })
+      .sort({ lineIndex: 1 })
+      .select('rawProductCode rates productName lineIndex status')
+      .lean()
+  }
+
+  const rates = Array.isArray(doc?.rates) ? doc.rates : []
+
+  const normalizeSupplier = (s) => {
+    if (s == null) return null
+    if (typeof s === 'object') {
+      const copy = { ...s }
+      if (copy._id != null) copy._id = String(copy._id)
+      return copy
+    }
+    return { _id: String(s) }
+  }
+
+  return {
+    rawProductCode: code,
+    lineIndex: doc?.lineIndex ?? null,
+    productName: doc?.productName || '',
+    status: doc?.status || null,
+    rates: rates.map((r) => ({
+      _id: r?._id != null ? String(r._id) : undefined,
+      supplier: normalizeSupplier(r?.supplier),
+      rate:
+        typeof r?.rate === 'number' && !Number.isNaN(r.rate)
+          ? r.rate
+          : null,
+      unit: String(r?.unit || ''),
+      remark: String(r?.remark || ''),
+      submittedAt: r?.submittedAt || null,
+      submittedBy: r?.submittedBy != null ? String(r.submittedBy) : null,
+    })),
+  }
 }
 
 const resolvePerformerName = async (performerId) => {

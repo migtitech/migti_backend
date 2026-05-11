@@ -152,6 +152,17 @@ export const updateEmployeeSchema = Joi.object({
     .optional(),
 }).unknown(true)
 
+export const updateEmployeePasswordSchema = Joi.object({
+  employeeId: Joi.string().required(),
+  newPassword: Joi.string().required().min(6),
+  confirmPassword: Joi.string()
+    .required()
+    .valid(Joi.ref('newPassword'))
+    .messages({
+      'any.only': 'New password and confirm password must match',
+    }),
+})
+
 export const deleteEmployeeSchema = Joi.object({
   employeeId: Joi.string().required(),
 })
@@ -187,4 +198,35 @@ export const loginEmployeeSchema = Joi.object({
       'dispatch_manager'
     )
     .required(),
+})
+
+export const passwordResetRequestSchema = Joi.object({
+  email: Joi.string().email().required(),
+  role: Joi.string()
+    .valid(
+      'head_of_department',
+      'sales_manager',
+      'sales_exicutive',
+      'purchase_manager',
+      'purchase_exicutive',
+      'procurement',
+      'back_office_exicutive',
+      'administrator',
+      'procurement',
+      'hod',
+      'sm',
+      'se',
+      'pm',
+      'pe',
+      'boe',
+      'admin',
+      'sales',
+      'purchase',
+      'finance',
+      'delivery',
+      'inventry_manager',
+      'dispatch_manager'
+    )
+    .required(),
+  message: Joi.string().trim().min(5).max(1000).required(),
 })

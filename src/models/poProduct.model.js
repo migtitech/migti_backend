@@ -138,7 +138,7 @@ const poProductSchema = new mongoose.Schema(
     /** Purchase Bucket: procurement payment request workflow */
     procurementStatus: {
       type: SchemaTypes.String,
-      enum: ['open', 'payment_request_raised', 'finance_approved'],
+      enum: ['open', 'payment_request_raised', 'finance_approved', 'po_closed'],
       default: 'open',
       index: true,
       trim: true,
@@ -180,6 +180,8 @@ const poProductSchema = new mongoose.Schema(
         'delivered',
         'payment_request_raised',
         'finance_approved',
+        'billing_request_rejected',
+        'po_closed',
       ],
       default: 'pending',
       index: true,
@@ -192,6 +194,8 @@ const poProductSchema = new mongoose.Schema(
 export const PO_PRODUCT_PROCUREMENT_STATUS = Object.freeze({
   OPEN: 'open',
   PAYMENT_REQUEST_RAISED: 'payment_request_raised',
+  FINANCE_APPROVED: 'finance_approved',
+  PO_CLOSED: 'po_closed',
 })
 
 /** @deprecated use PO_PRODUCT_LINE_STATUS — alias for existing imports */
@@ -210,6 +214,9 @@ export const PO_PRODUCT_LINE_STATUS = PO_PRODUCT_INVENTORY_STATUS
 export const resolvePoProductLineStatus = (doc) => {
   if (!doc || typeof doc !== 'object') return 'pending'
   const s0 = String((doc.status ?? doc.inventoryStatus) || '').trim()
+  if (s0 === 'po_closed') return 'po_closed'
+  if (String(doc.procurementStatus || '').trim() === 'po_closed')
+    return 'po_closed'
   if (s0 === 'purchased') return 'purchased'
   if (
     s0 === 'finance_approved' ||
@@ -227,12 +234,14 @@ export const resolvePoProductLineStatus = (doc) => {
   const t = String(s)
   if (t === 'purchased') return 'purchased'
   if (t === 'finance_approved') return 'finance_approved'
+  if (t === 'po_closed') return 'po_closed'
   if (
     t === 'ready_for_dispatchment' ||
     t === 'inventory_received' ||
     t === 'delivered' ||
     t === 'pending' ||
-    t === 'payment_request_raised'
+    t === 'payment_request_raised' ||
+    t === 'billing_request_rejected'
   )
     return t
   return 'pending'

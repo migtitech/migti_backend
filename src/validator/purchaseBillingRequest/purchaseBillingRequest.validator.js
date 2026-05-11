@@ -26,6 +26,27 @@ export const approveBodySchema = Joi.object({
   statusRemark: Joi.string().allow('').optional(),
 })
 
+export const rejectBodySchema = Joi.object({
+  statusRemark: Joi.string()
+    .trim()
+    .required()
+    .custom((value, helpers) => {
+      const words = String(value || '')
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean)
+      if (words.length < 10) {
+        return helpers.error('any.invalid')
+      }
+      return value
+    })
+    .messages({
+      'any.invalid': 'Reject remark must contain at least 10 words',
+      'string.empty': 'Reject remark is required',
+      'any.required': 'Reject remark is required',
+    }),
+})
+
 /** Set or clear optional proof attachment (`null` or `""` clears). */
 export const updateProofBodySchema = Joi.object({
   proofDocumentId: Joi.alternatives()

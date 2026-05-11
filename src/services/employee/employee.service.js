@@ -1,8 +1,8 @@
 import EmployeeModel from '../../models/employee.model.js'
+import PasswordResetRequestModel from '../../models/passwordResetRequest.model.js'
 import { assertSubZoneBelongsToArea } from '../subZone/subZone.service.js'
 import CustomError from '../../utils/exception.js'
 import {
-  Message,
   statusCodes,
   errorCodes,
   MODULES,
@@ -409,6 +409,30 @@ export const updateEmployee = async ({
   return withNormalizedZones(updatedEmployee)
 }
 
+export const updateEmployeePassword = async ({
+  employeeId,
+  newPassword,
+  branchFilter = {},
+}) => {
+  const employee = await EmployeeModel.findOne({
+    _id: employeeId,
+    ...branchFilter,
+  }).lean()
+  if (!employee) {
+    throw new CustomError(
+      statusCodes.notFound,
+      'Employee not found',
+      errorCodes.not_found
+    )
+  }
+
+  await EmployeeModel.findByIdAndUpdate(employeeId, {
+    password: encrypt(newPassword),
+  })
+
+  return { updated: true }
+}
+
 export const deleteEmployee = async ({ employeeId, branchFilter = {} }) => {
   const employee = await EmployeeModel.findOne({
     _id: employeeId,
@@ -435,11 +459,20 @@ export const deleteEmployee = async ({ employeeId, branchFilter = {} }) => {
 }
 
 export const employeeLogin = async ({ email, password, role }) => {
-  const employee = await EmployeeModel.findOne({ email, role }).lean()
+  const emailTrimmed = String(email || '').trim()
+  const emailRegex = new RegExp(`^${escapeRegex(emailTrimmed)}$`, 'i')
+  const employee = await EmployeeModel.findOne({ email: emailRegex }).lean()
   if (!employee) {
     throw new CustomError(
       statusCodes.notFound,
-      Message.notFound,
+      'Email not found. Please check and try again.',
+      errorCodes.not_found
+    )
+  }
+  if (role && employee.role !== role) {
+    throw new CustomError(
+      statusCodes.notFound,
+      'Email not found. Please check and try again.',
       errorCodes.not_found
     )
   }
@@ -448,7 +481,7 @@ export const employeeLogin = async ({ email, password, role }) => {
   if (password !== decryptedPassword) {
     throw new CustomError(
       statusCodes.unauthorized,
-      Message.wrongPassword,
+      'Incorrect password. Please try again.',
       errorCodes.unauthorized
     )
   }
@@ -474,5 +507,30 @@ export const employeeLogin = async ({ email, password, role }) => {
   return {
     employee: safeEmployee,
     ...tokens,
+  }
+}
+
+export const createPasswordResetRequest = async ({ email, role, message }) => {
+  const emailTrimmed = String(email || '').trim()
+  const emailRegex = new RegExp(`^${escapeRegex(emailTrimmed)}$`, 'i')
+  const employee = await EmployeeModel.findOne({ email: emailRegex }).lean()
+  if (!employee || employee.role !== role) {
+    throw new CustomError(
+      statusCodes.notFound,
+      'Email not found. Please check and try again.',
+      errorCodes.not_found
+    )
+  }
+
+  const created = await PasswordResetRequestModel.create({
+    userId: employee._id,
+    message: String(message || '').trim(),
+    email: String(employee.email || '').trim().toLowerCase(),
+    role: employee.role,
+  })
+
+  return {
+    requestId: created._id,
+    userId: employee._id,
   }
 }

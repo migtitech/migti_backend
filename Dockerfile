@@ -1,4 +1,4 @@
-FROM node:20-bookworm
+owFROM node:20-bookworm
 WORKDIR /app
 
 # Shared libraries for Puppeteer's bundled Chrome (headless PDF export)

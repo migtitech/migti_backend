@@ -42,6 +42,7 @@ import {
   updateIndustry,
   deleteIndustry,
 } from '../../services/industry/industry.service.js'
+import { notifyBranchHods } from '../../services/notification/notification.service.js'
 
 export const createIndustryController = async (req, res) => {
   const { error, value } = createIndustrySchema.validate(req.body, {
@@ -57,6 +58,17 @@ export const createIndustryController = async (req, res) => {
 
   const branchId = getEffectiveBranchIdForCreate(req, value.branchId)
   const result = await addIndustry({ ...value, branchId })
+
+  const io = req.app.get('io')
+  const actorBranchId = req.user?.branchId
+  await notifyBranchHods(
+    io,
+    actorBranchId,
+    'New client added',
+    `Client "${result?.name || ''}" was added in your branch.`,
+    { eventType: 'client_created', industryId: String(result?._id || '') }
+  )
+
   return res.status(statusCodes.created).json({
     success: true,
     message: 'Industry created successfully',
