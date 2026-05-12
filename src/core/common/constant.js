@@ -395,6 +395,8 @@ export const MODULES = Object.freeze({
   INVENTORY_BUCKET: 'inventory_bucket',
   /** PO payment screen, PO–billing entries (po-billing API). */
   PO_PAYMENT: 'po_payment',
+  /** PO payment backlog — tracks payment dues created on HOD approval. */
+  PO_PAYMENT_BACKLOG: 'po_payment_backlog',
   /** Purchase billing requests list / approve workflow. */
   BILLING_REQUEST: 'billing_request',
   /** Dispatchment queue. */

@@ -91,6 +91,8 @@ export const PURCHASE_ORDER_STATUS = {
   CONFIRMED: 'confirmed',
   FULFILLED: 'fulfilled',
   CANCELLED: 'cancelled',
+  /** HOD-only approval from PO bucket detail — recorded on `purchaseorders.status`. */
+  HOD_APPROVED: 'hod_approved',
   /** HOD-only close from PO bucket — lines move to `po_closed` on `po_products`. */
   CLOSED: 'closed',
 }

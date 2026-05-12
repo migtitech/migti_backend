@@ -1305,6 +1305,89 @@ export const updatePurchaseOrderStatus = async ({
   return updated
 }
 
+/** Head of department: set PO status to `hod_approved` (purchase order row only). */
+export const approvePurchaseOrderAsHod = async ({
+  purchaseOrderId,
+  branchFilter = {},
+}) => {
+  const existing = await PurchaseOrderModel.findOne({
+    _id: purchaseOrderId,
+    isDeleted: false,
+    ...branchFilter,
+  }).lean()
+
+  if (!existing) {
+    throw new CustomError(
+      statusCodes.notFound,
+      'Purchase order not found',
+      errorCodes.not_found
+    )
+  }
+
+  if (String(existing.status || '') === PURCHASE_ORDER_STATUS.CANCELLED) {
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Cannot approve a cancelled purchase order',
+      errorCodes.action_not_allowed
+    )
+  }
+
+  if (String(existing.status || '') === PURCHASE_ORDER_STATUS.CLOSED) {
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Cannot approve a closed purchase order',
+      errorCodes.action_not_allowed
+    )
+  }
+
+  if (String(existing.status || '') === PURCHASE_ORDER_STATUS.HOD_APPROVED) {
+    return PurchaseOrderModel.findById(purchaseOrderId)
+      .populate('quotationId', 'quotationCode status')
+      .populate('queryId', 'queryCode status')
+      .populate('industry_id', 'name location email')
+      .lean()
+  }
+
+  const updated = await PurchaseOrderModel.findByIdAndUpdate(
+    purchaseOrderId,
+    { $set: { status: PURCHASE_ORDER_STATUS.HOD_APPROVED } },
+    { new: true, runValidators: true }
+  )
+    .populate('quotationId', 'quotationCode status')
+    .populate('queryId', 'queryCode status')
+    .populate('industry_id', 'name location email')
+    .lean()
+
+  // Create payment backlog entry for the newly approved PO (fire-and-forget).
+  try {
+    const { createPoPaymentBacklogEntry } = await import(
+      '../poPaymentBacklog/poPaymentBacklog.service.js'
+    )
+    const financials = computePurchaseOrderFinancials(updated, null)
+    const industryData = updated?.industry_id
+    const clients_snapshot = industryData
+      ? {
+          _id: industryData._id,
+          name: industryData.name,
+          location: industryData.location,
+          email: industryData.email,
+        }
+      : updated?.companyInfo
+        ? { name: updated.companyInfo.name, location: updated.companyInfo.location }
+        : null
+
+    await createPoPaymentBacklogEntry({
+      purchaseOrder: updated,
+      amount: financials.grandTotal,
+      clients_snapshot,
+    })
+  } catch (err) {
+    console.error('[approvePurchaseOrderAsHod] backlog creation failed:', err?.message || err)
+  }
+
+  return updated
+}
+
 /** Head of department: set PO `closed` and all `po_products` lines to `po_closed`. */
 export const closePurchaseOrderAsHod = async ({
   purchaseOrderId,

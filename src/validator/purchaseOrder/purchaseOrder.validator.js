@@ -145,16 +145,28 @@ const purchaseOrderStatusValuesWithoutClosed = purchaseOrderStatusValues.filter(
   (s) => s !== PURCHASE_ORDER_STATUS.CLOSED
 )
 
+/** `hod_approved` is set only via the HOD-only `/hod-approve` route. */
+const purchaseOrderStatusValuesForGenericUpdate =
+  purchaseOrderStatusValuesWithoutClosed.filter(
+    (s) => s !== PURCHASE_ORDER_STATUS.HOD_APPROVED
+  )
+
 export const updatePurchaseOrderStatusSchema = Joi.object({
   purchaseOrderId: Joi.string().pattern(objectIdPattern).required().messages({
     'string.pattern.base': 'purchaseOrderId must be a valid Mongo ObjectId',
   }),
   status: Joi.string()
-    .valid(...purchaseOrderStatusValuesWithoutClosed)
+    .valid(...purchaseOrderStatusValuesForGenericUpdate)
     .required(),
 })
 
 export const closePurchaseOrderAsHodSchema = Joi.object({
+  purchaseOrderId: Joi.string().pattern(objectIdPattern).required().messages({
+    'string.pattern.base': 'purchaseOrderId must be a valid Mongo ObjectId',
+  }),
+})
+
+export const approvePurchaseOrderAsHodSchema = Joi.object({
   purchaseOrderId: Joi.string().pattern(objectIdPattern).required().messages({
     'string.pattern.base': 'purchaseOrderId must be a valid Mongo ObjectId',
   }),

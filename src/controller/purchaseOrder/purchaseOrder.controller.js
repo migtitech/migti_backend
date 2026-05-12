@@ -12,6 +12,7 @@ import {
   updatePurchaseOrderStatusSchema,
   appendPurchaseOrderPaymentSchema,
   closePurchaseOrderAsHodSchema,
+  approvePurchaseOrderAsHodSchema,
 } from '../../validator/purchaseOrder/purchaseOrder.validator.js'
 import {
   listPurchaseOrders,
@@ -24,6 +25,7 @@ import {
   updatePurchaseOrderStatus,
   appendPurchaseOrderPayment,
   closePurchaseOrderAsHod,
+  approvePurchaseOrderAsHod,
 } from '../../services/purchaseOrder/purchaseOrder.service.js'
 
 const normalizeRole = (role) =>
@@ -33,6 +35,7 @@ const normalizeRole = (role) =>
     .replace(/[\s-]+/g, '_')
 
 const PO_BUCKET_HOD_ROLES = new Set(['head_of_department', 'hod'])
+const HEAD_OF_DEPARTMENT_ROLE = 'head_of_department'
 const isBackOfficeRole = (role) => {
   const normalized = normalizeRole(role)
   if (
@@ -333,6 +336,40 @@ export const updatePurchaseOrderStatusController = async (req, res) => {
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Purchase order status updated successfully',
+    data: result,
+  })
+}
+
+export const approvePurchaseOrderAsHodController = async (req, res) => {
+  const role = normalizeRole(req.user?.role)
+  if (role !== HEAD_OF_DEPARTMENT_ROLE) {
+    return res.status(statusCodes.forbidden).json({
+      success: false,
+      message:
+        'Only employees with the Head of Department role can approve purchase orders from the PO bucket',
+    })
+  }
+
+  const { error, value } = approvePurchaseOrderAsHodSchema.validate(
+    { ...req.body, ...req.query },
+    { abortEarly: false }
+  )
+  if (error) {
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: Message.validationError,
+      error: error.details.map((d) => d.message),
+    })
+  }
+
+  const branchFilter = resolvePoBranchFilter(req)
+  const result = await approvePurchaseOrderAsHod({
+    purchaseOrderId: value.purchaseOrderId,
+    branchFilter,
+  })
+  return res.status(statusCodes.ok).json({
+    success: true,
+    message: 'Purchase order marked HOD approved',
     data: result,
   })
 }
