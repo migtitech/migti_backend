@@ -118,6 +118,8 @@ const poProductSchema = new mongoose.Schema(
     },
     deliveryApprovedAt: { type: SchemaTypes.Date, default: null },
     poRate: { type: SchemaTypes.Number, min: 0, default: null },
+    /** Negotiation target rate set by procurement team */
+    targetRate: { type: SchemaTypes.Number, min: 0, default: null },
     applyDiscount: { type: SchemaTypes.Boolean, default: false },
     discountPercentage: {
       type: SchemaTypes.Number,
@@ -166,6 +168,13 @@ const poProductSchema = new mongoose.Schema(
       default: null,
       index: true,
     },
+    /** Link to `billing_requests` (batch billing request raised from purchase bucket) */
+    billingRequestId: {
+      type: SchemaTypes.ObjectId,
+      ref: 'billingRequest',
+      default: null,
+      index: true,
+    },
     /**
      * Line workflow: inventory / dispatch, plus purchase-bucket payment request.
      * Legacy key in DB was `inventoryStatus` — read with $ifNull / fallback in services.
@@ -173,6 +182,7 @@ const poProductSchema = new mongoose.Schema(
     status: {
       type: SchemaTypes.String,
       enum: [
+        'hod_approval_pending',
         'pending',
         'purchased',
         'inventory_received',
@@ -183,7 +193,7 @@ const poProductSchema = new mongoose.Schema(
         'billing_request_rejected',
         'po_closed',
       ],
-      default: 'pending',
+      default: 'hod_approval_pending',
       index: true,
       trim: true,
     },

@@ -88,6 +88,7 @@ export const listQueryNewProducts = async ({
   name: nameQuery = '',
   description: descQuery = '',
   hsnNumber: hsnQuery = '',
+  status: statusQuery = '',
 }) => {
   const page = Math.max(1, parseInt(pageNumber, 10) || 1)
   const limit = Math.min(100, Math.max(1, parseInt(pageSize, 10) || 10))
@@ -126,6 +127,10 @@ export const listQueryNewProducts = async ({
     andParts.push({
       hsnNumber: { $regex: String(hsnQuery).trim(), $options: 'i' },
     })
+  }
+
+  if (statusQuery && String(statusQuery).trim()) {
+    filter.status = String(statusQuery).trim()
   }
 
   if (andParts.length === 1) {

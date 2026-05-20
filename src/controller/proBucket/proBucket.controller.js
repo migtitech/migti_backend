@@ -4,11 +4,14 @@ import {
   getProBucketByIdParamSchema,
   appendProBucketRatesSchema,
   appendProBucketRatesParamSchema,
+  updateQueryProductParamSchema,
+  updateQueryProductBodySchema,
 } from '../../validator/proBucket/proBucket.validator.js'
 import {
   listProBucketQueryProducts,
   getProBucketQueryProductById,
   appendProBucketRates,
+  updateQueryProduct,
 } from '../../services/proBucket/proBucket.service.js'
 
 export const listProBucketQueryProductsController = async (req, res) => {
@@ -101,6 +104,51 @@ export const appendProBucketRatesController = async (req, res) => {
     return res.status(statusCodes.badRequest).json({
       success: false,
       message: e?.message || 'Failed to add rates',
+    })
+  }
+}
+
+export const updateQueryProductController = async (req, res) => {
+  const param = updateQueryProductParamSchema.validate(
+    { id: req.params?.id },
+    { abortEarly: false }
+  )
+  if (param.error) {
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: Message.validationError,
+      error: param.error.details.map((d) => d.message),
+    })
+  }
+
+  const { error, value } = updateQueryProductBodySchema.validate(req.body, {
+    abortEarly: false,
+  })
+  if (error) {
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: Message.validationError,
+      error: error.details.map((d) => d.message),
+    })
+  }
+
+  try {
+    const doc = await updateQueryProduct(param.value.id, value)
+    if (!doc) {
+      return res.status(statusCodes.notFound).json({
+        success: false,
+        message: 'Query product not found',
+      })
+    }
+    return res.status(statusCodes.ok).json({
+      success: true,
+      message: 'Query product updated',
+      data: doc,
+    })
+  } catch (e) {
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: e?.message || 'Failed to update query product',
     })
   }
 }

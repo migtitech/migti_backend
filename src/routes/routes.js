@@ -33,6 +33,7 @@ import dispatchmentBucketRouter from './dispatchmentBucket.routes.js'
 import deliveryApprovalBucketRouter from './deliveryApprovalBucket.routes.js'
 import notificationRouter from './notification.routes.js'
 import poPaymentBacklogRouter from './poPaymentBacklog.routes.js'
+import billingRequestRouter from './billingRequest.routes.js'
 
 const mainRoutes = express.Router()
 mainRoutes.use((req, res, next) => {
@@ -91,5 +92,6 @@ mainRoutes.use('/v1/dispatchment-bucket', dispatchmentBucketRouter)
 mainRoutes.use('/v1/delivery-approval', deliveryApprovalBucketRouter)
 mainRoutes.use('/v1/notifications', notificationRouter)
 mainRoutes.use('/v1/po-payment-backlog', poPaymentBacklogRouter)
+mainRoutes.use('/v1/billing-requests', billingRequestRouter)
 
 export default mainRoutes

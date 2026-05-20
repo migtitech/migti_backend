@@ -1,6 +1,7 @@
 import mongoose from 'mongoose'
 import QueryProductModel, {
   deriveProBucketStatus,
+  PRO_BUCKET_STATUS,
 } from '../../models/queryProduct.model.js'
 
 const OBJECT_ID_REGEX = /^[a-fA-F0-9]{24}$/
@@ -64,11 +65,15 @@ const shiftPriorRates = (queues, rawProductCode, lineIndex) => {
  * Replace all `query_products` for a query with a fresh snapshot of `query.products[]`.
  * Prior Pro Bucket `rates` are matched by `rawProductCode` (same as query `products[]`), then by line index for legacy rows.
  * Uses deleteMany + insertMany (soft-deleted parents clear via softDeleteQueryProductRowsForQuery).
+ *
+ * @param {boolean} [skipRatesCarryOver=false] - Skip loading existing rates when the
+ *   query is brand-new and can never have prior query_product rows (avoids a needless DB round-trip).
  */
 export const replaceQueryProductDocuments = async ({
   queryId,
   queryCode = '',
   products = [],
+  skipRatesCarryOver = false,
 }) => {
   if (!queryId) return
 
@@ -77,13 +82,16 @@ export const replaceQueryProductDocuments = async ({
 
   const code = String(queryCode || '').trim()
 
-  const existingRows = await QueryProductModel.find({
-    queryId: qid,
-    isDeleted: false,
-  })
-    .select('lineIndex rawProductCode rates')
-    .lean()
-  const ratesQueues = buildRatesQueuesFromExisting(existingRows)
+  let ratesQueues = new Map()
+  if (!skipRatesCarryOver) {
+    const existingRows = await QueryProductModel.find({
+      queryId: qid,
+      isDeleted: false,
+    })
+      .select('lineIndex rawProductCode rates')
+      .lean()
+    ratesQueues = buildRatesQueuesFromExisting(existingRows)
+  }
 
   await QueryProductModel.deleteMany({ queryId: qid })
 
@@ -94,7 +102,15 @@ export const replaceQueryProductDocuments = async ({
   const rows = products.map((p, lineIndex) => {
     const rawCode =
       (p.rawProductCode && String(p.rawProductCode).trim()) || ''
-    const prevRates = shiftPriorRates(ratesQueues, rawCode, lineIndex)
+
+    const prevRates = skipRatesCarryOver
+      ? []
+      : shiftPriorRates(ratesQueues, rawCode, lineIndex)
+
+    const status = skipRatesCarryOver
+      ? PRO_BUCKET_STATUS.APPROVAL_PENDING
+      : deriveProBucketStatus(prevRates.length)
+
     return {
       queryId: qid,
       queryCode: code,
@@ -112,13 +128,12 @@ export const replaceQueryProductDocuments = async ({
       product_id: toOid(p.product_id),
       groupId: toOid(p.groupId),
       categoryId: toOid(p.categoryId),
-      rawProductCode:
-        (p.rawProductCode && String(p.rawProductCode).trim()) || '',
+      rawProductCode: rawCode,
       query_tracking_code:
         (p.query_tracking_code && String(p.query_tracking_code).trim()) || '',
       images: cleanImages(p.images),
       rates: prevRates,
-      status: deriveProBucketStatus(prevRates.length),
+      status,
     }
   })
 

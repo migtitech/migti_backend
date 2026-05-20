@@ -71,6 +71,11 @@ const queryNewProductSchema = new mongoose.Schema(
         ref: 'document',
       },
     ],
+    status: {
+      type: SchemaTypes.String,
+      enum: ['pending', 'hod_approved', 'rejected'],
+      default: 'pending',
+    },
   },
   {
     timestamps: true,

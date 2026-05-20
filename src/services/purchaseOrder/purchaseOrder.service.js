@@ -259,7 +259,7 @@ const syncPoProductsFromPurchaseOrder = async (poDoc) => {
     purchaseOrderId: poId,
   })
     .select(
-      'lineIndex procurementStatus paymentRequestAmount paymentRequestBillDocumentId paymentRequestRaisedAt paymentRequestRaisedBy purchaseBillingRequestId status inventoryStatus'
+      'lineIndex procurementStatus paymentRequestAmount paymentRequestBillDocumentId paymentRequestRaisedAt paymentRequestRaisedBy purchaseBillingRequestId status inventoryStatus deliverySubStatus deliveryApprovedBy deliveryApprovedAt targetRate'
     )
     .lean()
   const procurementByLine = new Map(
@@ -273,6 +273,10 @@ const syncPoProductsFromPurchaseOrder = async (poDoc) => {
         paymentRequestRaisedBy: row.paymentRequestRaisedBy,
         purchaseBillingRequestId: row.purchaseBillingRequestId,
         lineStatus: row.status ?? row.inventoryStatus,
+        deliverySubStatus: row.deliverySubStatus,
+        deliveryApprovedBy: row.deliveryApprovedBy,
+        deliveryApprovedAt: row.deliveryApprovedAt,
+        targetRate: row.targetRate,
       },
     ])
   )
@@ -300,7 +304,9 @@ const syncPoProductsFromPurchaseOrder = async (poDoc) => {
                 lineStatus === 'inventory_received' ||
                 lineStatus === 'delivered'
               ? lineStatus
-              : 'pending'
+              : lineStatus === 'pending'
+                ? 'pending'
+                : 'hod_approval_pending'
     return {
       purchaseOrderId: poId,
       poCode: poDoc.poCode || '',
@@ -357,6 +363,10 @@ const syncPoProductsFromPurchaseOrder = async (poDoc) => {
       paymentRequestRaisedAt: preserved.paymentRequestRaisedAt || null,
       paymentRequestRaisedBy: preserved.paymentRequestRaisedBy || null,
       purchaseBillingRequestId: preserved.purchaseBillingRequestId || null,
+      deliverySubStatus: preserved.deliverySubStatus || 'hod_approval_pending',
+      deliveryApprovedBy: preserved.deliveryApprovedBy || null,
+      deliveryApprovedAt: preserved.deliveryApprovedAt || null,
+      targetRate: preserved.targetRate != null ? preserved.targetRate : null,
       status,
     }
   })

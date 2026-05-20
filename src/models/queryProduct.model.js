@@ -10,6 +10,7 @@ const productVariantSchema = new mongoose.Schema(
 )
 
 const PRO_BUCKET_STATUS = Object.freeze({
+  APPROVAL_PENDING: 'approval_pending',
   PENDING: 'pending',
   RATE_SUBMITTED: 'rate_submitted',
   FULFILLED: 'fulfilled',
@@ -84,6 +85,8 @@ const queryProductSchema = new mongoose.Schema(
       default: PRO_BUCKET_STATUS.PENDING,
       index: true,
     },
+    /** Set to true when HOD has approved this line; restricts further edits to HOD only. */
+    hodApproved: { type: Boolean, default: false, index: true },
     rates: { type: [proBucketRateEntrySchema], default: [] },
   },
   { timestamps: true, collection: 'query_products' }

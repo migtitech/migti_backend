@@ -26,7 +26,9 @@ export const DELIVERY_SUBSTATUS_HOD_APPROVED = 'delivery_approved_by_hod'
 const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
 /**
- * PO lines marked delivered and awaiting HOD sign-off (`deliverySubStatus`).
+ * PO lines for the PO Products bucket.
+ * When `deliverySubStatus` is provided it filters on that value; defaults to `hod_approval_pending`.
+ * Pass `deliverySubStatus: ''` (or `'all'`) to see all lines regardless of sub-status.
  */
 export const listDeliveryApprovalQueuePoProducts = async (q, _user) => {
   const page = Math.max(
@@ -39,6 +41,11 @@ export const listDeliveryApprovalQueuePoProducts = async (q, _user) => {
   )
   const { search, from, to } = q
 
+  const rawSubStatus = String(q.deliverySubStatus ?? DELIVERY_SUBSTATUS_HOD_PENDING).trim()
+  const filterBySubStatus = rawSubStatus !== '' && rawSubStatus !== 'all'
+
+  const rawStatus = q.status ? String(q.status).trim() : ''
+
   const base = buildBaseStages()
   const stages = [...base]
   stages.push({
@@ -49,12 +56,13 @@ export const listDeliveryApprovalQueuePoProducts = async (q, _user) => {
     },
   })
 
-  stages.push({
-    $match: {
-      _lineStatus: PO_PRODUCT_INVENTORY_STATUS.DELIVERED,
-      deliverySubStatus: DELIVERY_SUBSTATUS_HOD_PENDING,
-    },
-  })
+  if (filterBySubStatus) {
+    stages.push({ $match: { deliverySubStatus: rawSubStatus } })
+  }
+
+  if (rawStatus) {
+    stages.push({ $match: { _lineStatus: rawStatus } })
+  }
 
   if (from || to) {
     const dr = {}
@@ -108,6 +116,11 @@ export const listDeliveryApprovalQueuePoProducts = async (q, _user) => {
         lineIndex: 1,
         quantity: 1,
         unit: 1,
+        hsnNumber: 1,
+        modelNumber: 1,
+        gstPercentage: 1,
+        remark: 1,
+        description: 1,
         companyInfo: 1,
         effectiveGroupId: 1,
         createdAt: 1,
@@ -129,6 +142,94 @@ export const getDeliveryApprovalPoProductById = async (id, user) => {
     return null
   }
   return doc
+}
+
+/**
+ * Get any po_product by id (no deliverySubStatus restriction) for the PO Products bucket page.
+ */
+export const getPoProductBucketById = async (id, user) => {
+  return getPurchaseBucketPoProductById(id, user)
+}
+
+/**
+ * Update enrichment fields on a po_product (remark, description, HSN, model, GST).
+ * Any role can enrich; restricted fields like status must go via their own endpoints.
+ */
+export const updatePoProductEnrichment = async (id, body) => {
+  const oid = toOid(id)
+  if (!oid) return null
+
+  const allowed = await PoProductModel.findOne({ _id: oid, isDeleted: false }).lean()
+  if (!allowed) return null
+
+  const update = {}
+  if (body.remark !== undefined) update.remark = String(body.remark ?? '').trim()
+  if (body.description !== undefined) update.description = String(body.description ?? '').trim()
+  if (body.targetRate !== undefined) {
+    update.targetRate = body.targetRate != null ? Number(body.targetRate) : null
+  }
+  if (body.quantity !== undefined) update.quantity = Number(body.quantity)
+  if (body.status !== undefined) update.status = body.status
+
+  if (!Object.keys(update).length) return getPurchaseBucketPoProductById(String(oid), {})
+
+  await PoProductModel.findOneAndUpdate(
+    { _id: oid, isDeleted: false },
+    { $set: update },
+    { new: true }
+  )
+
+  return getPurchaseBucketPoProductById(String(oid), {})
+}
+
+/**
+ * Return up to 5 distinct poCode values that contain the search string (case-insensitive).
+ */
+export const getPoCodeSuggestions = async (search) => {
+  const term = String(search || '').trim()
+  if (!term) return []
+  const rx = new RegExp(escapeRegex(term), 'i')
+  const results = await PoProductModel.aggregate([
+    { $match: { poCode: rx, isDeleted: false } },
+    { $group: { _id: '$poCode' } },
+    { $sort: { _id: 1 } },
+    { $limit: 5 },
+  ])
+  return results.map((r) => r._id).filter(Boolean)
+}
+
+export const createPoProduct = async (body) => {
+  const purchaseOrderId = toOid(body.purchaseOrderId)
+  if (!purchaseOrderId) return null
+
+  const maxLine = await PoProductModel.findOne({ purchaseOrderId })
+    .sort({ lineIndex: -1 })
+    .select('lineIndex')
+    .lean()
+  const nextLineIndex = maxLine ? maxLine.lineIndex + 1 : 0
+
+  const doc = new PoProductModel({
+    purchaseOrderId,
+    poCode: String(body.poCode || '').trim(),
+    lineIndex: nextLineIndex,
+    productName: String(body.productName || '').trim(),
+    quantity: Number(body.quantity) || 0,
+    unit: String(body.unit || '').trim(),
+    rawProductCode: String(body.rawProductCode || '').trim(),
+    hsnNumber: String(body.hsnNumber || '').trim(),
+    modelNumber: String(body.modelNumber || '').trim(),
+    gstPercentage:
+      body.gstPercentage != null ? Number(body.gstPercentage) : null,
+    description: String(body.description || '').trim(),
+    remark: String(body.remark || '').trim(),
+    targetRate: body.targetRate != null ? Number(body.targetRate) : null,
+    companyInfo: body.companyInfo || {},
+    status: 'hod_approval_pending',
+    procurementStatus: 'open',
+  })
+
+  await doc.save()
+  return doc.toObject()
 }
 
 export const approveDeliveryByHod = async (id, user) => {

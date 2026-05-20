@@ -278,6 +278,8 @@ export const listPurchaseBucketPoProducts = async (q, _user) => {
   const base = buildBaseStages()
   const stages = [...base]
 
+  stages.push({ $match: { status: { $ne: 'hod_approval_pending' } } })
+
   if (from || to) {
     const dr = {}
     if (from) {
@@ -315,6 +317,8 @@ export const listPurchaseBucketPoProducts = async (q, _user) => {
       stages.push({ $match: { isFinanceApproved: true, isPurchased: false } })
     } else if (s === 'purchased') {
       stages.push({ $match: { isPurchased: true } })
+    } else if (s === 'pending') {
+      stages.push({ $match: { status: 'pending' } })
     }
   }
 
@@ -624,6 +628,7 @@ export const raisePurchaseBucketPaymentRequest = async ({
   amount,
   attachmentDocumentId,
   remark,
+  supplier,
   user,
 }) => {
   const allowed = await loadPoProductForAccess(id)
@@ -765,6 +770,11 @@ export const raisePurchaseBucketPaymentRequest = async ({
       )
     }
 
+    const resubmitSupplierSnapshot =
+      supplier && typeof supplier === 'object'
+        ? { ...supplier, password: undefined }
+        : null
+
     await PurchaseBillingRequestModel.findByIdAndUpdate(brOid, {
       $set: {
         status: PURCHASE_BILLING_REQUEST_STATUS.PENDING,
@@ -776,6 +786,9 @@ export const raisePurchaseBucketPaymentRequest = async ({
         approvedAt: null,
         approvedBySnapshot: null,
         proofDocumentId: null,
+        ...(resubmitSupplierSnapshot !== null && {
+          supplierSnapshot: resubmitSupplierSnapshot,
+        }),
       },
     })
 
@@ -794,6 +807,11 @@ export const raisePurchaseBucketPaymentRequest = async ({
     return getPurchaseBucketPoProductById(String(oid), user)
   }
 
+  const supplierSnapshot =
+    supplier && typeof supplier === 'object'
+      ? { ...supplier, password: undefined }
+      : null
+
   const billingRequest = await PurchaseBillingRequestModel.create({
     poProductId: oid,
     purchaseOrderId: allowed.purchaseOrderId || null,
@@ -805,6 +823,7 @@ export const raisePurchaseBucketPaymentRequest = async ({
     productSnapshot,
     branchId: allowed.branchId || null,
     requestRemark: normalizeRequestRemark(remark),
+    supplierSnapshot,
   })
 
   try {

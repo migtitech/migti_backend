@@ -354,37 +354,77 @@ export const notifyEmployeesForCreatedQuery = async ({ query, io } = {}) => {
 }
 
 /**
- * Ensures each line has `rawProductCode` (shared productCode sequence, e.g. mig1000).
- * Reuses catalog `productCode` when `product_id` is set; otherwise allocates from sequence.
+ * Creates a new product entry in the products catalog from a query line item.
+ * The product is the source of truth — its `productCode` and `_id` are used as
+ * `rawProductCode` and `product_id` on the query line.
+ * `category` validation is skipped via `validateBeforeSave: false` since it may
+ * not always be present on the query line.
+ */
+const createProductFromQueryLine = async (p, productCode) => {
+  const doc = new ProductModel({
+    name: String(p.productName || '').trim() || productCode,
+    sku: productCode,
+    productCode,
+    hsnNumber: (p.hsnNumber && String(p.hsnNumber).trim()) || '',
+    gstPercentage: typeof p.gstPercentage === 'number' ? p.gstPercentage : 0,
+    unit: (p.unit && String(p.unit).trim()) || 'pcs',
+    group: toObjectIdOrNull(p.groupId),
+    category: toObjectIdOrNull(p.categoryId),
+  })
+  await doc.save({ validateBeforeSave: false })
+  return doc
+}
+
+/**
+ * Ensures every query product line has a valid `rawProductCode` and `product_id`,
+ * treating the **products table as the single source of truth**.
+ *
+ * Two paths:
+ *
+ * 1. `rawProductCode` is non-empty (frontend sent it from the catalog):
+ *    - Verify the code exists in the products table.
+ *    - If found  → set `product_id` from that record, keep `rawProductCode`. No new product created.
+ *    - If not found → keep `rawProductCode` as-is (edge case; no product created).
+ *
+ * 2. `rawProductCode` is null / empty (new product not yet in the catalog):
+ *    - Allocate the next `productCode` from the shared sequence.
+ *    - Create a new `hod_approval_pending` product entry in the products table.
+ *    - Back-fill `rawProductCode` and `product_id` from the newly created product.
  */
 const enrichQueryProductsWithRawCodes = async (products) => {
   if (!Array.isArray(products)) return []
   const out = []
   for (const p of products) {
     let next = { ...p }
-    const hasCode =
-      next.rawProductCode != null && String(next.rawProductCode).trim() !== ''
-    if (!hasCode && next.product_id) {
-      const pid = mongoose.Types.ObjectId.isValid(String(next.product_id))
-        ? String(next.product_id)
-        : null
-      if (pid) {
-        const prod = await ProductModel.findById(pid)
-          .select('productCode')
-          .lean()
-        if (prod?.productCode) {
-          next.rawProductCode = String(prod.productCode).trim()
-        }
+    const incomingCode =
+      next.rawProductCode != null ? String(next.rawProductCode).trim() : ''
+
+    if (incomingCode) {
+      // Catalog product — verify in products table and resolve product_id
+      const prod = await ProductModel.findOne({
+        productCode: incomingCode,
+        isDeleted: false,
+      })
+        .select('_id productCode')
+        .lean()
+      if (prod) {
+        next.rawProductCode = String(prod.productCode).trim()
+        next.product_id = prod._id
+      }
+      // If not found in catalog, keep rawProductCode as-is (no new entry created)
+    } else {
+      // New product — create entry in products table first, then use its code
+      try {
+        const n = await getNextSequence('productCode')
+        const productCode = formatProductCodeValue(n)
+        const newProduct = await createProductFromQueryLine(next, productCode)
+        next.rawProductCode = String(newProduct.productCode).trim()
+        next.product_id = newProduct._id
+      } catch (err) {
+        console.error('Failed to auto-create product from query line', err)
       }
     }
-    const stillNoCode =
-      next.rawProductCode == null || String(next.rawProductCode).trim() === ''
-    if (stillNoCode) {
-      const n = await getNextSequence('productCode')
-      next.rawProductCode = formatProductCodeValue(n)
-    } else {
-      next.rawProductCode = String(next.rawProductCode).trim()
-    }
+
     out.push(normalizeQueryProductIds(next))
   }
   return out
@@ -477,6 +517,7 @@ export const addQuery = async ({
       queryId: doc._id,
       queryCode: doc.queryCode,
       products: queryObj.products || [],
+      skipRatesCarryOver: true,
     })
   } catch (err) {
     console.error('Failed to sync query_products for query', err)

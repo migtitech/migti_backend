@@ -43,51 +43,55 @@ function pruneOldBackups(backupDir, maxFiles) {
 /**
  * Full MongoDB logical dump via mongodump (MongoDB Database Tools must be on PATH).
  * Writes a gzip-compressed archive named with a timestamp under the backup directory.
+ *
+ * TEMPORARILY DISABLED — mongodump is not available on the current host.
+ * Re-enable once MongoDB Database Tools are installed and mongodump is on PATH.
  */
 export async function runDatabaseBackup() {
-  const uri = getMongoUri()
-  if (!uri) {
-    throw new Error('MONGODB_URI or DB_URL is not set')
-  }
+  // const uri = getMongoUri()
+  // if (!uri) {
+  //   throw new Error('MONGODB_URI or DB_URL is not set')
+  // }
 
-  const backupDir = getBackupDir()
-  if (!fs.existsSync(backupDir)) {
-    fs.mkdirSync(backupDir, { recursive: true })
-  }
+  // const backupDir = getBackupDir()
+  // if (!fs.existsSync(backupDir)) {
+  //   fs.mkdirSync(backupDir, { recursive: true })
+  // }
 
-  const fileName = `db-backup-${timestampForFilename()}.archive.gz`
-  const archivePath = path.join(backupDir, fileName)
+  // const fileName = `db-backup-${timestampForFilename()}.archive.gz`
+  // const archivePath = path.join(backupDir, fileName)
 
-  await new Promise((resolve, reject) => {
-    const args = ['--uri', uri, '--archive', archivePath, '--gzip', '--quiet']
-    const child = spawn('mongodump', args, {
-      stdio: ['ignore', 'pipe', 'pipe'],
-      env: process.env,
-    })
+  // await new Promise((resolve, reject) => {
+  //   const args = ['--uri', uri, '--archive', archivePath, '--gzip', '--quiet']
+  //   const child = spawn('mongodump', args, {
+  //     stdio: ['ignore', 'pipe', 'pipe'],
+  //     env: process.env,
+  //   })
 
-    let stderr = ''
-    child.stderr?.on('data', (chunk) => {
-      stderr += chunk.toString()
-    })
+  //   let stderr = ''
+  //   child.stderr?.on('data', (chunk) => {
+  //     stderr += chunk.toString()
+  //   })
 
-    child.on('error', (err) => {
-      if (err.code === 'ENOENT') {
-        reject(
-          new Error(
-            'mongodump not found. Install MongoDB Database Tools and ensure mongodump is on PATH.'
-          )
-        )
-      } else {
-        reject(err)
-      }
-    })
+  //   child.on('error', (err) => {
+  //     if (err.code === 'ENOENT') {
+  //       reject(
+  //         new Error(
+  //           'mongodump not found. Install MongoDB Database Tools and ensure mongodump is on PATH.'
+  //         )
+  //       )
+  //     } else {
+  //       reject(err)
+  //     }
+  //   })
 
-    child.on('close', (code) => {
-      if (code === 0) resolve()
-      else reject(new Error(`mongodump exited with code ${code}: ${stderr.trim() || 'no stderr'}`))
-    })
-  })
+  //   child.on('close', (code) => {
+  //     if (code === 0) resolve()
+  //     else reject(new Error(`mongodump exited with code ${code}: ${stderr.trim() || 'no stderr'}`))
+  //   })
+  // })
 
-  pruneOldBackups(backupDir, getMaxBackupFiles())
-  logger.info(`Database backup completed: ${archivePath}`)
+  // pruneOldBackups(backupDir, getMaxBackupFiles())
+  // logger.info(`Database backup completed: ${archivePath}`)
+  logger.warn('Database backup skipped: mongodump is not available on this host (function temporarily disabled)')
 }

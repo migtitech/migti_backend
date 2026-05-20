@@ -5,6 +5,7 @@ import {
   listProBucketQueryProductsController,
   getProBucketQueryProductByIdController,
   appendProBucketRatesController,
+  updateQueryProductController,
 } from '../controller/proBucket/proBucket.controller.js'
 
 const proBucketRouter = Router()
@@ -18,6 +19,11 @@ proBucketRouter.get(
   '/query-products/:id',
   authenticateToken,
   asyncHandler(getProBucketQueryProductByIdController)
+)
+proBucketRouter.put(
+  '/query-products/:id',
+  authenticateToken,
+  asyncHandler(updateQueryProductController)
 )
 proBucketRouter.post(
   '/query-products/:id/rates',

@@ -142,6 +142,7 @@ const PRO_BUCKET_LIST_STATUSES = new Set([
   'pending',
   'rate_submitted',
   'fulfilled',
+  'approval_pending',
 ])
 
 /** `createdAt` range (document timestamps); start/end of local calendar day. */
@@ -200,11 +201,16 @@ export const listProBucketQueryProducts = async (q) => {
 
   const statusRaw =
     q.status != null && q.status !== '' ? String(q.status).trim() : ''
+  const groupOid = toOid(q.groupId)
+  const categoryOid = toOid(q.categoryId)
+
   const filter = {
     isDeleted: false,
     ...(statusRaw && PRO_BUCKET_LIST_STATUSES.has(statusRaw)
       ? { status: statusRaw }
       : {}),
+    ...(groupOid ? { groupId: groupOid } : {}),
+    ...(categoryOid ? { categoryId: categoryOid } : {}),
     ...createdAtRangeFilter(q.from, q.to),
     ...textSearchFilter(q.search),
   }
@@ -212,19 +218,33 @@ export const listProBucketQueryProducts = async (q) => {
   const pendingFilter = {
     isDeleted: false,
     status: 'pending',
+    ...(groupOid ? { groupId: groupOid } : {}),
+    ...(categoryOid ? { categoryId: categoryOid } : {}),
     ...createdAtRangeFilter(q.from, q.to),
     ...textSearchFilter(q.search),
   }
 
-  const [total, pendingCount, rows] = await Promise.all([
+  const [total, pendingCount, rawRows] = await Promise.all([
     QueryProductModel.countDocuments(filter),
     QueryProductModel.countDocuments(pendingFilter),
     QueryProductModel.find(filter)
       .sort({ createdAt: -1, lineIndex: 1 })
       .skip((page - 1) * pageSize)
       .limit(pageSize)
+      .populate('groupId', 'name _id')
+      .populate('categoryId', 'name _id')
+      .populate('images', 'name path mimetype _id')
       .lean(),
   ])
+
+  const rows = await Promise.all(
+    rawRows.map(async (row) => {
+      if (Array.isArray(row.images) && row.images.length > 0) {
+        row.images = await transformPathsToSignedUrls(row.images)
+      }
+      return row
+    })
+  )
 
   return {
     data: rows,
@@ -352,6 +372,73 @@ export const appendProBucketRates = async (id, ratesInput, user, io = null) => {
     queryProductId: oid,
     status: nextStatusStr,
   })
+
+  return doc
+}
+
+/**
+ * Update editable fields of a `query_product` document (patch semantics).
+ */
+export const updateQueryProduct = async (id, payload) => {
+  const oid = toOid(id)
+  if (!oid) throw new Error('Invalid id')
+
+  const allowed = [
+    'productName',
+    'quantity',
+    'unit',
+    'hsnNumber',
+    'modelNumber',
+    'gstPercentage',
+    'description',
+    'remark',
+    'groupId',
+    'categoryId',
+    'status',
+    'rawProductCode',
+    'query_tracking_code',
+    'hodApproved',
+  ]
+
+  const update = {}
+  for (const key of allowed) {
+    if (Object.prototype.hasOwnProperty.call(payload, key)) {
+      if (key === 'groupId' || key === 'categoryId') {
+        update[key] = toOid(payload[key]) || null
+      } else if (key === 'quantity' || key === 'gstPercentage') {
+        const n = Number(payload[key])
+        update[key] = Number.isFinite(n) ? n : null
+      } else {
+        update[key] = payload[key] ?? null
+      }
+    }
+  }
+
+  if (Array.isArray(payload.images)) {
+    update.images = payload.images
+      .map((id) => toOid(id))
+      .filter(Boolean)
+  }
+
+  if (Object.keys(update).length === 0) {
+    throw new Error('No valid fields to update')
+  }
+
+  const doc = await QueryProductModel.findOneAndUpdate(
+    { _id: oid, isDeleted: false },
+    { $set: update },
+    { new: true }
+  )
+    .populate('groupId', 'name _id')
+    .populate('categoryId', 'name _id')
+    .populate('images', 'name path mimetype _id')
+    .lean()
+
+  if (!doc) return null
+
+  if (Array.isArray(doc.images) && doc.images.length > 0) {
+    doc.images = await transformPathsToSignedUrls(doc.images)
+  }
 
   return doc
 }

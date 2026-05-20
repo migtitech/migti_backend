@@ -88,6 +88,7 @@ export const raisePurchaseBucketPaymentRequestController = async (req, res) => {
       amount: value.amount,
       attachmentDocumentId: value.attachmentDocumentId,
       remark: value.remark,
+      supplier: value.supplier || null,
       user: req.user,
     })
     const io = req.app.get('io')

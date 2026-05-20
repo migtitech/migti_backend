@@ -92,6 +92,11 @@ const purchaseBillingRequestSchema = new mongoose.Schema(
     statusRemark: { type: SchemaTypes.String, trim: true, default: '' },
     /** Optional note from submitter when raising the payment request */
     requestRemark: { type: SchemaTypes.String, trim: true, default: '' },
+    /** Supplier info at submit time — either from DB or manually entered. */
+    supplierSnapshot: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
+    },
   },
   { timestamps: true, collection: 'purchase_billing_requests' }
 )

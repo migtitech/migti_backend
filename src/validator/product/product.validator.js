@@ -80,7 +80,7 @@ export const createProductSchema = Joi.object({
   dimensionUnit: Joi.string().valid('cm', 'in', 'm').optional().default('cm'),
   tags: Joi.array().items(Joi.string()).optional().default([]),
   status: Joi.string()
-    .valid('active', 'inactive', 'draft')
+    .valid('active', 'inactive', 'draft', 'hod_approved')
     .optional()
     .default('draft'),
   unit: Joi.string().optional().default('pcs'),
@@ -93,7 +93,7 @@ export const listProductSchema = Joi.object({
   category: Joi.string().allow('', null),
   subcategory: Joi.string().allow('', null),
   brand: Joi.string().allow('', null),
-  status: Joi.string().valid('active', 'inactive', 'draft').allow('', null),
+  status: Joi.string().valid('active', 'inactive', 'draft', 'hod_approved').allow('', null),
   hsnNumber: Joi.string().allow('', null),
   modelNumber: Joi.string().allow('', null),
   sortBy: Joi.string()
@@ -134,7 +134,7 @@ export const updateProductSchema = Joi.object({
   dimensions: dimensionsJoi.optional(),
   dimensionUnit: Joi.string().valid('cm', 'in', 'm').optional(),
   tags: Joi.array().items(Joi.string()).optional(),
-  status: Joi.string().valid('active', 'inactive', 'draft').optional(),
+  status: Joi.string().valid('active', 'inactive', 'draft', 'hod_approved').optional(),
   unit: Joi.string().optional(),
 })
 
