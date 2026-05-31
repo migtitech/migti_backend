@@ -64,6 +64,16 @@ export const listPurchaseOrderSchema = Joi.object({
     .valid(...purchaseOrderStatusValues)
     .allow('')
     .optional(),
+  zoneIds: Joi.string().allow('').optional(),
+  /** Filter POs where `assigned_employee._id` matches this employee. */
+  employeeId: Joi.string().pattern(objectIdPattern).allow('').optional(),
+  /** When true, omit POs with `paymentReceivedStatus` = full_payment_received. */
+  excludeFullPayment: Joi.alternatives()
+    .try(
+      Joi.boolean(),
+      Joi.string().valid('true', 'false', '1', '0')
+    )
+    .optional(),
 })
 
 /** POs assigned to the authenticated employee (`salesEmployeeId`). */

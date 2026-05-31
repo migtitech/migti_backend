@@ -12,6 +12,14 @@ import {
   toDisplayPath,
 } from '../document/document.service.js'
 
+const normalizeRole = (role) =>
+  String(role || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, '_')
+
+const isSalesRole = (role) => normalizeRole(role).startsWith('sales')
+
 const getAssetsBaseUrl = () => {
   const port = process.env.PORT || 7200
   return process.env.APP_BASE_URL || `http://localhost:${port}`
@@ -86,6 +94,13 @@ const formatCurrency = (value) => {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })
+}
+
+const formatDeliveryDatePdf = (value) => {
+  if (!value) return '—'
+  const d = new Date(value)
+  if (Number.isNaN(d.getTime())) return '—'
+  return d.toLocaleDateString('en-GB')
 }
 
 const formatVariants = (variants) => {
@@ -186,7 +201,6 @@ const buildHtml = (quotation, orgContext = {}) => {
   const customerGstNumber =
     ci.gstNumber || queryCompanyInfo.gstNumber || industry.gstNumber || ''
 
-  const shippingAddress = customerAddress
   const shippingContactPerson = customerContactPerson
   const signatureUrl = orgContext?.signatureUrl || ''
 
@@ -219,6 +233,7 @@ const buildHtml = (quotation, orgContext = {}) => {
           p.notAvailableRemark || (p.notAvailable ? 'Not available' : '')
         ).trim()
       )
+      const deliveryDateCell = escapeHtml(formatDeliveryDatePdf(p.deliveryDate))
 
       if (p.notAvailable) {
         return `
@@ -235,6 +250,7 @@ const buildHtml = (quotation, orgContext = {}) => {
           ${hasDiscount ? '<td class="cell text-right">—</td>' : ''}
           <td class="cell text-center">${Number(p.quantity) || ''}</td>
           <td class="cell text-center">${escapeHtml(p.unit || '')}</td>
+          <td class="cell text-center">${deliveryDateCell}</td>
           <td class="cell text-center">—</td>
           <td class="cell text-right">—</td>
           <td class="cell text-center image-cell">${imgHtml}</td>
@@ -285,6 +301,7 @@ const buildHtml = (quotation, orgContext = {}) => {
           ${hasDiscount ? `<td class="cell text-right">${discountCell}</td>` : ''}
           <td class="cell text-center">${qty || ''}</td>
           <td class="cell text-center">${escapeHtml(p.unit || '')}</td>
+          <td class="cell text-center">${deliveryDateCell}</td>
           <td class="cell text-center">${gstPercent ? gstPercent.toFixed(2) + '%' : '—'}</td>
           <td class="cell text-right">${taxable ? formatCurrency(taxable) : ''}</td>
           <td class="cell text-center image-cell">${imgHtml}</td>
@@ -607,10 +624,6 @@ const buildHtml = (quotation, orgContext = {}) => {
         <div class="block-title">Shipping Details</div>
         <table class="info-table">
           <tr>
-            <td class="info-label">Shipping Address</td>
-            <td class="info-value">${escapeHtml(shippingAddress || '')}</td>
-          </tr>
-          <tr>
             <td class="info-label">Contact Person</td>
             <td class="info-value">${escapeHtml(shippingContactPerson || '')}</td>
           </tr>
@@ -635,6 +648,7 @@ const buildHtml = (quotation, orgContext = {}) => {
         ${hasDiscount ? '<th>Discount</th>' : ''}
         <th>Qty.</th>
         <th>Unit</th>
+        <th>Delivery Date</th>
         <th>GST %</th>
         <th>Total</th>
         <th>Photo</th>
@@ -719,10 +733,14 @@ export const exportQuotationPdf = async ({
     role,
   })
 
-  if (quotation?.status !== QUOTATION_STATUS.HOD_APPROVED) {
+  if (
+    quotation?.status !== QUOTATION_STATUS.HOD_APPROVED &&
+    !isSalesRole(role) &&
+    !quotation?.allProductsHodRatesApproved
+  ) {
     throw new CustomError(
       statusCodes.forbidden,
-      'Quotation can be exported only after HOD approval',
+      'Quotation can be exported only after HOD approval or when all product HOD rates are approved',
       errorCodes.forbidden
     )
   }

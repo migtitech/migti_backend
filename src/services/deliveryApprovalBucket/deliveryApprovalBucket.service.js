@@ -123,6 +123,7 @@ export const listDeliveryApprovalQueuePoProducts = async (q, _user) => {
         description: 1,
         companyInfo: 1,
         effectiveGroupId: 1,
+        priority: { $ifNull: ['$priority', 'medium'] },
         createdAt: 1,
         updatedAt: 1,
       },

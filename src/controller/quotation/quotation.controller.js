@@ -9,11 +9,14 @@ import {
   updateQuotationStatusSchema,
   deleteQuotationSchema,
   listQuotationSnapshotsSchema,
+  getQuotationLineProcurementRatesSchema,
 } from '../../validator/quotation/quotation.validator.js'
 import {
   listQuotations,
   getQuotationById,
   getProBucketLinesForQuotation,
+  getQuotationLineProcurementRates,
+  checkQuotationAllProductsHodRatesApproved,
   updateQuotation,
   updateQuotationStatus,
   deleteQuotation,
@@ -194,6 +197,63 @@ export const getQuotationProBucketLinesController = async (req, res) => {
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Pro Bucket line info retrieved',
+    data: result,
+  })
+}
+
+export const getQuotationLineProcurementRatesController = async (req, res) => {
+  const { error, value } = getQuotationLineProcurementRatesSchema.validate(
+    req.query,
+    { abortEarly: false }
+  )
+  if (error) {
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: Message.validationError,
+      error: error.details.map((d) => d.message),
+    })
+  }
+
+  const branchFilter = resolveQuotationBranchFilter(req)
+  const currentUserId = req.user?.id || req.user?._id
+  const isFullAccessRole = hasOwnershipBypass(req.user?.role)
+  const result = await getQuotationLineProcurementRates({
+    ...value,
+    branchFilter,
+    currentUserId: currentUserId || null,
+    isFullAccessRole: !!isFullAccessRole,
+    role: req.user?.role || '',
+  })
+  return res.status(statusCodes.ok).json({
+    success: true,
+    message: 'Procurement rates retrieved successfully',
+    data: result,
+  })
+}
+
+export const checkQuotationAllProductsHodRatesApprovedController = async (
+  req,
+  res
+) => {
+  const { error, value } = getQuotationByIdSchema.validate(req.query, {
+    abortEarly: false,
+  })
+  if (error) {
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: Message.validationError,
+      error: error.details.map((d) => d.message),
+    })
+  }
+
+  const branchFilter = resolveQuotationBranchFilter(req)
+  const result = await checkQuotationAllProductsHodRatesApproved({
+    ...value,
+    branchFilter,
+  })
+  return res.status(statusCodes.ok).json({
+    success: true,
+    message: 'Product HOD rates approval status retrieved',
     data: result,
   })
 }

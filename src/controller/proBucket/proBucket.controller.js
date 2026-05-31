@@ -6,12 +6,18 @@ import {
   appendProBucketRatesParamSchema,
   updateQueryProductParamSchema,
   updateQueryProductBodySchema,
+  updateQueryProductHodRatesParamSchema,
+  updateQueryProductHodRatesBodySchema,
+  listQueryProductHodRateHistoriesParamSchema,
+  listQueryProductHodRateHistoriesQuerySchema,
 } from '../../validator/proBucket/proBucket.validator.js'
 import {
   listProBucketQueryProducts,
   getProBucketQueryProductById,
   appendProBucketRates,
   updateQueryProduct,
+  updateQueryProductHodRates,
+  listQueryProductHodRateHistories,
 } from '../../services/proBucket/proBucket.service.js'
 
 export const listProBucketQueryProductsController = async (req, res) => {
@@ -149,6 +155,110 @@ export const updateQueryProductController = async (req, res) => {
     return res.status(statusCodes.badRequest).json({
       success: false,
       message: e?.message || 'Failed to update query product',
+    })
+  }
+}
+
+export const updateQueryProductHodRatesController = async (req, res) => {
+  const param = updateQueryProductHodRatesParamSchema.validate(
+    { id: req.params?.id },
+    { abortEarly: false }
+  )
+  if (param.error) {
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: Message.validationError,
+      error: param.error.details.map((d) => d.message),
+    })
+  }
+
+  const { error, value } = updateQueryProductHodRatesBodySchema.validate(
+    req.body,
+    { abortEarly: false }
+  )
+  if (error) {
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: Message.validationError,
+      error: error.details.map((d) => d.message),
+    })
+  }
+
+  try {
+    const doc = await updateQueryProductHodRates(
+      param.value.id,
+      value,
+      req.user
+    )
+    if (!doc) {
+      return res.status(statusCodes.notFound).json({
+        success: false,
+        message: 'Query product not found',
+      })
+    }
+    return res.status(statusCodes.ok).json({
+      success: true,
+      message: 'Rates updated',
+      data: doc,
+    })
+  } catch (e) {
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: e?.message || 'Failed to update rates',
+    })
+  }
+}
+
+export const listQueryProductHodRateHistoriesController = async (req, res) => {
+  const param = listQueryProductHodRateHistoriesParamSchema.validate(
+    { id: req.params?.id },
+    { abortEarly: false }
+  )
+  if (param.error) {
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: Message.validationError,
+      error: param.error.details.map((d) => d.message),
+    })
+  }
+
+  const { error, value } = listQueryProductHodRateHistoriesQuerySchema.validate(
+    req.query,
+    { abortEarly: false, convert: true }
+  )
+  if (error) {
+    return res.status(statusCodes.badRequest).json({
+      success: false,
+      message: Message.validationError,
+      error: error.details.map((d) => d.message),
+    })
+  }
+
+  try {
+    const result = await listQueryProductHodRateHistories(
+      param.value.id,
+      value,
+      req.user
+    )
+    if (!result) {
+      return res.status(statusCodes.notFound).json({
+        success: false,
+        message: 'Query product not found',
+      })
+    }
+    return res.status(statusCodes.ok).json({
+      success: true,
+      message: 'Rate history retrieved',
+      data: result,
+    })
+  } catch (e) {
+    const msg = e?.message || 'Failed to load rate history'
+    const status = msg.includes('Head of Department')
+      ? statusCodes.forbidden
+      : statusCodes.badRequest
+    return res.status(status).json({
+      success: false,
+      message: msg,
     })
   }
 }

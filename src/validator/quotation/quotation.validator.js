@@ -48,6 +48,7 @@ const quotationProductItemSchema = Joi.object({
   discountAmount: Joi.number().min(0).allow(null).optional(),
   notAvailable: Joi.boolean().optional().default(false),
   notAvailableRemark: Joi.string().allow('').optional(),
+  deliveryDate: Joi.date().allow(null).optional(),
 })
 
 const quotationStatusValues = Object.values(QUOTATION_STATUS)
@@ -71,6 +72,7 @@ export const listQuotationSchema = Joi.object({
     .try(Joi.string().valid(''), dateOnlySchema)
     .optional(),
   areaIds: Joi.string().allow('').optional(),
+  zoneIds: Joi.string().allow('').optional(),
   industryId: Joi.string().pattern(objectIdPattern).optional().messages({
     'string.pattern.base': 'industryId must be a valid Mongo ObjectId',
   }),
@@ -103,6 +105,17 @@ export const getQuotationByIdSchema = Joi.object({
 export const deleteQuotationSchema = getQuotationByIdSchema
 
 export const listQuotationSnapshotsSchema = getQuotationByIdSchema
+
+export const getQuotationLineProcurementRatesSchema = Joi.object({
+  quotationId: Joi.string().pattern(objectIdPattern).required().messages({
+    'string.pattern.base': 'quotationId must be a valid Mongo ObjectId',
+  }),
+  rawProductCode: Joi.string().trim().min(1).required().messages({
+    'any.required': 'rawProductCode is required',
+    'string.empty': 'rawProductCode is required',
+  }),
+  lineIndex: Joi.number().integer().min(0).optional(),
+})
 
 export const updateQuotationSchema = Joi.object({
   quotationId: Joi.string().pattern(objectIdPattern).required().messages({

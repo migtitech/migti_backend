@@ -3,6 +3,7 @@ import logger from '../../core/config/logger.js'
 import {
   archiveExpiredTargets,
   archiveExpiredZoneAndEmployeeTargets,
+  closeExpiredZoneTargets,
 } from './targetAnalytics.service.js'
 
 let targetAnalyticsCronJob = null
@@ -11,9 +12,13 @@ export const startTargetAnalyticsCron = () => {
   if (targetAnalyticsCronJob) return
 
   targetAnalyticsCronJob = cron.schedule(
-    '0 1 * * *',
+    '0 0 * * *',
     async () => {
       try {
+        const closed = await closeExpiredZoneTargets()
+        logger.info(
+          `Zone targets closed: ${closed.closed}`
+        )
         const result = await archiveExpiredTargets()
         const ext = await archiveExpiredZoneAndEmployeeTargets()
         logger.info(

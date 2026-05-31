@@ -6,6 +6,8 @@ import {
   getProBucketQueryProductByIdController,
   appendProBucketRatesController,
   updateQueryProductController,
+  updateQueryProductHodRatesController,
+  listQueryProductHodRateHistoriesController,
 } from '../controller/proBucket/proBucket.controller.js'
 
 const proBucketRouter = Router()
@@ -29,6 +31,16 @@ proBucketRouter.post(
   '/query-products/:id/rates',
   authenticateToken,
   asyncHandler(appendProBucketRatesController)
+)
+proBucketRouter.put(
+  '/query-products/:id/hod-rates',
+  authenticateToken,
+  asyncHandler(updateQueryProductHodRatesController)
+)
+proBucketRouter.get(
+  '/query-products/:id/hod-rate-histories',
+  authenticateToken,
+  asyncHandler(listQueryProductHodRateHistoriesController)
 )
 
 export default proBucketRouter

@@ -11,7 +11,6 @@ import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 
 const PURCHASE_ROLES = [
-  'purchase_manager',
   'purchase_exicutive',
   'purchase_executive',
 ]
@@ -297,14 +296,7 @@ export const listPurchaseTasksForUser = async ({
   const filter = buildBaseTaskFilter({ status, branchFilter })
 
   if (!isFullAccessRole) {
-    if (role === 'purchase_manager') {
-      // Manager: see all tasks in branch (branchFilter already applied)
-    } else if (role === 'purchase_exicutive' || role === 'purchase_executive') {
-      filter.assignedTo = currentUserId
-    } else {
-      // Other roles: restrict to tasks assigned to them
-      filter.assignedTo = currentUserId
-    }
+    filter.assignedTo = currentUserId
   }
 
   return paginateQuery({

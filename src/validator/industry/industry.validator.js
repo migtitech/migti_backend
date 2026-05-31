@@ -7,6 +7,7 @@ const purchaseManagerItemSchema = Joi.object({
     .email({ tlds: { allow: false } })
     .optional()
     .allow(''),
+  department: Joi.string().optional().allow('').max(100),
 })
 
 export const createIndustrySchema = Joi.object({
@@ -54,6 +55,7 @@ export const listIndustrySchema = Joi.object({
   search: Joi.string().allow('', null),
   category: Joi.string().valid('A', 'B', 'C', 'D').optional().allow('', null),
   areaIds: Joi.string().allow('', null).optional(),
+  zoneIds: Joi.string().allow('', null).optional(),
   branchId: Joi.string().optional().allow('', null),
 })
 

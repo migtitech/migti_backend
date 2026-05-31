@@ -13,7 +13,7 @@ export const createCategorySchema = Joi.object({
 
 export const listCategorySchema = Joi.object({
   pageNumber: Joi.number().integer().min(1).default(1),
-  pageSize: Joi.number().integer().min(1).max(100).default(10),
+  pageSize: Joi.number().integer().min(1).default(10),
   search: Joi.string().allow('', null),
   parent: Joi.string().allow('', null),
   group: Joi.string().allow('', null),

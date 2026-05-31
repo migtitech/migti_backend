@@ -16,7 +16,7 @@ var connectDB = /*#__PURE__*/function () {
     return _regenerator["default"].wrap(function (_context) {
       while (1) switch (_context.prev = _context.next) {
         case 0:
-          uri = process.env.MONGODB_URI || process.env.DB_URL || 'mongodb://127.0.0.1:27017/';
+          uri = process.env.MONGODB_URI;
           connectionOptions = {
             maxPoolSize: 10,
             serverSelectionTimeoutMS: 5000,

@@ -240,6 +240,7 @@ export const createPurchaseOrderFromQuotationController = async (req, res) => {
     currentUserId: currentUserId || null,
     isFullAccessRole: !!isFullAccessRole,
     created_by: currentUserId || null,
+    role: req.user?.role || '',
   })
   return res.status(statusCodes.ok).json({
     success: true,

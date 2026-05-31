@@ -244,7 +244,22 @@ var MODULES = exports.MODULES = Object.freeze({
   EMPLOYEES: 'employees',
   VISITS: 'visits',
   VISIT_MANAGEMENT: 'visit_management',
-  MY_VISITS: 'my_visits'
+  MY_VISITS: 'my_visits',
+  PRO_BUCKET: 'pro_bucket',
+  /** PO queue (/po-bucket) — separate from main purchase order list. */
+  PO_BUCKET: 'po_bucket',
+  /** Purchase queue (/purchase-bucket). */
+  PURCHASE_BUCKET: 'purchase_bucket',
+  /** Inventory queue (/inventory-bucket). */
+  INVENTORY_BUCKET: 'inventory_bucket',
+  /** PO payment screen, PO–billing entries (po-billing API). */
+  PO_PAYMENT: 'po_payment',
+  /** PO payment backlog — tracks payment dues created on HOD approval. */
+  PO_PAYMENT_BACKLOG: 'po_payment_backlog',
+  /** Purchase billing requests list / approve workflow. */
+  BILLING_REQUEST: 'billing_request',
+  /** Dispatchment queue. */
+  DISPATCHMENT: 'dispatchment'
 });
 
 // RBAC Actions
@@ -261,7 +276,7 @@ var FULL_ACCESS_ROLES = exports.FULL_ACCESS_ROLES = Object.freeze(['super_admin'
 'hod']);
 
 // Roles that should always bypass permissions only for purchase orders.
-var PURCHASE_ORDER_BYPASS_ROLES = exports.PURCHASE_ORDER_BYPASS_ROLES = Object.freeze(['back_office_exicutive',
+var PURCHASE_ORDER_BYPASS_ROLES = exports.PURCHASE_ORDER_BYPASS_ROLES = Object.freeze(['sales_manager', 'sales_exicutive', 'back_office_exicutive',
 // accepted spelling variant
 'back_office_executive',
 // short alias

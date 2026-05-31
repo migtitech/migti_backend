@@ -347,6 +347,21 @@ export const listPurchaseBucketPoProducts = async (q, _user) => {
 
   const listPipeline = [
     ...stages,
+    {
+      $lookup: {
+        from: 'queries',
+        localField: 'queryId',
+        foreignField: '_id',
+        as: 'queryArr',
+      },
+    },
+    {
+      $addFields: {
+        queryCode: {
+          $ifNull: [{ $arrayElemAt: ['$queryArr.queryCode', 0] }, ''],
+        },
+      },
+    },
     { $sort: { dispatchmentDate: 1, createdAt: -1 } },
     { $skip: (page - 1) * pageSize },
     { $limit: pageSize },
@@ -378,6 +393,7 @@ export const listPurchaseBucketPoProducts = async (q, _user) => {
         poArr: 0,
         prodArr: 0,
         qpRows: 0,
+        queryArr: 0,
         isPaymentRequestRaised: 0,
         isFinanceApproved: 0,
         isPurchased: 0,

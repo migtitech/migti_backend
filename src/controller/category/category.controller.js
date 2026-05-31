@@ -9,6 +9,7 @@ import {
 import {
   addCategory,
   listCategories,
+  getAllCategories,
   getCategoryById,
   updateCategory,
   deleteCategory,
@@ -47,6 +48,15 @@ export const listCategoriesController = async (req, res) => {
   }
 
   const result = await listCategories(value)
+  return res.status(statusCodes.ok).json({
+    success: true,
+    message: 'Categories retrieved successfully',
+    data: result,
+  })
+}
+
+export const getAllCategoriesController = async (req, res) => {
+  const result = await getAllCategories()
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'Categories retrieved successfully',

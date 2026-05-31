@@ -41,6 +41,8 @@ import {
   getEmployeeTargetAnalytics as getEmployeeTargetAnalyticsData,
   upsertEmployeeTargetAnalytics as upsertEmployeeTargetAnalyticsData,
   getEmployeeTargetSummary as getEmployeeTargetSummaryData,
+  getMyZoneTargets as getMyZoneTargetsData,
+  closeExpiredZoneTargets as closeExpiredZoneTargetsData,
 } from '../targetAnalytics/targetAnalytics.service.js'
 import { computePurchaseOrderFinancials } from '../purchaseOrder/purchaseOrder.service.js'
 import BranchEmployeeTargetModel from '../../models/branchEmployeeTarget.model.js'
@@ -49,10 +51,17 @@ import TargetAnalyticsModel from '../../models/targetAnalytics.model.js'
 import { assertSubZoneBelongsToArea } from '../subZone/subZone.service.js'
 import { resolveQueryAccessFilter } from '../../core/helpers/queryAccess.js'
 import {
+  listQueryProductDocuments,
   replaceQueryProductDocuments,
   softDeleteQueryProductRowsForQuery,
 } from '../queryProduct/queryProduct.service.js'
-import QueryProductModel from '../../models/queryProduct.model.js'
+import QueryProductModel, {
+  deriveProBucketStatus,
+  PRO_BUCKET_STATUS,
+} from '../../models/queryProduct.model.js'
+import ProductlHodRatesModel, {
+  PRODUCTL_HOD_RATE_STATUS,
+} from '../../models/productlHodRates.model.js'
 import { createNotifications } from '../notification/notification.service.js'
 
 const OBJECT_ID_REGEX = /^[a-fA-F0-9]{24}$/
@@ -474,6 +483,27 @@ export const mergeQuotationRefsForQueries = async (queries = []) => {
   })
 }
 
+const syncProductlHodRatesOnQueryCreate = async (products = []) => {
+  const proCodes = [
+    ...new Set(
+      (products || [])
+        .map((p) => String(p?.rawProductCode || '').trim())
+        .filter(Boolean)
+    ),
+  ]
+  if (!proCodes.length) return
+
+  await ProductlHodRatesModel.updateMany(
+    {
+      pro_code: { $in: proCodes },
+      isDeleted: false,
+    },
+    {
+      $set: { status: PRODUCTL_HOD_RATE_STATUS.HOD_APPROVAL_PENDING },
+    }
+  )
+}
+
 export const addQuery = async ({
   companyInfo = {},
   industry_id,
@@ -523,6 +553,12 @@ export const addQuery = async ({
     console.error('Failed to sync query_products for query', err)
   }
 
+  try {
+    await syncProductlHodRatesOnQueryCreate(queryObj.products || [])
+  } catch (err) {
+    console.error('Failed to sync productl_hod_rates for query', err)
+  }
+
   return queryObj
 }
 
@@ -546,6 +582,7 @@ export const listQueries = async ({
   dateFrom = '',
   dateTo = '',
   areaIds = '',
+  zoneIds = '',
   industryId = '',
   branchFilter = {},
   currentUserId = null,
@@ -584,6 +621,20 @@ export const listQueries = async ({
         .map((id) => new mongoose.Types.ObjectId(id))
       filter['companyInfo.area'] = {
         $in: [...selectedAreaIds, ...areaObjectIds],
+      }
+    }
+  }
+  if (zoneIds && String(zoneIds).trim()) {
+    const selectedZoneIds = String(zoneIds)
+      .split(',')
+      .map((v) => String(v || '').trim())
+      .filter(Boolean)
+    if (selectedZoneIds.length) {
+      const zoneObjectIds = selectedZoneIds
+        .filter((id) => mongoose.Types.ObjectId.isValid(id))
+        .map((id) => new mongoose.Types.ObjectId(id))
+      filter['companyInfo.area'] = {
+        $in: [...selectedZoneIds, ...zoneObjectIds],
       }
     }
   }
@@ -712,8 +763,43 @@ export const getQueryById = async ({
   return withRefs
 }
 
+const matchQueryProductRowByCode = (rows, rawProductCode, lineIndex) => {
+  const code = String(rawProductCode ?? '').trim()
+  if (code) {
+    const same = rows.filter(
+      (r) => String(r.rawProductCode || '').trim() === code
+    )
+    if (same.length === 1) return same[0]
+    if (lineIndex != null && lineIndex !== '') {
+      const li = Number(lineIndex)
+      if (Number.isFinite(li) && li >= 0) {
+        const withIdx = same.find((r) => r.lineIndex === li)
+        if (withIdx) return withIdx
+      }
+    }
+    return same[0] || null
+  }
+  if (lineIndex != null && lineIndex !== '') {
+    const li = Number(lineIndex)
+    if (Number.isFinite(li) && li >= 0) {
+      return rows.find((r) => r.lineIndex === li) || null
+    }
+  }
+  return null
+}
+
+const resolveQueryProductLineStatus = (doc) => {
+  if (!doc) return null
+  const ratesLen = Array.isArray(doc.rates) ? doc.rates.length : 0
+  return (
+    doc.status ||
+    deriveProBucketStatus(ratesLen) ||
+    PRO_BUCKET_STATUS.PENDING
+  )
+}
+
 /**
- * Procurement (Pro Bucket) rates for one query line, from `query_products`.
+ * HOD procurement rates for one query line, from `productl_hod_rates`.
  * Respects the same branch + ownership rules as {@link getQueryById}.
  */
 export const getQueryLineProcurementRates = async ({
@@ -764,62 +850,37 @@ export const getQueryLineProcurementRates = async ({
   }
 
   const qid = new mongoose.Types.ObjectId(String(queryId))
-  let doc = null
+  const rows = await listQueryProductDocuments(qid)
+  const doc = matchQueryProductRowByCode(rows, code, lineIndex)
 
-  if (lineIndex != null && lineIndex !== '') {
-    const li = Number(lineIndex)
-    if (Number.isFinite(li) && li >= 0) {
-      doc = await QueryProductModel.findOne({
-        queryId: qid,
-        lineIndex: li,
-        isDeleted: false,
-      })
-        .select('rawProductCode rates productName lineIndex status')
-        .lean()
-      if (doc && String(doc.rawProductCode || '').trim() !== code) {
-        doc = null
-      }
-    }
-  }
-  if (!doc) {
-    doc = await QueryProductModel.findOne({
-      queryId: qid,
-      rawProductCode: code,
-      isDeleted: false,
-    })
-      .sort({ lineIndex: 1 })
-      .select('rawProductCode rates productName lineIndex status')
-      .lean()
-  }
-
-  const rates = Array.isArray(doc?.rates) ? doc.rates : []
-
-  const normalizeSupplier = (s) => {
-    if (s == null) return null
-    if (typeof s === 'object') {
-      const copy = { ...s }
-      if (copy._id != null) copy._id = String(copy._id)
-      return copy
-    }
-    return { _id: String(s) }
-  }
+  const hodRows = await ProductlHodRatesModel.find({
+    pro_code: code,
+    status: PRODUCTL_HOD_RATE_STATUS.HOD_APPROVED,
+    isDeleted: false,
+  })
+    .sort({ createdAt: -1 })
+    .lean()
 
   return {
     rawProductCode: code,
     lineIndex: doc?.lineIndex ?? null,
     productName: doc?.productName || '',
-    status: doc?.status || null,
-    rates: rates.map((r) => ({
+    status: resolveQueryProductLineStatus(doc),
+    rates: hodRows.map((r) => ({
       _id: r?._id != null ? String(r._id) : undefined,
-      supplier: normalizeSupplier(r?.supplier),
-      rate:
-        typeof r?.rate === 'number' && !Number.isNaN(r.rate)
-          ? r.rate
+      minRate:
+        typeof r?.min_rate === 'number' && !Number.isNaN(r.min_rate)
+          ? r.min_rate
           : null,
+      maxRate:
+        typeof r?.max_rate === 'number' && !Number.isNaN(r.max_rate)
+          ? r.max_rate
+          : null,
+      discount:
+        typeof r?.discount === 'number' && !Number.isNaN(r.discount)
+          ? r.discount
+          : 0,
       unit: String(r?.unit || ''),
-      remark: String(r?.remark || ''),
-      submittedAt: r?.submittedAt || null,
-      submittedBy: r?.submittedBy != null ? String(r.submittedBy) : null,
     })),
   }
 }
@@ -1596,6 +1657,9 @@ export const upsertEmployeeTargetAnalytics = async (params = {}) =>
   upsertEmployeeTargetAnalyticsData(params)
 export const getEmployeeTargetSummary = async (params = {}) =>
   getEmployeeTargetSummaryData(params)
+export const getMyZoneTargets = async (params = {}) =>
+  getMyZoneTargetsData(params)
+export const closeExpiredZoneTargets = async () => closeExpiredZoneTargetsData()
 
 /** Same calendar windows as branch target analytics (targetAnalytics.service getCurrentPeriodRange). */
 const getBranchTargetCalendarRange = (period) => {

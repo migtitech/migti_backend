@@ -12,6 +12,10 @@ import {
   transformPathsToSignedUrls,
 } from '../document/document.service.js'
 import { upsertQuotedRatesForQuotation } from '../quotedProductRate/quotedProductRate.service.js'
+import {
+  upsertRateMasterEntries,
+  RATE_MASTER_TYPE,
+} from '../rateMaster/rateMaster.service.js'
 import { autoAssignPurchaseTasksForQuotation } from '../purchaseTask/purchaseTask.service.js'
 import CompanyBranchModel from '../../models/companyBranch.model.js'
 import { getDocumentById, toDisplayPath } from '../document/document.service.js'
@@ -24,6 +28,9 @@ import { listQueryProductDocuments } from '../queryProduct/queryProduct.service.
 import QueryProductModel, {
   PRO_BUCKET_STATUS,
 } from '../../models/queryProduct.model.js'
+import ProductlHodRatesModel, {
+  PRODUCTL_HOD_RATE_STATUS,
+} from '../../models/productlHodRates.model.js'
 
 /** Persist quotation ref on the source query (deduped by quotationId). */
 export const appendConvertedQuotationOnQuery = async (
@@ -87,6 +94,110 @@ const STATUSES_AUTO_UPDATED = [
   QUOTATION_STATUS.PARTIAL,
   QUOTATION_STATUS.FULFILLED,
 ]
+
+/** Active quotation lines (not marked unavailable) and their unique `pro_code` values. */
+export const resolveQuotationProductProCodes = (products = []) => {
+  const active = (products || []).filter((p) => !p.notAvailable)
+  if (!active.length) {
+    return { proCodes: [], allHaveCodes: false }
+  }
+  const proCodes = active.map((p) => String(p.rawProductCode || '').trim())
+  const allHaveCodes = proCodes.every(Boolean)
+  return {
+    proCodes: allHaveCodes ? [...new Set(proCodes)] : [],
+    allHaveCodes,
+  }
+}
+
+/**
+ * Whether every active quotation line has at least one HOD-approved row in
+ * `productl_hod_rates` for its `rawProductCode` (`pro_code`).
+ */
+export const checkProductsAllHaveHodApprovedRates = async (
+  products = [],
+  approvedProCodesSet = null
+) => {
+  const { proCodes, allHaveCodes } = resolveQuotationProductProCodes(products)
+  if (!allHaveCodes || !proCodes.length) {
+    return { allProductsHodRatesApproved: false }
+  }
+
+  let approvedSet = approvedProCodesSet
+  if (!approvedSet) {
+    const approvedCodes = await ProductlHodRatesModel.distinct('pro_code', {
+      pro_code: { $in: proCodes },
+      status: PRODUCTL_HOD_RATE_STATUS.HOD_APPROVED,
+      isDeleted: false,
+    })
+    approvedSet = new Set(approvedCodes.map(String))
+  }
+
+  const allProductsHodRatesApproved = proCodes.every((code) =>
+    approvedSet.has(code)
+  )
+  return { allProductsHodRatesApproved }
+}
+
+export const checkQuotationAllProductsHodRatesApproved = async ({
+  quotationId,
+  branchFilter = {},
+}) => {
+  const quotation = await QuotationModel.findOne({
+    _id: quotationId,
+    isDeleted: false,
+    ...branchFilter,
+  })
+    .select('products')
+    .lean()
+
+  if (!quotation) {
+    throw new CustomError(
+      statusCodes.notFound,
+      'Quotation not found',
+      errorCodes.not_found
+    )
+  }
+
+  return checkProductsAllHaveHodApprovedRates(quotation.products || [])
+}
+
+const enrichQuotationsWithHodRatesApproval = async (quotations = []) => {
+  if (!quotations.length) return quotations
+
+  const proCodesByQuotationId = new Map()
+  const allProCodes = new Set()
+
+  for (const q of quotations) {
+    const { proCodes, allHaveCodes } = resolveQuotationProductProCodes(
+      q.products || []
+    )
+    proCodesByQuotationId.set(String(q._id), { proCodes, allHaveCodes })
+    proCodes.forEach((code) => allProCodes.add(code))
+  }
+
+  let approvedProCodesSet = new Set()
+  if (allProCodes.size) {
+    const approvedCodes = await ProductlHodRatesModel.distinct('pro_code', {
+      pro_code: { $in: [...allProCodes] },
+      status: PRODUCTL_HOD_RATE_STATUS.HOD_APPROVED,
+      isDeleted: false,
+    })
+    approvedProCodesSet = new Set(approvedCodes.map(String))
+  }
+
+  return quotations.map((q) => {
+    const { proCodes, allHaveCodes } =
+      proCodesByQuotationId.get(String(q._id)) || {
+        proCodes: [],
+        allHaveCodes: false,
+      }
+    const allProductsHodRatesApproved =
+      allHaveCodes &&
+      proCodes.length > 0 &&
+      proCodes.every((code) => approvedProCodesSet.has(code))
+    return { ...q, allProductsHodRatesApproved }
+  })
+}
 
 const toRefId = (val) => {
   if (val == null || val === '') return null
@@ -201,6 +312,46 @@ export const computeTotalAmountFromProducts = (products = []) => {
  * @param {string} [options.remark]
  * @param {Array} [options.productsOverride] - If provided, use instead of query.products
  */
+/** Capture quoted product rates into Rate_master (deduped by quotationCode + productCode). */
+const syncQuotationRateMaster = async (quotation) => {
+  try {
+    const quotationCode = String(quotation?.quotationCode || '').trim()
+    const products = Array.isArray(quotation?.products)
+      ? quotation.products
+      : []
+    if (!quotationCode || !products.length) return
+
+    const items = products
+      .filter((p) => String(p?.rawProductCode || '').trim())
+      .map((p) => ({
+        productCode: p.rawProductCode,
+        rate: p.rate,
+        unit: p.unit,
+        snapshot: {
+          quotationId: String(quotation._id || ''),
+          quotationCode,
+          productName: p.productName || '',
+          rawProductCode: p.rawProductCode || '',
+          quantity: p.quantity ?? null,
+          unit: p.unit || '',
+          rate: p.rate ?? null,
+          gstPercentage: p.gstPercentage ?? null,
+          notAvailable: !!p.notAvailable,
+        },
+      }))
+
+    await upsertRateMasterEntries({
+      type: RATE_MASTER_TYPE.QUOTED,
+      sourceCode: quotationCode,
+      sourceId: quotation._id || null,
+      branchId: quotation.branchId || null,
+      items,
+    })
+  } catch (err) {
+    console.error('[quotation] rate_master sync failed:', err?.message || err)
+  }
+}
+
 export const createQuotationFromQuery = async ({
   queryId,
   created_by,
@@ -302,6 +453,20 @@ export const createQuotationFromQuery = async ({
     assignedBy: created_by || null,
   })
 
+  try {
+    const { createQuotationFollowupEntry } = await import(
+      '../quotationFollowup/quotationFollowup.service.js'
+    )
+    await createQuotationFollowupEntry({ quotation: created })
+  } catch (err) {
+    console.error(
+      'Failed to create quotation follow-up entry:',
+      err?.message || err
+    )
+  }
+
+  await syncQuotationRateMaster(created)
+
   return created
 }
 
@@ -323,6 +488,7 @@ export const listQuotations = async ({
   search = '',
   status = '',
   areaIds = '',
+  zoneIds = '',
   dateFrom = '',
   dateTo = '',
   industryId = '',
@@ -373,6 +539,20 @@ export const listQuotations = async ({
         .map((id) => new mongoose.Types.ObjectId(id))
       filter['companyInfo.area'] = {
         $in: [...selectedAreaIds, ...areaObjectIds],
+      }
+    }
+  }
+  if (zoneIds && String(zoneIds).trim()) {
+    const selectedZoneIds = String(zoneIds)
+      .split(',')
+      .map((v) => String(v || '').trim())
+      .filter(Boolean)
+    if (selectedZoneIds.length) {
+      const zoneObjectIds = selectedZoneIds
+        .filter((id) => mongoose.Types.ObjectId.isValid(id))
+        .map((id) => new mongoose.Types.ObjectId(id))
+      filter['companyInfo.area'] = {
+        $in: [...selectedZoneIds, ...zoneObjectIds],
       }
     }
   }
@@ -544,8 +724,12 @@ export const listQuotations = async ({
     }
   })
 
+  const quotationsEnriched = await enrichQuotationsWithHodRatesApproval(
+    quotationsWithTotal
+  )
+
   return {
-    quotations: quotationsWithTotal,
+    quotations: quotationsEnriched,
     pagination: {
       currentPage: page,
       totalPages,
@@ -649,6 +833,10 @@ export const getQuotationById = async ({
     }
   }
 
+  const { allProductsHodRatesApproved } =
+    await checkProductsAllHaveHodApprovedRates(quotation.products || [])
+  quotation.allProductsHodRatesApproved = allProductsHodRatesApproved
+
   return quotation
 }
 
@@ -741,6 +929,57 @@ export const getProBucketLinesForQuotation = async ({
   })
 
   return { queryId: String(qid), lines }
+}
+
+/**
+ * HOD procurement rates (`productl_hod_rates`) for one quotation line via linked query.
+ */
+export const getQuotationLineProcurementRates = async ({
+  quotationId,
+  rawProductCode,
+  lineIndex,
+  branchFilter = {},
+  currentUserId = null,
+  isFullAccessRole = true,
+  role = '',
+}) => {
+  const quotation = await QuotationModel.findOne({
+    _id: quotationId,
+    isDeleted: false,
+    ...branchFilter,
+  })
+    .select('queryId')
+    .lean()
+
+  if (!quotation) {
+    throw new CustomError(
+      statusCodes.notFound,
+      'Quotation not found',
+      errorCodes.not_found
+    )
+  }
+
+  const qid = quotation.queryId
+  if (!qid) {
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Quotation is not linked to a query',
+      errorCodes.bad_request
+    )
+  }
+
+  const { getQueryLineProcurementRates } = await import(
+    '../query/query.service.js'
+  )
+  return getQueryLineProcurementRates({
+    queryId: String(qid),
+    rawProductCode,
+    lineIndex,
+    branchFilter,
+    currentUserId,
+    isFullAccessRole,
+    role,
+  })
 }
 
 /**
@@ -876,6 +1115,7 @@ export const updateQuotation = async ({
   }
   // Snapshot quoted rates whenever products are updated
   await upsertQuotedRatesForQuotation({ quotation: updated })
+  await syncQuotationRateMaster(updated)
   return updated
 }
 

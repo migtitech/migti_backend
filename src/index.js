@@ -21,6 +21,10 @@ import {
   startDatabaseBackupCron,
   stopDatabaseBackupCron,
 } from './services/databaseBackup/databaseBackup.cron.js'
+import {
+  startProductlHodRatesCron,
+  stopProductlHodRatesCron,
+} from './services/productlHodRates/productlHodRates.cron.js'
 import { fileURLToPath } from 'url'
 import { verifyToken } from './core/helpers/jwt.helper.js'
 
@@ -134,6 +138,7 @@ startEmailQueue().catch((error) => {
 
 startTargetAnalyticsCron()
 startDatabaseBackupCron()
+startProductlHodRatesCron()
 
 // Graceful shutdown
 process.on('SIGINT', async () => {
@@ -142,6 +147,7 @@ process.on('SIGINT', async () => {
   await stopEmailQueue()
   await stopTargetAnalyticsCron()
   await stopDatabaseBackupCron()
+  await stopProductlHodRatesCron()
   process.exit(0)
 })
 
@@ -151,6 +157,7 @@ process.on('SIGTERM', async () => {
   await stopEmailQueue()
   await stopTargetAnalyticsCron()
   await stopDatabaseBackupCron()
+  await stopProductlHodRatesCron()
   process.exit(0)
 })
 

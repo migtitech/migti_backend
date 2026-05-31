@@ -3,12 +3,20 @@ import QueryModel from '../../models/query.model.js'
 import QueryProductModel, {
   deriveProBucketStatus,
 } from '../../models/queryProduct.model.js'
+import ProductlHodRatesModel, {
+  PRODUCTL_HOD_RATE_STATUS,
+} from '../../models/productlHodRates.model.js'
+import ProductHodRateHistoryModel from '../../models/productHodRateHistory.model.js'
 import SupplierModel from '../../models/supplier.model.js'
 import { transformPathsToSignedUrls } from '../document/document.service.js'
 import {
   createNotifications,
   getEmployeeIdsByRoles,
 } from '../notification/notification.service.js'
+import {
+  upsertRateMasterEntries,
+  RATE_MASTER_TYPE,
+} from '../rateMaster/rateMaster.service.js'
 
 const OBJECT_ID_REGEX = /^[a-fA-F0-9]{24}$/
 const PRO_BUCKET_HOD_ROLES = ['head_of_department', 'hod']
@@ -184,6 +192,12 @@ const textSearchFilter = (search) => {
   }
 }
 
+const queryCodeSearchFilter = (search) => {
+  const t = search != null ? String(search).trim() : ''
+  if (!t) return {}
+  return { queryCode: new RegExp(escapeRegex(t), 'i') }
+}
+
 /**
  * List `query_products` with pagination (no server-side RBAC; optional filters only).
  * Optional `status`, `from` / `to` on `createdAt`, `search` on text fields.
@@ -266,7 +280,70 @@ const withQueryProductPopulates = (q) =>
       'queryCode query_tracking_code status companyInfo branchId'
     )
     .populate('images', 'name path mimetype')
+    .populate('rates.submittedBy', 'name email')
     .lean()
+
+/** HOD rate-management snapshot for a query product line. */
+export const buildRateManagementSnapshot = async (doc) => {
+  const submittedRates = Array.isArray(doc?.rates) ? doc.rates : []
+  const rateValues = submittedRates
+    .map((r) => Number(r?.rate))
+    .filter((n) => Number.isFinite(n) && n >= 0)
+
+  const submittedRateUnit =
+    (submittedRates.length
+      ? String(submittedRates[submittedRates.length - 1]?.unit || '').trim()
+      : '') || String(doc?.unit || '').trim()
+
+  const proCode = String(doc?.rawProductCode || '').trim()
+  let hodRows = []
+  if (proCode) {
+    hodRows = await ProductlHodRatesModel.find({
+      pro_code: proCode,
+      isDeleted: false,
+    })
+      .sort({ createdAt: -1 })
+      .lean()
+  }
+
+  const pendingRows = hodRows.filter(
+    (r) => r.status === PRODUCTL_HOD_RATE_STATUS.HOD_APPROVAL_PENDING
+  )
+  const sourceRows = pendingRows.length ? pendingRows : hodRows
+
+  let minRate = 0
+  let maxRate = 0
+  let discount = 0
+
+  if (sourceRows.length) {
+    const mins = sourceRows
+      .map((r) => Number(r.min_rate))
+      .filter((n) => Number.isFinite(n))
+    const maxs = sourceRows
+      .map((r) => Number(r.max_rate))
+      .filter((n) => Number.isFinite(n))
+    minRate = mins.length ? Math.min(...mins) : 0
+    maxRate = maxs.length ? Math.max(...maxs) : 0
+    discount = Number(sourceRows[0]?.discount) || 0
+  }
+
+  const hodRateStatus = hodRows[0]?.status || sourceRows[0]?.status || null
+  const isHodRateApproved =
+    hodRows.some((r) => r.status === PRODUCTL_HOD_RATE_STATUS.HOD_APPROVED) ||
+    hodRateStatus === PRODUCTL_HOD_RATE_STATUS.HOD_APPROVED
+
+  return {
+    proCode,
+    submittedRateUnit,
+    minRate,
+    maxRate,
+    discount,
+    hasSubmittedRates: rateValues.length > 0,
+    hasHodRates: hodRows.length > 0,
+    hodRateStatus,
+    isHodRateApproved,
+  }
+}
 
 /** Load one `query_product` by id (not deleted). No group/branch checks. */
 export const getProBucketQueryProductById = async (id) => {
@@ -285,7 +362,232 @@ export const getProBucketQueryProductById = async (id) => {
   if (doc?.images?.length) {
     doc.images = await transformPathsToSignedUrls(doc.images)
   }
+  if (doc) {
+    doc.rateManagement = await buildRateManagementSnapshot(doc)
+  }
   return doc
+}
+
+const resolveSubmittedRateUnit = (queryProduct) => {
+  const submittedRates = Array.isArray(queryProduct?.rates)
+    ? queryProduct.rates
+    : []
+  return (
+    (submittedRates.length
+      ? String(submittedRates[submittedRates.length - 1]?.unit || '').trim()
+      : '') || String(queryProduct?.unit || '').trim()
+  )
+}
+
+const resolveQueryCodeForProduct = async (queryProduct) => {
+  const direct = String(queryProduct?.queryCode || '').trim()
+  if (direct) return direct
+
+  const qid = toOid(queryProduct?.queryId)
+  if (!qid) return ''
+
+  const query = await QueryModel.findById(qid).select('queryCode').lean()
+  const fromQuery = String(query?.queryCode || '').trim()
+  if (!fromQuery) return ''
+
+  const productId = toOid(queryProduct?._id)
+  if (productId) {
+    await QueryProductModel.findByIdAndUpdate(productId, {
+      $set: { queryCode: fromQuery },
+    })
+  }
+
+  return fromQuery
+}
+
+/** Update min/max/discount on pending `productl_hod_rates` for this line's pro_code. */
+export const updateQueryProductHodRates = async (id, payload, user = null) => {
+  const oid = toOid(id)
+  if (!oid) throw new Error('Invalid id')
+
+  const existing = await QueryProductModel.findOne({
+    _id: oid,
+    isDeleted: false,
+  }).lean()
+  if (!existing) return null
+
+  const proCode = String(existing.rawProductCode || '').trim()
+  if (!proCode) {
+    throw new Error('Raw product code is required to update rates')
+  }
+
+  const queryCode = await resolveQueryCodeForProduct(existing)
+  if (!queryCode) {
+    throw new Error('Query code is required to update rates')
+  }
+
+  const queryId = toOid(existing.queryId)
+  if (!queryId) {
+    throw new Error('Query reference is required to update rates')
+  }
+
+  const minRate = Number(payload.minRate)
+  const maxRate = Number(payload.maxRate)
+  const discount = Number(payload.discount ?? 0)
+
+  if (!Number.isFinite(minRate) || minRate < 0) {
+    throw new Error('Invalid minimum rate')
+  }
+  if (!Number.isFinite(maxRate) || maxRate < 0) {
+    throw new Error('Invalid maximum rate')
+  }
+  if (minRate > maxRate) {
+    throw new Error('Minimum rate cannot exceed maximum rate')
+  }
+  if (!Number.isFinite(discount) || discount < 0 || discount > 100) {
+    throw new Error('Discount must be between 0 and 100')
+  }
+
+  const submittedRateUnit = resolveSubmittedRateUnit(existing)
+  const hodRateSet = {
+    min_rate: minRate,
+    max_rate: maxRate,
+    discount,
+    status: PRODUCTL_HOD_RATE_STATUS.HOD_APPROVED,
+  }
+
+  const pendingFilter = {
+    pro_code: proCode,
+    isDeleted: false,
+    status: PRODUCTL_HOD_RATE_STATUS.HOD_APPROVAL_PENDING,
+  }
+
+  const pendingResult = await ProductlHodRatesModel.updateMany(pendingFilter, {
+    $set: hodRateSet,
+  })
+
+  if (!pendingResult.matchedCount) {
+    const approvedResult = await ProductlHodRatesModel.updateMany(
+      {
+        pro_code: proCode,
+        isDeleted: false,
+        status: PRODUCTL_HOD_RATE_STATUS.HOD_APPROVED,
+      },
+      { $set: { min_rate: minRate, max_rate: maxRate, discount } }
+    )
+
+    if (!approvedResult.matchedCount) {
+      await ProductlHodRatesModel.create({
+        pro_code: proCode,
+        ...hodRateSet,
+        unit: submittedRateUnit,
+      })
+    }
+  }
+
+  const updatedBy = toOid(user?.id || user?._id)
+
+  const historyDoc = await ProductHodRateHistoryModel.create({
+    queryCode,
+    queryId,
+    queryProductId: oid,
+    pro_code: proCode,
+    min_rate: minRate,
+    max_rate: maxRate,
+    unit: submittedRateUnit,
+    discount,
+    status: PRODUCTL_HOD_RATE_STATUS.HOD_APPROVED,
+    updatedBy,
+  })
+
+  console.info(
+    '[proBucket][hod-rates] history saved id=%s queryCode=%s pro_code=%s queryProductId=%s',
+    String(historyDoc?._id || ''),
+    queryCode,
+    proCode,
+    String(oid)
+  )
+
+  await QueryProductModel.findByIdAndUpdate(oid, {
+    $set: { hodApproved: true },
+  })
+
+  return getProBucketQueryProductById(String(oid))
+}
+
+const mapHodRateHistoryRow = (row) => ({
+  id: row._id,
+  queryCode: row.queryCode || '',
+  queryId: row.queryId,
+  queryProductId: row.queryProductId,
+  proCode: row.pro_code || '',
+  minRate: row.min_rate,
+  maxRate: row.max_rate,
+  unit: row.unit || '',
+  discount: row.discount ?? 0,
+  status: row.status || '',
+  createdAt: row.createdAt,
+  updatedAt: row.updatedAt,
+  updatedBy: row.updatedBy,
+})
+
+/** Paginated HOD rate history for a product (`pro_code`), newest first. HOD only. */
+export const listQueryProductHodRateHistories = async (id, q = {}, user = null) => {
+  const role = String(user?.role || '').toLowerCase()
+  if (!PRO_BUCKET_HOD_ROLES.includes(role)) {
+    throw new Error('Only Head of Department can view rate history')
+  }
+
+  const oid = toOid(id)
+  if (!oid) throw new Error('Invalid id')
+
+  const existing = await QueryProductModel.findOne({
+    _id: oid,
+    isDeleted: false,
+  })
+    .select('rawProductCode')
+    .lean()
+  if (!existing) return null
+
+  const proCode = String(existing.rawProductCode || '').trim()
+  const page = Math.max(
+    1,
+    parseInt(String(q.page || q.pageNumber || 1), 10) || 1
+  )
+  const pageSize = Math.min(
+    100,
+    Math.max(1, parseInt(String(q.pageSize || q.limit || 10), 10) || 10)
+  )
+
+  if (!proCode) {
+    return {
+      data: [],
+      total: 0,
+      page,
+      pageSize,
+      totalPages: 1,
+    }
+  }
+
+  const filter = {
+    pro_code: proCode,
+    isDeleted: false,
+    ...createdAtRangeFilter(q.from, q.to),
+    ...queryCodeSearchFilter(q.search),
+  }
+
+  const [total, rows] = await Promise.all([
+    ProductHodRateHistoryModel.countDocuments(filter),
+    ProductHodRateHistoryModel.find(filter)
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * pageSize)
+      .limit(pageSize)
+      .populate('updatedBy', 'name email')
+      .lean(),
+  ])
+
+  return {
+    data: rows.map(mapHodRateHistoryRow),
+    total,
+    page,
+    pageSize,
+    totalPages: Math.max(1, Math.ceil(total / pageSize) || 1),
+  }
 }
 
 export const appendProBucketRates = async (id, ratesInput, user, io = null) => {
@@ -337,6 +639,55 @@ export const appendProBucketRates = async (id, ratesInput, user, io = null) => {
     $push: { rates: { $each: toPush } },
     $set: { status: nextStatus },
   })
+
+  const rawProductCode = String(existing.rawProductCode || '').trim()
+  if (rawProductCode) {
+    await ProductlHodRatesModel.insertMany(
+      toPush.map((r) => ({
+        pro_code: rawProductCode,
+        min_rate: r.rate,
+        max_rate: r.rate,
+        unit: r.unit || '',
+        discount: 0,
+        status: PRODUCTL_HOD_RATE_STATUS.HOD_APPROVAL_PENDING,
+      }))
+    )
+  }
+
+  try {
+    const queryCode = await resolveQueryCodeForProduct(existing)
+    if (queryCode && rawProductCode) {
+      await upsertRateMasterEntries({
+        type: RATE_MASTER_TYPE.PROCUREMENT,
+        sourceCode: queryCode,
+        sourceId: oid,
+        branchId: existing.branchId || null,
+        items: toPush.map((r) => ({
+          productCode: rawProductCode,
+          rate: r.rate,
+          unit: r.unit,
+          supplierSnapshot: r.supplier || null,
+          snapshot: {
+            queryProductId: String(oid),
+            queryCode,
+            productName: existing.productName || '',
+            rawProductCode,
+            rate: r.rate,
+            unit: r.unit,
+            supplier: r.supplier || null,
+            remark: r.remark || '',
+            submittedAt: r.submittedAt,
+            submittedBy: r.submittedBy || null,
+          },
+        })),
+      })
+    }
+  } catch (err) {
+    console.error(
+      '[proBucket] rate_master sync failed:',
+      err?.message || err
+    )
+  }
 
   const doc = await getProBucketQueryProductById(String(oid))
   const nextStatusStr = String(doc?.status || '')

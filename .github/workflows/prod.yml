@@ -50,6 +50,3 @@ jobs:
             --restart always \
             --env-file /crm/prod/.env \
             migittech/migti_crm_backend:latest
-
-
-

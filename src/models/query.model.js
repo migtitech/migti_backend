@@ -13,6 +13,7 @@ const purchaseManagerSchema = new mongoose.Schema(
       lowercase: true,
       default: '',
     },
+    department: { type: SchemaTypes.String, trim: true, default: '' },
   },
   { _id: false }
 )

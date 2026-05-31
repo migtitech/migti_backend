@@ -176,7 +176,6 @@ export const loginEmployeeSchema = Joi.object({
       'head_of_department',
       'sales_manager',
       'sales_exicutive',
-      'purchase_manager',
       'purchase_exicutive',
       'procurement',
       'back_office_exicutive',
@@ -186,7 +185,6 @@ export const loginEmployeeSchema = Joi.object({
       'hod',
       'sm',
       'se',
-      'pm',
       'pe',
       'boe',
       'admin',
@@ -195,7 +193,9 @@ export const loginEmployeeSchema = Joi.object({
       'finance',
       'delivery',
       'inventry_manager',
-      'dispatch_manager'
+      'dispatch_manager',
+      'localprocurement',
+      'localpurchase'
     )
     .required(),
 })
@@ -207,7 +207,6 @@ export const passwordResetRequestSchema = Joi.object({
       'head_of_department',
       'sales_manager',
       'sales_exicutive',
-      'purchase_manager',
       'purchase_exicutive',
       'procurement',
       'back_office_exicutive',
@@ -216,7 +215,6 @@ export const passwordResetRequestSchema = Joi.object({
       'hod',
       'sm',
       'se',
-      'pm',
       'pe',
       'boe',
       'admin',
@@ -225,7 +223,9 @@ export const passwordResetRequestSchema = Joi.object({
       'finance',
       'delivery',
       'inventry_manager',
-      'dispatch_manager'
+      'dispatch_manager',
+      'localprocurement',
+      'localpurchase'
     )
     .required(),
   message: Joi.string().trim().min(5).max(1000).required(),

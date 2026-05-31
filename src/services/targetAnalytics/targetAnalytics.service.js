@@ -362,6 +362,8 @@ export const upsertZoneTargetAnalytics = async ({
   dateFrom,
   dateTo,
   targetAmount,
+  remark,
+  status,
   userId,
   branchFilter: _branchFilter = {},
 }) => {
@@ -384,6 +386,8 @@ export const upsertZoneTargetAnalytics = async ({
   })
   if (existing) {
     existing.targetAmount = Number(targetAmount) || 0
+    if (remark !== undefined) existing.remark = remark || ''
+    if (status !== undefined) existing.status = status
     existing.updated_by = userId || null
     await existing.save()
     return existing.toObject()
@@ -395,10 +399,37 @@ export const upsertZoneTargetAnalytics = async ({
     dateFrom: from,
     dateTo: to,
     targetAmount: Number(targetAmount) || 0,
+    remark: remark || '',
+    status: status || 'active',
     created_by: userId || null,
     updated_by: userId || null,
   })
   return created.toObject()
+}
+
+export const closeExpiredZoneTargets = async () => {
+  const now = new Date()
+  const result = await BranchZoneTargetModel.updateMany(
+    { isDeleted: false, status: 'active', dateTo: { $lt: now } },
+    { $set: { status: 'closed' } }
+  )
+  return { closed: result.modifiedCount }
+}
+
+export const getMyZoneTargets = async ({ zoneIds = [], branchId }) => {
+  const filter = { isDeleted: false }
+  if (zoneIds.length) {
+    filter.zoneId = {
+      $in: zoneIds.map((id) => new mongoose.Types.ObjectId(String(id))),
+    }
+  }
+  if (branchId) filter.branchId = new mongoose.Types.ObjectId(String(branchId))
+  const targets = await BranchZoneTargetModel.find(filter)
+    .populate('zoneId', 'name city')
+    .populate('branchId', 'name branchcode')
+    .sort({ dateFrom: -1 })
+    .lean()
+  return targets
 }
 
 export const getZoneTargetSummary = async ({

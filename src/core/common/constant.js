@@ -387,6 +387,8 @@ export const MODULES = Object.freeze({
   VISIT_MANAGEMENT: 'visit_management',
   MY_VISITS: 'my_visits',
   PRO_BUCKET: 'pro_bucket',
+  /** Local procurement assignments (/local-pro). */
+  LOCAL_PROCUREMENT: 'local_procurement',
   /** PO queue (/po-bucket) — separate from main purchase order list. */
   PO_BUCKET: 'po_bucket',
   /** Purchase queue (/purchase-bucket). */
@@ -422,6 +424,8 @@ export const FULL_ACCESS_ROLES = Object.freeze([
 
 // Roles that should always bypass permissions only for purchase orders.
 export const PURCHASE_ORDER_BYPASS_ROLES = Object.freeze([
+  'sales_manager',
+  'sales_exicutive',
   'back_office_exicutive',
   // accepted spelling variant
   'back_office_executive',

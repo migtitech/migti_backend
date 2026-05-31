@@ -11,6 +11,8 @@ import {
   listQuotationsByIndustryController,
   getQuotationByIdController,
   getQuotationProBucketLinesController,
+  getQuotationLineProcurementRatesController,
+  checkQuotationAllProductsHodRatesApprovedController,
   updateQuotationController,
   updateQuotationStatusController,
   exportQuotationPdfController,
@@ -44,6 +46,18 @@ quotationRouter.get(
   authenticateToken,
   checkPermission(MODULES.QUOTATIONS, 'read'),
   asyncHandler(getQuotationProBucketLinesController)
+)
+quotationRouter.get(
+  '/line-procurement-rates',
+  authenticateToken,
+  checkPermission(MODULES.QUOTATIONS, 'read'),
+  asyncHandler(getQuotationLineProcurementRatesController)
+)
+quotationRouter.get(
+  '/all-products-hod-rates-approved',
+  authenticateToken,
+  checkPermission(MODULES.QUOTATIONS, 'read'),
+  asyncHandler(checkQuotationAllProductsHodRatesApprovedController)
 )
 quotationRouter.get(
   '/snapshots/list',

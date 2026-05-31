@@ -78,3 +78,40 @@ export const updateQueryProductBodySchema = Joi.object({
   images: Joi.array().items(objectIdJoi).optional(),
   hodApproved: Joi.boolean().optional(),
 }).min(1)
+
+export const updateQueryProductHodRatesParamSchema = Joi.object({
+  id: objectIdJoi.required(),
+})
+
+export const updateQueryProductHodRatesBodySchema = Joi.object({
+  minRate: Joi.number().required().min(0),
+  maxRate: Joi.number().required().min(0),
+  discount: Joi.number().min(0).max(100).optional().default(0),
+}).custom((value, helpers) => {
+  if (value.minRate > value.maxRate) {
+    return helpers.error('any.custom', {
+      message: 'Minimum rate cannot exceed maximum rate',
+    })
+  }
+  return value
+})
+
+export const listQueryProductHodRateHistoriesParamSchema = Joi.object({
+  id: objectIdJoi.required(),
+})
+
+export const listQueryProductHodRateHistoriesQuerySchema = Joi.object({
+  page: Joi.number().integer().min(1).optional(),
+  pageNumber: Joi.number().integer().min(1).optional(),
+  pageSize: Joi.number().integer().min(1).max(100).optional(),
+  limit: Joi.number().integer().min(1).max(100).optional(),
+  from: Joi.alternatives()
+    .try(Joi.string(), Joi.date())
+    .allow(null, '')
+    .optional(),
+  to: Joi.alternatives()
+    .try(Joi.string(), Joi.date())
+    .allow(null, '')
+    .optional(),
+  search: Joi.string().allow('', null).optional(),
+})

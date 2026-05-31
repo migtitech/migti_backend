@@ -160,6 +160,16 @@ export const listCategories = async ({
   }
 }
 
+export const getAllCategories = async () => {
+  const categories = await CategoryModel.find({ isDeleted: false })
+    .populate('group', 'name code')
+    .populate('parent', 'name slug categoryCode')
+    .sort({ createdAt: -1 })
+    .lean()
+
+  return { categories }
+}
+
 export const getCategoryById = async ({ categoryId }) => {
   const category = await CategoryModel.findById(categoryId)
     .populate('group', 'name code')

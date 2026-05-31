@@ -7,6 +7,7 @@ const purchaseManagerSchema = Joi.object({
     .email({ tlds: { allow: false } })
     .allow('')
     .optional(),
+  department: Joi.string().allow('').optional(),
 })
 
 const companyInfoSchema = Joi.object({
@@ -85,6 +86,7 @@ export const listQuerySchema = Joi.object({
     .try(Joi.string().valid(''), dateOnlySchema)
     .optional(),
   areaIds: Joi.string().allow('').optional(),
+  zoneIds: Joi.string().allow('').optional(),
   industryId: Joi.string()
     .pattern(/^[a-fA-F0-9]{24}$/)
     .optional()
@@ -167,6 +169,8 @@ export const zoneTargetAnalyticsSchema = Joi.object({
   dateFrom: dateOnlySchema.required(),
   dateTo: dateOnlySchema.required(),
   targetAmount: Joi.number().min(0).required(),
+  remark: Joi.string().allow('', null).optional(),
+  status: Joi.string().valid('active', 'closed').optional(),
 })
 
 export const zoneTargetSummarySchema = Joi.object({

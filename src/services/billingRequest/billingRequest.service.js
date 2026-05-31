@@ -6,6 +6,10 @@ import PoProductModel from '../../models/poProduct.model.js'
 import EmployeeModel from '../../models/employee.model.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
+import {
+  upsertRateMasterEntries,
+  RATE_MASTER_TYPE,
+} from '../rateMaster/rateMaster.service.js'
 
 export const listBillingRequests = async ({
   pageNumber = 1,
@@ -367,6 +371,41 @@ export const createBillingRequest = async ({ products, user }) => {
       },
     }
   )
+
+  // Capture billed amounts into Rate_master (deduped by billingRequestCode + productCode).
+  try {
+    await upsertRateMasterEntries({
+      type: RATE_MASTER_TYPE.BILLING,
+      sourceCode: billingRequestCode,
+      sourceId: billingRequest._id,
+      branchId: branchId || null,
+      items: productEntries
+        .filter((p) => String(p?.rawProductCode || '').trim())
+        .map((p) => ({
+          productCode: p.rawProductCode,
+          rate: p.amount,
+          unit: p.unit,
+          supplierSnapshot: p.supplierSnapshot || null,
+          snapshot: {
+            billingRequestId: String(billingRequest._id || ''),
+            billingRequestCode,
+            poCode: poCodeStr,
+            poProductId: String(p.poProductId || ''),
+            rawProductCode: p.rawProductCode || '',
+            productName: p.productName || '',
+            quantity: p.quantity ?? null,
+            unit: p.unit || '',
+            amount: p.amount ?? null,
+            supplierSnapshot: p.supplierSnapshot || null,
+          },
+        })),
+    })
+  } catch (err) {
+    console.error(
+      '[billingRequest] rate_master sync failed:',
+      err?.message || err
+    )
+  }
 
   return billingRequest
 }

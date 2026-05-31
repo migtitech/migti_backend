@@ -58,6 +58,7 @@ import {
   getRecentSalesBillings,
   getHodDashboardCards,
   notifyEmployeesForCreatedQuery,
+  getMyZoneTargets,
 } from '../../services/query/query.service.js'
 import { archiveExpiredTargets } from '../../services/targetAnalytics/targetAnalytics.service.js'
 import { exportQueryPdf } from '../../services/query/queryPdfExport.service.js'
@@ -803,6 +804,27 @@ export const getHodDashboardCardsController = async (req, res) => {
   return res.status(statusCodes.ok).json({
     success: true,
     message: 'HOD dashboard cards retrieved successfully',
+    data: result,
+  })
+}
+
+export const getMyZoneTargetsController = async (req, res) => {
+  const user = req.user || {}
+  const rawBranchId = user.branchId
+  const branchId =
+    rawBranchId && typeof rawBranchId === 'object' && rawBranchId._id != null
+      ? rawBranchId._id
+      : rawBranchId || null
+
+  const rawZoneIds = user.zoneIds || (user.zoneId ? [user.zoneId] : [])
+  const zoneIds = rawZoneIds.map((z) =>
+    z && typeof z === 'object' && z._id != null ? String(z._id) : String(z)
+  )
+
+  const result = await getMyZoneTargets({ zoneIds, branchId })
+  return res.status(statusCodes.ok).json({
+    success: true,
+    message: 'My zone targets retrieved successfully',
     data: result,
   })
 }

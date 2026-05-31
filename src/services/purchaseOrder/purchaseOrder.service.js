@@ -4,6 +4,7 @@ import PurchaseOrderModel, {
   PO_PAYMENT_RECEIVED_STATUS,
 } from '../../models/purchaseOrder.model.js'
 import PoPaymentModel from '../../models/poPayment.model.js'
+import PoEntryModel from '../../models/poEntry.model.js'
 import QuotationModel, {
   QUOTATION_STATUS,
 } from '../../models/quotation.model.js'
@@ -22,6 +23,64 @@ import {
 import CompanyBranchModel from '../../models/companyBranch.model.js'
 import { getDocumentById, toDisplayPath } from '../document/document.service.js'
 import { computeTotalAmountFromProducts } from '../quotation/quotation.service.js'
+import {
+  upsertRateMasterEntries,
+  RATE_MASTER_TYPE,
+} from '../rateMaster/rateMaster.service.js'
+
+/** Capture PO product rates into Rate_master (deduped by poCode + productCode). */
+const syncPurchaseOrderRateMaster = async (po) => {
+  try {
+    const poCode = String(po?.poCode || '').trim()
+    const products = Array.isArray(po?.products) ? po.products : []
+    if (!poCode || !products.length) return
+
+    const items = products
+      .filter((p) => String(p?.rawProductCode || '').trim())
+      .map((p) => ({
+        productCode: p.rawProductCode,
+        rate: p.rate,
+        unit: p.unit,
+        snapshot: {
+          purchaseOrderId: String(po._id || ''),
+          poCode,
+          productName: p.productName || '',
+          rawProductCode: p.rawProductCode || '',
+          quantity: p.quantity ?? null,
+          unit: p.unit || '',
+          rate: p.rate ?? null,
+          gstPercentage: p.gstPercentage ?? null,
+          notAvailable: !!p.notAvailable,
+        },
+      }))
+
+    await upsertRateMasterEntries({
+      type: RATE_MASTER_TYPE.PO,
+      sourceCode: poCode,
+      sourceId: po._id || null,
+      branchId: po.branchId || null,
+      items,
+    })
+  } catch (err) {
+    console.error('[purchaseOrder] rate_master sync failed:', err?.message || err)
+  }
+}
+
+const normalizeRole = (role) =>
+  String(role || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, '_')
+
+const isSalesRole = (role) => normalizeRole(role).startsWith('sales')
+
+const isHodRole = (role) => {
+  const normalized = normalizeRole(role)
+  return normalized === 'head_of_department' || normalized === 'hod'
+}
+
+const canBypassPoHodApproval = (role) =>
+  isSalesRole(role) || isHodRole(role)
 
 const lineTaxableAmount = (p) => {
   if (!p || p.notAvailable) return 0
@@ -385,6 +444,7 @@ export const createPurchaseOrderFromQuotation = async ({
   isFullAccessRole = true,
   created_by = null,
   reuseExisting = true,
+  role = '',
 }) => {
   const quotation = await QuotationModel.findOne({
     _id: quotationId,
@@ -407,7 +467,10 @@ export const createPurchaseOrderFromQuotation = async ({
     isFullAccessRole,
   })
 
-  if (quotation.status !== QUOTATION_STATUS.HOD_APPROVED) {
+  if (
+    quotation.status !== QUOTATION_STATUS.HOD_APPROVED &&
+    !canBypassPoHodApproval(role)
+  ) {
     throw new CustomError(
       statusCodes.badRequest,
       'Quotation must be HOD approved before converting to a purchase order',
@@ -452,6 +515,7 @@ export const createPurchaseOrderFromQuotation = async ({
   const plain = doc.toObject()
   await syncPoProductsFromPurchaseOrder(plain)
   await syncPoEntryAfterPurchaseOrderLean(plain, created_by)
+  await syncPurchaseOrderRateMaster(plain)
   return plain
 }
 
@@ -639,6 +703,9 @@ export const listPurchaseOrders = async ({
   pageSize = 10,
   search = '',
   status = '',
+  zoneIds = '',
+  employeeId = '',
+  excludeFullPayment = false,
   branchFilter = {},
   currentUserId: _currentUserId = null,
   isFullAccessRole: _isFullAccessRole = true,
@@ -650,6 +717,39 @@ export const listPurchaseOrders = async ({
   const filter = { isDeleted: false, ...branchFilter }
   if (status && status.trim()) {
     filter.status = String(status).trim()
+  }
+
+  if (employeeId && String(employeeId).trim()) {
+    const empId = String(employeeId).trim()
+    if (mongoose.Types.ObjectId.isValid(empId)) {
+      const employeeObjectId = new mongoose.Types.ObjectId(empId)
+      filter['assigned_employee._id'] = { $in: [employeeObjectId, empId] }
+    }
+  }
+
+  const omitFullPayment =
+    excludeFullPayment === true ||
+    excludeFullPayment === 'true' ||
+    excludeFullPayment === '1'
+  if (omitFullPayment) {
+    filter.paymentReceivedStatus = {
+      $ne: PO_PAYMENT_RECEIVED_STATUS.FULL_PAYMENT_RECEIVED,
+    }
+  }
+
+  if (zoneIds && String(zoneIds).trim()) {
+    const selectedZoneIds = String(zoneIds)
+      .split(',')
+      .map((v) => String(v || '').trim())
+      .filter(Boolean)
+    if (selectedZoneIds.length) {
+      const zoneObjectIds = selectedZoneIds
+        .filter((id) => mongoose.Types.ObjectId.isValid(id))
+        .map((id) => new mongoose.Types.ObjectId(id))
+      filter['companyInfo.area'] = {
+        $in: [...selectedZoneIds, ...zoneObjectIds],
+      }
+    }
   }
 
   if (search && search.trim()) {
@@ -908,6 +1008,14 @@ export const getPurchaseOrderById = async ({
 
   po.financials = computePurchaseOrderFinancials(po, poPay)
   po.poPayment = poPay || null
+
+  const poEntry = await PoEntryModel.findOne({
+    purchaseOrderId: po._id,
+    isDeleted: false,
+  })
+    .select('entryDate')
+    .lean()
+  po.poReceivedDate = poEntry?.entryDate || po.createdAt || null
 
   po.poProductLineStatuses = await loadPoProductLineStatusesForOrder(po._id)
 
@@ -1268,6 +1376,7 @@ export const updatePurchaseOrder = async ({
     }
     await syncPoProductsFromPurchaseOrder(updated)
     await syncPoEntryAfterPurchaseOrderLean(updated, null)
+    await syncPurchaseOrderRateMaster(updated)
   }
 
   return updated

@@ -5,6 +5,7 @@ import { MODULES } from '../core/common/constant.js'
 import {
   createCategoryController,
   listCategoriesController,
+  getAllCategoriesController,
   getCategoryByIdController,
   updateCategoryController,
   deleteCategoryController,
@@ -23,6 +24,12 @@ categoryRouter.get(
   authenticateToken,
   checkPermission(MODULES.CATEGORIES, 'read'),
   asyncHandler(listCategoriesController)
+)
+categoryRouter.get(
+  '/get-all',
+  authenticateToken,
+  checkPermission(MODULES.CATEGORIES, 'read'),
+  asyncHandler(getAllCategoriesController)
 )
 categoryRouter.get(
   '/get-by-id',

@@ -10,6 +10,7 @@ import brandRouter from './brand.routes.js'
 import productRouter from './product.routes.js'
 import supplierRouter from './supplier.routes.js'
 import rateCardRouter from './rateCard.routes.js'
+import rateMasterRouter from './rateMaster.routes.js'
 import areaRouter from './area.routes.js'
 import subZoneRouter from './subZone.routes.js'
 import industryRouter from './industry.routes.js'
@@ -27,12 +28,15 @@ import poBillingRouter from './poBilling.routes.js'
 import visitRouter from './visit.routes.js'
 import employeeLocationRouter from './employeeLocation.routes.js'
 import proBucketRouter from './proBucket.routes.js'
+import localProcurementRouter from './localProcurement.routes.js'
+import localPurchaseRouter from './localPurchase.routes.js'
 import purchaseBucketRouter from './purchaseBucket.routes.js'
 import inventoryBucketRouter from './inventoryBucket.routes.js'
 import dispatchmentBucketRouter from './dispatchmentBucket.routes.js'
 import deliveryApprovalBucketRouter from './deliveryApprovalBucket.routes.js'
 import notificationRouter from './notification.routes.js'
 import poPaymentBacklogRouter from './poPaymentBacklog.routes.js'
+import quotationFollowupRouter from './quotationFollowup.routes.js'
 import billingRequestRouter from './billingRequest.routes.js'
 
 const mainRoutes = express.Router()
@@ -69,6 +73,7 @@ mainRoutes.use('/v1/brands', brandRouter)
 mainRoutes.use('/v1/products', productRouter)
 mainRoutes.use('/v1/suppliers', supplierRouter)
 mainRoutes.use('/v1/rate-cards', rateCardRouter)
+mainRoutes.use('/v1/rate-master', rateMasterRouter)
 mainRoutes.use('/v1/areas', areaRouter)
 mainRoutes.use('/v1/sub-zones', subZoneRouter)
 mainRoutes.use('/v1/industries', industryRouter)
@@ -86,12 +91,15 @@ mainRoutes.use('/v1/po-billing', poBillingRouter)
 mainRoutes.use('/v1/visits', visitRouter)
 mainRoutes.use('/v1/employee-locations', employeeLocationRouter)
 mainRoutes.use('/v1/pro-bucket', proBucketRouter)
+mainRoutes.use('/v1/local-procurement', localProcurementRouter)
+mainRoutes.use('/v1/local-purchase', localPurchaseRouter)
 mainRoutes.use('/v1/purchase-bucket', purchaseBucketRouter)
 mainRoutes.use('/v1/inventory-bucket', inventoryBucketRouter)
 mainRoutes.use('/v1/dispatchment-bucket', dispatchmentBucketRouter)
 mainRoutes.use('/v1/delivery-approval', deliveryApprovalBucketRouter)
 mainRoutes.use('/v1/notifications', notificationRouter)
 mainRoutes.use('/v1/po-payment-backlog', poPaymentBacklogRouter)
+mainRoutes.use('/v1/quotation-followups', quotationFollowupRouter)
 mainRoutes.use('/v1/billing-requests', billingRequestRouter)
 
 export default mainRoutes

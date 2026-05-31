@@ -30,6 +30,7 @@ import {
   getSalesDashboardCardsController,
   getRecentSalesBillingsController,
   getHodDashboardCardsController,
+  getMyZoneTargetsController,
 } from '../controller/query/query.controller.js'
 
 const queryRouter = Router()
@@ -105,6 +106,12 @@ queryRouter.post(
   authenticateToken,
   checkPermission(MODULES.TARGET_ANALYTICS, 'update'),
   asyncHandler(runTargetAnalyticsArchiveController)
+)
+queryRouter.get(
+  '/target-analytics/zone/my-targets',
+  authenticateToken,
+  checkPermission(MODULES.TARGET_ANALYTICS, 'read'),
+  asyncHandler(getMyZoneTargetsController)
 )
 queryRouter.get(
   '/target-analytics/zone',

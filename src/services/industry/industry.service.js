@@ -74,6 +74,7 @@ export const addIndustry = async (data) => {
         name: pm.name || '',
         phone: pm.phone || '',
         email: pm.email || '',
+        department: pm.department || '',
       }))
     )
   }
@@ -95,6 +96,7 @@ export const listIndustries = async ({
   search = '',
   category,
   areaIds = '',
+  zoneIds = '',
   branchFilter = {},
   currentUserId = null,
   isFullAccessRole = true,
@@ -122,7 +124,6 @@ export const listIndustries = async ({
       { gstNumber: { $regex: search, $options: 'i' } },
     ]
   }
-
   if (category) {
     filter.category = category
   }
@@ -136,6 +137,18 @@ export const listIndustries = async ({
         .filter((id) => mongoose.Types.ObjectId.isValid(id))
         .map((id) => new mongoose.Types.ObjectId(id))
       filter.area = { $in: [...selectedAreaIds, ...areaObjectIds] }
+    }
+  }
+  if (zoneIds && String(zoneIds).trim()) {
+    const selectedZoneIds = String(zoneIds)
+      .split(',')
+      .map((v) => String(v || '').trim())
+      .filter(Boolean)
+    if (selectedZoneIds.length) {
+      const zoneObjectIds = selectedZoneIds
+        .filter((id) => mongoose.Types.ObjectId.isValid(id))
+        .map((id) => new mongoose.Types.ObjectId(id))
+      filter.area = { $in: [...selectedZoneIds, ...zoneObjectIds] }
     }
   }
 
@@ -331,6 +344,7 @@ export const updateIndustry = async ({
           name: pm.name || '',
           phone: pm.phone || '',
           email: pm.email || '',
+          department: pm.department || '',
         }))
       )
     }

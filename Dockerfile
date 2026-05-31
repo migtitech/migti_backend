@@ -1,4 +1,4 @@
-owFROM node:20-bookworm
+FROM node:20-bookworm
 WORKDIR /app
 
 # Shared libraries for Puppeteer's bundled Chrome (headless PDF export)
@@ -45,6 +45,10 @@ RUN apt-get update \
 
 COPY package*.json ./
 RUN npm install
+
+# Download Puppeteer's bundled Chrome into the image so PDF export works at runtime
+RUN npx puppeteer browsers install chrome
+
 COPY . .
 EXPOSE 7200
 CMD ["node", "src/index.js"]

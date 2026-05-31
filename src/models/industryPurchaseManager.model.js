@@ -31,6 +31,11 @@ const industryPurchaseManagerSchema = new mongoose.Schema(
       lowercase: true,
       default: '',
     },
+    department: {
+      type: SchemaTypes.String,
+      trim: true,
+      default: '',
+    },
   },
   { timestamps: true }
 )

@@ -32,6 +32,13 @@ const branchZoneTargetSchema = new mongoose.Schema(
       min: 0,
       default: 0,
     },
+    remark: { type: SchemaTypes.String, default: '' },
+    status: {
+      type: SchemaTypes.String,
+      enum: ['active', 'closed'],
+      default: 'active',
+      index: true,
+    },
     created_by: { type: SchemaTypes.ObjectId, ref: 'employee', default: null },
     updated_by: { type: SchemaTypes.ObjectId, ref: 'employee', default: null },
   },
