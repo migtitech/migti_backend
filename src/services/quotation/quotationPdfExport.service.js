@@ -137,12 +137,6 @@ const buildHtml = (quotation, orgContext = {}) => {
   let totalTaxable = 0
   let totalGstAmount = 0
 
-  const expectedDeliveryWithinDaysDisplay =
-    quotation.expectedDeliveryWithinDays != null &&
-    !Number.isNaN(Number(quotation.expectedDeliveryWithinDays))
-      ? `${Number(quotation.expectedDeliveryWithinDays)} Days`
-      : 'NA'
-
   const quotationCode =
     quotation.quotationCode ||
     `QT-${String(quotation._id || quotation.id).slice(-6)}`
@@ -685,10 +679,6 @@ const buildHtml = (quotation, orgContext = {}) => {
         <tr>
           <td class="summary-label">Packing Charge</td>
           <td class="summary-value">₹${formatCurrency(packingCharge)}</td>
-        </tr>
-        <tr>
-          <td class="summary-label">Expected Delivery Within</td>
-          <td class="summary-value">${escapeHtml(expectedDeliveryWithinDaysDisplay)}</td>
         </tr>
         <tr>
           <td class="summary-label">Total Taxable Amount</td>

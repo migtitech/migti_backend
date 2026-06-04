@@ -24,6 +24,13 @@ const companyInfoSchema = Joi.object({
     .default([]),
 })
 
+// Image refs may arrive as an id string or as a populated/signed document
+// object ({ _id, path, ... }). The service normalizes both to an id.
+const imageRefSchema = Joi.alternatives().try(
+  Joi.string(),
+  Joi.object({ _id: Joi.string().required() }).unknown(true)
+)
+
 const productVariantSchema = Joi.object({
   _id: Joi.string().optional(), // MongoDB subdoc _id when variants are loaded from DB
   variantName: Joi.string().allow('').optional(),
@@ -42,7 +49,7 @@ const quotationProductItemSchema = Joi.object({
   remark: Joi.string().allow('').optional(),
   product_id: Joi.string().allow(null, '').optional(),
   rate: Joi.number().min(0).allow(null).optional(),
-  images: Joi.array().items(Joi.string()).optional().default([]),
+  images: Joi.array().items(imageRefSchema).optional().default([]),
   applyDiscount: Joi.boolean().optional().default(false),
   discountPercentage: Joi.number().min(0).max(100).allow(null).optional(),
   discountAmount: Joi.number().min(0).allow(null).optional(),
