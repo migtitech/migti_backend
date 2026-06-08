@@ -474,3 +474,45 @@ export const NOTIFICATION_PRIORITY = Object.freeze({
   HIGH: 'high',
   URGENT: 'urgent',
 })
+
+/** Product / line-item unit codes (value stored in DB). */
+export const PRODUCT_UNITS = Object.freeze([
+  { code: 'NOS', label: 'Numbers' },
+  { code: 'PCS', label: 'Pieces' },
+  { code: 'PKT', label: 'Packet' },
+  { code: 'BOX', label: 'Box' },
+  { code: 'BAG', label: 'Bag' },
+  { code: 'SET', label: 'Set' },
+  { code: 'PR', label: 'Pair' },
+  { code: 'DOZ', label: 'Dozen' },
+  { code: 'BDL', label: 'Bundle' },
+  { code: 'ROLL', label: 'Roll' },
+  { code: 'STRIP', label: 'Strip' },
+  { code: 'CAN', label: 'Can' },
+  { code: 'TIN', label: 'Tin' },
+  { code: 'JAR', label: 'Jar' },
+  { code: 'BTL', label: 'Bottle' },
+  { code: 'CTN', label: 'Carton' },
+  { code: 'TRAY', label: 'Tray' },
+  { code: 'DRM', label: 'Drum' },
+  { code: 'TUB', label: 'Tub' },
+  { code: 'KG', label: 'Kilogram' },
+  { code: 'GM', label: 'Gram' },
+  { code: 'MG', label: 'Milligram' },
+  { code: 'LTR', label: 'Litre' },
+  { code: 'ML', label: 'Millilitre' },
+  { code: 'MTR', label: 'Metre' },
+  { code: 'CM', label: 'Centimetre' },
+  { code: 'MM', label: 'Millimetre' },
+  { code: 'KM', label: 'Kilometre' },
+  { code: 'FT', label: 'Foot' },
+  { code: 'IN', label: 'Inch' },
+  { code: 'SQFT', label: 'Square Foot' },
+  { code: 'SQM', label: 'Square Metre' },
+])
+
+export const PRODUCT_UNIT_CODES = Object.freeze(
+  PRODUCT_UNITS.map((u) => u.code)
+)
+
+export const DEFAULT_PRODUCT_UNIT = 'PCS'

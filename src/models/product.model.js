@@ -239,8 +239,22 @@ const productSchema = new mongoose.Schema(
     },
     unit: {
       type: SchemaTypes.String,
-      default: 'pcs',
+      default: 'PCS',
     },
+    companyProductCodes: [
+      {
+        industry: {
+          type: SchemaTypes.ObjectId,
+          ref: 'industry',
+          required: true,
+        },
+        code: {
+          type: SchemaTypes.String,
+          required: true,
+          trim: true,
+        },
+      },
+    ],
   },
   { timestamps: true }
 )

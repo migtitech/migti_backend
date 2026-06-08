@@ -29,6 +29,11 @@ const queryNewProductSchema = new mongoose.Schema(
       ref: 'category',
       default: null,
     },
+    subcategoryId: {
+      type: SchemaTypes.ObjectId,
+      ref: 'category',
+      default: null,
+    },
     /** Next value from shared productCode sequence (e.g. mig1001) */
     rawProductCode: {
       type: SchemaTypes.String,

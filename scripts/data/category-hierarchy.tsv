@@ -1,0 +1,1139 @@
+CHEMICALS	Sealants/Caulking	Silicone Sealant	ACTIVE
+CHEMICALS	Sealants/Caulking	PU Sealant	ACTIVE
+CHEMICALS	Sealants/Caulking	Acrylic Sealant	ACTIVE
+CHEMICALS	Sealants/Caulking	Epoxy Sealant	ACTIVE
+CHEMICALS	Sealants/Caulking	Thread Sealant	ACTIVE
+CHEMICALS	Lubricants & Oils	Hydraulic Oil	ACTIVE
+CHEMICALS	Lubricants & Oils	Gear Oil	ACTIVE
+CHEMICALS	Lubricants & Oils	Compressor Oil	ACTIVE
+CHEMICALS	Lubricants & Oils	Cutting Oil	ACTIVE
+CHEMICALS	Lubricants & Oils	Grease	ACTIVE
+CHEMICALS	Coatings	Anti-Corrosion Coating	ACTIVE
+CHEMICALS	Coatings	Protective Coating	ACTIVE
+CHEMICALS	Coatings	Powder Coating	ACTIVE
+CHEMICALS	Coatings	Thermal Coating	ACTIVE
+CHEMICALS	Coatings	Waterproof Coating	ACTIVE
+CHEMICALS	Paints	Primer	ACTIVE
+CHEMICALS	Paints	Epoxy Paint	ACTIVE
+CHEMICALS	Paints	Enamel Paint	ACTIVE
+CHEMICALS	Paints	PU Paint	ACTIVE
+CHEMICALS	Paints	Heat Resistant Paint	ACTIVE
+CHEMICALS	Silica & Gel	Silica Gel	ACTIVE
+CHEMICALS	Silica & Gel	Blue Silica Gel	ACTIVE
+CHEMICALS	Silica & Gel	White Silica Gel	ACTIVE
+CHEMICALS	Silica & Gel	Desiccant Packs	ACTIVE
+CHEMICALS	Silica & Gel	Silica Sand	ACTIVE
+CHEMICALS	Inorganic Chemicals	Acids	ACTIVE
+CHEMICALS	Inorganic Chemicals	Alkalis	ACTIVE
+CHEMICALS	Inorganic Chemicals	Salts	ACTIVE
+CHEMICALS	Inorganic Chemicals	Oxides	ACTIVE
+CHEMICALS	Inorganic Chemicals	Mineral Chemicals	ACTIVE
+CHEMICALS	Industrial Chemicals	Solvents	ACTIVE
+CHEMICALS	Industrial Chemicals	Degreasers	ACTIVE
+CHEMICALS	Industrial Chemicals	Water Treatment Chemicals	ACTIVE
+CHEMICALS	Industrial Chemicals	Cleaning Chemicals	ACTIVE
+CHEMICALS	Industrial Chemicals	Process Chemicals	ACTIVE
+CHEMICALS	Laboratory Chemicals	Analytical Reagents	ACTIVE
+CHEMICALS	Laboratory Chemicals	Indicators	ACTIVE
+CHEMICALS	Laboratory Chemicals	Buffer Solutions	ACTIVE
+CHEMICALS	Laboratory Chemicals	Laboratory Solvents	ACTIVE
+CHEMICALS	Laboratory Chemicals	Culture Media	ACTIVE
+CHEMICALS	Petrochemicals	Base Oils	ACTIVE
+CHEMICALS	Petrochemicals	Paraffin Waxes	ACTIVE
+CHEMICALS	Petrochemicals	Aromatics	ACTIVE
+CHEMICALS	Petrochemicals	Olefins	ACTIVE
+CHEMICALS	Petrochemicals	Bituminous Products	ACTIVE
+COMPUTER & IT	Networking Devices	Router	ACTIVE
+COMPUTER & IT	Networking Devices	Switch	ACTIVE
+COMPUTER & IT	Networking Devices	Access Point	ACTIVE
+COMPUTER & IT	Networking Devices	Network Hub	ACTIVE
+COMPUTER & IT	Computer Cables & Connectivity	HDMI Cable	ACTIVE
+COMPUTER & IT	Computer Cables & Connectivity	USB Cable	ACTIVE
+COMPUTER & IT	Computer Cables & Connectivity	LAN Cable	ACTIVE
+COMPUTER & IT	Computer Cables & Connectivity	VGA Cable	ACTIVE
+COMPUTER & IT	Computer Cables & Connectivity	DisplayPort Cable	ACTIVE
+COMPUTER & IT	Connectors & Adapters	USB Adapter	ACTIVE
+COMPUTER & IT	Connectors & Adapters	HDMI Adapter	ACTIVE
+COMPUTER & IT	Connectors & Adapters	Gender Changer	ACTIVE
+COMPUTER & IT	Connectors & Adapters	RJ45 Connector	ACTIVE
+COMPUTER & IT	Connectors & Adapters	Converter	ACTIVE
+COMPUTER & IT	Printers & Accessories	Laser Printer	ACTIVE
+COMPUTER & IT	Printers & Accessories	Inkjet Printer	ACTIVE
+COMPUTER & IT	Printers & Accessories	Toner Cartridge	ACTIVE
+COMPUTER & IT	Printers & Accessories	Ink Cartridge	ACTIVE
+COMPUTER & IT	Printers & Accessories	Printer Drum	ACTIVE
+COMPUTER & IT	Scanners & Accessories	Flatbed Scanner	ACTIVE
+COMPUTER & IT	Scanners & Accessories	Document Scanner	ACTIVE
+COMPUTER & IT	Scanners & Accessories	Barcode Scanner	ACTIVE
+COMPUTER & IT	Scanners & Accessories	Scanner Head	ACTIVE
+COMPUTER & IT	Scanners & Accessories	Scanner Adapter	ACTIVE
+COMPUTER & IT	Data Storage Devices & Computer Components	HDD	ACTIVE
+COMPUTER & IT	Data Storage Devices & Computer Components	SSD	ACTIVE
+COMPUTER & IT	Data Storage Devices & Computer Components	External HDD	ACTIVE
+COMPUTER & IT	Data Storage Devices & Computer Components	Pen Drive	ACTIVE
+COMPUTER & IT	Data Storage Devices & Computer Components	Memory Card	ACTIVE
+COMPUTER & IT	Data Storage Devices & Computer Components	Motherboard	ACTIVE
+COMPUTER & IT	Data Storage Devices & Computer Components	Processor	ACTIVE
+COMPUTER & IT	Data Storage Devices & Computer Components	RAM	ACTIVE
+COMPUTER & IT	Data Storage Devices & Computer Components	SMPS	ACTIVE
+COMPUTER & IT	Data Storage Devices & Computer Components	Graphic Card	ACTIVE
+COMPUTER & IT	Input Devices & Chargers	Keyboard	ACTIVE
+COMPUTER & IT	Input Devices & Chargers	Mouse	ACTIVE
+COMPUTER & IT	Input Devices & Chargers	Laptop Adapter	ACTIVE
+COMPUTER & IT	Input Devices & Chargers	Battery Charger	ACTIVE
+COMPUTER & IT	Input Devices & Chargers	Webcam	ACTIVE
+COMPUTER & IT	Input Devices & Chargers	Barcode Reader	ACTIVE
+COMPUTER & IT	Input Devices & Chargers	Signature Pad	ACTIVE
+COMPUTER & IT	Input Devices & Chargers	UPS	ACTIVE
+COMPUTER & IT	Input Devices & Chargers	SMPS Adapter	ACTIVE
+COMPUTER & IT	Security & Surveillance	CCTV Camera	ACTIVE
+COMPUTER & IT	Security & Surveillance	NVR	ACTIVE
+COMPUTER & IT	Security & Surveillance	DVR	ACTIVE
+COMPUTER & IT	Security & Surveillance	IP Camera	ACTIVE
+COMPUTER & IT	Security & Surveillance	Surveillance Accessories	ACTIVE
+COMPUTER & IT	Computer Tools & Testing	Crimping Tool	ACTIVE
+COMPUTER & IT	Computer Tools & Testing	Punch Down Tool	ACTIVE
+COMPUTER & IT	Computer Tools & Testing	LAN Tester	ACTIVE
+COMPUTER & IT	Computer Tools & Testing	Cable Tester	ACTIVE
+COMPUTER & IT	Computer Tools & Testing	Network Toolkit	ACTIVE
+COMPUTER & IT	Servers & Data Center	Server	ACTIVE
+COMPUTER & IT	Servers & Data Center	Rack Cabinet	ACTIVE
+COMPUTER & IT	Servers & Data Center	KVM Switch	ACTIVE
+COMPUTER & IT	Servers & Data Center	PDU	ACTIVE
+COMPUTER & IT	Servers & Data Center	Rack Accessories	ACTIVE
+ELECTRICALS	Cables & Wires	Power Cable	ACTIVE
+ELECTRICALS	Cables & Wires	Control Cable	ACTIVE
+ELECTRICALS	Cables & Wires	Flexible Wire	ACTIVE
+ELECTRICALS	Cables & Wires	Armoured Cable	ACTIVE
+ELECTRICALS	Cables & Wires	House Wire	ACTIVE
+ELECTRICALS	Cables & Wires	Copper Wire	ACTIVE
+ELECTRICALS	Cables & Wires	Aluminium Cable	ACTIVE
+ELECTRICALS	Switchgear & Protection	MCB	ACTIVE
+ELECTRICALS	Switchgear & Protection	MCCB	ACTIVE
+ELECTRICALS	Switchgear & Protection	RCCB / ELCB	ACTIVE
+ELECTRICALS	Switchgear & Protection	ACB & Fuse	ACTIVE
+ELECTRICALS	Switches & Sockets	Modular Switch	ACTIVE
+ELECTRICALS	Switches & Sockets	Socket Outlet	ACTIVE
+ELECTRICALS	Switches & Sockets	Plug Top	ACTIVE
+ELECTRICALS	Switches & Sockets	Industrial Socket	ACTIVE
+ELECTRICALS	Switches & Sockets	Extension Board	ACTIVE
+ELECTRICALS	Lighting & Fixtures	LED Bulb & LED Tube Light	ACTIVE
+ELECTRICALS	Lighting & Fixtures	Flood Light & Street Light	ACTIVE
+ELECTRICALS	Lighting & Fixtures	Panel Ligh	ACTIVE
+ELECTRICALS	Motors & Starters	AC Motor & DC Motor	ACTIVE
+ELECTRICALS	Motors & Starters	Motor Starter & Soft Starte	ACTIVE
+ELECTRICALS	Motors & Starters	Gear Motor	ACTIVE
+ELECTRICALS	Motors & Starters	Induction Motor	ACTIVE
+ELECTRICALS	Panels & Distribution Items	Distribution Board	ACTIVE
+ELECTRICALS	Panels & Distribution Items	Electrical Panel & Panel Accessories	ACTIVE
+ELECTRICALS	Panels & Distribution Items	Junction Box	ACTIVE
+ELECTRICALS	Transformers & Power Supply	Transformer	ACTIVE
+ELECTRICALS	Transformers & Power Supply	SMPS & UPS	ACTIVE
+ELECTRICALS	Transformers & Power Supply	Battery Charger	ACTIVE
+ELECTRICALS	Transformers & Power Supply	Stabilizer	ACTIVE
+ELECTRICALS	Cable Management Items	Cable Tray & Cable Gland	ACTIVE
+ELECTRICALS	Cable Management Items	Cable Tie & Conduit Pipe	ACTIVE
+ELECTRICALS	Electrical Accessories	Contactor	ACTIVE
+ELECTRICALS	Electrical Accessories	Relay & Timer	ACTIVE
+ELECTRICALS	Electrical Accessories	Push Button	ACTIVE
+ELECTRICALS	Electrical Accessories	Indicator Lamp	ACTIVE
+ELECTRICALS	Safety Electricals	Rubber Mat & Electrical Gloves	ACTIVE
+ELECTRICALS	Safety Electricals	Lockout Device	ACTIVE
+ELECTRICALS	Safety Electricals	Voltage Detector	ACTIVE
+ELECTRICALS	Safety Electricals	Arc Flash PPE	ACTIVE
+ELECTRICALS	Renewable Electricals items	Solar Panel & Solar Inverter	ACTIVE
+ELECTRICALS	Renewable Electricals items	Solar Charge Controller	ACTIVE
+ELECTRICALS	Renewable Electricals items	Solar Battery & Solar Cable	ACTIVE
+ELECTRICALS	Electrical Consumables	Insulation Tape & Cable Marker	ACTIVE
+ELECTRICALS	Electrical Consumables	PVC Sleeve & Heat Shrink Sleeve	ACTIVE
+ELECTRONICS	Home Appliances & Kitchen Electronics Items	Mixer Grinder	ACTIVE
+ELECTRONICS	Home Appliances & Kitchen Electronics Items	Juicer	ACTIVE
+ELECTRONICS	Home Appliances & Kitchen Electronics Items	Electric Chimney	ACTIVE
+ELECTRONICS	Home Appliances & Kitchen Electronics Items	Air Fryer	ACTIVE
+ELECTRONICS	Home Appliances & Kitchen Electronics Items	Vacuum Cleaner	ACTIVE
+ELECTRONICS	Home Appliances & Kitchen Electronics Items	Electric Kettle	ACTIVE
+ELECTRONICS	Home Appliances & Kitchen Electronics Items	Toaster	ACTIVE
+ELECTRONICS	Home Appliances & Kitchen Electronics Items	Rice Cooker	ACTIVE
+ELECTRONICS	Personal Care Electronics	Hair Dryer	ACTIVE
+ELECTRONICS	Personal Care Electronics	Trimmer	ACTIVE
+ELECTRONICS	Personal Care Electronics	Electric Shaver	ACTIVE
+ELECTRONICS	Personal Care Electronics	Straightener	ACTIVE
+ELECTRONICS	Personal Care Electronics	Grooming Kit	ACTIVE
+ELECTRONICS	Soldering & Repair Equipment	Soldering Iron	ACTIVE
+ELECTRONICS	Soldering & Repair Equipment	Soldering Station	ACTIVE
+ELECTRONICS	Soldering & Repair Equipment	Hot Air Gun	ACTIVE
+ELECTRONICS	Soldering & Repair Equipment	Desoldering Pump	ACTIVE
+ELECTRONICS	Soldering & Repair Equipment	Solder Wire	ACTIVE
+ELECTRONICS	Test & Measuring Electronics	Oscilloscope	ACTIVE
+ELECTRONICS	Test & Measuring Electronics	LCR Meter	ACTIVE
+ELECTRONICS	Test & Measuring Electronics	Signal Generator	ACTIVE
+ELECTRONICS	Test & Measuring Electronics	Logic Analyzer	ACTIVE
+ELECTRONICS	Test & Measuring Electronics	Frequency Counter	ACTIVE
+ELECTRONICS	Mobile & Communication Devices	Smartphone	ACTIVE
+ELECTRONICS	Mobile & Communication Devices	Tablet	ACTIVE
+ELECTRONICS	Mobile & Communication Devices	Communication Interfaces	ACTIVE
+ELECTRONICS	Mobile & Communication Devices	Walkie Talkie	ACTIVE
+ELECTRONICS	Mobile & Communication Devices	RF Modules	ACTIVE
+ELECTRONICS	Mobile & Communication Devices	Landline Phone	ACTIVE
+ELECTRONICS	Mobile & Communication Devices	Video Phone	ACTIVE
+ELECTRONICS	CCTV & Security Electronics	CCTV Camera	ACTIVE
+ELECTRONICS	CCTV & Security Electronics	DVR	ACTIVE
+ELECTRONICS	CCTV & Security Electronics	NVR	ACTIVE
+ELECTRONICS	CCTV & Security Electronics	Video Door Phone	ACTIVE
+ELECTRONICS	CCTV & Security Electronics	Biometric Device	ACTIVE
+ELECTRONICS	Electronic Components	Resistors	ACTIVE
+ELECTRONICS	Electronic Components	Capacitors	ACTIVE
+ELECTRONICS	Electronic Components	Inductors	ACTIVE
+ELECTRONICS	Electronic Components	Diodes	ACTIVE
+ELECTRONICS	Electronic Components	Transistors	ACTIVE
+ELECTRONICS	Audio & Video Electronics	Speakers & Mic \ Confrences Mic	ACTIVE
+ELECTRONICS	Audio & Video Electronics	Microphones	ACTIVE
+ELECTRONICS	Audio & Video Electronics	Amplifier Modules	ACTIVE
+ELECTRONICS	Audio & Video Electronics	Audio Processors	ACTIVE
+ELECTRONICS	Audio & Video Electronics	Video Converters	ACTIVE
+ELECTRONICS	Air Conditioning & Cooling Items	Split AC	ACTIVE
+ELECTRONICS	Air Conditioning & Cooling Items	Window AC	ACTIVE
+ELECTRONICS	Air Conditioning & Cooling Items	Cassette AC	ACTIVE
+ELECTRONICS	Air Conditioning & Cooling Items	fan	ACTIVE
+ELECTRONICS	Air Conditioning & Cooling Items	Tower AC	ACTIVE
+ELECTRONICS	Air Conditioning & Cooling Items	Air Cooler	ACTIVE
+ELECTRONICS	Refrigeration Appliances	Refrigerator	ACTIVE
+ELECTRONICS	Refrigeration Appliances	Deep Freezer	ACTIVE
+ELECTRONICS	Refrigeration Appliances	Water Cooler	ACTIVE
+ELECTRONICS	Refrigeration Appliances	Bottle Cooler	ACTIVE
+ELECTRONICS	Refrigeration Appliances	Visi Cooler	ACTIVE
+HARDWARE & SANITARY ITEMS	SANITARY ITEMS	Bathroom Fittings	ACTIVE
+HARDWARE & SANITARY ITEMS	SANITARY ITEMS	Sanitary/Toilet Ware	ACTIVE
+HARDWARE & SANITARY ITEMS	HARDWARE	Door Hardware	ACTIVE
+HARDWARE & SANITARY ITEMS	HARDWARE	Window Hardware	ACTIVE
+HARDWARE & SANITARY ITEMS	HARDWARE	Glass Fittings Hardware	ACTIVE
+HARDWARE & SANITARY ITEMS	PLUMBING ITEMS	Metal Plumbing Fittings	ACTIVE
+HARDWARE & SANITARY ITEMS	PLUMBING ITEMS	PVC Plumbing Fittings	ACTIVE
+HARDWARE & SANITARY ITEMS	PLUMBING ITEMS	PVC Barbed Fittings	ACTIVE
+HARDWARE & SANITARY ITEMS	PLUMBING ITEMS	Metal Barbed Fittings	ACTIVE
+HARDWARE & SANITARY ITEMS	PLUMBING ITEMS	Plumbing Quick Fittings	ACTIVE
+HARDWARE & SANITARY ITEMS	PLUMBING ITEMS	Plumbing Hose Metal Fittings	ACTIVE
+HARDWARE & SANITARY ITEMS	PLUMBING ITEMS	Plumbing Valves	ACTIVE
+HARDWARE & SANITARY ITEMS	PLUMBING ITEMS	Plumbing Gauges	ACTIVE
+HARDWARE & SANITARY ITEMS	PLUMBING ITEMS	Flexible Plastic Pipes	ACTIVE
+HARDWARE & SANITARY ITEMS	PLUMBING ITEMS	Plumbing Pipes	ACTIVE
+HARDWARE & SANITARY ITEMS	PLUMBING ITEMS	Sewer & Drainage Pipe Fittings	ACTIVE
+HARDWARE & SANITARY ITEMS	PLUMBING ITEMS	Plastic Water Pipe Fittings	ACTIVE
+HARDWARE & SANITARY ITEMS	PLUMBING ITEMS	Plastic Water Pipe Manifolds	ACTIVE
+HARDWARE & SANITARY ITEMS	PLUMBING ITEMS	Plastic Water Pipe Bulkhead Fittings	ACTIVE
+HARDWARE & SANITARY ITEMS	PLUMBING ITEMS	Repair Pipe Fittings	ACTIVE
+HARDWARE & SANITARY ITEMS	PLUMBING ITEMS	Plumbing Adhesives / Sealants	ACTIVE
+HARDWARE & SANITARY ITEMS	PLUMBING ITEMS	Plumbing Cleaning	ACTIVE
+HARDWARE & SANITARY ITEMS	PLUMBING ITEMS	Plumbing Washers	ACTIVE
+HARDWARE & SANITARY ITEMS	HARDWARE	Lock Hardware	ACTIVE
+HOSPITALITY	Safety & Utility Items	Wet Floor Signs	ACTIVE
+HOSPITALITY	Safety & Utility Items	Gloves	ACTIVE
+HOSPITALITY	Safety & Utility Items	Aprons	ACTIVE
+HOSPITALITY	Safety & Utility Items	Waste Bins	ACTIVE
+HOSPITALITY	Diagnostic Equipment	ECG Machine	ACTIVE
+HOSPITALITY	Diagnostic Equipment	EEG Machine	ACTIVE
+HOSPITALITY	Diagnostic Equipment	Ultrasound Machine	ACTIVE
+HOSPITALITY	Diagnostic Equipment	X-Ray Machine	ACTIVE
+HOSPITALITY	Diagnostic Equipment	CT Scanner	ACTIVE
+HOSPITALITY	Emergency & ICU Equipment	Defibrillator	ACTIVE
+HOSPITALITY	Emergency & ICU Equipment	Infusion Pump	ACTIVE
+HOSPITALITY	Emergency & ICU Equipment	Syringe Pump	ACTIVE
+HOSPITALITY	Emergency & ICU Equipment	Crash Cart	ACTIVE
+HOSPITALITY	Emergency & ICU Equipment	Patient Warmer	ACTIVE
+HOSPITALITY	Physiotherapy Equipment & Dental Equipment	TENS Machine	ACTIVE
+HOSPITALITY	Physiotherapy Equipment & Dental Equipment	CPM Machine,	ACTIVE
+HOSPITALITY	Physiotherapy Equipment & Dental Equipment	Traction Unit	ACTIVE
+HOSPITALITY	Physiotherapy Equipment & Dental Equipment	Dental Compressor	ACTIVE
+HOSPITALITY	Physiotherapy Equipment & Dental Equipment	Ultrasonic Scaler	ACTIVE
+HOSPITALITY	Physiotherapy Equipment & Dental Equipment	Curing Light	ACTIVE
+HOSPITALITY	Physiotherapy Equipment & Dental Equipment	Dental Chair	ACTIVE
+HOSPITALITY	Physiotherapy Equipment & Dental Equipment	Ultrasonic Scaler	ACTIVE
+HOSPITALITY	Laboratory Equipment	Hematology Analyzer	ACTIVE
+HOSPITALITY	Laboratory Equipment	Biochemistry Analyzer,	ACTIVE
+HOSPITALITY	Laboratory Equipment	Centrifuge Machine	ACTIVE
+HOSPITALITY	Laboratory Equipment	Microscope	ACTIVE
+HOSPITALITY	Laboratory Equipment	ELISA Reader	ACTIVE
+HOSPITALITY	Hospital Furniture & Equipment	Hospital Bed	ACTIVE
+HOSPITALITY	Hospital Furniture & Equipment	Wheelchair	ACTIVE
+HOSPITALITY	Hospital Furniture & Equipment	Stretcher	ACTIVE
+HOSPITALITY	Hospital Furniture & Equipment	Examination Table,	ACTIVE
+HOSPITALITY	Hospital Furniture & Equipment	Bedside Locker	ACTIVE
+HOSPITALITY	Parts & Accessories	ECG Cable	ACTIVE
+HOSPITALITY	Parts & Accessories	SPO2 Sensor	ACTIVE
+HOSPITALITY	Parts & Accessories	Ultrasound Probe	ACTIVE
+HOSPITALITY	Parts & Accessories	Display Module	ACTIVE
+HOSPITALITY	Parts & Accessories	PCB Card	ACTIVE
+HOSPITALITY	Parts & Accessories	SMPS Power Supply	ACTIVE
+HOSPITALITY	Parts & Accessories	Battery Pack	ACTIVE
+HOSPITALITY	Parts & Accessories	Cooling Fan	ACTIVE
+HOSPITALITY	Parts & Accessories	Medical Filter	ACTIVE
+HOSPITALITY	Parts & Accessories	Tubing Set	ACTIVE
+HYDRAULICS	Hydraulic Pumps	Gear Pumps	ACTIVE
+HYDRAULICS	Hydraulic Pumps	Vane Pumps	ACTIVE
+HYDRAULICS	Hydraulic Pumps	Piston Pumps	ACTIVE
+HYDRAULICS	Hydraulic Pumps	Hand Pumps	ACTIVE
+HYDRAULICS	Hydraulic Cylinders & ACCESSORIES	Tie Rod Cylinders	ACTIVE
+HYDRAULICS	Hydraulic Cylinders & ACCESSORIES	Welded Cylinders	ACTIVE
+HYDRAULICS	Hydraulic Cylinders & ACCESSORIES	Telescopic Cylinders	ACTIVE
+HYDRAULICS	Hydraulic Cylinders & ACCESSORIES	Cylinder Accessories	ACTIVE
+HYDRAULICS	Hydraulic Valves	Directional Control Valves	ACTIVE
+HYDRAULICS	Hydraulic Valves	Pressure Relief Valves	ACTIVE
+HYDRAULICS	Hydraulic Valves	Pressure Reducing Valves	ACTIVE
+HYDRAULICS	Hydraulic Valves	Needle Valves	ACTIVE
+HYDRAULICS	Hydraulic Valves	Solenoid Valves	ACTIVE
+HYDRAULICS	Hydraulic Valves	Proportional Valve	ACTIVE
+HYDRAULICS	Hydraulic Hoses & Hydraulic Fittings	High Pressure Hose	ACTIVE
+HYDRAULICS	Hydraulic Hoses & Hydraulic Fittings	Thermoplastic Hose	ACTIVE
+HYDRAULICS	Hydraulic Hoses & Hydraulic Fittings	PTFE Hose	ACTIVE
+HYDRAULICS	Hydraulic Hoses & Hydraulic Fittings	Wire Braided Hose	ACTIVE
+HYDRAULICS	Hydraulic Hoses & Hydraulic Fittings	Nipples	ACTIVE
+HYDRAULICS	Hydraulic Hoses & Hydraulic Fittings	Elbow Fittings	ACTIVE
+HYDRAULICS	Hydraulic Hoses & Hydraulic Fittings	Tee Fittings	ACTIVE
+HYDRAULICS	Hydraulic Hoses & Hydraulic Fittings	Bulkhead Fittings	ACTIVE
+HYDRAULICS	Hydraulic Repair & Maintenance	Seal Kits	ACTIVE
+HYDRAULICS	Hydraulic Repair & Maintenance	Pump Repair Kits	ACTIVE
+HYDRAULICS	Hydraulic Repair & Maintenance	Cylinder Repair Kits	ACTIVE
+HYDRAULICS	Hydraulic Repair & Maintenance	Valve Repair Kits	ACTIVE
+HYDRAULICS	Hydraulic Repair & Maintenance	Hose Repair Kits	ACTIVE
+HYDRAULICS	Hydraulic Repair & Maintenance	Test Kits	ACTIVE
+HYDRAULICS	Hydraulic Oils	ISO VG 32	ACTIVE
+HYDRAULICS	Hydraulic Oils	ISO VG 46	ACTIVE
+HYDRAULICS	Hydraulic Oils	ISO VG 68	ACTIVE
+HYDRAULICS	Hydraulic Oils	Anti-Wear Hydraulic Oil	ACTIVE
+HYDRAULICS	Hydraulic Oils	Fire Resistant Hydraulic Fluid	ACTIVE
+HYDRAULICS	Hydraulic Oils	Biodegradable Hydraulic Fluid	ACTIVE
+HYDRAULICS	Hydraulic Jacks	Bottle Jacks	ACTIVE
+HYDRAULICS	Hydraulic Jacks	Toe Jacks	ACTIVE
+HYDRAULICS	Hydraulic Jacks	Hollow Jacks	ACTIVE
+HYDRAULICS	Hydraulic Jacks	Low Height Jacks	ACTIVE
+HYDRAULICS	Hydraulic Jacks	Heavy Duty Jacks	ACTIVE
+HYDRAULICS	Hydraulic Tools	Torque Wrenches	ACTIVE
+HYDRAULICS	Hydraulic Tools	Hydraulic Pullers	ACTIVE
+HYDRAULICS	Hydraulic Tools	Presses	ACTIVE
+HYDRAULICS	Hydraulic Tools	Pipe Benders	ACTIVE
+HYDRAULICS	Hydraulic Tools	Crimping Tool	ACTIVE
+HYDRAULICS	Hydraulic Tools	Hydraulic Cutters	ACTIVE
+HYDRAULICS	Hydraulic Tools	Nut Splitters	ACTIVE
+HYDRAULICS	Hydraulic Tools	Hydraulic Lifting Equipment	ACTIVE
+INDUSTRIAL SAFETY & FIRE	Human Protection	Head Protection	ACTIVE
+INDUSTRIAL SAFETY & FIRE	Human Protection	Hand Protection	ACTIVE
+INDUSTRIAL SAFETY & FIRE	Human Protection	Body Protection	ACTIVE
+INDUSTRIAL SAFETY & FIRE	Human Protection	Foot Protection	ACTIVE
+INDUSTRIAL SAFETY & FIRE	Human Protection	Eye Protection	ACTIVE
+INDUSTRIAL SAFETY & FIRE	Human Protection	Hearing Protection	ACTIVE
+INDUSTRIAL SAFETY & FIRE	Human Protection	Face Protection	ACTIVE
+INDUSTRIAL SAFETY & FIRE	Human Protection	Fall Protection	ACTIVE
+INDUSTRIAL SAFETY & FIRE	Human Protection	Fire Protection	ACTIVE
+INDUSTRIAL SAFETY & FIRE	Human Protection	Safety-Respirators & Masks	ACTIVE
+INDUSTRIAL SAFETY & FIRE	Safety-Kits	Fire safety Kit	ACTIVE
+INDUSTRIAL SAFETY & FIRE	Safety-Kits	Emergency Kit	ACTIVE
+INDUSTRIAL SAFETY & FIRE	Safety-Kits	Rescue Kit	ACTIVE
+INDUSTRIAL SAFETY & FIRE	Safety-Kits	Life Saving Kit	ACTIVE
+INDUSTRIAL SAFETY & FIRE	Safety-Kits	Water Safety Kit	ACTIVE
+INDUSTRIAL SAFETY & FIRE	Safety-Kits	Travel Safety Kit	ACTIVE
+INDUSTRIAL SAFETY & FIRE	Safety Signs & Signals Boards		ACTIVE
+INDUSTRIAL SAFETY & FIRE	Traffic & Road Safety		ACTIVE
+INDUSTRIAL SAFETY & FIRE	Safety-Lockout Tagout (LOTO)		ACTIVE
+INDUSTRIAL SAFETY & FIRE	Alarm & Warning Systems		ACTIVE
+INDUSTRIAL SAFETY & FIRE	Safety Storage & Spill Control Supplies		ACTIVE
+INDUSTRIAL SAFETY & FIRE	Water Safety Products		ACTIVE
+INDUSTRIAL SAFETY & FIRE	Safety Mats & Flooring		ACTIVE
+INDUSTRIAL SAFETY & FIRE	Electrical Safety		ACTIVE
+INDUSTRIAL SAFETY & FIRE	First Aid & Wound Care		ACTIVE
+INDUSTRIAL SAFETY & FIRE	Paper and Notebooks		ACTIVE
+INDUSTRIAL SAFETY & FIRE	Writing and Correction		ACTIVE
+INDUSTRIAL SAFETY & FIRE	Desk and file Organizers		ACTIVE
+INDUSTRIAL SAFETY & FIRE	General Office Needs		ACTIVE
+POWER TOOLS	Power Tool Accessories	Drill machine & Drill Bits	ACTIVE
+POWER TOOLS	Power Tool Accessories	Saw Blades	ACTIVE
+POWER TOOLS	Power Tool Accessories	Grinding Wheels	ACTIVE
+POWER TOOLS	Power Tool Accessories	Rotary Drill	ACTIVE
+POWER TOOLS	Power Tool Accessories	Impact Drill	ACTIVE
+POWER TOOLS	Power Tool Accessories	Hammer Drill	ACTIVE
+POWER TOOLS	Power Tool Accessories	Screw Gun	ACTIVE
+POWER TOOLS	Power Tool Accessories	Sanding Discs	ACTIVE
+POWER TOOLS	Power Tool Accessories	Cutting Discs	ACTIVE
+POWER TOOLS	Grinding & Sanding Tools	Angle Grinder	ACTIVE
+POWER TOOLS	Grinding & Sanding Tools	Die Grinder	ACTIVE
+POWER TOOLS	Grinding & Sanding Tools	Orbital Sander	ACTIVE
+POWER TOOLS	Grinding & Sanding Tools	Belt Sander	ACTIVE
+POWER TOOLS	Grinding & Sanding Tools	Bench Grinder	ACTIVE
+POWER TOOLS	Polishing & Finishing Tools	Rotary Polisher	ACTIVE
+POWER TOOLS	Polishing & Finishing Tools	Car Polisher	ACTIVE
+POWER TOOLS	Polishing & Finishing Tools	Buffer Machine	ACTIVE
+POWER TOOLS	Polishing & Finishing Tools	Burnishing Machine	ACTIVE
+POWER TOOLS	Polishing & Finishing Tools	Wax Polisher	ACTIVE
+POWER TOOLS	Demolition & Concrete Tools	Demolition Hammer	ACTIVE
+POWER TOOLS	Demolition & Concrete Tools	Rotary Hammer	ACTIVE
+POWER TOOLS	Demolition & Concrete Tools	Breaker	ACTIVE
+POWER TOOLS	Demolition & Concrete Tools	Concrete Vibrator	ACTIVE
+POWER TOOLS	Demolition & Concrete Tools	Wall Chaser	ACTIVE
+POWER TOOLS	Power Tool Spare Parts	Carbon Brush	ACTIVE
+POWER TOOLS	Power Tool Spare Parts	Armature	ACTIVE
+POWER TOOLS	Power Tool Spare Parts	Field Coil	ACTIVE
+POWER TOOLS	Power Tool Spare Parts	Gear Assembly	ACTIVE
+POWER TOOLS	Power Tool Spare Parts	Switch Assembly	ACTIVE
+POWER TOOLS	Lawn & Garden Power Tools	Grass Trimmer	ACTIVE
+POWER TOOLS	Lawn & Garden Power Tools	Hedge Trimmer	ACTIVE
+POWER TOOLS	Lawn & Garden Power Tools	Chain Saw	ACTIVE
+POWER TOOLS	Lawn & Garden Power Tools	Leaf Blower	ACTIVE
+POWER TOOLS	Lawn & Garden Power Tools	Lawn Mower	ACTIVE
+POWER TOOLS	Heat & Specialty Tools	Heat Gun	ACTIVE
+POWER TOOLS	Heat & Specialty Tools	Glue Gun	ACTIVE
+POWER TOOLS	Heat & Specialty Tools	Electric Riveter	ACTIVE
+POWER TOOLS	Heat & Specialty Tools	Electric Nibbler	ACTIVE
+POWER TOOLS	Heat & Specialty Tools	Pipe Threading Machine	ACTIVE
+POWER TOOLS	Cordless Power Tools	Cordless Drill	ACTIVE
+POWER TOOLS	Cordless Power Tools	Cordless Grinder	ACTIVE
+POWER TOOLS	Cordless Power Tools	Cordless Impact Wrench	ACTIVE
+POWER TOOLS	Cordless Power Tools	Cordless Saw	ACTIVE
+POWER TOOLS	Cordless Power Tools	Cordless Blower	ACTIVE
+POWER TOOLS	Industrial Gaskets	Rubber Gaskets	ACTIVE
+POWER TRANSMISSION	Industrial Gaskets	PTFE Gaskets	ACTIVE
+POWER TRANSMISSION	Industrial Gaskets	Spiral Wound Gaskets	ACTIVE
+POWER TRANSMISSION	Industrial Gaskets	Metal Gaskets	ACTIVE
+POWER TRANSMISSION	Industrial Gaskets	Non-Asbestos Gaskets	ACTIVE
+POWER TRANSMISSION	Chains & Belts	Roller Chains	ACTIVE
+POWER TRANSMISSION	Chains & Belts	Conveyor Chains	ACTIVE
+POWER TRANSMISSION	Chains & Belts	Leaf Chains	ACTIVE
+POWER TRANSMISSION	Chains & Belts	Agricultural Chains	ACTIVE
+POWER TRANSMISSION	Chains & Belts	Attachment Chains	ACTIVE
+POWER TRANSMISSION	Chains & Belts	V-Belts	ACTIVE
+POWER TRANSMISSION	Chains & Belts	Timing Belts	ACTIVE
+POWER TRANSMISSION	Chains & Belts	Flat Belts	ACTIVE
+POWER TRANSMISSION	Chains & Belts	Ribbed Belts	ACTIVE
+POWER TRANSMISSION	Chains & Belts	Conveyor Belts	ACTIVE
+POWER TRANSMISSION	Gearboxes & Speed Reducers	Helical Gearbox	ACTIVE
+POWER TRANSMISSION	Gearboxes & Speed Reducers	Worm Gearbox	ACTIVE
+POWER TRANSMISSION	Gearboxes & Speed Reducers	Planetary Gearbox	ACTIVE
+POWER TRANSMISSION	Gearboxes & Speed Reducers	Bevel Helical Gearbox	ACTIVE
+POWER TRANSMISSION	Gearboxes & Speed Reducers	Cycloidal Gearbox	ACTIVE
+TEST & MEASURE EQUIPMENT	Pressure Measurement Instruments	Pressure Gauge	ACTIVE
+TEST & MEASURE EQUIPMENT	Pressure Measurement Instruments	Differential Pressure Gauge	ACTIVE
+TEST & MEASURE EQUIPMENT	Pressure Measurement Instruments	Digital Pressure Meter	ACTIVE
+TEST & MEASURE EQUIPMENT	Pressure Measurement Instruments	Vacuum Gauge	ACTIVE
+TEST & MEASURE EQUIPMENT	Pressure Measurement Instruments	Pressure Recorder	ACTIVE
+TEST & MEASURE EQUIPMENT	Process Calibration Equipment	Pressure Calibrator	ACTIVE
+TEST & MEASURE EQUIPMENT	Process Calibration Equipment	Temperature Calibrator	ACTIVE
+TEST & MEASURE EQUIPMENT	Process Calibration Equipment	Loop Calibrator	ACTIVE
+TEST & MEASURE EQUIPMENT	Process Calibration Equipment	Multifunction Calibrator	ACTIVE
+TEST & MEASURE EQUIPMENT	Process Calibration Equipment	Dry Block Calibrator	ACTIVE
+TEST & MEASURE EQUIPMENT	Temperature Measurement Instruments	Infrared Thermometer	ACTIVE
+TEST & MEASURE EQUIPMENT	Temperature Measurement Instruments	Temperature Indicator	ACTIVE
+TEST & MEASURE EQUIPMENT	Temperature Measurement Instruments	Thermocouple Meter	ACTIVE
+TEST & MEASURE EQUIPMENT	Temperature Measurement Instruments	RTD Meter	ACTIVE
+TEST & MEASURE EQUIPMENT	Temperature Measurement Instruments	Thermal Imager	ACTIVE
+TEST & MEASURE EQUIPMENT	Dimensional Measurement Tools	Vernier Caliper	ACTIVE
+TEST & MEASURE EQUIPMENT	Dimensional Measurement Tools	Measuring Tape	ACTIVE
+TEST & MEASURE EQUIPMENT	Dimensional Measurement Tools	Micrometer	ACTIVE
+TEST & MEASURE EQUIPMENT	Dimensional Measurement Tools	Height Gauge	ACTIVE
+TEST & MEASURE EQUIPMENT	Dimensional Measurement Tools	Depth Gauge	ACTIVE
+TEST & MEASURE EQUIPMENT	Dimensional Measurement Tools	Bore Gauge	ACTIVE
+TEST & MEASURE EQUIPMENT	Environmental Test Instruments	Lux Meter	ACTIVE
+TEST & MEASURE EQUIPMENT	Environmental Test Instruments	Sound Level Meter	ACTIVE
+TEST & MEASURE EQUIPMENT	Environmental Test Instruments	Anemometer	ACTIVE
+TEST & MEASURE EQUIPMENT	Environmental Test Instruments	Hygrometer	ACTIVE
+TEST & MEASURE EQUIPMENT	Environmental Test Instruments	Air Quality Meter	ACTIVE
+TEST & MEASURE EQUIPMENT	Laboratory Testing Equipment	pH Meter	ACTIVE
+TEST & MEASURE EQUIPMENT	Laboratory Testing Equipment	Conductivity Meter	ACTIVE
+TEST & MEASURE EQUIPMENT	Laboratory Testing Equipment	Turbidity Meter	ACTIVE
+TEST & MEASURE EQUIPMENT	Laboratory Testing Equipment	Refractometer	ACTIVE
+TEST & MEASURE EQUIPMENT	Laboratory Testing Equipment	Moisture Analyzer	ACTIVE
+TEST & MEASURE EQUIPMENT	Gas Detection Instruments	Single Gas Detector	ACTIVE
+TEST & MEASURE EQUIPMENT	Gas Detection Instruments	Multi Gas Detector	ACTIVE
+TEST & MEASURE EQUIPMENT	Gas Detection Instruments	Gas Leak Detector	ACTIVE
+TEST & MEASURE EQUIPMENT	Gas Detection Instruments	Oxygen Analyzer	ACTIVE
+TEST & MEASURE EQUIPMENT	Gas Detection Instruments	Combustible Gas Detector	ACTIVE
+TEST & MEASURE EQUIPMENT	Electrical Testing Instruments & Electronic	Digital Multimeter	ACTIVE
+TEST & MEASURE EQUIPMENT	Electrical Testing Instruments & Electronic	Clamp Meter	ACTIVE
+TEST & MEASURE EQUIPMENT	Electrical Testing Instruments & Electronic	Insulation Tester (Megger)	ACTIVE
+TEST & MEASURE EQUIPMENT	Electrical Testing Instruments & Electronic	Oscilloscope	ACTIVE
+TEST & MEASURE EQUIPMENT	Electrical Testing Instruments & Electronic	Function Generator	ACTIVE
+TEST & MEASURE EQUIPMENT	Electrical Testing Instruments & Electronic	LCR Meter	ACTIVE
+TEST & MEASURE EQUIPMENT	Electrical Testing Instruments & Electronic	Logic Analyzer	ACTIVE
+TEST & MEASURE EQUIPMENT	Time & Speed Measurement Instruments	Stopwatch	ACTIVE
+TEST & MEASURE EQUIPMENT	Time & Speed Measurement Instruments	RPM Meter	ACTIVE
+TEST & MEASURE EQUIPMENT	Time & Speed Measurement Instruments	Digital Timer	ACTIVE
+TEST & MEASURE EQUIPMENT	Time & Speed Measurement Instruments	Counter Meter	ACTIVE
+TEST & MEASURE EQUIPMENT	Time & Speed Measurement Instruments	Frequency Meter	ACTIVE
+ROBOTICS & AUTOMATION EQUIPMENT	Industrial Robots	Articulated Robots	ACTIVE
+ROBOTICS & AUTOMATION EQUIPMENT	Industrial Robots	SCARA Robots	ACTIVE
+ROBOTICS & AUTOMATION EQUIPMENT	Industrial Robots	Delta Robots	ACTIVE
+ROBOTICS & AUTOMATION EQUIPMENT	Industrial Robots	Cartesian Robots	ACTIVE
+ROBOTICS & AUTOMATION EQUIPMENT	Industrial Robots	Collaborative Robots	ACTIVE
+ROBOTICS & AUTOMATION EQUIPMENT	PLC & Control Systems	PLC & HMI	ACTIVE
+ROBOTICS & AUTOMATION EQUIPMENT	PLC & Control Systems	PAC Controller	ACTIVE
+ROBOTICS & AUTOMATION EQUIPMENT	PLC & Control Systems	Remote I/O	ACTIVE
+ROBOTICS & AUTOMATION EQUIPMENT	PLC & Control Systems	Control Panel	ACTIVE
+ROBOTICS & AUTOMATION EQUIPMENT	Sensors & Detection	Proximity Sensors	ACTIVE
+ROBOTICS & AUTOMATION EQUIPMENT	Sensors & Detection	Photoelectric Sensors	ACTIVE
+ROBOTICS & AUTOMATION EQUIPMENT	Sensors & Detection	Inductive Sensors	ACTIVE
+ROBOTICS & AUTOMATION EQUIPMENT	Sensors & Detection	Capacitive Sensors	ACTIVE
+ROBOTICS & AUTOMATION EQUIPMENT	Sensors & Detection	Vision Sensors	ACTIVE
+ROBOTICS & AUTOMATION EQUIPMENT	Automation Spare Parts	Encoder & Servo Cables	ACTIVE
+ROBOTICS & AUTOMATION EQUIPMENT	Automation Spare Parts	Teach Pendants	ACTIVE
+ROBOTICS & AUTOMATION EQUIPMENT	Automation Spare Parts	Power Modules	ACTIVE
+ROBOTICS & AUTOMATION EQUIPMENT	Automation Spare Parts	Controller Cards	ACTIVE
+ROBOTICS & AUTOMATION EQUIPMENT	Robotic End Effectors	Grippers	ACTIVE
+ROBOTICS & AUTOMATION EQUIPMENT	Robotic End Effectors	Vacuum Cups	ACTIVE
+ROBOTICS & AUTOMATION EQUIPMENT	Robotic End Effectors	Tool Changers	ACTIVE
+ROBOTICS & AUTOMATION EQUIPMENT	Robotic End Effectors	Welding Torches	ACTIVE
+ROBOTICS & AUTOMATION EQUIPMENT	Robotic End Effectors	Pick & Place Tools	ACTIVE
+ROBOTICS & AUTOMATION EQUIPMENT	Industrial Communication	Ethernet Switches	ACTIVE
+ROBOTICS & AUTOMATION EQUIPMENT	Industrial Communication	Industrial Routers	ACTIVE
+ROBOTICS & AUTOMATION EQUIPMENT	Industrial Communication	Communication Modules	ACTIVE
+ROBOTICS & AUTOMATION EQUIPMENT	Industrial Communication	Gateways & I/O Modules	ACTIVE
+ROBOTICS & AUTOMATION EQUIPMENT	Drives & Automation Components	VFD Drives	ACTIVE
+ROBOTICS & AUTOMATION EQUIPMENT	Drives & Automation Components	Soft Starters	ACTIVE
+ROBOTICS & AUTOMATION EQUIPMENT	Drives & Automation Components	Motor Starters	ACTIVE
+ROBOTICS & AUTOMATION EQUIPMENT	Drives & Automation Components	Industrial Relays & Electrical Relays	ACTIVE
+ROBOTICS & AUTOMATION EQUIPMENT	Drives & Automation Components	Contactors	ACTIVE
+PROCESSING TOOLS & CUTTING	Turning Tools & Turning Inserts	External Turning Holders	ACTIVE
+PROCESSING TOOLS & CUTTING	Turning Tools & Turning Inserts	Internal Turning Holders	ACTIVE
+PROCESSING TOOLS & CUTTING	Turning Tools & Turning Inserts	Boring Bars	ACTIVE
+PROCESSING TOOLS & CUTTING	Turning Tools & Turning Inserts	Grooving Tools	ACTIVE
+PROCESSING TOOLS & CUTTING	Turning Tools & Turning Inserts	Parting-Off Tools	ACTIVE
+PROCESSING TOOLS & CUTTING	Turning Tools & Turning Inserts	CNMG Inserts	ACTIVE
+PROCESSING TOOLS & CUTTING	Turning Tools & Turning Inserts	TNMG Inserts	ACTIVE
+PROCESSING TOOLS & CUTTING	Turning Tools & Turning Inserts	DNMG Inserts	ACTIVE
+PROCESSING TOOLS & CUTTING	Turning Tools & Turning Inserts	VNMG Inserts	ACTIVE
+PROCESSING TOOLS & CUTTING	Turning Tools & Turning Inserts	WNMG Inserts	ACTIVE
+PROCESSING TOOLS & CUTTING	Turning Tools & Turning Inserts	Grooving Inserts	ACTIVE
+PROCESSING TOOLS & CUTTING	Drilling Tools	HSS Drill Bits	ACTIVE
+PROCESSING TOOLS & CUTTING	Drilling Tools	Carbide Drill Bits	ACTIVE
+PROCESSING TOOLS & CUTTING	Drilling Tools	Dill Bits	ACTIVE
+PROCESSING TOOLS & CUTTING	Drilling Tools	Indexable Drills	ACTIVE
+PROCESSING TOOLS & CUTTING	Drilling Tools	Center Drills	ACTIVE
+PROCESSING TOOLS & CUTTING	Drilling Tools	Spot Drills	ACTIVE
+PROCESSING TOOLS & CUTTING	Drilling Machines & Floor Drilling Machines	Electric Hand Drill	ACTIVE
+PROCESSING TOOLS & CUTTING	Drilling Machines & Floor Drilling Machines	Cordless Drill	ACTIVE
+PROCESSING TOOLS & CUTTING	Drilling Machines & Floor Drilling Machines	Impact Drill	ACTIVE
+PROCESSING TOOLS & CUTTING	Drilling Machines & Floor Drilling Machines	Rotary Hammer Drill	ACTIVE
+PROCESSING TOOLS & CUTTING	Drilling Machines & Floor Drilling Machines	Bench Drill Machine	ACTIVE
+PROCESSING TOOLS & CUTTING	Drilling Machines & Floor Drilling Machines	Pillar Drill Machine	ACTIVE
+PROCESSING TOOLS & CUTTING	Drilling Machines & Floor Drilling Machines	Pedestal Drill Machine	ACTIVE
+PROCESSING TOOLS & CUTTING	Drilling Machines & Floor Drilling Machines	Sensitive Drill Machine	ACTIVE
+PROCESSING TOOLS & CUTTING	Drilling Machines & Floor Drilling Machines	Radial Drill Machine	ACTIVE
+PROCESSING TOOLS & CUTTING	Drilling Machines & Floor Drilling Machines	Gang Drill Machine	ACTIVE
+PROCESSING TOOLS & CUTTING	Magnetic Drilling Tools	Annular Cutters	ACTIVE
+PROCESSING TOOLS & CUTTING	Magnetic Drilling Tools	TCT Annular Cutters	ACTIVE
+PROCESSING TOOLS & CUTTING	Magnetic Drilling Tools	HSS Annular Cutters	ACTIVE
+PROCESSING TOOLS & CUTTING	Magnetic Drilling Tools	Pilot Pins	ACTIVE
+PROCESSING TOOLS & CUTTING	Magnetic Drilling Tools	Magnetic Drill Machine	ACTIVE
+PROCESSING TOOLS & CUTTING	Countersinking & Counterboring	Countersinks	ACTIVE
+PROCESSING TOOLS & CUTTING	Countersinking & Counterboring	Counterbores	ACTIVE
+PROCESSING TOOLS & CUTTING	Countersinking & Counterboring	Spot Facing Cutters	ACTIVE
+PROCESSING TOOLS & CUTTING	Countersinking & Counterboring	Combined Drill & Countersinks	ACTIVE
+PROCESSING TOOLS & CUTTING	Cutting Tools	T-Slot Cutters	ACTIVE
+PROCESSING TOOLS & CUTTING	Cutting Tools	Dovetail Cutters	ACTIVE
+PROCESSING TOOLS & CUTTING	Cutting Tools	Woodruff Cutters	ACTIVE
+PROCESSING TOOLS & CUTTING	Cutting Tools	Slitting Saws	ACTIVE
+PROCESSING TOOLS & CUTTING	Cutting Tools	Form Tools	ACTIVE
+PROCESSING TOOLS & CUTTING	Diamond & CBN Tools	PCD Tools	ACTIVE
+PROCESSING TOOLS & CUTTING	Diamond & CBN Tools	PCBN Tools	ACTIVE
+PROCESSING TOOLS & CUTTING	Diamond & CBN Tools	Diamond Wheels	ACTIVE
+PROCESSING TOOLS & CUTTING	Diamond & CBN Tools	Diamond Dressers	ACTIVE
+PROCESSING TOOLS & CUTTING	Threading & Milling Tools	Taps	ACTIVE
+PROCESSING TOOLS & CUTTING	Threading & Milling Tools	Dies	ACTIVE
+PROCESSING TOOLS & CUTTING	Threading & Milling Tools	Thread Milling Cutters	ACTIVE
+PROCESSING TOOLS & CUTTING	Threading & Milling Tools	Threading Inserts	ACTIVE
+PROCESSING TOOLS & CUTTING	Threading & Milling Tools	Thread Gauges	ACTIVE
+PROCESSING TOOLS & CUTTING	Threading & Milling Tools	End Mills	ACTIVE
+PROCESSING TOOLS & CUTTING	Threading & Milling Tools	Face Mills	ACTIVE
+PROCESSING TOOLS & CUTTING	Threading & Milling Tools	Milling Cutters	ACTIVE
+PROCESSING TOOLS & CUTTING	Threading & Milling Tools	Milling Inserts	ACTIVE
+PROCESSING TOOLS & CUTTING	Threading & Milling Tools	Slotting Cutters	ACTIVE
+PROCESSING TOOLS & CUTTING	Cutting Wheels & Cutter Tools	Metal Cutting Wheels	ACTIVE
+PROCESSING TOOLS & CUTTING	Cutting Wheels & Cutter Tools	Stainless Steel Cutting Wheels	ACTIVE
+PROCESSING TOOLS & CUTTING	Cutting Wheels & Cutter Tools	Thin Cutting Wheels	ACTIVE
+PROCESSING TOOLS & CUTTING	Cutting Wheels & Cutter Tools	Heavy Duty Cutting Wheels	ACTIVE
+PROCESSING TOOLS & CUTTING	Cutting Wheels & Cutter Tools	Portable Cutting Wheels	ACTIVE
+PROCESSING TOOLS & CUTTING	Cutting Wheels & Cutter Tools	Chop Saw Cutting Wheels	ACTIVE
+PROCESSING TOOLS & CUTTING	Cutting Wheels & Cutter Tools	Resin Bonded Cutting Wheels	ACTIVE
+PROCESSING TOOLS & CUTTING	Cutting Wheels & Cutter Tools	Miscellanious Cutters Tools	ACTIVE
+PROCESSING TOOLS & CUTTING	Cutting Wheels & Cutter Tools	Plasma Cutters	ACTIVE
+PROCESSING TOOLS & CUTTING	Solid Carbide Tools	Carbide End Mills	ACTIVE
+PROCESSING TOOLS & CUTTING	Solid Carbide Tools	Carbide Drills	ACTIVE
+PROCESSING TOOLS & CUTTING	Solid Carbide Tools	Carbide Reamers	ACTIVE
+PROCESSING TOOLS & CUTTING	Solid Carbide Tools	Carbide Burrs	ACTIVE
+PROCESSING TOOLS & CUTTING	Tool Holding & Indexable Tooling	ER Collets	ACTIVE
+PROCESSING TOOLS & CUTTING	Tool Holding & Indexable Tooling	Collet Chucks	ACTIVE
+PROCESSING TOOLS & CUTTING	Tool Holding & Indexable Tooling	BT Tool Holders	ACTIVE
+PROCESSING TOOLS & CUTTING	Tool Holding & Indexable Tooling	HSK Tool Holders	ACTIVE
+PROCESSING TOOLS & CUTTING	Tool Holding & Indexable Tooling	Boring Heads	ACTIVE
+PROCESSING TOOLS & CUTTING	Tool Holding & Indexable Tooling	Turning Inserts	ACTIVE
+PROCESSING TOOLS & CUTTING	Tool Holding & Indexable Tooling	Milling Inserts	ACTIVE
+PROCESSING TOOLS & CUTTING	Tool Holding & Indexable Tooling	Drilling Inserts	ACTIVE
+PROCESSING TOOLS & CUTTING	Tool Holding & Indexable Tooling	Grooving Inserts	ACTIVE
+PROCESSING TOOLS & CUTTING	Tool Holding & Indexable Tooling	Threading Inserts	ACTIVE
+FASTENERS	Bolts	Hex Head Bolts	ACTIVE
+FASTENERS	Bolts	Allen Cap Screws	ACTIVE
+FASTENERS	Bolts	Flange Bolts	ACTIVE
+FASTENERS	Bolts	Carriage Bolts	ACTIVE
+FASTENERS	Bolts	Eye Bolts	ACTIVE
+FASTENERS	Bolts	U-Bolts	ACTIVE
+FASTENERS	Bolts	Foundation Bolts	ACTIVE
+FASTENERS	Bolts	High Tensile Bolts	ACTIVE
+FASTENERS	Bolts	Structural Bolts	ACTIVE
+FASTENERS	Nuts	Hex Nuts	ACTIVE
+FASTENERS	Nuts	Lock Nuts	ACTIVE
+FASTENERS	Nuts	Nylock Nuts	ACTIVE
+FASTENERS	Nuts	Dome Nuts	ACTIVE
+FASTENERS	Nuts	Flange Nuts	ACTIVE
+FASTENERS	Nuts	Wing Nuts	ACTIVE
+FASTENERS	Nuts	Coupling Nuts	ACTIVE
+FASTENERS	Nuts	T-Nuts	ACTIVE
+FASTENERS	Screws	Machine Screws	ACTIVE
+FASTENERS	Screws	Self Tapping Screws	ACTIVE
+FASTENERS	Screws	Self Drilling Screws	ACTIVE
+FASTENERS	Screws	Wood Screws	ACTIVE
+FASTENERS	Screws	Drywall Screws	ACTIVE
+FASTENERS	Screws	Grub Screws	ACTIVE
+FASTENERS	Screws	Sheet Metal Screws	ACTIVE
+FASTENERS	Washers	Plain Washers	ACTIVE
+FASTENERS	Washers	Spring Washers	ACTIVE
+FASTENERS	Washers	Star Washers	ACTIVE
+FASTENERS	Washers	Lock Washers	ACTIVE
+FASTENERS	Washers	Fender Washers	ACTIVE
+FASTENERS	Anchors	Wedge Anchors	ACTIVE
+FASTENERS	Anchors	Sleeve Anchors	ACTIVE
+FASTENERS	Anchors	Chemical Anchors	ACTIVE
+FASTENERS	Anchors	Drop-In Anchors	ACTIVE
+FASTENERS	Anchors	Shield Anchors	ACTIVE
+FASTENERS	Pins	Dowel Pins	ACTIVE
+FASTENERS	Pins	Split Pins	ACTIVE
+FASTENERS	Pins	Spring Pins	ACTIVE
+FASTENERS	Pins	Clevis Pins	ACTIVE
+FASTENERS	Pins	Taper Pins	ACTIVE
+FASTENERS	Keys	Parallel Keys	ACTIVE
+FASTENERS	Keys	Taper Keys	ACTIVE
+FASTENERS	Keys	Woodruff Keys	ACTIVE
+FASTENERS	Keys	Gib Head Keys	ACTIVE
+FASTENERS	Retaining Rings & Circlips	Internal Circlips	ACTIVE
+FASTENERS	Retaining Rings & Circlips	External Circlips	ACTIVE
+FASTENERS	Retaining Rings & Circlips	E-Clips	ACTIVE
+FASTENERS	Retaining Rings & Circlips	Retaining Rings	ACTIVE
+FASTENERS	Hose Clamps	Worm Drive Clamps	ACTIVE
+FASTENERS	Hose Clamps	T-Bolt Clamps	ACTIVE
+FASTENERS	Hose Clamps	Spring Clamps	ACTIVE
+FASTENERS	Hose Clamps	Heavy Duty Clamps	ACTIVE
+FASTENERS	Rivets & Nails	Blind Rivets	ACTIVE
+FASTENERS	Rivets & Nails	Solid Rivets	ACTIVE
+FASTENERS	Rivets & Nails	Pop Rivets	ACTIVE
+FASTENERS	Rivets & Nails	Structural Rivets	ACTIVE
+FASTENERS	Rivets & Nails	Concrete Nails	ACTIVE
+FASTENERS	Rivets & Nails	Roofing Nails	ACTIVE
+FASTENERS	Rivets & Nails	Finishing Nails	ACTIVE
+FASTENERS	Threaded Rods & Studs	Fully Threaded Rods	ACTIVE
+FASTENERS	Threaded Rods & Studs	Stud Bolts	ACTIVE
+FASTENERS	Threaded Rods & Studs	Double End Studs	ACTIVE
+FASTENERS	Threaded Rods & Studs	Anchor Studs	ACTIVE
+HAND TOOLS	Screwdrivers	Flat Screwdrivers	ACTIVE
+HAND TOOLS	Screwdrivers	Phillips Screwdrivers	ACTIVE
+HAND TOOLS	Screwdrivers	Pozidriv Screwdrivers	ACTIVE
+HAND TOOLS	Screwdrivers	Torx Screwdrivers	ACTIVE
+HAND TOOLS	Screwdrivers	Insulated Screwdrivers	ACTIVE
+HAND TOOLS	Screwdrivers	Precision Screwdrivers	ACTIVE
+HAND TOOLS	Sockets & Accessories	Socket Sets	ACTIVE
+HAND TOOLS	Sockets & Accessories	Impact Sockets	ACTIVE
+HAND TOOLS	Sockets & Accessories	Deep Sockets	ACTIVE
+HAND TOOLS	Sockets & Accessories	Extension Bars	ACTIVE
+HAND TOOLS	Sockets & Accessories	Universal Joints	ACTIVE
+HAND TOOLS	Ratchets & Torque Tools	Ratchet Handles	ACTIVE
+HAND TOOLS	Ratchets & Torque Tools	Torque Wrenches	ACTIVE
+HAND TOOLS	Ratchets & Torque Tools	Breaker Bars	ACTIVE
+HAND TOOLS	Ratchets & Torque Tools	Sliding T-Bars	ACTIVE
+HAND TOOLS	Pliers	Combination Pliers	ACTIVE
+HAND TOOLS	Pliers	Long Nose Pliers	ACTIVE
+HAND TOOLS	Pliers	Side Cutting Pliers	ACTIVE
+HAND TOOLS	Pliers	Circlip Pliers	ACTIVE
+HAND TOOLS	Pliers	Water Pump Pliers	ACTIVE
+HAND TOOLS	Pliers	Locking Pliers	ACTIVE
+HAND TOOLS	Chisels & Punches	Cold Chisels	ACTIVE
+HAND TOOLS	Chisels & Punches	Flat Chisels	ACTIVE
+HAND TOOLS	Chisels & Punches	Pin Punches	ACTIVE
+HAND TOOLS	Chisels & Punches	Center Punches	ACTIVE
+HAND TOOLS	Chisels & Punches	Drift Punches	ACTIVE
+HAND TOOLS	Hammers	Ball Pein Hammers	ACTIVE
+HAND TOOLS	Hammers	Claw Hammers	ACTIVE
+HAND TOOLS	Hammers	Sledge Hammers	ACTIVE
+HAND TOOLS	Hammers	Rubber Mallets	ACTIVE
+HAND TOOLS	Hammers	Copper Hammers	ACTIVE
+HAND TOOLS	Hand Cutting Tools	Aviation Snips	ACTIVE
+HAND TOOLS	Hand Cutting Tools	Bolt Cutters	ACTIVE
+HAND TOOLS	Hand Cutting Tools	Cable Cutters	ACTIVE
+HAND TOOLS	Hand Cutting Tools	Utility Knives	ACTIVE
+HAND TOOLS	Clamps & Vices	Bench Vices	ACTIVE
+HAND TOOLS	Clamps & Vices	Machine Vices	ACTIVE
+HAND TOOLS	Clamps & Vices	C-Clamps	ACTIVE
+HAND TOOLS	Clamps & Vices	G-Clamps	ACTIVE
+HAND TOOLS	Clamps & Vices	F-Clamps	ACTIVE
+HAND TOOLS	Clamps & Vices	Quick Grip Clamps	ACTIVE
+HAND TOOLS	Files & Rasps	Flat Files	ACTIVE
+HAND TOOLS	Files & Rasps	Round Files	ACTIVE
+HAND TOOLS	Files & Rasps	Half Round Files	ACTIVE
+HAND TOOLS	Files & Rasps	Needle Files	ACTIVE
+HAND TOOLS	Files & Rasps	Rasps	ACTIVE
+HAND TOOLS	Hand Tool Sets	Mechanic Tool Sets	ACTIVE
+HAND TOOLS	Hand Tool Sets	Electrician Tool Sets	ACTIVE
+HAND TOOLS	Hand Tool Sets	Maintenance Tool Sets	ACTIVE
+HAND TOOLS	Hand Tool Sets	Combination Tool Kits	ACTIVE
+HAND TOOLS	Measuring & Marking Tools	Scriber Tools	ACTIVE
+HAND TOOLS	Measuring & Marking Tools	Punch Markers	ACTIVE
+HAND TOOLS	Measuring & Marking Tools	Chalk Line Tools	ACTIVE
+HAND TOOLS	Measuring & Marking Tools	Marking Gauges	ACTIVE
+HAND TOOLS	Saws	Hacksaws	ACTIVE
+HAND TOOLS	Saws	Hacksaw Frames	ACTIVE
+HAND TOOLS	Saws	Junior Hacksaws	ACTIVE
+HAND TOOLS	Saws	Hand Saws	ACTIVE
+HAND TOOLS	Saws	Coping Saws	ACTIVE
+HAND TOOLS	Saws	Bow Saws	ACTIVE
+HAND TOOLS	Saws	PVC Saws	ACTIVE
+HAND TOOLS	Saws	Jab Saws	ACTIVE
+HAND TOOLS	Pipe Bending Tools	Manual Pipe Benders	ACTIVE
+HAND TOOLS	Pipe Bending Tools	Hydraulic Pipe Benders	ACTIVE
+HAND TOOLS	Pipe Bending Tools	Ratchet Pipe Benders	ACTIVE
+HAND TOOLS	Pipe Bending Tools	Tube Benders	ACTIVE
+HAND TOOLS	Pipe Bending Tools	Conduit Benders	ACTIVE
+HAND TOOLS	Pipe Bending Tools	Pipe Bending Accessories	ACTIVE
+HAND TOOLS	Plumbing Tools	Pipe Wrenches	ACTIVE
+HAND TOOLS	Plumbing Tools	Basin Wrenches	ACTIVE
+HAND TOOLS	Plumbing Tools	Pipe Threaders	ACTIVE
+HAND TOOLS	Plumbing Tools	Pipe Cutters	ACTIVE
+HAND TOOLS	Plumbing Tools	Deburring Tools	ACTIVE
+HAND TOOLS	Plumbing Tools	Drain Cleaning Tools	ACTIVE
+HAND TOOLS	Gardening Hand Tools	Pruning Shears	ACTIVE
+HAND TOOLS	Gardening Hand Tools	Hedge Shears	ACTIVE
+HAND TOOLS	Gardening Hand Tools	Loppers (Tree Cutters)	ACTIVE
+HAND TOOLS	Gardening Hand Tools	Tree Pruners	ACTIVE
+HAND TOOLS	Gardening Hand Tools	Pole Pruners	ACTIVE
+HAND TOOLS	Gardening Hand Tools	Garden Saws	ACTIVE
+HAND TOOLS	Gardening Hand Tools	Secateurs	ACTIVE
+CLEANING & HOUSEKEEPING	Floor Cleaning Tools	Cotton Mops	ACTIVE
+CLEANING & HOUSEKEEPING	Floor Cleaning Tools	Microfiber Mops	ACTIVE
+CLEANING & HOUSEKEEPING	Floor Cleaning Tools	Sponge Mops	ACTIVE
+CLEANING & HOUSEKEEPING	Floor Cleaning Tools	Mop Buckets	ACTIVE
+CLEANING & HOUSEKEEPING	Floor Cleaning Tools	Wringers	ACTIVE
+CLEANING & HOUSEKEEPING	Floor Cleaning Tools	Floor Squeegees	ACTIVE
+CLEANING & HOUSEKEEPING	Brooms, Brushes & Dustpans	Soft Brooms	ACTIVE
+CLEANING & HOUSEKEEPING	Brooms, Brushes & Dustpans	Hard Brooms	ACTIVE
+CLEANING & HOUSEKEEPING	Brooms, Brushes & Dustpans	Floor Brushes	ACTIVE
+CLEANING & HOUSEKEEPING	Brooms, Brushes & Dustpans	Scrubbing Brushes	ACTIVE
+CLEANING & HOUSEKEEPING	Brooms, Brushes & Dustpans	Wire Brushes	ACTIVE
+CLEANING & HOUSEKEEPING	Brooms, Brushes & Dustpans	Dustpans	ACTIVE
+CLEANING & HOUSEKEEPING	Cleaning Chemicals	Floor Cleaners	ACTIVE
+CLEANING & HOUSEKEEPING	Cleaning Chemicals	Glass Cleaners	ACTIVE
+CLEANING & HOUSEKEEPING	Cleaning Chemicals	Toilet Cleaners	ACTIVE
+CLEANING & HOUSEKEEPING	Cleaning Chemicals	Degreasers	ACTIVE
+CLEANING & HOUSEKEEPING	Cleaning Chemicals	Disinfectants	ACTIVE
+CLEANING & HOUSEKEEPING	Cleaning Chemicals	Sanitizers	ACTIVE
+CLEANING & HOUSEKEEPING	Cleaning Chemicals	Multi-Purpose Cleaners	ACTIVE
+CLEANING & HOUSEKEEPING	Washroom Hygiene	Urinal Cubes	ACTIVE
+CLEANING & HOUSEKEEPING	Washroom Hygiene	Urinal Screens	ACTIVE
+CLEANING & HOUSEKEEPING	Washroom Hygiene	Air Fresheners	ACTIVE
+CLEANING & HOUSEKEEPING	Washroom Hygiene	Toilet Blocks	ACTIVE
+CLEANING & HOUSEKEEPING	Washroom Hygiene	Toilet Brushes	ACTIVE
+CLEANING & HOUSEKEEPING	Washroom Hygiene	Toilet Cleaning Accessories	ACTIVE
+CLEANING & HOUSEKEEPING	Waste Management	Dustbins	ACTIVE
+CLEANING & HOUSEKEEPING	Waste Management	Pedal Bins	ACTIVE
+CLEANING & HOUSEKEEPING	Waste Management	Garbage Bags	ACTIVE
+CLEANING & HOUSEKEEPING	Waste Management	Wheeled Bins	ACTIVE
+CLEANING & HOUSEKEEPING	Waste Management	Waste Segregation Bins	ACTIVE
+CLEANING & HOUSEKEEPING	Safety & Spill Control	Spill Kits	ACTIVE
+CLEANING & HOUSEKEEPING	Safety & Spill Control	Absorbent Pads	ACTIVE
+CLEANING & HOUSEKEEPING	Safety & Spill Control	Absorbent Rolls	ACTIVE
+CLEANING & HOUSEKEEPING	Safety & Spill Control	Oil Absorbents	ACTIVE
+CLEANING & HOUSEKEEPING	Safety & Spill Control	Chemical Absorbents	ACTIVE
+CLEANING & HOUSEKEEPING	General Housekeeping Items	Cleaning Gloves	ACTIVE
+CLEANING & HOUSEKEEPING	General Housekeeping Items	Hand Scrapers	ACTIVE
+CLEANING & HOUSEKEEPING	General Housekeeping Items	Spray Bottles	ACTIVE
+CLEANING & HOUSEKEEPING	General Housekeeping Items	Trigger Sprayers	ACTIVE
+CLEANING & HOUSEKEEPING	General Housekeeping Items	Cleaning Accessories	ACTIVE
+CLEANING & HOUSEKEEPING	Tissue Papers & Dispensers	Toilet Tissue Rolls	ACTIVE
+CLEANING & HOUSEKEEPING	Tissue Papers & Dispensers	Jumbo Rolls	ACTIVE
+CLEANING & HOUSEKEEPING	Tissue Papers & Dispensers	Kitchen Towels	ACTIVE
+CLEANING & HOUSEKEEPING	Tissue Papers & Dispensers	Facial Tissues	ACTIVE
+CLEANING & HOUSEKEEPING	Tissue Papers & Dispensers	Tissue Dispensers	ACTIVE
+CLEANING & HOUSEKEEPING	Tissue Papers & Dispensers	Hand Towel Dispensers	ACTIVE
+CLEANING & HOUSEKEEPING	Cleaning Equipment	Vacuum Cleaners	ACTIVE
+CLEANING & HOUSEKEEPING	Cleaning Equipment	Wet & Dry Vacuum Cleaners	ACTIVE
+CLEANING & HOUSEKEEPING	Cleaning Equipment	High Pressure Washers	ACTIVE
+CLEANING & HOUSEKEEPING	Cleaning Equipment	Scrubber Dryers	ACTIVE
+CLEANING & HOUSEKEEPING	Cleaning Equipment	Floor Sweepers	ACTIVE
+CLEANING & HOUSEKEEPING	Cleaning Equipment	Single Disc Machines	ACTIVE
+CLEANING & HOUSEKEEPING	Cleaning Equipment	Cleaning Trolleys	ACTIVE
+CLEANING & HOUSEKEEPING	Wipes, Dusters & Cleaning Cloths	Microfiber Cloths	ACTIVE
+CLEANING & HOUSEKEEPING	Wipes, Dusters & Cleaning Cloths	Cotton Waste Cloths	ACTIVE
+CLEANING & HOUSEKEEPING	Wipes, Dusters & Cleaning Cloths	Industrial Wipes	ACTIVE
+CLEANING & HOUSEKEEPING	Wipes, Dusters & Cleaning Cloths	Dusting Cloths	ACTIVE
+CLEANING & HOUSEKEEPING	Wipes, Dusters & Cleaning Cloths	Tack Cloths	ACTIVE
+CLEANING & HOUSEKEEPING	Wipes, Dusters & Cleaning Cloths		ACTIVE
+PNEUMATICS	Air Preparation Units (FRL)	Pneumatic Filters	ACTIVE
+PNEUMATICS	Air Preparation Units (FRL)	Filter Regulators	ACTIVE
+PNEUMATICS	Air Preparation Units (FRL)	Regulators	ACTIVE
+PNEUMATICS	Air Preparation Units (FRL)	Lubricators	ACTIVE
+PNEUMATICS	Air Preparation Units (FRL)	FRL Combinations	ACTIVE
+PNEUMATICS	Air Preparation Units (FRL)	Air Preparation Accessories	ACTIVE
+PNEUMATICS	Pneumatic Cylinders & Actuators	ISO Cylinders	ACTIVE
+PNEUMATICS	Pneumatic Cylinders & Actuators	Compact Cylinders	ACTIVE
+PNEUMATICS	Pneumatic Cylinders & Actuators	Mini Cylinders	ACTIVE
+PNEUMATICS	Pneumatic Cylinders & Actuators	Guided Cylinders	ACTIVE
+PNEUMATICS	Pneumatic Cylinders & Actuators	Twin Rod Cylinders	ACTIVE
+PNEUMATICS	Pneumatic Cylinders & Actuators	Actuators	ACTIVE
+PNEUMATICS	Rotary Actuators & Drives	Rotary Drives	ACTIVE
+PNEUMATICS	Rotary Actuators & Drives	Rotary Actuators	ACTIVE
+PNEUMATICS	Rotary Actuators & Drives	Rotary Tables	ACTIVE
+PNEUMATICS	Cylinder Accessories	Mounting Brackets	ACTIVE
+PNEUMATICS	Cylinder Accessories	Clevis Mounts	ACTIVE
+PNEUMATICS	Cylinder Accessories	Rod Ends	ACTIVE
+PNEUMATICS	Cylinder Accessories	Sensors & Switches	ACTIVE
+PNEUMATICS	Cylinder Accessories	Repair Kits	ACTIVE
+PNEUMATICS	Pneumatic Valves & Valve Accessories	Solenoid Valves	ACTIVE
+PNEUMATICS	Pneumatic Valves & Valve Accessories	Mechanical Valves	ACTIVE
+PNEUMATICS	Pneumatic Valves & Valve Accessories	Hand Valves	ACTIVE
+PNEUMATICS	Pneumatic Valves & Valve Accessories	Foot Valves	ACTIVE
+PNEUMATICS	Pneumatic Valves & Valve Accessories	Directional Control Valves	ACTIVE
+PNEUMATICS	Pneumatic Valves & Valve Accessories	Flow Control Valves	ACTIVE
+PNEUMATICS	Pneumatic Valves & Valve Accessories	Pneumatic Valves	ACTIVE
+PNEUMATICS	Pneumatic Valves & Valve Accessories	Valve Coils	ACTIVE
+PNEUMATICS	Pneumatic Valves & Valve Accessories	Connectors	ACTIVE
+PNEUMATICS	Pneumatic Valves & Valve Accessories	Valve Bases	ACTIVE
+PNEUMATICS	Pneumatic Valves & Valve Accessories	Valve Mounting Hardware	ACTIVE
+PNEUMATICS	Pneumatic Fittings	Push-In Fittings	ACTIVE
+PNEUMATICS	Pneumatic Fittings	Brass Fittings	ACTIVE
+PNEUMATICS	Pneumatic Fittings	Stainless Steel Fittings	ACTIVE
+PNEUMATICS	Pneumatic Fittings	Elbows	ACTIVE
+PNEUMATICS	Pneumatic Fittings	Tees	ACTIVE
+PNEUMATICS	Pneumatic Fittings	Reducers	ACTIVE
+PNEUMATICS	Tubes & Hoses	PU Tubes	ACTIVE
+PNEUMATICS	Tubes & Hoses	Nylon Tubes	ACTIVE
+PNEUMATICS	Tubes & Hoses	PTFE Tubes	ACTIVE
+PNEUMATICS	Tubes & Hoses	Pneumatic Hoses	ACTIVE
+PNEUMATICS	Tubes & Hoses	Coiled Hoses	ACTIVE
+PNEUMATICS	Quick Couplings & Nipples	Quick Couplers	ACTIVE
+PNEUMATICS	Quick Couplings & Nipples	Air Couplers	ACTIVE
+PNEUMATICS	Quick Couplings & Nipples	Pneumatic Nipples	ACTIVE
+PNEUMATICS	Quick Couplings & Nipples	Safety Couplings	ACTIVE
+PNEUMATICS	Pneumatic Grippers & Vacuum Technology	Parallel Grippers	ACTIVE
+PNEUMATICS	Pneumatic Grippers & Vacuum Technology	Angular Grippers	ACTIVE
+PNEUMATICS	Pneumatic Grippers & Vacuum Technology	Three Jaw Grippers	ACTIVE
+PNEUMATICS	Pneumatic Grippers & Vacuum Technology	Vacuum Grippers	ACTIVE
+PNEUMATICS	Pneumatic Grippers & Vacuum Technology	Vacuum Pumps	ACTIVE
+PNEUMATICS	Pneumatic Grippers & Vacuum Technology	Vacuum Generators	ACTIVE
+PNEUMATICS	Pneumatic Grippers & Vacuum Technology	Vacuum Cups	ACTIVE
+PNEUMATICS	Pneumatic Grippers & Vacuum Technology	Vacuum Filters	ACTIVE
+PNEUMATICS	Pneumatic Grippers & Vacuum Technology	Vacuum Accessories	ACTIVE
+PNEUMATICS	Pneumatic Motors	Air Motors	ACTIVE
+PNEUMATICS	Pneumatic Motors	Vane Air Motors	ACTIVE
+PNEUMATICS	Pneumatic Motors	Gear Air Motors	ACTIVE
+PNEUMATICS	Pneumatic Motors	Motor Controllers	ACTIVE
+PNEUMATICS	Pressure & Vacuum Control	Pressure Switches	ACTIVE
+PNEUMATICS	Pressure & Vacuum Control	Vacuum Switches	ACTIVE
+PNEUMATICS	Pressure & Vacuum Control	Pressure Sensors	ACTIVE
+PNEUMATICS	Pressure & Vacuum Control	Vacuum Sensors	ACTIVE
+PNEUMATICS	Pressure Measurement & Gauges	Pneumatic Gauges	ACTIVE
+PNEUMATICS	Pressure Measurement & Gauges	Digital Gauges	ACTIVE
+PNEUMATICS	Pressure Measurement & Gauges	Vacuum Gauges	ACTIVE
+PNEUMATICS	Pressure Measurement & Gauges	Pressure Indicators	ACTIVE
+PNEUMATICS	Silencers & Exhaust Components	Silencers	ACTIVE
+PNEUMATICS	Silencers & Exhaust Components	Mufflers	ACTIVE
+PNEUMATICS	Silencers & Exhaust Components	Exhaust Throttles	ACTIVE
+PNEUMATICS	Pneumatic Tools	Air Impact Wrenches	ACTIVE
+PNEUMATICS	Pneumatic Tools	Air Drills	ACTIVE
+PNEUMATICS	Pneumatic Tools	Air Grinders	ACTIVE
+PNEUMATICS	Pneumatic Tools	Air Screwdrivers	ACTIVE
+PNEUMATICS	Pneumatic Tools	Air Ratchets	ACTIVE
+MANUFACTURE INFRA	Aluminium Profiles & Accessories	Standard Aluminium Profiles	ACTIVE
+MANUFACTURE INFRA	Aluminium Profiles & Accessories	Heavy Duty Profiles	ACTIVE
+MANUFACTURE INFRA	Aluminium Profiles & Accessories	T-Slot Profiles	ACTIVE
+MANUFACTURE INFRA	Aluminium Profiles & Accessories	Structural Profiles	ACTIVE
+MANUFACTURE INFRA	Aluminium Profiles & Accessories	Brackets	ACTIVE
+MANUFACTURE INFRA	Aluminium Profiles & Accessories	Joining Plates	ACTIVE
+MANUFACTURE INFRA	Aluminium Profiles & Accessories	T-Nuts	ACTIVE
+MANUFACTURE INFRA	Aluminium Profiles & Accessories	End Caps	ACTIVE
+MANUFACTURE INFRA	Aluminium Profiles & Accessories	Hinges	ACTIVE
+MANUFACTURE INFRA	Aluminium Profiles & Accessories	Handles	ACTIVE
+MANUFACTURE INFRA	Aluminium Profiles & Accessories	Connectors	ACTIVE
+MANUFACTURE INFRA	Pipe Joints & Connectors &Lean Pipes	Metal Joints	ACTIVE
+MANUFACTURE INFRA	Pipe Joints & Connectors &Lean Pipes	Plastic Joints	ACTIVE
+MANUFACTURE INFRA	Pipe Joints & Connectors &Lean Pipes	Pipe Connectors	ACTIVE
+MANUFACTURE INFRA	Pipe Joints & Connectors &Lean Pipes	Pipe Clamps	ACTIVE
+MANUFACTURE INFRA	Pipe Joints & Connectors &Lean Pipes	Joint Accessories	ACTIVE
+MANUFACTURE INFRA	Pipe Joints & Connectors &Lean Pipes	Lean Pipes	ACTIVE
+MANUFACTURE INFRA	Pipe Joints & Connectors &Lean Pipes	Coated Pipes	ACTIVE
+MANUFACTURE INFRA	Pipe Joints & Connectors &Lean Pipes	Stainless Steel Lean Pipes	ACTIVE
+MANUFACTURE INFRA	Pipe Joints & Connectors &Lean Pipes	Aluminium Lean Pipes	ACTIVE
+MANUFACTURE INFRA	Roller Track Systems	Roller Tracks	ACTIVE
+MANUFACTURE INFRA	Roller Track Systems	Roller Rails	ACTIVE
+MANUFACTURE INFRA	Roller Track Systems	Roller Brackets	ACTIVE
+MANUFACTURE INFRA	Roller Track Systems	Roller Supports	ACTIVE
+MANUFACTURE INFRA	Roller Track Systems	Track Accessories	ACTIVE
+MANUFACTURE INFRA	Casters & Wheels	PU Casters	ACTIVE
+MANUFACTURE INFRA	Casters & Wheels	Nylon Casters	ACTIVE
+MANUFACTURE INFRA	Casters & Wheels	Rubber Casters	ACTIVE
+MANUFACTURE INFRA	Casters & Wheels	Swivel Casters	ACTIVE
+MANUFACTURE INFRA	Casters & Wheels	Fixed Casters	ACTIVE
+MANUFACTURE INFRA	Casters & Wheels	Heavy Duty Casters	ACTIVE
+MANUFACTURE INFRA	Workstations	Assembly Workstations	ACTIVE
+MANUFACTURE INFRA	Workstations	Inspection Tables	ACTIVE
+MANUFACTURE INFRA	Workstations	Packing Tables	ACTIVE
+MANUFACTURE INFRA	Workstations	Modular Workbenches	ACTIVE
+MANUFACTURE INFRA	Flow Rack Systems	FIFO Racks	ACTIVE
+MANUFACTURE INFRA	Flow Rack Systems	Flow Racks	ACTIVE
+MANUFACTURE INFRA	Flow Rack Systems	Gravity Flow Racks	ACTIVE
+MANUFACTURE INFRA	Flow Rack Systems	Rack Accessories	ACTIVE
+MANUFACTURE INFRA	Trolleys & Carts	Lean Pipe Trolleys	ACTIVE
+MANUFACTURE INFRA	Trolleys & Carts	Platform Trolleys	ACTIVE
+MANUFACTURE INFRA	Trolleys & Carts	Material Handling Carts	ACTIVE
+MANUFACTURE INFRA	Trolleys & Carts	Tool Trolleys	ACTIVE
+MANUFACTURE INFRA	Manufacturing Infra Accessories	Tool Holders	ACTIVE
+MANUFACTURE INFRA	Manufacturing Infra Accessories	Label Holders	ACTIVE
+MANUFACTURE INFRA	Manufacturing Infra Accessories	Bin Holders	ACTIVE
+MANUFACTURE INFRA	Manufacturing Infra Accessories	Cable Holders	ACTIVE
+MANUFACTURE INFRA	Manufacturing Infra Accessories	Mounting Accessories	ACTIVE
+MANUFACTURE INFRA	Shelving & Storage Systems	Bin Racks	ACTIVE
+MANUFACTURE INFRA	Shelving & Storage Systems	Shelving Systems	ACTIVE
+MANUFACTURE INFRA	Shelving & Storage Systems	Kanban Racks	ACTIVE
+MANUFACTURE INFRA	Shelving & Storage Systems	Storage Accessories	ACTIVE
+MANUFACTURE INFRA	Shelving & Storage Systems		ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	ESD Apparel & Body Protection	ESD Jackets	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	ESD Apparel & Body Protection	ESD Aprons	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	ESD Apparel & Body Protection	ESD Coveralls	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	ESD Apparel & Body Protection	ESD Caps	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	ESD Apparel & Body Protection	ESD Sleeves	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	ESD Apparel & Body Protection	ESD Gloves	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	ESD Apparel & Body Protection	Finger Cots	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	ESD Apparel & Body Protection	ESD Footwear	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	ESD Floor Matting & Flooring	ESD Floor Mats	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	ESD Floor Matting & Flooring	ESD Table Mats	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	ESD Floor Matting & Flooring	Anti-Fatigue ESD Mats	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	ESD Floor Matting & Flooring	ESD Flooring Rolls	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	ESD Floor Matting & Flooring	ESD Tiles	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	Grounding Systems	Wrist Straps	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	Grounding Systems	Heel Grounders	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	Grounding Systems	Grounding Cords	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	Grounding Systems	Ground Blocks	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	Grounding Systems	Common Ground Points	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	Grounding Systems	Earth Bonding Accessories	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	Cleanroom Solutions	Cleanroom Garments	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	Cleanroom Solutions	Cleanroom Gloves	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	Cleanroom Solutions	Cleanroom Wipes	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	Cleanroom Solutions	Sticky Mats	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	Cleanroom Solutions	Cleanroom Consumables	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	ESD Tools & Accessories	ESD Tweezers	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	ESD Tools & Accessories	ESD Cutters	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	ESD Tools & Accessories	ESD Pliers	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	ESD Tools & Accessories	ESD Brushes	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	ESD Tools & Accessories	ESD Tool Kits	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	Soldering & Desoldering	Soldering Stations	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	Soldering & Desoldering	Soldering Irons	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	Soldering & Desoldering	Desoldering Pumps	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	Soldering & Desoldering	Hot Air Rework Stations	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	Soldering & Desoldering	Solder Wire	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	Soldering & Desoldering	Soldering Accessories	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	Testers, Monitors & Instruments	Wrist Strap Testers	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	Testers, Monitors & Instruments	Footwear Testers	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	Testers, Monitors & Instruments	Surface Resistance Meters	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	Testers, Monitors & Instruments	ESD Monitors	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	Testers, Monitors & Instruments	Electrostatic Field Meters	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	Plant Infrastructure & Workstations	ESD Workbenches	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	Plant Infrastructure & Workstations	ESD Chairs	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	Plant Infrastructure & Workstations	ESD Trolleys	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	Plant Infrastructure & Workstations	ESD Shelving	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	Plant Infrastructure & Workstations	ESD Storage Cabinets	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	ESD Packaging Materials	Shielding Bags	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	ESD Packaging Materials	Conductive Bags	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	ESD Packaging Materials	ESD Bubble Bags	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	ESD Packaging Materials	Moisture Barrier Bags	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	ESD Packaging Materials	ESD Packaging Accessories	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	Static Control & Ionization	Ionizing Blowers	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	Static Control & Ionization	Ionizing Guns	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	Static Control & Ionization	Static Eliminators	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	Static Control & Ionization	Anti-Static Sprays	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	ESD Furniture	ESD Chairs	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	ESD Furniture	ESD Stools	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	ESD Furniture	ESD Cabinets	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	ESD Furniture	ESD Shelves	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	ESD Storage & Material Handling	ESD Bins	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	ESD Storage & Material Handling	ESD Trays	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	ESD Storage & Material Handling	ESD Storage Boxes	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	ESD Storage & Material Handling	ESD Trolleys	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	ESD Storage & Material Handling	ESD Component Racks	ACTIVE
+(ESD) ELECTRO-STATIC DEVICES	ESD Storage & Material Handling		ACTIVE
+PACKAGING & ADHESIVES	Adhesives	Instant Adhesives (Cyanoacrylate)	ACTIVE
+PACKAGING & ADHESIVES	Adhesives	Epoxy Adhesives	ACTIVE
+PACKAGING & ADHESIVES	Adhesives	Anaerobic Adhesives	ACTIVE
+PACKAGING & ADHESIVES	Adhesives	Spray Adhesives	ACTIVE
+PACKAGING & ADHESIVES	Adhesives	Fevicol Adhesive	ACTIVE
+PACKAGING & ADHESIVES	Adhesives	Rubber Adhesives	ACTIVE
+PACKAGING & ADHESIVES	Adhesives	Adhesive chemical	ACTIVE
+PACKAGING & ADHESIVES	Adhesives	Industrial Adhesives	ACTIVE
+PACKAGING & ADHESIVES	Adhesives	Hot Melt Adhesives	ACTIVE
+PACKAGING & ADHESIVES	Sealants	Silicone Sealants	ACTIVE
+PACKAGING & ADHESIVES	Sealants	PU Sealants	ACTIVE
+PACKAGING & ADHESIVES	Sealants	Acrylic Sealants	ACTIVE
+PACKAGING & ADHESIVES	Sealants	Thread Sealants	ACTIVE
+PACKAGING & ADHESIVES	Sealants	Industrial Sealants	ACTIVE
+PACKAGING & ADHESIVES	Packaging Adhesive Tapes	BOPP Packaging Tapes	ACTIVE
+PACKAGING & ADHESIVES	Packaging Adhesive Tapes	Printed Packaging Tapes	ACTIVE
+PACKAGING & ADHESIVES	Packaging Adhesive Tapes	Reinforced Packaging Tapes	ACTIVE
+PACKAGING & ADHESIVES	Packaging Adhesive Tapes	Heavy Duty Packaging Tapes	ACTIVE
+PACKAGING & ADHESIVES	Masking & Color Tapes	Masking Tapes	ACTIVE
+PACKAGING & ADHESIVES	Masking & Color Tapes	Paper Masking Tapes	ACTIVE
+PACKAGING & ADHESIVES	Masking & Color Tapes	Color Coding Tapes	ACTIVE
+PACKAGING & ADHESIVES	Masking & Color Tapes	Fine Line Tapes	ACTIVE
+PACKAGING & ADHESIVES	Packaging Materials	Stretch Films	ACTIVE
+PACKAGING & ADHESIVES	Packaging Materials	Shrink Films	ACTIVE
+PACKAGING & ADHESIVES	Packaging Materials	Bubble Wrap Rolls	ACTIVE
+PACKAGING & ADHESIVES	Packaging Materials	Corrugated Rolls	ACTIVE
+PACKAGING & ADHESIVES	Packaging Materials	Packing Paper	ACTIVE
+PACKAGING & ADHESIVES	Strapping & Bundling	PP Straps	ACTIVE
+PACKAGING & ADHESIVES	Strapping & Bundling	PET Straps	ACTIVE
+PACKAGING & ADHESIVES	Strapping & Bundling	Steel Straps	ACTIVE
+PACKAGING & ADHESIVES	Strapping & Bundling	Strap Buckles	ACTIVE
+PACKAGING & ADHESIVES	Packaging Consumables	Edge Protectors	ACTIVE
+PACKAGING & ADHESIVES	Packaging Consumables	Carton Sealers	ACTIVE
+PACKAGING & ADHESIVES	Packaging Consumables	Labels	ACTIVE
+PACKAGING & ADHESIVES	Packaging Consumables	Packaging Accessories	ACTIVE
+PACKAGING & ADHESIVES	Packaging Consumables	Carton	ACTIVE
+PACKAGING & ADHESIVES	Safety and Caution Adhesive	Caution Tapes	ACTIVE
+PACKAGING & ADHESIVES	Safety and Caution Adhesive	Barricade Tapes	ACTIVE
+PACKAGING & ADHESIVES	Safety and Caution Adhesive	Floor Marking Tapes	ACTIVE
+PACKAGING & ADHESIVES	Safety and Caution Adhesive	PVC Tape	ACTIVE
+PACKAGING & ADHESIVES	Safety and Caution Adhesive	Hazard Identification Tapes	ACTIVE
+PACKAGING & ADHESIVES	Safety and Caution Adhesive	Anti-Skid Tapes	ACTIVE
+PACKAGING & ADHESIVES	Double-Sided Tapes	Tissue Tapes	ACTIVE
+PACKAGING & ADHESIVES	Double-Sided Tapes	Cloth Double-Sided Tapes	ACTIVE
+PACKAGING & ADHESIVES	Double-Sided Tapes	Acrylic Double-Sided Tapes	ACTIVE
+PACKAGING & ADHESIVES	Double-Sided Tapes	Mounting Tapes	ACTIVE
+HARDWARE & SANITARY ITEMS	Bathroom Fittings	Towel Rods	ACTIVE
+HARDWARE & SANITARY ITEMS	Bathroom Fittings	Soap Dispensers	ACTIVE
+HARDWARE & SANITARY ITEMS	Bathroom Fittings	Towel Rings	ACTIVE
+HARDWARE & SANITARY ITEMS	Bathroom Fittings	Robe Hooks	ACTIVE
+HARDWARE & SANITARY ITEMS	Bathroom Fittings	Shower Accessories	ACTIVE
+HARDWARE & SANITARY ITEMS	Sanitary Ware	Water Closets	ACTIVE
+HARDWARE & SANITARY ITEMS	Sanitary Ware	Wash Basins	ACTIVE
+HARDWARE & SANITARY ITEMS	Sanitary Ware	Urinals	ACTIVE
+HARDWARE & SANITARY ITEMS	Sanitary Ware	Cisterns	ACTIVE
+HARDWARE & SANITARY ITEMS	Sanitary Ware	Toilet Seats	ACTIVE
+HARDWARE & SANITARY ITEMS	Faucets & Taps (Added)	Bib Cocks	ACTIVE
+HARDWARE & SANITARY ITEMS	Faucets & Taps (Added)	Pillar Cocks	ACTIVE
+HARDWARE & SANITARY ITEMS	Faucets & Taps (Added)	Sink Cocks	ACTIVE
+HARDWARE & SANITARY ITEMS	Faucets & Taps (Added)	Mixer Taps	ACTIVE
+HARDWARE & SANITARY ITEMS	Faucets & Taps (Added)	Sensor Taps	ACTIVE
+HARDWARE & SANITARY ITEMS	Showers & Accessories	Overhead Showers	ACTIVE
+HARDWARE & SANITARY ITEMS	Showers & Accessories	Hand Showers	ACTIVE
+HARDWARE & SANITARY ITEMS	Showers & Accessories	Shower Arms	ACTIVE
+HARDWARE & SANITARY ITEMS	Showers & Accessories	Shower Panels	ACTIVE
+HARDWARE & SANITARY ITEMS	Door Hardware	Door Handles	ACTIVE
+HARDWARE & SANITARY ITEMS	Door Hardware	Door Closers	ACTIVE
+HARDWARE & SANITARY ITEMS	Door Hardware	Door Stoppers	ACTIVE
+HARDWARE & SANITARY ITEMS	Door Hardware	Door Bolts	ACTIVE
+HARDWARE & SANITARY ITEMS	Door Hardware	Door Accessories	ACTIVE
+HARDWARE & SANITARY ITEMS	Window Hardware	Window Handles	ACTIVE
+HARDWARE & SANITARY ITEMS	Window Hardware	Window Stays	ACTIVE
+HARDWARE & SANITARY ITEMS	Window Hardware	Sliding Rollers	ACTIVE
+HARDWARE & SANITARY ITEMS	Window Hardware	Window Locks	ACTIVE
+HARDWARE & SANITARY ITEMS	Lock Hardware	Mortise Locks	ACTIVE
+HARDWARE & SANITARY ITEMS	Lock Hardware	Cylindrical Locks	ACTIVE
+HARDWARE & SANITARY ITEMS	Lock Hardware	Padlocks	ACTIVE
+HARDWARE & SANITARY ITEMS	Lock Hardware	Digital Locks	ACTIVE
+HARDWARE & SANITARY ITEMS	Lock Hardware	Cabinet Locks	ACTIVE
+HARDWARE & SANITARY ITEMS	Pipe Supports & Clamps	Pipe Clamps	ACTIVE
+HARDWARE & SANITARY ITEMS	Pipe Supports & Clamps	U-Clamps	ACTIVE
+HARDWARE & SANITARY ITEMS	Pipe Supports & Clamps	Saddle Clamps	ACTIVE
+HARDWARE & SANITARY ITEMS	Pipe Supports & Clamps	Pipe Hangers	ACTIVE
+HARDWARE & SANITARY ITEMS	Water Tanks & Accessories	Water Tanks	ACTIVE
+HARDWARE & SANITARY ITEMS	Water Tanks & Accessories	Float Valves	ACTIVE
+HARDWARE & SANITARY ITEMS	Water Tanks & Accessories	Tank Connectors	ACTIVE
+HARDWARE & SANITARY ITEMS	Drainage & Gratings	Floor Drains	ACTIVE
+HARDWARE & SANITARY ITEMS	Drainage & Gratings	Channel Drains	ACTIVE
+HARDWARE & SANITARY ITEMS	Drainage & Gratings	SS Gratings	ACTIVE
+HARDWARE & SANITARY ITEMS	Drainage & Gratings	Drain Covers	ACTIVE
+HARDWARE & SANITARY ITEMS	Kitchen Sink Accessories	Kitchen Sinks	ACTIVE
+HARDWARE & SANITARY ITEMS	Kitchen Sink Accessories	Sink Couplings	ACTIVE
+HARDWARE & SANITARY ITEMS	Kitchen Sink Accessories	Waste Couplings	ACTIVE
+HARDWARE & SANITARY ITEMS	PVC Plumbing Fittings	Elbows	ACTIVE
+HARDWARE & SANITARY ITEMS	PVC Plumbing Fittings	Tees	ACTIVE
+HARDWARE & SANITARY ITEMS	PVC Plumbing Fittings	Couplers	ACTIVE
+HARDWARE & SANITARY ITEMS	PVC Plumbing Fittings	Reducers	ACTIVE
+HARDWARE & SANITARY ITEMS	PVC Plumbing Fittings	Unions	ACTIVE
+HARDWARE & SANITARY ITEMS	Plastic Water Pipe Fittings	UPVC Fittings	ACTIVE
+HARDWARE & SANITARY ITEMS	Plastic Water Pipe Fittings	CPVC Fittings	ACTIVE
+HARDWARE & SANITARY ITEMS	Plastic Water Pipe Fittings	HDPE Fittings	ACTIVE
+HARDWARE & SANITARY ITEMS	Plastic Water Pipe Fittings	PPR Fittings	ACTIVE
+HARDWARE & SANITARY ITEMS	Wash Basins	Wall Hung Basins	ACTIVE
+HARDWARE & SANITARY ITEMS	Wash Basins	Table Top Basins	ACTIVE
+HARDWARE & SANITARY ITEMS	Wash Basins	Pedestal Basins	ACTIVE
+HARDWARE & SANITARY ITEMS	Wash Basins	Corner Basins	ACTIVE
+HARDWARE & SANITARY ITEMS	Wash Basins	Under Counter Basins	ACTIVE
+HARDWARE & SANITARY ITEMS	Toilet Seats & Covers	Standard Toilet Seats	ACTIVE
+HARDWARE & SANITARY ITEMS	Toilet Seats & Covers	Soft Close Seats	ACTIVE
+HARDWARE & SANITARY ITEMS	Toilet Seats & Covers	Heavy Duty Toilet Seats	ACTIVE
+HARDWARE & SANITARY ITEMS	Bathroom Accessories	Soap Dishes	ACTIVE
+HARDWARE & SANITARY ITEMS	Bathroom Accessories	Tumbler Holders	ACTIVE
+HARDWARE & SANITARY ITEMS	Bathroom Accessories	Soap	ACTIVE
+HARDWARE & SANITARY ITEMS	Bathroom Accessories	Tissue Holders	ACTIVE
+HARDWARE & SANITARY ITEMS	Bathroom Accessories	Towel Rings	ACTIVE
+HARDWARE & SANITARY ITEMS	Bathroom Accessories	Robe Hooks	ACTIVE
+HARDWARE & SANITARY ITEMS	Bathroom Accessories		ACTIVE
+OFFICE SUPPLIES & STATIONARY	Paper & Notebooks	Copier Paper	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Paper & Notebooks	A4 Paper	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Paper & Notebooks	A3 Paper	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Paper & Notebooks	Notebooks	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Paper & Notebooks	Spiral Notebooks	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Paper & Notebooks	Writing Pads	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Paper & Notebooks	Registers	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Writing & Correction	Ball Pens	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Writing & Correction	Gel Pens	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Writing & Correction	Markers	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Writing & Correction	Highlighters	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Writing & Correction	Pencils	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Writing & Correction	Erasers	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Writing & Correction	Correction Pens	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Writing & Correction	Correction Tapes	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Desk & File Organizers	Lever Arch Files	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Desk & File Organizers	Box Files	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Desk & File Organizers	Display Files	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Desk & File Organizers	File Folders	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Desk & File Organizers	Desk Organizers	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Desk & File Organizers	Magazine Holders	ACTIVE
+OFFICE SUPPLIES & STATIONARY	General Office Need	Staplers	ACTIVE
+OFFICE SUPPLIES & STATIONARY	General Office Need	Staple Pins	ACTIVE
+OFFICE SUPPLIES & STATIONARY	General Office Need	Punch Machines	ACTIVE
+OFFICE SUPPLIES & STATIONARY	General Office Need	Paper Clips	ACTIVE
+OFFICE SUPPLIES & STATIONARY	General Office Need	Binder Clips	ACTIVE
+OFFICE SUPPLIES & STATIONARY	General Office Need	Rubber Bands	ACTIVE
+OFFICE SUPPLIES & STATIONARY	General Office Need	Push Pins	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Employee Essentials	ID Card Holders	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Employee Essentials	Lanyards	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Employee Essentials	Visitor Registers	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Employee Essentials	Name Badges	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Employee Essentials	Desk Name Plates	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Adhesives & Tapes	Glue Sticks	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Adhesives & Tapes	Liquid Glue	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Adhesives & Tapes	Cello Tapes	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Adhesives & Tapes	Double Sided Tapes	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Printing & Computer Supplies	Printer Cartridges	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Printing & Computer Supplies	Toners	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Printing & Computer Supplies	Ink Bottles	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Printing & Computer Supplies	Labels	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Diaries & Planners	Executive Diaries	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Diaries & Planners	Desk Calendars	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Diaries & Planners	Planners	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Diaries & Planners	Organizers	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Whiteboards & Presentation Supplies	Whiteboards	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Whiteboards & Presentation Supplies	Notice Boards	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Whiteboards & Presentation Supplies	Whiteboard Markers	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Whiteboards & Presentation Supplies	Dusters	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Whiteboards & Presentation Supplies	Flip Charts	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Office Storage	Storage Boxes	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Office Storage	Archive Boxes	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Office Storage	File Cabinets Accessories	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Office Electronics	Calculators	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Office Electronics	Label Printers	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Office Electronics	Desktop Accessories	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Pantry & Breakroom Supplies	Tea & Coffee Consumables	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Pantry & Breakroom Supplies	Paper Cups	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Pantry & Breakroom Supplies	Disposable Spoons	ACTIVE
+OFFICE SUPPLIES & STATIONARY	Pantry & Breakroom Supplies	Tissue Products	ACTIVE

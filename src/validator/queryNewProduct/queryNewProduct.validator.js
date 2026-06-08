@@ -11,6 +11,7 @@ export const createQueryNewProductSchema = Joi.object({
   qty: Joi.number().integer().min(0).optional().default(1),
   groupId: objectIdSchema.allow(null, '').optional(),
   categoryId: objectIdSchema.allow(null, '').optional(),
+  subcategoryId: objectIdSchema.allow(null, '').optional(),
   variants: Joi.array().items(Joi.string().allow('', null)).default([]),
   images: Joi.array().items(Joi.string().allow('', null)).default([]),
 })

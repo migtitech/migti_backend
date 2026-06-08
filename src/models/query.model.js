@@ -70,6 +70,11 @@ const productItemSchema = new mongoose.Schema(
     product_id: { type: SchemaTypes.ObjectId, ref: 'product', default: null },
     groupId: { type: SchemaTypes.ObjectId, ref: 'group', default: null },
     categoryId: { type: SchemaTypes.ObjectId, ref: 'category', default: null },
+    subcategoryId: {
+      type: SchemaTypes.ObjectId,
+      ref: 'category',
+      default: null,
+    },
     /** From codesequences productCode (same format as main catalog, e.g. mig1000) */
     rawProductCode: { type: SchemaTypes.String, trim: true, default: '' },
     /**

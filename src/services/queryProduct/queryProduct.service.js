@@ -128,6 +128,7 @@ export const replaceQueryProductDocuments = async ({
       product_id: toOid(p.product_id),
       groupId: toOid(p.groupId),
       categoryId: toOid(p.categoryId),
+      subcategoryId: toOid(p.subcategoryId),
       rawProductCode: rawCode,
       query_tracking_code:
         (p.query_tracking_code && String(p.query_tracking_code).trim()) || '',

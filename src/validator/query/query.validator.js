@@ -48,6 +48,7 @@ const productItemSchema = Joi.object({
   product_id: Joi.string().allow(null, '').optional(),
   groupId: objectIdSchema.allow(null, '').optional(),
   categoryId: objectIdSchema.allow(null, '').optional(),
+  subcategoryId: objectIdSchema.allow(null, '').optional(),
   rawProductCode: Joi.string().allow('', null).max(100).optional(),
   /** NQP row’s `query_tracking_code` (denormalized) when the line is from “mark as new” */
   query_tracking_code: Joi.string().allow('', null).max(100).optional(),

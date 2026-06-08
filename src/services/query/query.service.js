@@ -199,6 +199,14 @@ const normalizeQueryProductIds = (p) => {
   } else {
     next.categoryId = null
   }
+  if (
+    next.subcategoryId &&
+    mongoose.Types.ObjectId.isValid(String(next.subcategoryId))
+  ) {
+    next.subcategoryId = new mongoose.Types.ObjectId(String(next.subcategoryId))
+  } else {
+    next.subcategoryId = null
+  }
   return next
 }
 
@@ -376,9 +384,10 @@ const createProductFromQueryLine = async (p, productCode) => {
     productCode,
     hsnNumber: (p.hsnNumber && String(p.hsnNumber).trim()) || '',
     gstPercentage: typeof p.gstPercentage === 'number' ? p.gstPercentage : 0,
-    unit: (p.unit && String(p.unit).trim()) || 'pcs',
+    unit: (p.unit && String(p.unit).trim()) || 'PCS',
     group: toObjectIdOrNull(p.groupId),
     category: toObjectIdOrNull(p.categoryId),
+    subcategory: toObjectIdOrNull(p.subcategoryId),
   })
   await doc.save({ validateBeforeSave: false })
   return doc
@@ -736,6 +745,10 @@ export const getQueryById = async ({
     })
     .populate({
       path: 'products.categoryId',
+      select: 'name categoryCode',
+    })
+    .populate({
+      path: 'products.subcategoryId',
       select: 'name categoryCode',
     })
     .lean()

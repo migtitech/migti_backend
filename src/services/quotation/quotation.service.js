@@ -765,7 +765,8 @@ export const getQuotationById = async ({
     .populate('created_by', 'name email')
     .populate({
       path: 'products.product_id',
-      select: 'name shortDescription images hsnNumber gstPercentage unit',
+      select:
+        'name shortDescription images hsnNumber gstPercentage unit productCode companyProductCodes',
       populate: { path: 'images', select: 'path', model: 'document' },
     })
     .populate({

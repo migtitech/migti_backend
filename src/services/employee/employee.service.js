@@ -188,6 +188,8 @@ export const listEmployees = async ({
   pageSize = 10,
   branchId,
   branchFilter = {},
+  search = '',
+  role = '',
   rolePrefix = '',
   roleKeywords = '',
 }) => {
@@ -198,16 +200,39 @@ export const listEmployees = async ({
   const filter = { ...branchFilter }
   if (Object.keys(filter).length === 0 && branchId) filter.branchId = branchId
 
-  const rk = String(roleKeywords || '').trim()
-  const roleOr = rk ? roleConditionsFromKeywords(rk) : null
-  if (roleOr) {
-    Object.assign(filter, roleOr)
+  const andConditions = []
+
+  const searchTerm = String(search || '').trim()
+  if (searchTerm) {
+    const escaped = escapeRegex(searchTerm)
+    andConditions.push({
+      $or: [
+        { name: new RegExp(escaped, 'i') },
+        { email: new RegExp(escaped, 'i') },
+      ],
+    })
+  }
+
+  const roleExact = String(role || '').trim()
+  if (roleExact) {
+    filter.role = new RegExp(`^${escapeRegex(roleExact)}$`, 'i')
   } else {
-    const rp = String(rolePrefix || '').trim()
-    if (rp) {
-      const escaped = escapeRegex(rp)
-      filter.role = new RegExp(`^${escaped}`, 'i')
+    const rk = String(roleKeywords || '').trim()
+    const roleOr = rk ? roleConditionsFromKeywords(rk) : null
+    if (roleOr) {
+      andConditions.push(roleOr)
+    } else {
+      const rp = String(rolePrefix || '').trim()
+      if (rp) {
+        filter.role = new RegExp(`^${escapeRegex(rp)}`, 'i')
+      }
     }
+  }
+
+  if (andConditions.length === 1) {
+    Object.assign(filter, andConditions[0])
+  } else if (andConditions.length > 1) {
+    filter.$and = andConditions
   }
 
   const totalItems = await EmployeeModel.countDocuments(filter)

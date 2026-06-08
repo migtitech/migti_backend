@@ -1,10 +1,46 @@
 import ProductModel from '../../models/product.model.js'
 import CategoryModel from '../../models/category.model.js'
 import BrandModel from '../../models/brand.model.js'
+import IndustryModel from '../../models/industry.model.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 import { generateSlug, generateUniqueSlug } from '../../utils/slugGenerator.js'
 import { generateUniqueCode } from '../codeSequence/codeSequence.service.js'
+
+const normalizeCompanyProductCodes = async (codes = []) => {
+  const filtered = (codes || []).filter(
+    (item) => item?.industry && String(item.code || '').trim()
+  )
+  if (filtered.length === 0) return []
+
+  const industryIds = filtered.map((item) => String(item.industry))
+  if (new Set(industryIds).size !== industryIds.length) {
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Duplicate company selected in company product codes',
+      errorCodes.invalid_input
+    )
+  }
+
+  for (const item of filtered) {
+    const industry = await IndustryModel.findOne({
+      _id: item.industry,
+      isDeleted: false,
+    }).lean()
+    if (!industry) {
+      throw new CustomError(
+        statusCodes.notFound,
+        'Company (client) not found',
+        errorCodes.not_found
+      )
+    }
+  }
+
+  return filtered.map((item) => ({
+    industry: item.industry,
+    code: String(item.code).trim(),
+  }))
+}
 
 export const addProduct = async (data) => {
   const baseSlug = generateSlug(data.name)
@@ -64,6 +100,10 @@ export const addProduct = async (data) => {
     })
   )
 
+  const companyProductCodes = await normalizeCompanyProductCodes(
+    data.companyProductCodes
+  )
+
   const product = await ProductModel.create({
     ...data,
     slug,
@@ -71,6 +111,7 @@ export const addProduct = async (data) => {
     variantCombinations: variantCombinationsWithCode,
     subcategory: data.subcategory || null,
     brand: data.brand || null,
+    companyProductCodes,
   })
 
   return product.toObject()
@@ -172,6 +213,7 @@ export const getProductById = async ({ productId }) => {
     .populate('subcategory', 'name slug')
     .populate('brand', 'name slug logo')
     .populate('group', 'name code')
+    .populate('companyProductCodes.industry', 'name location')
     .populate('images', 'path')
     .populate({
       path: 'variantCombinations.images',
@@ -282,6 +324,12 @@ export const updateProduct = async ({ productId, ...updateData }) => {
     )
   }
 
+  if (updateData.companyProductCodes !== undefined) {
+    updateData.companyProductCodes = await normalizeCompanyProductCodes(
+      updateData.companyProductCodes
+    )
+  }
+
   const updated = await ProductModel.findByIdAndUpdate(productId, updateData, {
     new: true,
     runValidators: true,
@@ -290,6 +338,7 @@ export const updateProduct = async ({ productId, ...updateData }) => {
     .populate('subcategory', 'name slug')
     .populate('brand', 'name slug logo')
     .populate('group', 'name code')
+    .populate('companyProductCodes.industry', 'name location')
     .lean()
 
   return updated

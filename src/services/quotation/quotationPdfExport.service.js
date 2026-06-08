@@ -123,6 +123,29 @@ const parseChargeNumeric = (value) => {
   return Number.isFinite(num) && num >= 0 ? num : 0
 }
 
+const toIdString = (value) => {
+  if (value == null) return ''
+  if (typeof value === 'object' && value._id != null) return String(value._id)
+  return String(value)
+}
+
+/** Company-specific code when mapped for quotation industry; else catalog productCode. */
+const resolveProductDisplayCode = (productLine, productRef, industryId) => {
+  const companyCodes = productRef?.companyProductCodes
+  if (industryId && Array.isArray(companyCodes) && companyCodes.length) {
+    const match = companyCodes.find((entry) => {
+      const entryIndustryId = toIdString(entry?.industry)
+      return entryIndustryId === industryId && String(entry?.code || '').trim()
+    })
+    if (match?.code) return String(match.code).trim()
+  }
+
+  const fallback =
+    productRef?.productCode || productLine?.rawProductCode || ''
+  const trimmed = String(fallback).trim()
+  return trimmed || '—'
+}
+
 /**
  * Build HTML for quotation PDF to match structured design.
  * Uses existing quotation data plus branch/company (for header).
@@ -170,6 +193,11 @@ const buildHtml = (quotation, orgContext = {}) => {
 
   // Customer & shipping information
   const industry = quotation.industry_id || {}
+  const quotationIndustryId = toIdString(
+    industry._id ||
+      industry ||
+      (quotation.queryId && quotation.queryId.industry_id)
+  )
   const queryCompanyInfo =
     quotation.queryId && quotation.queryId.companyInfo
       ? quotation.queryId.companyInfo
@@ -216,23 +244,22 @@ const buildHtml = (quotation, orgContext = {}) => {
         : '—'
 
       const hsn = p.hsnNumber || productRef?.hsnNumber || '—'
+      const productCodeCell = escapeHtml(
+        resolveProductDisplayCode(p, productRef, quotationIndustryId)
+      )
       const variantsText = formatVariants(p.variants || [])
       const descriptionText = (
         p.description ||
         productRef?.shortDescription ||
         ''
       ).trim()
-      const reasonCell = escapeHtml(
-        String(
-          p.notAvailableRemark || (p.notAvailable ? 'Not available' : '')
-        ).trim()
-      )
       const deliveryDateCell = escapeHtml(formatDeliveryDatePdf(p.deliveryDate))
 
       if (p.notAvailable) {
         return `
         <tr>
           <td class="cell text-center">${index + 1}</td>
+          <td class="cell text-center">${productCodeCell}</td>
           <td class="cell">
             <div class="product-name">${escapeHtml(p.productName || '—')}</div>
             ${descriptionText ? `<div class="product-description">${escapeHtml(descriptionText)}</div>` : ''}
@@ -248,7 +275,6 @@ const buildHtml = (quotation, orgContext = {}) => {
           <td class="cell text-center">—</td>
           <td class="cell text-right">—</td>
           <td class="cell text-center image-cell">${imgHtml}</td>
-          <td class="cell">${reasonCell || '—'}</td>
         </tr>
       `
       }
@@ -284,6 +310,7 @@ const buildHtml = (quotation, orgContext = {}) => {
       return `
         <tr>
           <td class="cell text-center">${index + 1}</td>
+          <td class="cell text-center">${productCodeCell}</td>
           <td class="cell">
             <div class="product-name">${escapeHtml(p.productName || '—')}</div>
             ${descriptionText ? `<div class="product-description">${escapeHtml(descriptionText)}</div>` : ''}
@@ -299,7 +326,6 @@ const buildHtml = (quotation, orgContext = {}) => {
           <td class="cell text-center">${gstPercent ? gstPercent.toFixed(2) + '%' : '—'}</td>
           <td class="cell text-right">${taxable ? formatCurrency(taxable) : ''}</td>
           <td class="cell text-center image-cell">${imgHtml}</td>
-          <td class="cell">—</td>
         </tr>
       `
     })
@@ -635,6 +661,7 @@ const buildHtml = (quotation, orgContext = {}) => {
     <thead>
       <tr>
         <th>S.N.</th>
+        <th>Product Code</th>
         <th>Item Name &amp; Description</th>
         <th>Variants</th>
         <th>HSN Code</th>
@@ -646,7 +673,6 @@ const buildHtml = (quotation, orgContext = {}) => {
         <th>GST %</th>
         <th>Total</th>
         <th>Photo</th>
-        <th>Reason</th>
       </tr>
     </thead>
     <tbody>

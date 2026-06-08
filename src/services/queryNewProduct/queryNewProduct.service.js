@@ -24,14 +24,16 @@ export const addQueryNewProduct = async ({
   qty: qtyIn,
   groupId,
   categoryId,
+  subcategoryId,
   variants = [],
   images = [],
 }) => {
   const gId = toOidOrNull(groupId)
   const cId = toOidOrNull(categoryId)
+  const sId = toOidOrNull(subcategoryId)
 
   if (cId) {
-    const cat = await CategoryModel.findById(cId).select('group').lean()
+    const cat = await CategoryModel.findById(cId).select('group parent').lean()
     if (!cat) {
       throw new CustomError(
         statusCodes.notFound,
@@ -39,10 +41,35 @@ export const addQueryNewProduct = async ({
         errorCodes.not_found
       )
     }
+    if (cat.parent) {
+      throw new CustomError(
+        statusCodes.badRequest,
+        'Invalid category: expected a top-level category',
+        errorCodes.validation_error
+      )
+    }
     if (gId && String(cat.group || '') !== String(gId)) {
       throw new CustomError(
         statusCodes.badRequest,
         'Category does not belong to the selected group',
+        errorCodes.validation_error
+      )
+    }
+  }
+
+  if (sId) {
+    const sub = await CategoryModel.findById(sId).select('parent').lean()
+    if (!sub) {
+      throw new CustomError(
+        statusCodes.notFound,
+        'Subcategory not found',
+        errorCodes.not_found
+      )
+    }
+    if (!cId || String(sub.parent || '') !== String(cId)) {
+      throw new CustomError(
+        statusCodes.badRequest,
+        'Invalid subcategory for the selected category',
         errorCodes.validation_error
       )
     }
@@ -70,6 +97,7 @@ export const addQueryNewProduct = async ({
     qty,
     groupId: gId,
     categoryId: cId,
+    subcategoryId: sId,
     rawProductCode,
     query_tracking_code,
     variants: (variants || [])

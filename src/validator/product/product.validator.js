@@ -1,4 +1,8 @@
 import Joi from 'joi'
+import {
+  DEFAULT_PRODUCT_UNIT,
+  PRODUCT_UNIT_CODES,
+} from '../../core/common/constant.js'
 
 const variantOptionValueJoi = Joi.object({
   variantName: Joi.string().required(),
@@ -48,6 +52,13 @@ const dimensionsJoi = Joi.object({
   height: Joi.number().min(0).optional().default(0),
 })
 
+const companyProductCodeJoi = Joi.object({
+  industry: Joi.string()
+    .pattern(/^[0-9a-fA-F]{24}$/)
+    .required(),
+  code: Joi.string().trim().required().min(1).max(100),
+})
+
 export const createProductSchema = Joi.object({
   name: Joi.string().required().min(2).max(200),
   description: Joi.string().optional().allow(''),
@@ -83,7 +94,14 @@ export const createProductSchema = Joi.object({
     .valid('active', 'inactive', 'draft', 'hod_approved')
     .optional()
     .default('draft'),
-  unit: Joi.string().optional().default('pcs'),
+  unit: Joi.string()
+    .valid(...PRODUCT_UNIT_CODES)
+    .optional()
+    .default(DEFAULT_PRODUCT_UNIT),
+  companyProductCodes: Joi.array()
+    .items(companyProductCodeJoi)
+    .optional()
+    .default([]),
 })
 
 export const listProductSchema = Joi.object({
@@ -135,7 +153,10 @@ export const updateProductSchema = Joi.object({
   dimensionUnit: Joi.string().valid('cm', 'in', 'm').optional(),
   tags: Joi.array().items(Joi.string()).optional(),
   status: Joi.string().valid('active', 'inactive', 'draft', 'hod_approved').optional(),
-  unit: Joi.string().optional(),
+  unit: Joi.string()
+    .valid(...PRODUCT_UNIT_CODES)
+    .optional(),
+  companyProductCodes: Joi.array().items(companyProductCodeJoi).optional(),
 })
 
 export const deleteProductSchema = Joi.object({
