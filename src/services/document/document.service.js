@@ -183,6 +183,33 @@ export const toDisplayPath = async (docPath) => {
   return docPath
 }
 
+const isHttpPath = (value) =>
+  typeof value === 'string' &&
+  (value.startsWith('http://') || value.startsWith('https://'))
+
+/** Presign unique S3 paths once and reuse across many documents/products. */
+export const signPathsInBatch = async (paths = []) => {
+  const uniquePaths = [
+    ...new Set(
+      (paths || []).filter((p) => isHttpPath(p)).map((p) => String(p))
+    ),
+  ]
+  if (!uniquePaths.length) return new Map()
+
+  const entries = await Promise.all(
+    uniquePaths.map(async (p) => [p, (await toDisplayPath(p)) || p])
+  )
+  return new Map(entries)
+}
+
+const applySignedPath = (doc, signedByPath) => {
+  if (!doc?.path) return doc
+  const displayPath = isHttpPath(doc.path)
+    ? signedByPath.get(doc.path) || doc.path
+    : doc.path
+  return { ...doc, path: displayPath }
+}
+
 /**
  * Transform documents array: replace S3 paths with signed URLs.
  * @param {Array<{_id, path}>} docs - documents with path
@@ -190,12 +217,8 @@ export const toDisplayPath = async (docPath) => {
  */
 export const transformPathsToSignedUrls = async (docs) => {
   if (!docs?.length) return docs
-  const result = []
-  for (const d of docs) {
-    const displayPath = await toDisplayPath(d?.path)
-    result.push({ ...d, path: displayPath })
-  }
-  return result
+  const signedByPath = await signPathsInBatch(docs.map((d) => d?.path))
+  return docs.map((d) => applySignedPath(d, signedByPath))
 }
 
 /**
@@ -203,27 +226,33 @@ export const transformPathsToSignedUrls = async (docs) => {
  * Handles product.images and product.variantCombinations[].images
  */
 export const transformProductImagesToSigned = async (productOrProducts) => {
-  const transformDoc = async (doc) => {
-    if (!doc?.path) return doc
-    const displayPath = await toDisplayPath(doc.path)
-    return { ...doc, path: displayPath }
-  }
   const transformOne = async (p) => {
     if (!p) return p
     const out = { ...p }
-    if (Array.isArray(out.images) && out.images.length) {
-      out.images = await Promise.all(out.images.map(transformDoc))
+    const paths = []
+    if (Array.isArray(out.images)) {
+      paths.push(...out.images.map((doc) => doc?.path))
     }
     if (Array.isArray(out.variantCombinations)) {
-      out.variantCombinations = await Promise.all(
-        out.variantCombinations.map(async (vc) => {
-          if (!vc?.images?.length) return vc
-          return {
-            ...vc,
-            images: await Promise.all(vc.images.map(transformDoc)),
-          }
-        })
-      )
+      for (const vc of out.variantCombinations) {
+        if (Array.isArray(vc?.images)) {
+          paths.push(...vc.images.map((doc) => doc?.path))
+        }
+      }
+    }
+    const signedByPath = await signPathsInBatch(paths)
+
+    if (Array.isArray(out.images) && out.images.length) {
+      out.images = out.images.map((doc) => applySignedPath(doc, signedByPath))
+    }
+    if (Array.isArray(out.variantCombinations)) {
+      out.variantCombinations = out.variantCombinations.map((vc) => {
+        if (!vc?.images?.length) return vc
+        return {
+          ...vc,
+          images: vc.images.map((doc) => applySignedPath(doc, signedByPath)),
+        }
+      })
     }
     return out
   }

@@ -150,6 +150,12 @@ const querySchema = new mongoose.Schema(
   { timestamps: true }
 )
 
+querySchema.index({ isDeleted: 1, branchId: 1, createdAt: -1 })
+querySchema.index({ isDeleted: 1, status: 1, createdAt: -1 })
+querySchema.index({ isDeleted: 1, industry_id: 1, createdAt: -1 })
+querySchema.index({ isDeleted: 1, created_by: 1, createdAt: -1 })
+querySchema.index({ isDeleted: 1, 'companyInfo.area': 1, createdAt: -1 })
+
 querySchema.plugin(commonFieldsPlugin)
 
 const QueryModel = mongoose.model('query', querySchema)

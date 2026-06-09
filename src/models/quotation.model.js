@@ -156,6 +156,11 @@ const quotationSchema = new mongoose.Schema(
   { timestamps: true }
 )
 
+quotationSchema.index({ queryId: 1, isDeleted: 1 })
+quotationSchema.index({ isDeleted: 1, branchId: 1, createdAt: -1 })
+quotationSchema.index({ isDeleted: 1, industry_id: 1, createdAt: -1 })
+quotationSchema.index({ isDeleted: 1, status: 1, createdAt: -1 })
+
 quotationSchema.plugin(commonFieldsPlugin)
 
 const QuotationModel = mongoose.model('quotation', quotationSchema)

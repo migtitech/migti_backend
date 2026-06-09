@@ -98,6 +98,7 @@ const queryProductSchema = new mongoose.Schema(
 )
 
 queryProductSchema.index({ queryId: 1, lineIndex: 1 })
+queryProductSchema.index({ queryId: 1, isDeleted: 1, status: 1 })
 queryProductSchema.index({ groupId: 1, isDeleted: 1, status: 1 })
 
 queryProductSchema.plugin(commonFieldsPlugin)

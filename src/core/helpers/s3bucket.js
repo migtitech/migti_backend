@@ -170,6 +170,8 @@ export const uploadMultipleToS3 = async (
   }
 }
 
+const signedUrlCache = new Map()
+
 /**
  * Generate a presigned (signed) URL for private S3 objects. Use when bucket is private.
  * @param {string} s3PathOrUrl - Full S3 URL (https://bucket.s3.region.amazonaws.com/key) or S3 key
@@ -178,6 +180,12 @@ export const uploadMultipleToS3 = async (
  */
 export const getSignedUrlForPath = async (s3PathOrUrl, expiresIn = 3600) => {
   try {
+    const cacheKey = `${s3PathOrUrl}:${expiresIn}`
+    const cached = signedUrlCache.get(cacheKey)
+    if (cached && cached.expiresAt > Date.now()) {
+      return cached.url
+    }
+
     const bucketName = getBucketName()
     let key = s3PathOrUrl
     if (typeof s3PathOrUrl === 'string' && s3PathOrUrl.startsWith('http')) {
@@ -189,6 +197,13 @@ export const getSignedUrlForPath = async (s3PathOrUrl, expiresIn = 3600) => {
 
     const command = new GetObjectCommand({ Bucket: bucketName, Key: key })
     const signedUrl = await getSignedUrl(s3Client, command, { expiresIn })
+    if (signedUrl) {
+      const cacheTtlMs = Math.max(60_000, (expiresIn - 120) * 1000)
+      signedUrlCache.set(cacheKey, {
+        url: signedUrl,
+        expiresAt: Date.now() + cacheTtlMs,
+      })
+    }
     return signedUrl
   } catch (err) {
     console.error('getSignedUrlForPath error:', err)

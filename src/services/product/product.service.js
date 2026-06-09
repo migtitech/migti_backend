@@ -180,17 +180,18 @@ export const listProducts = async ({
 
   const sort = { [sortBy]: sortOrder === 'asc' ? 1 : -1 }
 
-  const totalItems = await ProductModel.countDocuments(filter)
-
-  const products = await ProductModel.find(filter)
-    .populate('category', 'name slug')
-    .populate('subcategory', 'name slug')
-    .populate('brand', 'name slug logo')
-    .populate('images', 'path')
-    .sort(sort)
-    .skip(skip)
-    .limit(limit)
-    .lean()
+  const [totalItems, products] = await Promise.all([
+    ProductModel.countDocuments(filter),
+    ProductModel.find(filter)
+      .populate('category', 'name slug')
+      .populate('subcategory', 'name slug')
+      .populate('brand', 'name slug logo')
+      .populate('images', 'path')
+      .sort(sort)
+      .skip(skip)
+      .limit(limit)
+      .lean(),
+  ])
 
   const totalPages = Math.ceil(totalItems / limit)
 

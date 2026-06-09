@@ -25,6 +25,7 @@ import {
   startProductlHodRatesCron,
   stopProductlHodRatesCron,
 } from './services/productlHodRates/productlHodRates.cron.js'
+import { prewarmPdfBrowser } from './core/helpers/pdfBrowser.js'
 import { fileURLToPath } from 'url'
 import { verifyToken } from './core/helpers/jwt.helper.js'
 
@@ -163,4 +164,7 @@ process.on('SIGTERM', async () => {
 
 httpServer.listen(PORT, '0.0.0.0', () => {
   logger.info(`Server is running at port ${PORT}`)
+  prewarmPdfBrowser().catch((error) => {
+    logger.warn('PDF browser prewarm failed:', error?.message || error)
+  })
 })

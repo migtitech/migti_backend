@@ -10,6 +10,7 @@ import { statusCodes, errorCodes } from '../../core/common/constant.js'
 import {
   transformProductImagesToSigned,
   transformPathsToSignedUrls,
+  signPathsInBatch,
 } from '../document/document.service.js'
 import { upsertQuotedRatesForQuotation } from '../quotedProductRate/quotedProductRate.service.js'
 import {
@@ -635,15 +636,19 @@ export const listQuotations = async ({
     )
   }
 
-  const totalItems = await QuotationModel.countDocuments(filter)
-
-  const quotations = await QuotationModel.find(filter)
+  const totalItemsPromise = QuotationModel.countDocuments(filter)
+  const quotationsPromise = QuotationModel.find(filter)
     .populate('queryId', 'queryCode status')
     .populate('industry_id', 'name location email')
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit)
     .lean()
+
+  const [totalItems, quotations] = await Promise.all([
+    totalItemsPromise,
+    quotationsPromise,
+  ])
 
   const totalPages = Math.ceil(totalItems / limit)
 
@@ -748,8 +753,12 @@ export const getQuotationById = async ({
   currentUserId: _currentUserId = null,
   isFullAccessRole: _isFullAccessRole = true,
   role: _role = '',
+  skipSignedUrls = false,
+  skipBranchSignature = false,
+  skipHodRatesCheck = false,
+  forPdf = false,
 }) => {
-  const quotation = await QuotationModel.findOne({
+  let quotationQuery = QuotationModel.findOne({
     _id: quotationId,
     isDeleted: false,
     ...branchFilter,
@@ -762,7 +771,12 @@ export const getQuotationById = async ({
       'industry_id',
       'name location address email purchase_manager_name purchase_manager_phone gstNumber'
     )
-    .populate('created_by', 'name email')
+
+  if (!forPdf) {
+    quotationQuery = quotationQuery.populate('created_by', 'name email')
+  }
+
+  const quotation = await quotationQuery
     .populate({
       path: 'products.product_id',
       select:
@@ -784,59 +798,82 @@ export const getQuotationById = async ({
     )
   }
 
-  // Transform product images (master + snapshot) to signed URLs for S3 (same as query)
-  if (quotation.products?.length) {
+  if (!skipSignedUrls && quotation.products?.length) {
+    const paths = []
     for (const p of quotation.products) {
       if (p.product_id && typeof p.product_id === 'object') {
-        p.product_id = await transformProductImagesToSigned(p.product_id)
+        if (Array.isArray(p.product_id.images)) {
+          paths.push(...p.product_id.images.map((doc) => doc?.path))
+        }
+      }
+      if (Array.isArray(p.images)) {
+        paths.push(...p.images.map((doc) => doc?.path))
+      }
+    }
+    const signedByPath = await signPathsInBatch(paths)
+    const applySignedDoc = (doc) => {
+      if (!doc?.path) return doc
+      const displayPath = signedByPath.get(doc.path) || doc.path
+      return { ...doc, path: displayPath }
+    }
+
+    for (const p of quotation.products) {
+      if (p.product_id && typeof p.product_id === 'object') {
+        if (Array.isArray(p.product_id.images)) {
+          p.product_id.images = p.product_id.images.map(applySignedDoc)
+        }
       }
       if (Array.isArray(p.images) && p.images.length) {
-        p.images = await transformPathsToSignedUrls(p.images)
+        p.images = p.images.map(applySignedDoc)
       }
     }
   }
 
   // Attach branch signature (if configured) for quotation preview.
   // Prefer quotation.branchId; fall back to linked query's branch (same as PDF export).
-  const effectiveBranchId = (() => {
-    const fromQuotation = quotation.branchId
-    const fromQuery =
-      quotation.queryId &&
-      typeof quotation.queryId === 'object' &&
-      quotation.queryId.branchId != null
-        ? quotation.queryId.branchId
-        : null
-    const raw = fromQuotation || fromQuery
-    if (raw == null) return null
-    if (typeof raw === 'object' && raw._id) return raw._id
-    return raw
-  })()
+  if (!skipBranchSignature) {
+    const effectiveBranchId = (() => {
+      const fromQuotation = quotation.branchId
+      const fromQuery =
+        quotation.queryId &&
+        typeof quotation.queryId === 'object' &&
+        quotation.queryId.branchId != null
+          ? quotation.queryId.branchId
+          : null
+      const raw = fromQuotation || fromQuery
+      if (raw == null) return null
+      if (typeof raw === 'object' && raw._id) return raw._id
+      return raw
+    })()
 
-  if (effectiveBranchId) {
-    const branch = await CompanyBranchModel.findById(effectiveBranchId)
-      .select('signature')
-      .lean()
-    const rawSig = branch?.signature
-    const signatureId =
-      rawSig == null
-        ? ''
-        : typeof rawSig === 'object' && rawSig._id != null
-          ? String(rawSig._id)
-          : String(rawSig)
-    if (signatureId && signatureId !== '[object Object]') {
-      const signatureDoc = await getDocumentById(signatureId)
-      if (signatureDoc?._id && signatureDoc?.path) {
-        quotation.branchSignature = {
-          _id: signatureDoc._id,
-          path: await toDisplayPath(signatureDoc.path),
+    if (effectiveBranchId) {
+      const branch = await CompanyBranchModel.findById(effectiveBranchId)
+        .select('signature')
+        .lean()
+      const rawSig = branch?.signature
+      const signatureId =
+        rawSig == null
+          ? ''
+          : typeof rawSig === 'object' && rawSig._id != null
+            ? String(rawSig._id)
+            : String(rawSig)
+      if (signatureId && signatureId !== '[object Object]') {
+        const signatureDoc = await getDocumentById(signatureId)
+        if (signatureDoc?._id && signatureDoc?.path) {
+          quotation.branchSignature = {
+            _id: signatureDoc._id,
+            path: await toDisplayPath(signatureDoc.path),
+          }
         }
       }
     }
   }
 
-  const { allProductsHodRatesApproved } =
-    await checkProductsAllHaveHodApprovedRates(quotation.products || [])
-  quotation.allProductsHodRatesApproved = allProductsHodRatesApproved
+  if (!skipHodRatesCheck) {
+    const { allProductsHodRatesApproved } =
+      await checkProductsAllHaveHodApprovedRates(quotation.products || [])
+    quotation.allProductsHodRatesApproved = allProductsHodRatesApproved
+  }
 
   return quotation
 }

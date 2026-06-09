@@ -71,6 +71,9 @@ const industrySchema = new mongoose.Schema(
   { timestamps: true }
 )
 
+industrySchema.index({ isDeleted: 1, branchId: 1, area: 1 })
+industrySchema.index({ isDeleted: 1, area: 1, subZoneId: 1 })
+
 industrySchema.plugin(commonFieldsPlugin)
 
 const IndustryModel = mongoose.model('industry', industrySchema)

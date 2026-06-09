@@ -1,28 +1,9 @@
-import puppeteer from 'puppeteer'
 import { getQueryById } from './query.service.js'
-import { getQuotationByQueryId } from '../quotation/quotation.service.js'
-import CompanyBranchModel from '../../models/companyBranch.model.js'
-import CompanyModel from '../../models/company.model.js'
-import IndustryModel from '../../models/industry.model.js'
-import EmployeeModel from '../../models/employee.model.js'
-
-const getAssetsBaseUrl = () => {
-  const port = process.env.PORT || 7200
-  return process.env.APP_BASE_URL || `http://localhost:${port}`
-}
-
-const toImageUrl = (img) => {
-  if (!img) return ''
-  const p = typeof img === 'string' ? img : img?.path
-  if (!p) return ''
-  if (
-    typeof p === 'string' &&
-    (p.startsWith('http://') || p.startsWith('https://'))
-  )
-    return p
-  const base = getAssetsBaseUrl()
-  return `${base}/assets/${p.startsWith('/') ? p.slice(1) : p}`
-}
+import { renderHtmlToPdf } from '../../core/helpers/pdfBrowser.js'
+import {
+  getPdfLogoDataUri,
+  resolveFirstProductLineImageDataUri,
+} from '../../core/helpers/pdfImageInline.js'
 
 const escapeHtml = (str) => {
   if (str == null) return ''
@@ -57,7 +38,8 @@ const MIGTI_PHONE2 = ''
  * Build HTML for Query PDF – same style/design as quotation PDF; no rate/total columns.
  */
 const buildHtml = (query, orgContext = {}) => {
-  const { industry } = orgContext || {}
+  const { industry, logoDataUri = '', productImageDataUris = [] } =
+    orgContext || {}
   const ci = query.companyInfo || {}
   const prods = Array.isArray(query.products) ? query.products : []
 
@@ -98,12 +80,7 @@ const buildHtml = (query, orgContext = {}) => {
 
   const productRows = prods.map((p, index) => {
     const ref = typeof p.product_id === 'object' ? p.product_id : null
-    const imageSources =
-      (Array.isArray(p.images) && p.images.length && p.images) ||
-      (Array.isArray(ref?.images) && ref.images.length && ref.images) ||
-      []
-    const firstImg = imageSources[0] || null
-    const firstImgUrl = firstImg ? toImageUrl(firstImg) : ''
+    const firstImgUrl = productImageDataUris[index] || ''
     const imgHtml = firstImgUrl
       ? `<img src="${escapeHtml(firstImgUrl)}" alt="" style="width:60px;height:60px;object-fit:cover;border:1px solid #ddd;" onerror="this.style.display='none'">`
       : '—'
@@ -341,7 +318,7 @@ const buildHtml = (query, orgContext = {}) => {
 <body>
   <div class="pdf-header-row">
     <div class="pdf-header-logo-cell">
-      <img src="https://migti.co.in/assets/images/logo.png" alt="" class="pdf-logo-header" onerror="this.style.display='none'">
+      <img src="${escapeHtml(logoDataUri || 'https://migti.co.in/assets/images/logo.png')}" alt="" class="pdf-logo-header" onerror="this.style.display='none'">
     </div>
     <div class="pdf-header-center-cell">
       <div class="pdf-header-company-name">${escapeHtml(MIGTI_COMPANY_NAME)}</div>
@@ -419,11 +396,9 @@ const buildHtml = (query, orgContext = {}) => {
   </table>
 
   <div class="summary-signature-wrapper">
-    <div style="width: 100%; display: flex; flex-direction: column; align-items: flex-end;">
-      <div class="signature">
-        <div class="signature-name">For ${escapeHtml(MIGTI_COMPANY_NAME)}</div>
-        <div>Authorised Signatory</div>
-      </div>
+    <div class="signature">
+      <div class="signature-name">For ${escapeHtml(MIGTI_COMPANY_NAME)}</div>
+      <div>Authorised Signatory</div>
     </div>
   </div>
 </body>
@@ -438,88 +413,35 @@ export const exportQueryPdf = async ({
   isFullAccessRole = true,
   role = '',
 }) => {
-  const query = await getQueryById({
-    queryId,
-    branchFilter,
-    currentUserId,
-    isFullAccessRole,
-    role,
-  })
-
-  let branch = null
-  let company = null
-  let industry = null
-  let createdByEmployee = null
-  let quotation = null
-
-  if (query.branchId) {
-    branch = await CompanyBranchModel.findById(query.branchId).lean()
-    if (branch?.companyId) {
-      company = await CompanyModel.findById(branch.companyId).lean()
-    }
-  }
-  if (query.industry_id) {
-    const industryId =
-      typeof query.industry_id === 'object'
-        ? query.industry_id._id
-        : query.industry_id
-    if (industryId) {
-      industry = await IndustryModel.findById(industryId)
-        .select(
-          'name location address email purchase_manager_name purchase_manager_phone gstNumber'
-        )
-        .lean()
-    }
-  }
-  if (query.created_by) {
-    const creatorId =
-      typeof query.created_by === 'object'
-        ? query.created_by._id
-        : query.created_by
-    if (creatorId) {
-      createdByEmployee = await EmployeeModel.findById(creatorId)
-        .select('name email phone')
-        .lean()
-    }
-  }
-  try {
-    quotation = await getQuotationByQueryId({
-      queryId: query._id,
+  const [query, logoDataUri] = await Promise.all([
+    getQueryById({
+      queryId,
       branchFilter,
       currentUserId,
       isFullAccessRole,
       role,
-    })
-  } catch {
-    quotation = null
-  }
+      skipMergeQuotationRefs: true,
+      skipSignedUrls: true,
+      forPdf: true,
+    }),
+    getPdfLogoDataUri(),
+  ])
+
+  const industry =
+    query.industry_id && typeof query.industry_id === 'object'
+      ? query.industry_id
+      : null
+
+  const prods = Array.isArray(query.products) ? query.products : []
+  const productImageDataUris = await Promise.all(
+    prods.map((p) => resolveFirstProductLineImageDataUri(p))
+  )
 
   const html = buildHtml(query, {
-    branch,
-    company,
     industry,
-    createdByEmployee,
-    quotation,
+    logoDataUri,
+    productImageDataUris,
   })
-
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
-  })
-
-  try {
-    const page = await browser.newPage()
-    await page.setContent(html, {
-      waitUntil: 'load',
-      timeout: 30000,
-    })
-    const pdfBuffer = await page.pdf({
-      format: 'A4',
-      printBackground: true,
-      margin: { top: '10mm', right: '10mm', bottom: '10mm', left: '10mm' },
-    })
-    return { buffer: pdfBuffer, queryCode: query?.queryCode }
-  } finally {
-    await browser.close()
-  }
+  const pdfBuffer = await renderHtmlToPdf(html)
+  return { buffer: pdfBuffer, queryCode: query?.queryCode }
 }

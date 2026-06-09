@@ -1,16 +1,15 @@
-import puppeteer from 'puppeteer'
-import fs from 'fs/promises'
 import { getQuotationById } from './quotation.service.js'
 import { QUOTATION_STATUS } from '../../models/quotation.model.js'
 import CompanyBranchModel from '../../models/companyBranch.model.js'
-import CompanyModel from '../../models/company.model.js'
 import CustomError from '../../utils/exception.js'
 import { errorCodes, statusCodes } from '../../core/common/constant.js'
+import { getDocumentServeInfo } from '../document/document.service.js'
+import { renderHtmlToPdf } from '../../core/helpers/pdfBrowser.js'
 import {
-  getDocumentById,
-  getDocumentServeInfo,
-  toDisplayPath,
-} from '../document/document.service.js'
+  getPdfLogoDataUri,
+  resolveFirstProductLineImageDataUri,
+  resolvePdfImageDataUri,
+} from '../../core/helpers/pdfImageInline.js'
 
 const normalizeRole = (role) =>
   String(role || '')
@@ -20,29 +19,6 @@ const normalizeRole = (role) =>
 
 const isSalesRole = (role) => normalizeRole(role).startsWith('sales')
 
-const getAssetsBaseUrl = () => {
-  const port = process.env.PORT || 7200
-  return process.env.APP_BASE_URL || `http://localhost:${port}`
-}
-
-const toImageUrl = (img) => {
-  if (!img) return ''
-  const p = typeof img === 'string' ? img : img.path
-  if (!p) return ''
-  if (
-    typeof p === 'string' &&
-    (p.startsWith('http://') || p.startsWith('https://'))
-  )
-    return p
-  const base = getAssetsBaseUrl()
-  return `${base}/assets/${p.startsWith('/') ? p.slice(1) : p}`
-}
-
-const toDataUriFromBuffer = (buffer, mimeType = 'image/png') => {
-  if (!buffer) return ''
-  return `data:${mimeType};base64,${buffer.toString('base64')}`
-}
-
 const toSignatureDataUri = async (documentId) => {
   if (!documentId) return ''
   try {
@@ -50,27 +26,11 @@ const toSignatureDataUri = async (documentId) => {
     if (!info) return ''
 
     if (info.type === 'local' && info.filePath) {
-      const fileBuffer = await fs.readFile(info.filePath)
-      const ext = String(info.filePath).toLowerCase()
-      const mimeType =
-        ext.endsWith('.jpg') || ext.endsWith('.jpeg')
-          ? 'image/jpeg'
-          : ext.endsWith('.gif')
-            ? 'image/gif'
-            : ext.endsWith('.webp')
-              ? 'image/webp'
-              : ext.endsWith('.svg')
-                ? 'image/svg+xml'
-                : 'image/png'
-      return toDataUriFromBuffer(fileBuffer, mimeType)
+      return resolvePdfImageDataUri(info.filePath)
     }
 
     if (info.type === 's3' && info.signedUrl) {
-      const response = await fetch(info.signedUrl)
-      if (!response.ok) return ''
-      const mimeType = response.headers.get('content-type') || 'image/png'
-      const arrayBuffer = await response.arrayBuffer()
-      return toDataUriFromBuffer(Buffer.from(arrayBuffer), mimeType)
+      return resolvePdfImageDataUri(info.signedUrl)
     }
   } catch (_err) {
     return ''
@@ -151,7 +111,12 @@ const resolveProductDisplayCode = (productLine, productRef, industryId) => {
  * Uses existing quotation data plus branch/company (for header).
  */
 const buildHtml = (quotation, orgContext = {}) => {
-  const { branch, company } = orgContext || {}
+  const {
+    branch,
+    company,
+    logoDataUri = '',
+    productImageDataUris = [],
+  } = orgContext || {}
   const ci = quotation.companyInfo || {}
   const allProducts = Array.isArray(quotation.products)
     ? quotation.products
@@ -229,14 +194,7 @@ const buildHtml = (quotation, orgContext = {}) => {
   const productRows = allProducts
     .map((p, index) => {
       const productRef = typeof p.product_id === 'object' ? p.product_id : null
-      const imageSources =
-        (Array.isArray(p.images) && p.images.length && p.images) ||
-        (Array.isArray(productRef?.images) &&
-          productRef.images.length &&
-          productRef.images) ||
-        []
-      const firstImg = imageSources[0] || null
-      const firstImgUrl = firstImg ? toImageUrl(firstImg) : ''
+      const firstImgUrl = productImageDataUris[index] || ''
       const imgHtml = firstImgUrl
         ? `<img src="${escapeHtml(
             firstImgUrl
@@ -599,7 +557,7 @@ const buildHtml = (quotation, orgContext = {}) => {
 <body>
   <div class="pdf-header-row">
     <div class="pdf-header-logo-cell">
-      <img src="https://migti.co.in/assets/images/logo.png" alt="" class="pdf-logo-header" onerror="this.style.display='none'">
+      <img src="${escapeHtml(logoDataUri || 'https://migti.co.in/assets/images/logo.png')}" alt="" class="pdf-logo-header" onerror="this.style.display='none'">
     </div>
     <div class="pdf-header-center-cell">
       <div class="pdf-header-company-name">${escapeHtml(migtiCompanyName)}</div>
@@ -741,13 +699,19 @@ export const exportQuotationPdf = async ({
   isFullAccessRole = true,
   role = '',
 }) => {
-  const quotation = await getQuotationById({
-    quotationId,
-    branchFilter,
-    currentUserId,
-    isFullAccessRole,
-    role,
-  })
+  const [quotation, logoDataUri] = await Promise.all([
+    getQuotationById({
+      quotationId,
+      branchFilter,
+      currentUserId,
+      isFullAccessRole,
+      role,
+      skipBranchSignature: true,
+      skipSignedUrls: true,
+      forPdf: true,
+    }),
+    getPdfLogoDataUri(),
+  ])
 
   if (
     quotation?.status !== QUOTATION_STATUS.HOD_APPROVED &&
@@ -761,22 +725,7 @@ export const exportQuotationPdf = async ({
     )
   }
 
-  let branch = null
-  let company = null
   let signatureUrl = ''
-
-  // 1) Prefer signature already resolved by quotation service.
-  if (quotation?.branchSignature?.path) {
-    signatureUrl = toImageUrl(quotation.branchSignature.path)
-  }
-  if (quotation?.branchSignature?._id && !signatureUrl.startsWith('data:')) {
-    const inlineSignature = await toSignatureDataUri(
-      quotation.branchSignature._id
-    )
-    if (inlineSignature) signatureUrl = inlineSignature
-  }
-
-  // 2) Resolve branch context from quotation branch, else query branch.
   const rawBranchId =
     quotation?.branchId || quotation?.queryId?.branchId || null
   const resolvedBranchId =
@@ -787,47 +736,26 @@ export const exportQuotationPdf = async ({
       : rawBranchId
 
   if (resolvedBranchId) {
-    branch = await CompanyBranchModel.findById(resolvedBranchId).lean()
-    if (branch?.companyId) {
-      company = await CompanyModel.findById(branch.companyId).lean()
-    }
-    if (!signatureUrl && branch?.signature) {
-      const inlineSignature = await toSignatureDataUri(branch.signature)
-      if (inlineSignature) {
-        signatureUrl = inlineSignature
-      }
-    }
-    if (!signatureUrl && branch?.signature) {
-      const signatureDoc = await getDocumentById(branch.signature)
-      if (signatureDoc?.path) {
-        const displayPath = await toDisplayPath(signatureDoc.path)
-        signatureUrl = toImageUrl(displayPath)
-      }
+    const branch = await CompanyBranchModel.findById(resolvedBranchId)
+      .select('signature')
+      .lean()
+    if (branch?.signature) {
+      signatureUrl = await toSignatureDataUri(branch.signature)
     }
   }
 
-  const html = buildHtml(quotation, { branch, company, signatureUrl })
+  const allProducts = Array.isArray(quotation.products) ? quotation.products : []
+  const productImageDataUris = await Promise.all(
+    allProducts.map((p) => resolveFirstProductLineImageDataUri(p))
+  )
 
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+  const html = buildHtml(quotation, {
+    signatureUrl,
+    logoDataUri,
+    productImageDataUris,
   })
-
-  try {
-    const page = await browser.newPage()
-    await page.setContent(html, {
-      waitUntil: 'load',
-      timeout: 30000,
-    })
-    const pdfBuffer = await page.pdf({
-      format: 'A4',
-      printBackground: true,
-      margin: { top: '10mm', right: '10mm', bottom: '10mm', left: '10mm' },
-    })
-    const quotationCode =
-      quotation.quotationCode || `QT-${String(quotation._id).slice(-6)}`
-    return { buffer: pdfBuffer, quotationCode }
-  } finally {
-    await browser.close()
-  }
+  const pdfBuffer = await renderHtmlToPdf(html)
+  const quotationCode =
+    quotation.quotationCode || `QT-${String(quotation._id).slice(-6)}`
+  return { buffer: pdfBuffer, quotationCode }
 }

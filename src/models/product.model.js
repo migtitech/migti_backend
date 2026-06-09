@@ -259,6 +259,9 @@ const productSchema = new mongoose.Schema(
   { timestamps: true }
 )
 
+productSchema.index({ isDeleted: 1, createdAt: -1 })
+productSchema.index({ isDeleted: 1, status: 1, createdAt: -1 })
+
 productSchema.plugin(commonFieldsPlugin)
 
 const ProductModel = mongoose.model('product', productSchema)

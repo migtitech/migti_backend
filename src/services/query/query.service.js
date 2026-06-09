@@ -13,10 +13,7 @@ import EmployeeModel from '../../models/employee.model.js'
 import IndustryModel from '../../models/industry.model.js'
 import AdminModel from '../../models/admin.model.js'
 import SuperAdminModel from '../../models/super.admin.js'
-import {
-  transformProductImagesToSigned,
-  transformPathsToSignedUrls,
-} from '../document/document.service.js'
+import { signPathsInBatch } from '../document/document.service.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 import {
@@ -74,14 +71,8 @@ const QUERY_PRODUCT_RATE_STATUSES = ['rate_submitted', 'fulfilled']
 
 const attachQueryProductRateAvailableCounts = async (queries = []) => {
   if (!queries?.length) return queries
-  const codesUpper = [
-    ...new Set(
-      queries
-        .map((q) => String(q?.queryCode ?? '').trim().toUpperCase())
-        .filter(Boolean)
-    ),
-  ]
-  if (!codesUpper.length) {
+  const queryIds = queries.map((q) => q._id).filter(Boolean)
+  if (!queryIds.length) {
     return queries.map((q) => ({
       ...q,
       queryProductRateAvailableCount: 0,
@@ -94,29 +85,13 @@ const attachQueryProductRateAvailableCounts = async (queries = []) => {
       {
         $match: {
           isDeleted: { $ne: true },
+          queryId: { $in: queryIds },
           status: { $in: QUERY_PRODUCT_RATE_STATUSES },
         },
       },
       {
-        $addFields: {
-          _codeKey: {
-            $toUpper: {
-              $trim: {
-                input: {
-                  $ifNull: [
-                    '$queryCode',
-                    { $ifNull: ['$query_code', ''] },
-                  ],
-                },
-              },
-            },
-          },
-        },
-      },
-      { $match: { _codeKey: { $in: codesUpper } } },
-      {
         $group: {
-          _id: '$_codeKey',
+          _id: '$queryId',
           count: { $sum: 1 },
         },
       },
@@ -126,17 +101,16 @@ const attachQueryProductRateAvailableCounts = async (queries = []) => {
     grouped = []
   }
 
-  const byCodeUpper = new Map(
-    grouped.map((g) => [String(g._id || '').trim().toUpperCase(), g.count || 0])
+  const byQueryId = new Map(
+    grouped.map((g) => [String(g._id), g.count || 0])
   )
 
-  return queries.map((q) => {
-    const key = String(q?.queryCode ?? '').trim().toUpperCase()
-    return {
-      ...q,
-      queryProductRateAvailableCount: key ? byCodeUpper.get(key) || 0 : 0,
-    }
-  })
+  return queries.map((q) => ({
+    ...q,
+    queryProductRateAvailableCount: q._id
+      ? byQueryId.get(String(q._id)) || 0
+      : 0,
+  }))
 }
 
 const validateCompanyInfoSubZone = async (companyInfo, branchId) => {
@@ -411,6 +385,30 @@ const createProductFromQueryLine = async (p, productCode) => {
  */
 const enrichQueryProductsWithRawCodes = async (products) => {
   if (!Array.isArray(products)) return []
+
+  const incomingCodes = [
+    ...new Set(
+      products
+        .map((p) =>
+          p?.rawProductCode != null ? String(p.rawProductCode).trim() : ''
+        )
+        .filter(Boolean)
+    ),
+  ]
+
+  const existingByCode = new Map()
+  if (incomingCodes.length) {
+    const existingProducts = await ProductModel.find({
+      productCode: { $in: incomingCodes },
+      isDeleted: false,
+    })
+      .select('_id productCode')
+      .lean()
+    for (const prod of existingProducts) {
+      existingByCode.set(String(prod.productCode).trim(), prod)
+    }
+  }
+
   const out = []
   for (const p of products) {
     let next = { ...p }
@@ -418,20 +416,12 @@ const enrichQueryProductsWithRawCodes = async (products) => {
       next.rawProductCode != null ? String(next.rawProductCode).trim() : ''
 
     if (incomingCode) {
-      // Catalog product — verify in products table and resolve product_id
-      const prod = await ProductModel.findOne({
-        productCode: incomingCode,
-        isDeleted: false,
-      })
-        .select('_id productCode')
-        .lean()
+      const prod = existingByCode.get(incomingCode)
       if (prod) {
         next.rawProductCode = String(prod.productCode).trim()
         next.product_id = prod._id
       }
-      // If not found in catalog, keep rawProductCode as-is (no new entry created)
     } else {
-      // New product — create entry in products table first, then use its code
       try {
         const n = await getNextSequence('productCode')
         const productCode = formatProductCodeValue(n)
@@ -677,23 +667,36 @@ export const listQueries = async ({
     ]
   }
 
-  const totalItems = await QueryModel.countDocuments(filter)
-
-  const queries = await QueryModel.find(filter)
+  const totalItemsPromise = QueryModel.countDocuments(filter)
+  const queriesPromise = QueryModel.find(filter)
     .populate('industry_id', 'name location email')
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit)
     .lean()
 
-  const queriesWithRefs = await mergeQuotationRefsForQueries(queries)
-  const queriesWithRateCounts =
-    await attachQueryProductRateAvailableCounts(queriesWithRefs)
+  const [totalItems, queries] = await Promise.all([
+    totalItemsPromise,
+    queriesPromise,
+  ])
+
+  const [queriesWithRefs, queriesWithRateCounts] = await Promise.all([
+    mergeQuotationRefsForQueries(queries),
+    attachQueryProductRateAvailableCounts(queries),
+  ])
+
+  const rateCountById = new Map(
+    queriesWithRateCounts.map((q) => [String(q._id), q.queryProductRateAvailableCount])
+  )
+  const queriesWithRefsAndCounts = queriesWithRefs.map((q) => ({
+    ...q,
+    queryProductRateAvailableCount: rateCountById.get(String(q._id)) || 0,
+  }))
 
   const totalPages = Math.ceil(totalItems / limit)
 
   return {
-    queries: queriesWithRateCounts,
+    queries: queriesWithRefsAndCounts,
     pagination: {
       currentPage: page,
       totalPages,
@@ -711,6 +714,9 @@ export const getQueryById = async ({
   currentUserId = null,
   isFullAccessRole = true,
   role = '',
+  skipMergeQuotationRefs = false,
+  skipSignedUrls = false,
+  forPdf = false,
 }) => {
   const ownershipFilter = await resolveQueryAccessFilter({
     currentUserId,
@@ -718,7 +724,7 @@ export const getQueryById = async ({
     role,
     branchFilter,
   })
-  const query = await QueryModel.findOne({
+  let queryQuery = QueryModel.findOne({
     _id: queryId,
     isDeleted: false,
     ...branchFilter,
@@ -728,7 +734,25 @@ export const getQueryById = async ({
       'industry_id',
       'name location address email purchase_manager_name purchase_manager_phone'
     )
-    .populate('created_by', 'name email')
+
+  if (!forPdf) {
+    queryQuery = queryQuery
+      .populate('created_by', 'name email')
+      .populate({
+        path: 'products.groupId',
+        select: 'name code',
+      })
+      .populate({
+        path: 'products.categoryId',
+        select: 'name categoryCode',
+      })
+      .populate({
+        path: 'products.subcategoryId',
+        select: 'name categoryCode',
+      })
+  }
+
+  const query = await queryQuery
     .populate({
       path: 'products.product_id',
       select: 'name shortDescription images hsnNumber gstPercentage unit',
@@ -738,18 +762,6 @@ export const getQueryById = async ({
       path: 'products.images',
       select: 'path',
       model: 'document',
-    })
-    .populate({
-      path: 'products.groupId',
-      select: 'name code',
-    })
-    .populate({
-      path: 'products.categoryId',
-      select: 'name categoryCode',
-    })
-    .populate({
-      path: 'products.subcategoryId',
-      select: 'name categoryCode',
     })
     .lean()
 
@@ -761,16 +773,38 @@ export const getQueryById = async ({
     )
   }
 
-  if (query.products?.length) {
+  if (!skipSignedUrls && query.products?.length) {
+    const paths = []
     for (const p of query.products) {
       if (p.product_id && typeof p.product_id === 'object') {
-        p.product_id = await transformProductImagesToSigned(p.product_id)
+        if (Array.isArray(p.product_id.images)) {
+          paths.push(...p.product_id.images.map((doc) => doc?.path))
+        }
+      }
+      if (Array.isArray(p.images)) {
+        paths.push(...p.images.map((doc) => doc?.path))
+      }
+    }
+    const signedByPath = await signPathsInBatch(paths)
+    const applySignedDoc = (doc) => {
+      if (!doc?.path) return doc
+      const displayPath = signedByPath.get(doc.path) || doc.path
+      return { ...doc, path: displayPath }
+    }
+
+    for (const p of query.products) {
+      if (p.product_id && typeof p.product_id === 'object') {
+        if (Array.isArray(p.product_id.images)) {
+          p.product_id.images = p.product_id.images.map(applySignedDoc)
+        }
       }
       if (Array.isArray(p.images) && p.images.length) {
-        p.images = await transformPathsToSignedUrls(p.images)
+        p.images = p.images.map(applySignedDoc)
       }
     }
   }
+
+  if (skipMergeQuotationRefs) return query
 
   const [withRefs] = await mergeQuotationRefsForQueries([query])
   return withRefs
