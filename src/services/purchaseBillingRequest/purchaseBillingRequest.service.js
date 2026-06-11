@@ -1,13 +1,13 @@
 import mongoose from 'mongoose'
-import PurchaseOrderModel from '../../models/purchaseOrder.model.js'
-import PoProductModel, {
+import purchaseOrderRepository from '../../repository/purchaseOrder.repository.js'
+import poProductRepository, {
   PO_PRODUCT_PROCUREMENT_STATUS,
-} from '../../models/poProduct.model.js'
-import EmployeeModel from '../../models/employee.model.js'
-import DocumentModel from '../../models/document.model.js'
-import PurchaseBillingRequestModel, {
+} from '../../repository/poProduct.repository.js'
+import employeeRepository from '../../repository/employee.repository.js'
+import documentRepository from '../../repository/document.repository.js'
+import purchaseBillingRequestRepository, {
   PURCHASE_BILLING_REQUEST_STATUS,
-} from '../../models/purchaseBillingRequest.model.js'
+} from '../../repository/purchaseBillingRequest.repository.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 import { toDisplayPath } from '../document/document.service.js'
@@ -40,7 +40,7 @@ const resolveOptionalProofDocumentId = async (raw) => {
       errorCodes.validation_error
     )
   }
-  const doc = await DocumentModel.findById(id).lean()
+  const doc = await documentRepository.findById(id).lean()
   if (!doc) {
     throw new CustomError(
       statusCodes.badRequest,
@@ -73,7 +73,7 @@ const endOfUtcDay = (yyyyMmDd) => {
 const buildEmployeeSnapshot = async (employeeId) => {
   const id = toOid(employeeId)
   if (!id) return null
-  const e = await EmployeeModel.findById(id).select('-password').lean()
+  const e = await employeeRepository.findById(id).select('-password').lean()
   return e || null
 }
 
@@ -163,7 +163,7 @@ export const listPurchaseBillingRequests = async ({
   if (q) {
     const term = escapeRegex(q.trim())
     const re = new RegExp(term, 'i')
-    const matchingPoIds = await PurchaseOrderModel.find({
+    const matchingPoIds = await purchaseOrderRepository.find({
       isDeleted: false,
       poCode: re,
     })
@@ -177,8 +177,8 @@ export const listPurchaseBillingRequests = async ({
   }
 
   const [totalItems, raw] = await Promise.all([
-    PurchaseBillingRequestModel.countDocuments(base),
-    PurchaseBillingRequestModel.find(base)
+    purchaseBillingRequestRepository.countDocuments(base),
+    purchaseBillingRequestRepository.find(base)
       .populate('purchaseOrderId', 'poCode companyInfo')
       .populate('createdBy', 'name email')
       .populate('billDocumentId', 'path originalName')
@@ -221,7 +221,7 @@ export const getPurchaseBillingRequestById = async (id) => {
       errorCodes.bad_request
     )
   }
-  const doc = await PurchaseBillingRequestModel.findOne({
+  const doc = await purchaseBillingRequestRepository.findOne({
     _id: id,
     isDeleted: false,
   })
@@ -327,7 +327,7 @@ export const updatePurchaseBillingRequestProof = async (id, proofDocumentId) => 
   }
   const resolved = await resolveOptionalProofDocumentId(proofDocumentId)
 
-  const existing = await PurchaseBillingRequestModel.findOne({
+  const existing = await purchaseBillingRequestRepository.findOne({
     _id: id,
     isDeleted: false,
   }).lean()
@@ -339,7 +339,7 @@ export const updatePurchaseBillingRequestProof = async (id, proofDocumentId) => 
     )
   }
 
-  await PurchaseBillingRequestModel.findByIdAndUpdate(id, {
+  await purchaseBillingRequestRepository.findByIdAndUpdate(id, {
     $set: { proofDocumentId: resolved },
   })
 
@@ -355,7 +355,7 @@ export const updatePurchaseBillingRequestRemark = async (id, statusRemark) => {
     )
   }
   const next = String(statusRemark ?? '').trim()
-  const doc = await PurchaseBillingRequestModel.findOneAndUpdate(
+  const doc = await purchaseBillingRequestRepository.findOneAndUpdate(
     {
       _id: id,
       isDeleted: false,
@@ -401,7 +401,7 @@ export const approvePurchaseBillingRequest = async (id, statusRemark, user) => {
       errorCodes.unauthorized
     )
   }
-  const existing = await PurchaseBillingRequestModel.findOne({
+  const existing = await purchaseBillingRequestRepository.findOne({
     _id: id,
     isDeleted: false,
   }).lean()
@@ -432,7 +432,7 @@ export const approvePurchaseBillingRequest = async (id, statusRemark, user) => {
       errorCodes.bad_request
     )
   }
-  const proofDoc = await DocumentModel.findById(proofOid).lean()
+  const proofDoc = await documentRepository.findById(proofOid).lean()
   if (!proofDoc || !isImageDocumentRecord(proofDoc)) {
     throw new CustomError(
       statusCodes.badRequest,
@@ -448,7 +448,7 @@ export const approvePurchaseBillingRequest = async (id, statusRemark, user) => {
 
   const approverSnapshot = await buildEmployeeSnapshot(approverId)
   const poProductId = toOid(existing.poProductId)
-  const doc = await PurchaseBillingRequestModel.findByIdAndUpdate(
+  const doc = await purchaseBillingRequestRepository.findByIdAndUpdate(
     id,
     {
       $set: {
@@ -468,7 +468,7 @@ export const approvePurchaseBillingRequest = async (id, statusRemark, user) => {
     .lean()
 
   if (poProductId) {
-    const lineUpdate = await PoProductModel.updateOne(
+    const lineUpdate = await poProductRepository.updateOne(
       { _id: poProductId, isDeleted: false },
       {
         $set: {
@@ -478,7 +478,7 @@ export const approvePurchaseBillingRequest = async (id, statusRemark, user) => {
       }
     )
     if (lineUpdate.matchedCount === 0) {
-      await PurchaseBillingRequestModel.findByIdAndUpdate(id, {
+      await purchaseBillingRequestRepository.findByIdAndUpdate(id, {
         $set: {
           status: PURCHASE_BILLING_REQUEST_STATUS.PENDING,
           approvedBy: null,
@@ -530,7 +530,7 @@ export const rejectPurchaseBillingRequest = async (id, statusRemark, user) => {
     )
   }
 
-  const existing = await PurchaseBillingRequestModel.findOne({
+  const existing = await purchaseBillingRequestRepository.findOne({
     _id: id,
     isDeleted: false,
   }).lean()
@@ -552,7 +552,7 @@ export const rejectPurchaseBillingRequest = async (id, statusRemark, user) => {
   const reviewerSnapshot = await buildEmployeeSnapshot(reviewerId)
   const poProductId = toOid(existing.poProductId)
 
-  const doc = await PurchaseBillingRequestModel.findByIdAndUpdate(
+  const doc = await purchaseBillingRequestRepository.findByIdAndUpdate(
     id,
     {
       $set: {
@@ -572,7 +572,7 @@ export const rejectPurchaseBillingRequest = async (id, statusRemark, user) => {
     .lean()
 
   if (poProductId) {
-    const lineUpdate = await PoProductModel.updateOne(
+    const lineUpdate = await poProductRepository.updateOne(
       { _id: poProductId, isDeleted: false },
       {
         $set: {
@@ -582,7 +582,7 @@ export const rejectPurchaseBillingRequest = async (id, statusRemark, user) => {
       }
     )
     if (lineUpdate.matchedCount === 0) {
-      await PurchaseBillingRequestModel.findByIdAndUpdate(id, {
+      await purchaseBillingRequestRepository.findByIdAndUpdate(id, {
         $set: {
           status: PURCHASE_BILLING_REQUEST_STATUS.PENDING,
           approvedBy: null,

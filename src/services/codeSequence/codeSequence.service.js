@@ -1,6 +1,9 @@
-import CodeSequenceModel, {
-  CODE_SEQUENCE_ID,
-} from '../../models/codeSequence.model.js'
+import { CODE_SEQUENCE_ID } from '../../models/codeSequence.model.js'
+import {
+  createCodeSequence,
+  updateCodeSequenceFieldIfMissing,
+  incrementCodeSequence,
+} from '../../repository/codeSequence.repository.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 
@@ -59,22 +62,19 @@ export const getNextSequence = async (codeType) => {
   }
 
   try {
-    await CodeSequenceModel.create({ _id: CODE_SEQUENCE_ID, ...SET_ON_INSERT })
+    await createCodeSequence({ _id: CODE_SEQUENCE_ID, ...SET_ON_INSERT })
   } catch (err) {
     if (err.code !== 11000) throw err
   }
 
   // New sequence fields on existing singleton docs (Mongo $inc would start from 0 otherwise)
-  await CodeSequenceModel.updateOne(
-    { _id: CODE_SEQUENCE_ID, [codeType]: { $exists: false } },
-    { $set: { [codeType]: INITIAL_VALUE } }
+  await updateCodeSequenceFieldIfMissing(
+    CODE_SEQUENCE_ID,
+    codeType,
+    INITIAL_VALUE
   )
 
-  const doc = await CodeSequenceModel.findByIdAndUpdate(
-    CODE_SEQUENCE_ID,
-    { $inc: { [codeType]: 1 } },
-    { new: true }
-  ).lean()
+  const doc = await incrementCodeSequence(CODE_SEQUENCE_ID, codeType)
 
   const value = doc[codeType]
   if (value == null || value < 1000) {

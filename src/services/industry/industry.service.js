@@ -1,23 +1,37 @@
 import mongoose from 'mongoose'
-import IndustryModel from '../../models/industry.model.js'
 import { assertSubZoneBelongsToArea } from '../subZone/subZone.service.js'
-import IndustryPurchaseManagerModel from '../../models/industryPurchaseManager.model.js'
-import IndustryBranchModel from '../../models/industryBranch.model.js'
-import QueryModel from '../../models/query.model.js'
-import QuotationModel from '../../models/quotation.model.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 import { getEmployeeIndustryTerritoryFields } from '../../core/helpers/queryAccess.js'
+import {
+  countIndustries,
+  createIndustry,
+  findActiveIndustryByGstRegex,
+  findActiveIndustryByName,
+  findIndustries,
+  findIndustryById,
+  findIndustryByIdLean,
+  findIndustryByIdWithPopulates,
+  softDeleteIndustryById,
+  updateIndustryById,
+} from '../../repository/industry.repository.js'
+import {
+  findIndustryPurchaseManagersByIndustryId,
+  findIndustryPurchaseManagersByIndustryIds,
+  insertIndustryPurchaseManagers,
+  softDeleteAllIndustryPurchaseManagersByIndustryId,
+  softDeleteIndustryPurchaseManagersByIndustryId,
+} from '../../repository/industryPurchaseManager.repository.js'
+import { softDeleteIndustryBranchesByIndustryId } from '../../repository/industryBranch.repository.js'
+import { clearIndustryIdFromQueries } from '../../repository/query.repository.js'
+import { clearIndustryIdFromQuotations } from '../../repository/quotation.repository.js'
 
 const normalizeGstNumber = (gst) => (gst || '').trim().toUpperCase()
 export const findActiveIndustryByGstNumber = async (gstNumber) => {
   const normalized = normalizeGstNumber(gstNumber)
   if (!normalized) return null
   const escaped = normalized.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  return IndustryModel.findOne({
-    isDeleted: false,
-    gstNumber: new RegExp(`^${escaped}$`, 'i'),
-  }).lean()
+  return findActiveIndustryByGstRegex(new RegExp(`^${escaped}$`, 'i'))
 }
 
 export const addIndustry = async (data) => {
@@ -33,11 +47,7 @@ export const addIndustry = async (data) => {
   }
 
   const branchFilter = data.branchId ? { branchId: data.branchId } : {}
-  const existing = await IndustryModel.findOne({
-    name: data.name,
-    isDeleted: false,
-    ...branchFilter,
-  }).lean()
+  const existing = await findActiveIndustryByName(data.name, branchFilter)
 
   if (existing) {
     throw new CustomError(
@@ -61,14 +71,14 @@ export const addIndustry = async (data) => {
   })
 
   const { purchaseManagers = [], branchId, ...industryPayload } = data
-  const industry = await IndustryModel.create({
+  const industry = await createIndustry({
     ...industryPayload,
     branchId: branchId || null,
   })
   const industryId = industry._id
 
   if (purchaseManagers && purchaseManagers.length > 0) {
-    await IndustryPurchaseManagerModel.insertMany(
+    await insertIndustryPurchaseManagers(
       purchaseManagers.map((pm) => ({
         industryId,
         name: pm.name || '',
@@ -79,14 +89,8 @@ export const addIndustry = async (data) => {
     )
   }
 
-  const result = await IndustryModel.findById(industryId)
-    .populate('area', 'name city areaType')
-    .populate('subZoneId', 'name subZoneCode zoneId')
-    .lean()
-  const managers = await IndustryPurchaseManagerModel.find({
-    industryId,
-    isDeleted: false,
-  }).lean()
+  const result = await findIndustryByIdWithPopulates(industryId)
+  const managers = await findIndustryPurchaseManagersByIndustryId(industryId)
   return { ...result, purchaseManagers: managers }
 }
 
@@ -152,21 +156,12 @@ export const listIndustries = async ({
     }
   }
 
-  const totalItems = await IndustryModel.countDocuments(filter)
+  const totalItems = await countIndustries(filter)
 
-  const industries = await IndustryModel.find(filter)
-    .populate('area', 'name city areaType')
-    .populate('subZoneId', 'name subZoneCode zoneId')
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(limit)
-    .lean()
+  const industries = await findIndustries(filter, skip, limit)
 
   const industryIds = industries.map((i) => i._id)
-  const allManagers = await IndustryPurchaseManagerModel.find({
-    industryId: { $in: industryIds },
-    isDeleted: false,
-  }).lean()
+  const allManagers = await findIndustryPurchaseManagersByIndustryIds(industryIds)
   const managersByIndustry = allManagers.reduce((acc, m) => {
     const id = m.industryId?.toString?.() ?? m.industryId
     if (!acc[id]) acc[id] = []
@@ -203,15 +198,12 @@ export const getIndustryById = async ({
     currentUserId,
     isFullAccessRole,
   })
-  const industry = await IndustryModel.findOne({
+  const industry = await findIndustryById({
     _id: industryId,
     isDeleted: false,
     ...branchFilter,
     ...(territoryFields || {}),
   })
-    .populate('area', 'name city areaType')
-    .populate('subZoneId', 'name subZoneCode zoneId')
-    .lean()
 
   if (!industry) {
     throw new CustomError(
@@ -221,10 +213,9 @@ export const getIndustryById = async ({
     )
   }
 
-  const purchaseManagers = await IndustryPurchaseManagerModel.find({
-    industryId,
-    isDeleted: false,
-  }).lean()
+  const purchaseManagers = await findIndustryPurchaseManagersByIndustryId(
+    industryId
+  )
   return { ...industry, purchaseManagers }
 }
 
@@ -253,12 +244,12 @@ export const updateIndustry = async ({
     currentUserId,
     isFullAccessRole,
   })
-  const industry = await IndustryModel.findOne({
+  const industry = await findIndustryByIdLean({
     _id: industryId,
     isDeleted: false,
     ...branchFilter,
     ...(territoryFields || {}),
-  }).lean()
+  })
   if (!industry) {
     throw new CustomError(
       statusCodes.notFound,
@@ -333,12 +324,9 @@ export const updateIndustry = async ({
   })
 
   if (Array.isArray(purchaseManagers)) {
-    await IndustryPurchaseManagerModel.updateMany(
-      { industryId, isDeleted: false },
-      { $set: { isDeleted: true } }
-    )
+    await softDeleteIndustryPurchaseManagersByIndustryId(industryId)
     if (purchaseManagers.length > 0) {
-      await IndustryPurchaseManagerModel.insertMany(
+      await insertIndustryPurchaseManagers(
         purchaseManagers.map((pm) => ({
           industryId,
           name: pm.name || '',
@@ -350,22 +338,12 @@ export const updateIndustry = async ({
     }
   }
 
-  const updated = await IndustryModel.findByIdAndUpdate(
-    industryId,
-    allowedUpdate,
-    {
-      new: true,
-      runValidators: true,
-    }
-  )
-    .populate('area', 'name city areaType')
-    .populate('subZoneId', 'name subZoneCode zoneId')
-    .lean()
+  const updated = await updateIndustryById(industryId, allowedUpdate, {
+    new: true,
+    runValidators: true,
+  })
 
-  const managers = await IndustryPurchaseManagerModel.find({
-    industryId,
-    isDeleted: false,
-  }).lean()
+  const managers = await findIndustryPurchaseManagersByIndustryId(industryId)
   return { ...updated, purchaseManagers: managers }
 }
 
@@ -379,12 +357,12 @@ export const deleteIndustry = async ({
     currentUserId,
     isFullAccessRole,
   })
-  const industry = await IndustryModel.findOne({
+  const industry = await findIndustryByIdLean({
     _id: industryId,
     isDeleted: false,
     ...branchFilter,
     ...(territoryFields || {}),
-  }).lean()
+  })
   if (!industry) {
     throw new CustomError(
       statusCodes.notFound,
@@ -393,30 +371,14 @@ export const deleteIndustry = async ({
     )
   }
 
-  await IndustryPurchaseManagerModel.updateMany(
-    { industryId },
-    { $set: { isDeleted: true } }
-  )
-  await IndustryBranchModel.updateMany(
-    { industryId },
-    { $set: { isDeleted: true } }
-  )
+  await softDeleteAllIndustryPurchaseManagersByIndustryId(industryId)
+  await softDeleteIndustryBranchesByIndustryId(industryId)
   // Keep industry row (soft-delete) to avoid hard dangling references.
-  await IndustryModel.findByIdAndUpdate(
-    industryId,
-    { $set: { isDeleted: true, isActive: false } },
-    { new: true }
-  )
+  await softDeleteIndustryById(industryId)
 
   // Detach deleted industry from historical query/quotation rows.
-  await QueryModel.updateMany(
-    { industry_id: industryId },
-    { $set: { industry_id: null } }
-  )
-  await QuotationModel.updateMany(
-    { industry_id: industryId },
-    { $set: { industry_id: null } }
-  )
+  await clearIndustryIdFromQueries(industryId)
+  await clearIndustryIdFromQuotations(industryId)
 
   return {
     deletedIndustry: {

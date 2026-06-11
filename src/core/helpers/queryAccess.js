@@ -1,6 +1,6 @@
-import QueryModel from '../../models/query.model.js'
-import IndustryModel from '../../models/industry.model.js'
-import EmployeeModel from '../../models/employee.model.js'
+import { findQueryById as findQueryByIdRecord } from '../../repository/query.repository.js'
+import { findIndustryIdsByTerritory } from '../../repository/industry.repository.js'
+import { findEmployeeTerritoryFields } from '../../repository/employee.repository.js'
 
 const normalizeRole = (role) =>
   String(role || '')
@@ -60,13 +60,11 @@ export const fetchIndustryIdsMatchingSalesTerritory = async ({
     _subZoneId
   )
   if (!territoryFilter) return []
-  const rows = await IndustryModel.find({
+  const rows = await findIndustryIdsByTerritory({
     isDeleted: false,
     ..._branchFilter,
     ...territoryFilter,
   })
-    .select('_id')
-    .lean()
   return rows.map((row) => row._id).filter(Boolean)
 }
 
@@ -85,12 +83,7 @@ export const getEmployeeIndustryTerritoryFields = async ({
   isFullAccessRole: _isFullAccessRole,
 }) => {
   if (_isFullAccessRole || !_currentUserId) return null
-  const employee = await EmployeeModel.findOne({
-    _id: _currentUserId,
-    isDeleted: false,
-  })
-    .select('role zoneIds zoneId subZoneId')
-    .lean()
+  const employee = await findEmployeeTerritoryFields(_currentUserId)
   if (!employee || !isSalesRole(employee.role)) return null
   const zoneIds = resolveEmployeeZoneIds(employee)
   const territoryFilter = buildIndustryTerritoryMongoFilterForEmployee(
@@ -110,12 +103,7 @@ export const getTerritoryIndustryIdsForUser = async ({
   branchFilter: _branchFilter = {},
 }) => {
   if (_isFullAccessRole || !_currentUserId) return null
-  const employee = await EmployeeModel.findOne({
-    _id: _currentUserId,
-    isDeleted: false,
-  })
-    .select('role zoneIds zoneId subZoneId')
-    .lean()
+  const employee = await findEmployeeTerritoryFields(_currentUserId)
   if (!employee || !isSalesRole(employee.role)) return null
   const zoneIds = resolveEmployeeZoneIds(employee)
   return fetchIndustryIdsMatchingSalesTerritory({
@@ -159,11 +147,12 @@ export const findVisibleQueryById = async ({
   role: _role = '',
   select = '_id',
 }) => {
-  return QueryModel.findOne({
-    _id: queryId,
-    isDeleted: false,
-    ...branchFilter,
-  })
-    .select(select)
-    .lean()
+  return findQueryByIdRecord(
+    {
+      _id: queryId,
+      isDeleted: false,
+      ...branchFilter,
+    },
+    select
+  )
 }

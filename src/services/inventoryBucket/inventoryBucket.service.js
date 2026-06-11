@@ -1,4 +1,7 @@
-import PoProductModel from '../../models/poProduct.model.js'
+import poProductRepository, {
+  PO_PRODUCT_INVENTORY_STATUS,
+  resolvePoProductLineStatus,
+} from '../../repository/poProduct.repository.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 import CustomError from '../../utils/exception.js'
 import {
@@ -6,10 +9,6 @@ import {
   loadPoProductForAccess,
   getPurchaseBucketPoProductById,
 } from '../purchaseBucket/purchaseBucket.service.js'
-import {
-  PO_PRODUCT_INVENTORY_STATUS,
-  resolvePoProductLineStatus,
-} from '../../models/poProduct.model.js'
 
 const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
@@ -82,11 +81,11 @@ export const listInventoryBucketPoProducts = async (q, _user) => {
     { $match: { _lineStatus: PO_PRODUCT_INVENTORY_STATUS.PENDING } },
     { $count: 'c' },
   ]
-  const pendingRes = await PoProductModel.aggregate(pendingPipeline)
+  const pendingRes = await poProductRepository.aggregate(pendingPipeline)
   const pendingCount = pendingRes[0]?.c || 0
 
   const countPipeline = [...stages, { $count: 'c' }]
-  const countRes = await PoProductModel.aggregate(countPipeline)
+  const countRes = await poProductRepository.aggregate(countPipeline)
   const total = countRes[0]?.c || 0
 
   const listPipeline = [
@@ -113,7 +112,7 @@ export const listInventoryBucketPoProducts = async (q, _user) => {
       },
     },
   ]
-  const data = await PoProductModel.aggregate(listPipeline)
+  const data = await poProductRepository.aggregate(listPipeline)
 
   return { data, total, pendingCount, page, pageSize }
 }
@@ -129,18 +128,18 @@ export const markInventoryReceived = async (id, user) => {
   if (!allowed) return null
   const cur = resolvePoProductLineStatus(allowed)
   if (cur === 'finance_approved') {
-    return await PoProductModel.findById(allowed._id).lean()
+    return await poProductRepository.findById(allowed._id).lean()
   }
   if (cur === PO_PRODUCT_INVENTORY_STATUS.DELIVERED) {
-    return await PoProductModel.findById(allowed._id).lean()
+    return await poProductRepository.findById(allowed._id).lean()
   }
   if (
     cur === PO_PRODUCT_INVENTORY_STATUS.INVENTORY_RECEIVED ||
     cur === PO_PRODUCT_INVENTORY_STATUS.READY_FOR_DISPATCHMENT
   ) {
-    return await PoProductModel.findById(allowed._id).lean()
+    return await poProductRepository.findById(allowed._id).lean()
   }
-  const updated = await PoProductModel.findOneAndUpdate(
+  const updated = await poProductRepository.findOneAndUpdate(
     { _id: allowed._id, isDeleted: false },
     {
       $set: { status: PO_PRODUCT_INVENTORY_STATUS.INVENTORY_RECEIVED },
@@ -159,10 +158,10 @@ export const markReadyForDispatchment = async (id, user) => {
   if (!allowed) return null
   const cur = resolvePoProductLineStatus(allowed)
   if (cur === PO_PRODUCT_INVENTORY_STATUS.READY_FOR_DISPATCHMENT) {
-    return await PoProductModel.findById(allowed._id).lean()
+    return await poProductRepository.findById(allowed._id).lean()
   }
   if (cur === PO_PRODUCT_INVENTORY_STATUS.DELIVERED) {
-    return await PoProductModel.findById(allowed._id).lean()
+    return await poProductRepository.findById(allowed._id).lean()
   }
   if (cur !== PO_PRODUCT_INVENTORY_STATUS.INVENTORY_RECEIVED) {
     throw new CustomError(
@@ -171,7 +170,7 @@ export const markReadyForDispatchment = async (id, user) => {
       errorCodes.bad_request
     )
   }
-  return await PoProductModel.findOneAndUpdate(
+  return await poProductRepository.findOneAndUpdate(
     { _id: allowed._id, isDeleted: false },
     {
       $set: { status: PO_PRODUCT_INVENTORY_STATUS.READY_FOR_DISPATCHMENT },

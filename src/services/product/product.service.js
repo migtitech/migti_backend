@@ -1,7 +1,20 @@
-import ProductModel from '../../models/product.model.js'
-import CategoryModel from '../../models/category.model.js'
-import BrandModel from '../../models/brand.model.js'
-import IndustryModel from '../../models/industry.model.js'
+import {
+  ProductModel,
+  findOneProduct,
+  findOneProductLean,
+  findProductByIdLean,
+  createProduct,
+  countProducts,
+  findProductsWithListPopulate,
+  findProductByIdWithDetailPopulate,
+  findProductByIdAndUpdateWithPopulate,
+  deleteProductById,
+} from '../../repository/product.repository.js'
+import {
+  findCategoryByIdLean,
+} from '../../repository/category.repository.js'
+import { findBrandByIdLean } from '../../repository/brand.repository.js'
+import { findOneIndustryLean } from '../../repository/industry.repository.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 import { generateSlug, generateUniqueSlug } from '../../utils/slugGenerator.js'
@@ -23,10 +36,10 @@ const normalizeCompanyProductCodes = async (codes = []) => {
   }
 
   for (const item of filtered) {
-    const industry = await IndustryModel.findOne({
+    const industry = await findOneIndustryLean({
       _id: item.industry,
       isDeleted: false,
-    }).lean()
+    })
     if (!industry) {
       throw new CustomError(
         statusCodes.notFound,
@@ -45,10 +58,10 @@ const normalizeCompanyProductCodes = async (codes = []) => {
 export const addProduct = async (data) => {
   const baseSlug = generateSlug(data.name)
   const slug = await generateUniqueSlug(baseSlug, async (s) => {
-    return await ProductModel.findOne({ slug: s })
+    return await findOneProduct({ slug: s })
   })
 
-  const existingSku = await ProductModel.findOne({ sku: data.sku }).lean()
+  const existingSku = await findOneProductLean({ sku: data.sku })
   if (existingSku) {
     throw new CustomError(
       statusCodes.conflict,
@@ -57,7 +70,7 @@ export const addProduct = async (data) => {
     )
   }
 
-  const category = await CategoryModel.findById(data.category).lean()
+  const category = await findCategoryByIdLean(data.category)
   if (!category) {
     throw new CustomError(
       statusCodes.notFound,
@@ -67,7 +80,7 @@ export const addProduct = async (data) => {
   }
 
   if (data.subcategory) {
-    const subcategory = await CategoryModel.findById(data.subcategory).lean()
+    const subcategory = await findCategoryByIdLean(data.subcategory)
     if (!subcategory || String(subcategory.parent) !== String(data.category)) {
       throw new CustomError(
         statusCodes.badRequest,
@@ -78,7 +91,7 @@ export const addProduct = async (data) => {
   }
 
   if (data.brand) {
-    const brand = await BrandModel.findById(data.brand).lean()
+    const brand = await findBrandByIdLean(data.brand)
     if (!brand) {
       throw new CustomError(
         statusCodes.notFound,
@@ -104,7 +117,7 @@ export const addProduct = async (data) => {
     data.companyProductCodes
   )
 
-  const product = await ProductModel.create({
+  const product = await createProduct({
     ...data,
     slug,
     productCode,
@@ -181,16 +194,8 @@ export const listProducts = async ({
   const sort = { [sortBy]: sortOrder === 'asc' ? 1 : -1 }
 
   const [totalItems, products] = await Promise.all([
-    ProductModel.countDocuments(filter),
-    ProductModel.find(filter)
-      .populate('category', 'name slug')
-      .populate('subcategory', 'name slug')
-      .populate('brand', 'name slug logo')
-      .populate('images', 'path')
-      .sort(sort)
-      .skip(skip)
-      .limit(limit)
-      .lean(),
+    countProducts(filter),
+    findProductsWithListPopulate(filter, { sort, skip, limit }),
   ])
 
   const totalPages = Math.ceil(totalItems / limit)
@@ -209,19 +214,7 @@ export const listProducts = async ({
 }
 
 export const getProductById = async ({ productId }) => {
-  const product = await ProductModel.findById(productId)
-    .populate('category', 'name slug')
-    .populate('subcategory', 'name slug')
-    .populate('brand', 'name slug logo')
-    .populate('group', 'name code')
-    .populate('companyProductCodes.industry', 'name location')
-    .populate('images', 'path')
-    .populate({
-      path: 'variantCombinations.images',
-      model: 'document',
-      select: 'path',
-    })
-    .lean()
+  const product = await findProductByIdWithDetailPopulate(productId)
 
   if (!product) {
     throw new CustomError(
@@ -235,7 +228,7 @@ export const getProductById = async ({ productId }) => {
 }
 
 export const updateProduct = async ({ productId, ...updateData }) => {
-  const product = await ProductModel.findById(productId).lean()
+  const product = await findProductByIdLean(productId)
   if (!product) {
     throw new CustomError(
       statusCodes.notFound,
@@ -247,15 +240,15 @@ export const updateProduct = async ({ productId, ...updateData }) => {
   if (updateData.name && updateData.name !== product.name) {
     const baseSlug = generateSlug(updateData.name)
     updateData.slug = await generateUniqueSlug(baseSlug, async (s) => {
-      return await ProductModel.findOne({ slug: s, _id: { $ne: productId } })
+      return await findOneProduct({ slug: s, _id: { $ne: productId } })
     })
   }
 
   if (updateData.sku && updateData.sku !== product.sku) {
-    const existing = await ProductModel.findOne({
+    const existing = await findOneProductLean({
       sku: updateData.sku,
       _id: { $ne: productId },
-    }).lean()
+    })
     if (existing) {
       throw new CustomError(
         statusCodes.conflict,
@@ -266,7 +259,7 @@ export const updateProduct = async ({ productId, ...updateData }) => {
   }
 
   if (updateData.category) {
-    const category = await CategoryModel.findById(updateData.category).lean()
+    const category = await findCategoryByIdLean(updateData.category)
     if (!category) {
       throw new CustomError(
         statusCodes.notFound,
@@ -278,9 +271,7 @@ export const updateProduct = async ({ productId, ...updateData }) => {
 
   if (updateData.subcategory) {
     const catId = updateData.category || product.category
-    const subcategory = await CategoryModel.findById(
-      updateData.subcategory
-    ).lean()
+    const subcategory = await findCategoryByIdLean(updateData.subcategory)
     if (!subcategory || String(subcategory.parent) !== String(catId)) {
       throw new CustomError(
         statusCodes.badRequest,
@@ -291,7 +282,7 @@ export const updateProduct = async ({ productId, ...updateData }) => {
   }
 
   if (updateData.brand) {
-    const brand = await BrandModel.findById(updateData.brand).lean()
+    const brand = await findBrandByIdLean(updateData.brand)
     if (!brand) {
       throw new CustomError(
         statusCodes.notFound,
@@ -331,22 +322,16 @@ export const updateProduct = async ({ productId, ...updateData }) => {
     )
   }
 
-  const updated = await ProductModel.findByIdAndUpdate(productId, updateData, {
-    new: true,
-    runValidators: true,
-  })
-    .populate('category', 'name slug')
-    .populate('subcategory', 'name slug')
-    .populate('brand', 'name slug logo')
-    .populate('group', 'name code')
-    .populate('companyProductCodes.industry', 'name location')
-    .lean()
+  const updated = await findProductByIdAndUpdateWithPopulate(
+    productId,
+    updateData
+  )
 
   return updated
 }
 
 export const deleteProduct = async ({ productId }) => {
-  const product = await ProductModel.findById(productId).lean()
+  const product = await findProductByIdLean(productId)
   if (!product) {
     throw new CustomError(
       statusCodes.notFound,
@@ -355,7 +340,7 @@ export const deleteProduct = async ({ productId }) => {
     )
   }
 
-  await ProductModel.findByIdAndDelete(productId)
+  await deleteProductById(productId)
 
   return {
     deletedProduct: {

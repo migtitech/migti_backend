@@ -1,6 +1,10 @@
-import RateMasterModel, {
-  RATE_MASTER_TYPE,
-} from '../../models/rateMaster.model.js'
+import { RATE_MASTER_TYPE } from '../../models/rateMaster.model.js'
+import {
+  findOneAndUpdateRateMaster,
+  findRateMastersWithPopulate,
+  countRateMasters,
+  aggregateRateMasters,
+} from '../../repository/rateMaster.repository.js'
 
 const SNAPSHOT_FIELD_BY_TYPE = Object.freeze({
   [RATE_MASTER_TYPE.PROCUREMENT]: 'procurementSnapshot',
@@ -63,10 +67,9 @@ export const upsertRateMasterEntries = async ({
       if (sourceId != null) set.sourceId = sourceId
       if (branchId != null) set.branchId = branchId
 
-      await RateMasterModel.findOneAndUpdate(
+      await findOneAndUpdateRateMaster(
         { type, sourceCode: code, productCode },
-        { $set: set },
-        { upsert: true, new: true, setDefaultsOnInsert: true }
+        { $set: set }
       )
       upserted += 1
     } catch (err) {
@@ -103,13 +106,8 @@ export const listRatesByProductCode = async ({
   if (type) filter.type = type
 
   const [items, total] = await Promise.all([
-    RateMasterModel.find(filter)
-      .populate('branchId', 'name branchName')
-      .sort({ updatedAt: -1 })
-      .skip(skip)
-      .limit(pageSize)
-      .lean(),
-    RateMasterModel.countDocuments(filter),
+    findRateMastersWithPopulate(filter, { skip, limit: pageSize }),
+    countRateMasters(filter),
   ])
 
   return {
@@ -131,7 +129,7 @@ export const listRatesByProductCode = async ({
 export const getProductCodeSummary = async ({ productCode }) => {
   const code = normProductCode(productCode)
 
-  const rows = await RateMasterModel.aggregate([
+  const rows = await aggregateRateMasters([
     { $match: { productCode: code, isDeleted: { $ne: true } } },
     {
       $group: {
@@ -180,7 +178,7 @@ export const searchProductCodes = async ({ search = '', limit = 10 }) => {
     match.productCode = { $regex: term, $options: 'i' }
   }
 
-  const rows = await RateMasterModel.aggregate([
+  const rows = await aggregateRateMasters([
     { $match: match },
     {
       $group: {

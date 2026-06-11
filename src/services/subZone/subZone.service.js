@@ -1,6 +1,17 @@
 import mongoose from 'mongoose'
-import SubZoneModel from '../../models/subZone.model.js'
-import AreaModel from '../../models/area.model.js'
+import {
+  countSubZones,
+  createSubZone,
+  findSubZones,
+  findSubZonesByZoneIds,
+  findOneSubZoneLean,
+  findSubZoneByIdAndUpdateLean,
+  softDeleteSubZoneById,
+} from '../../repository/subZone.repository.js'
+import {
+  findOneAreaLean,
+  findAreasSelectFields,
+} from '../../repository/area.repository.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 
@@ -30,7 +41,7 @@ const suffixFromIndex = (index) => {
 }
 
 const nextSubZoneCodeForZone = async (zoneId, baseToken) => {
-  const total = await SubZoneModel.countDocuments({ zoneId })
+  const total = await countSubZones({ zoneId })
   return `${baseToken}_${suffixFromIndex(total)}`
 }
 
@@ -50,10 +61,10 @@ export const assertSubZoneBelongsToArea = async ({
       errorCodes.bad_request
     )
   }
-  const sub = await SubZoneModel.findOne({
+  const sub = await findOneSubZoneLean({
     _id: subZoneId,
     isDeleted: false,
-  }).lean()
+  })
   if (!sub) {
     throw new CustomError(
       statusCodes.badRequest,
@@ -71,7 +82,7 @@ export const assertSubZoneBelongsToArea = async ({
   const areaFilter = Object.keys(branchFilter).length
     ? { _id: areaId, isDeleted: false, ...branchFilter }
     : { _id: areaId, isDeleted: false }
-  const area = await AreaModel.findOne(areaFilter).lean()
+  const area = await findOneAreaLean(areaFilter)
   if (!area) {
     throw new CustomError(
       statusCodes.badRequest,
@@ -82,11 +93,11 @@ export const assertSubZoneBelongsToArea = async ({
 }
 
 export const addSubZone = async ({ zoneId, name, branchFilter = {} }) => {
-  const area = await AreaModel.findOne({
+  const area = await findOneAreaLean({
     _id: zoneId,
     isDeleted: false,
     ...branchFilter,
-  }).lean()
+  })
   if (!area) {
     throw new CustomError(
       statusCodes.notFound,
@@ -107,7 +118,7 @@ export const addSubZone = async ({ zoneId, name, branchFilter = {} }) => {
   const baseToken = tokenizeZoneName(area.name)
   const subZoneCode = await nextSubZoneCodeForZone(area._id, baseToken)
 
-  const doc = await SubZoneModel.create({
+  const doc = await createSubZone({
     zoneId: area._id,
     name: trimmed,
     subZoneCode,
@@ -128,11 +139,11 @@ export const listSubZones = async ({
       errorCodes.bad_request
     )
   }
-  const area = await AreaModel.findOne({
+  const area = await findOneAreaLean({
     _id: zoneId,
     isDeleted: false,
     ...branchFilter,
-  }).lean()
+  })
   if (!area) {
     throw new CustomError(
       statusCodes.notFound,
@@ -146,12 +157,8 @@ export const listSubZones = async ({
   const skip = (page - 1) * limit
 
   const filter = { zoneId: area._id, isDeleted: false }
-  const totalItems = await SubZoneModel.countDocuments(filter)
-  const subZones = await SubZoneModel.find(filter)
-    .sort({ subZoneCode: 1 })
-    .skip(skip)
-    .limit(limit)
-    .lean()
+  const totalItems = await countSubZones(filter)
+  const subZones = await findSubZones(filter, { skip, limit })
 
   const totalPages = Math.ceil(totalItems / limit) || 1
 
@@ -170,22 +177,14 @@ export const listSubZones = async ({
 
 /** All zones for branch + their sub-zones (for accordion UI). */
 export const listSubZonesGroupedByBranch = async ({ branchFilter = {} }) => {
-  const areas = await AreaModel.find({ isDeleted: false, ...branchFilter })
-    .select('name city areaType branchId companyId')
-    .sort({ name: 1 })
-    .lean()
+  const areas = await findAreasSelectFields({ isDeleted: false, ...branchFilter })
 
   if (!areas.length) {
     return { zones: [] }
   }
 
   const zoneIds = areas.map((a) => a._id)
-  const allSubs = await SubZoneModel.find({
-    zoneId: { $in: zoneIds },
-    isDeleted: false,
-  })
-    .sort({ subZoneCode: 1 })
-    .lean()
+  const allSubs = await findSubZonesByZoneIds(zoneIds)
 
   const byZone = allSubs.reduce((acc, s) => {
     const k = String(s.zoneId)
@@ -203,10 +202,10 @@ export const listSubZonesGroupedByBranch = async ({ branchFilter = {} }) => {
 }
 
 export const updateSubZone = async ({ subZoneId, name, branchFilter = {} }) => {
-  const sub = await SubZoneModel.findOne({
+  const sub = await findOneSubZoneLean({
     _id: subZoneId,
     isDeleted: false,
-  }).lean()
+  })
   if (!sub) {
     throw new CustomError(
       statusCodes.notFound,
@@ -215,11 +214,11 @@ export const updateSubZone = async ({ subZoneId, name, branchFilter = {} }) => {
     )
   }
 
-  const area = await AreaModel.findOne({
+  const area = await findOneAreaLean({
     _id: sub.zoneId,
     isDeleted: false,
     ...branchFilter,
-  }).lean()
+  })
   if (!area) {
     throw new CustomError(
       statusCodes.notFound,
@@ -237,20 +236,18 @@ export const updateSubZone = async ({ subZoneId, name, branchFilter = {} }) => {
     )
   }
 
-  const updated = await SubZoneModel.findByIdAndUpdate(
-    subZoneId,
-    { $set: { name: trimmed } },
-    { new: true, runValidators: true }
-  ).lean()
+  const updated = await findSubZoneByIdAndUpdateLean(subZoneId, {
+    $set: { name: trimmed },
+  })
 
   return updated
 }
 
 export const deleteSubZone = async ({ subZoneId, branchFilter = {} }) => {
-  const sub = await SubZoneModel.findOne({
+  const sub = await findOneSubZoneLean({
     _id: subZoneId,
     isDeleted: false,
-  }).lean()
+  })
   if (!sub) {
     throw new CustomError(
       statusCodes.notFound,
@@ -259,11 +256,11 @@ export const deleteSubZone = async ({ subZoneId, branchFilter = {} }) => {
     )
   }
 
-  const area = await AreaModel.findOne({
+  const area = await findOneAreaLean({
     _id: sub.zoneId,
     isDeleted: false,
     ...branchFilter,
-  }).lean()
+  })
   if (!area) {
     throw new CustomError(
       statusCodes.notFound,
@@ -272,9 +269,7 @@ export const deleteSubZone = async ({ subZoneId, branchFilter = {} }) => {
     )
   }
 
-  await SubZoneModel.findByIdAndUpdate(subZoneId, {
-    $set: { isDeleted: true, isActive: false },
-  })
+  await softDeleteSubZoneById(subZoneId)
 
   return {
     deletedSubZone: {

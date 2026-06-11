@@ -1,5 +1,17 @@
-import EmployeeModel from '../../models/employee.model.js'
-import PasswordResetRequestModel from '../../models/passwordResetRequest.model.js'
+import {
+  findEmployeeByEmailOrIdnumber,
+  createEmployee,
+  countEmployees,
+  findEmployees,
+  findEmployeeById,
+  findEmployeeByIdRaw,
+  findEmployeeConflict,
+  updateEmployeeById,
+  updateEmployeePasswordById,
+  deleteEmployeeById,
+  findEmployeeByEmailRegex,
+} from '../../repository/employee.repository.js'
+import { createPasswordResetRequest as createPasswordResetRequestRecord } from '../../repository/passwordResetRequest.repository.js'
 import { assertSubZoneBelongsToArea } from '../subZone/subZone.service.js'
 import CustomError from '../../utils/exception.js'
 import {
@@ -139,9 +151,10 @@ export const addEmployee = async (payload) => {
     rest.assigned_groups = []
   }
 
-  const existingEmployee = await EmployeeModel.findOne({
-    $or: [{ email }, { idnumber }],
-  }).lean()
+  const existingEmployee = await findEmployeeByEmailOrIdnumber({
+    email,
+    idnumber,
+  })
 
   if (existingEmployee) {
     throw new CustomError(
@@ -151,7 +164,7 @@ export const addEmployee = async (payload) => {
     )
   }
 
-  const employeeDoc = await EmployeeModel.create({
+  const employeeDoc = await createEmployee({
     ...rest,
     password: encrypt(password),
   })
@@ -235,14 +248,9 @@ export const listEmployees = async ({
     filter.$and = andConditions
   }
 
-  const totalItems = await EmployeeModel.countDocuments(filter)
+  const totalItems = await countEmployees(filter)
 
-  const employees = await EmployeeModel.find(filter)
-    .select('-password')
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(limit)
-    .lean()
+  const employees = await findEmployees(filter, { skip, limit })
 
   const totalPages = Math.ceil(totalItems / limit)
   const hasNextPage = page < totalPages
@@ -262,12 +270,7 @@ export const listEmployees = async ({
 }
 
 export const getEmployeeById = async ({ employeeId, branchFilter = {} }) => {
-  const employee = await EmployeeModel.findOne({
-    _id: employeeId,
-    ...branchFilter,
-  })
-    .select('-password')
-    .lean()
+  const employee = await findEmployeeById(employeeId, branchFilter)
 
   if (!employee) {
     throw new CustomError(
@@ -285,10 +288,7 @@ export const updateEmployee = async ({
   branchFilter = {},
   ...updateData
 }) => {
-  const employee = await EmployeeModel.findOne({
-    _id: employeeId,
-    ...branchFilter,
-  }).lean()
+  const employee = await findEmployeeByIdRaw(employeeId, branchFilter)
   if (!employee) {
     throw new CustomError(
       statusCodes.notFound,
@@ -384,13 +384,11 @@ export const updateEmployee = async ({
   }
 
   if (updateData.email || updateData.idnumber) {
-    const conflict = await EmployeeModel.findOne({
-      _id: { $ne: employeeId },
-      $or: [
-        ...(updateData.email ? [{ email: updateData.email }] : []),
-        ...(updateData.idnumber ? [{ idnumber: updateData.idnumber }] : []),
-      ],
-    }).lean()
+    const conflict = await findEmployeeConflict({
+      employeeId,
+      email: updateData.email,
+      idnumber: updateData.idnumber,
+    })
 
     if (conflict) {
       throw new CustomError(
@@ -420,16 +418,7 @@ export const updateEmployee = async ({
     )
   }
 
-  const updatedEmployee = await EmployeeModel.findByIdAndUpdate(
-    employeeId,
-    updateData,
-    {
-      new: true,
-      runValidators: true,
-    }
-  )
-    .select('-password')
-    .lean()
+  const updatedEmployee = await updateEmployeeById(employeeId, updateData)
 
   return withNormalizedZones(updatedEmployee)
 }
@@ -439,10 +428,7 @@ export const updateEmployeePassword = async ({
   newPassword,
   branchFilter = {},
 }) => {
-  const employee = await EmployeeModel.findOne({
-    _id: employeeId,
-    ...branchFilter,
-  }).lean()
+  const employee = await findEmployeeByIdRaw(employeeId, branchFilter)
   if (!employee) {
     throw new CustomError(
       statusCodes.notFound,
@@ -451,18 +437,13 @@ export const updateEmployeePassword = async ({
     )
   }
 
-  await EmployeeModel.findByIdAndUpdate(employeeId, {
-    password: encrypt(newPassword),
-  })
+  await updateEmployeePasswordById(employeeId, encrypt(newPassword))
 
   return { updated: true }
 }
 
 export const deleteEmployee = async ({ employeeId, branchFilter = {} }) => {
-  const employee = await EmployeeModel.findOne({
-    _id: employeeId,
-    ...branchFilter,
-  }).lean()
+  const employee = await findEmployeeByIdRaw(employeeId, branchFilter)
   if (!employee) {
     throw new CustomError(
       statusCodes.notFound,
@@ -471,7 +452,7 @@ export const deleteEmployee = async ({ employeeId, branchFilter = {} }) => {
     )
   }
 
-  await EmployeeModel.findByIdAndDelete(employeeId)
+  await deleteEmployeeById(employeeId)
 
   return {
     deletedEmployee: {
@@ -486,7 +467,7 @@ export const deleteEmployee = async ({ employeeId, branchFilter = {} }) => {
 export const employeeLogin = async ({ email, password, role }) => {
   const emailTrimmed = String(email || '').trim()
   const emailRegex = new RegExp(`^${escapeRegex(emailTrimmed)}$`, 'i')
-  const employee = await EmployeeModel.findOne({ email: emailRegex }).lean()
+  const employee = await findEmployeeByEmailRegex(emailRegex)
   if (!employee) {
     throw new CustomError(
       statusCodes.notFound,
@@ -538,7 +519,7 @@ export const employeeLogin = async ({ email, password, role }) => {
 export const createPasswordResetRequest = async ({ email, role, message }) => {
   const emailTrimmed = String(email || '').trim()
   const emailRegex = new RegExp(`^${escapeRegex(emailTrimmed)}$`, 'i')
-  const employee = await EmployeeModel.findOne({ email: emailRegex }).lean()
+  const employee = await findEmployeeByEmailRegex(emailRegex)
   if (!employee || employee.role !== role) {
     throw new CustomError(
       statusCodes.notFound,
@@ -547,7 +528,7 @@ export const createPasswordResetRequest = async ({ email, role, message }) => {
     )
   }
 
-  const created = await PasswordResetRequestModel.create({
+  const created = await createPasswordResetRequestRecord({
     userId: employee._id,
     message: String(message || '').trim(),
     email: String(employee.email || '').trim().toLowerCase(),

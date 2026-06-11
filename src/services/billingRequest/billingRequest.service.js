@@ -1,9 +1,9 @@
 import mongoose from 'mongoose'
-import BillingRequestModel, {
+import billingRequestRepository, {
   BILLING_REQUEST_STATUS,
-} from '../../models/billingRequest.model.js'
-import PoProductModel from '../../models/poProduct.model.js'
-import EmployeeModel from '../../models/employee.model.js'
+} from '../../repository/billingRequest.repository.js'
+import poProductRepository from '../../repository/poProduct.repository.js'
+import employeeRepository from '../../repository/employee.repository.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 import {
@@ -37,12 +37,12 @@ export const listBillingRequests = async ({
   }
 
   const [rows, total] = await Promise.all([
-    BillingRequestModel.find(filter)
+    billingRequestRepository.find(filter)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
       .lean(),
-    BillingRequestModel.countDocuments(filter),
+    billingRequestRepository.countDocuments(filter),
   ])
 
   return {
@@ -61,7 +61,7 @@ export const getBillingRequestById = async (id) => {
   if (!oid) {
     throw new CustomError(statusCodes.badRequest, 'Invalid id', errorCodes.bad_request)
   }
-  const doc = await BillingRequestModel.findById(oid).lean()
+  const doc = await billingRequestRepository.findById(oid).lean()
   if (!doc) {
     throw new CustomError(statusCodes.notFound, 'Billing request not found', errorCodes.not_found)
   }
@@ -87,7 +87,7 @@ export const hodProductAction = async ({ billingRequestId, productId, action, re
     throw new CustomError(statusCodes.badRequest, 'action must be approved or rejected', errorCodes.bad_request)
   }
 
-  const doc = await BillingRequestModel.findById(brOid)
+  const doc = await billingRequestRepository.findById(brOid)
   if (!doc) {
     throw new CustomError(statusCodes.notFound, 'Billing request not found', errorCodes.not_found)
   }
@@ -129,7 +129,7 @@ export const financeApproveBillingRequest = async ({ id, financeRemark, paidAmou
     throw new CustomError(statusCodes.badRequest, 'Invalid id', errorCodes.bad_request)
   }
 
-  const doc = await BillingRequestModel.findById(oid).lean()
+  const doc = await billingRequestRepository.findById(oid).lean()
   if (!doc) {
     throw new CustomError(statusCodes.notFound, 'Billing request not found', errorCodes.not_found)
   }
@@ -139,7 +139,7 @@ export const financeApproveBillingRequest = async ({ id, financeRemark, paidAmou
     ? await buildEmployeeSnapshot(approverId)
     : null
 
-  const updated = await BillingRequestModel.findByIdAndUpdate(
+  const updated = await billingRequestRepository.findByIdAndUpdate(
     oid,
     {
       $set: {
@@ -165,7 +165,7 @@ export const markProductPurchased = async ({ billingRequestId, productId }) => {
     throw new CustomError(statusCodes.badRequest, 'Invalid id', errorCodes.bad_request)
   }
 
-  const doc = await BillingRequestModel.findById(brOid)
+  const doc = await billingRequestRepository.findById(brOid)
   if (!doc) {
     throw new CustomError(statusCodes.notFound, 'Billing request not found', errorCodes.not_found)
   }
@@ -190,7 +190,7 @@ export const markProductPurchased = async ({ billingRequestId, productId }) => {
 
   // Update po_products status → purchased
   if (product.poProductId) {
-    await PoProductModel.updateOne(
+    await poProductRepository.updateOne(
       { _id: product.poProductId },
       { $set: { status: 'purchased' } }
     )
@@ -209,7 +209,7 @@ export const resubmitProduct = async ({ billingRequestId, productId, billDocId, 
     throw new CustomError(statusCodes.badRequest, 'billDocId is required', errorCodes.bad_request)
   }
 
-  const doc = await BillingRequestModel.findById(brOid)
+  const doc = await billingRequestRepository.findById(brOid)
   if (!doc) {
     throw new CustomError(statusCodes.notFound, 'Billing request not found', errorCodes.not_found)
   }
@@ -243,7 +243,7 @@ export const resubmitProduct = async ({ billingRequestId, productId, billDocId, 
 const buildEmployeeSnapshot = async (employeeId) => {
   const id = toOid(employeeId)
   if (!id) return null
-  const e = await EmployeeModel.findById(id).select('-password').lean()
+  const e = await employeeRepository.findById(id).select('-password').lean()
   return e || null
 }
 
@@ -279,7 +279,7 @@ export const createBillingRequest = async ({ products, user }) => {
     )
   }
 
-  const poProductDocs = await PoProductModel.find({
+  const poProductDocs = await poProductRepository.find({
     _id: { $in: poProductOids },
     isDeleted: false,
   }).lean()
@@ -337,8 +337,8 @@ export const createBillingRequest = async ({ products, user }) => {
   // Generate a unique code (retry up to 5 times on collision)
   let billingRequestCode = ''
   for (let attempt = 0; attempt < 5; attempt++) {
-    const candidate = BillingRequestModel.generateCode()
-    const exists = await BillingRequestModel.findOne({
+    const candidate = billingRequestRepository.generateCode()
+    const exists = await billingRequestRepository.findOne({
       billingRequestCode: candidate,
     }).lean()
     if (!exists) {
@@ -351,7 +351,7 @@ export const createBillingRequest = async ({ products, user }) => {
   }
 
   // Create the billing request doc
-  const billingRequest = await BillingRequestModel.create({
+  const billingRequest = await billingRequestRepository.create({
     billingRequestCode,
     poCode: poCodeStr,
     products: productEntries,
@@ -362,7 +362,7 @@ export const createBillingRequest = async ({ products, user }) => {
   })
 
   // Update all included po_products status → hod_approval_pending
-  await PoProductModel.updateMany(
+  await poProductRepository.updateMany(
     { _id: { $in: poProductOids }, isDeleted: false },
     {
       $set: {

@@ -1,15 +1,55 @@
-import QueryModel from '../../models/query.model.js'
 import mongoose from 'mongoose'
-import QuotationModel from '../../models/quotation.model.js'
-import PoEntryModel from '../../models/poEntry.model.js'
-import BillingEntryModel from '../../models/billingEntry.model.js'
-import EmployeeModel from '../../models/employee.model.js'
-import TargetAnalyticsModel from '../../models/targetAnalytics.model.js'
-import TargetAnalyticsHistoryModel from '../../models/targetAnalyticsHistory.model.js'
-import BranchZoneTargetModel from '../../models/branchZoneTarget.model.js'
-import BranchZoneTargetHistoryModel from '../../models/branchZoneTargetHistory.model.js'
-import BranchEmployeeTargetModel from '../../models/branchEmployeeTarget.model.js'
-import BranchEmployeeTargetHistoryModel from '../../models/branchEmployeeTargetHistory.model.js'
+import { countQueries } from '../../repository/query.repository.js'
+import quotationRepository, {
+  findQuotationsProductsForSum,
+} from '../../repository/quotation.repository.js'
+import poEntryRepository from '../../repository/poEntry.repository.js'
+import billingEntryRepository from '../../repository/billingEntry.repository.js'
+import {
+  findEmployeesSelectIdByBranch,
+  findZoneEmployeesSelectId,
+} from '../../repository/employee.repository.js'
+import {
+  findTargetAnalytics,
+  findOneTargetAnalytics,
+  findOneTargetAnalyticsForSummary,
+  createTargetAnalytics,
+  findExpiredTargetAnalytics,
+  softDeleteTargetAnalyticsById,
+} from '../../repository/targetAnalytics.repository.js'
+import {
+  findTargetAnalyticsHistory,
+  findOneTargetAnalyticsHistory,
+  createTargetAnalyticsHistory,
+} from '../../repository/targetAnalyticsHistory.repository.js'
+import {
+  findBranchZoneTargets,
+  findOneBranchZoneTarget,
+  findOneBranchZoneTargetForSummary,
+  createBranchZoneTarget,
+  closeExpiredBranchZoneTargets,
+  findMyBranchZoneTargets,
+  findExpiredBranchZoneTargets,
+  softDeleteBranchZoneTargetById,
+} from '../../repository/branchZoneTarget.repository.js'
+import {
+  findBranchZoneTargetHistory,
+  findOneBranchZoneTargetHistory,
+  createBranchZoneTargetHistory,
+} from '../../repository/branchZoneTargetHistory.repository.js'
+import {
+  findBranchEmployeeTargets,
+  findOneBranchEmployeeTarget,
+  findOneBranchEmployeeTargetForSummary,
+  createBranchEmployeeTarget,
+  findExpiredBranchEmployeeTargets,
+  softDeleteBranchEmployeeTargetById,
+} from '../../repository/branchEmployeeTarget.repository.js'
+import {
+  findBranchEmployeeTargetHistory,
+  findOneBranchEmployeeTargetHistory,
+  createBranchEmployeeTargetHistory,
+} from '../../repository/branchEmployeeTargetHistory.repository.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 
@@ -72,23 +112,21 @@ const getMetricsForRange = async ({ branchId, dateFrom, dateTo }) => {
     poAmountAgg,
     billingAmountAgg,
   ] = await Promise.all([
-    QueryModel.countDocuments(queryFilter),
-    QuotationModel.countDocuments(quotationFilter),
-    PoEntryModel.countDocuments(poFilter),
-    BillingEntryModel.countDocuments(billingFilter),
-    PoEntryModel.aggregate([
+    countQueries(queryFilter),
+    quotationRepository.countDocuments(quotationFilter),
+    poEntryRepository.countDocuments(poFilter),
+    billingEntryRepository.countDocuments(billingFilter),
+    poEntryRepository.aggregate([
       { $match: poFilter },
       { $group: { _id: null, total: { $sum: '$amount' } } },
     ]),
-    BillingEntryModel.aggregate([
+    billingEntryRepository.aggregate([
       { $match: billingFilter },
       { $group: { _id: null, total: { $sum: '$amount' } } },
     ]),
   ])
 
-  const quotations = await QuotationModel.find(quotationFilter)
-    .select('products')
-    .lean()
+  const quotations = await findQuotationsProductsForSum(quotationFilter)
   const quotedAmount = quotations.reduce(
     (sum, q) => sum + computeQuotationAmount(q?.products || []),
     0
@@ -120,15 +158,8 @@ export const getTargetAnalytics = async ({
     filter.dateTo = { ...(filter.dateTo || {}), $lte: endOfUtcDay(dateTo) }
 
   const [activeTargets, history] = await Promise.all([
-    TargetAnalyticsModel.find(filter)
-      .populate('branchId', 'name branchcode')
-      .sort({ dateFrom: -1 })
-      .lean(),
-    TargetAnalyticsHistoryModel.find(filter)
-      .populate('branchId', 'name branchcode')
-      .sort({ archivedAt: -1 })
-      .limit(200)
-      .lean(),
+    findTargetAnalytics(filter),
+    findTargetAnalyticsHistory(filter),
   ])
 
   return { activeTargets, history }
@@ -153,7 +184,7 @@ export const upsertTargetAnalytics = async ({
     )
   }
 
-  const existing = await TargetAnalyticsModel.findOne({
+  const existing = await findOneTargetAnalytics({
     isDeleted: false,
     branchId,
     period,
@@ -168,7 +199,7 @@ export const upsertTargetAnalytics = async ({
     return existing.toObject()
   }
 
-  const created = await TargetAnalyticsModel.create({
+  const created = await createTargetAnalytics({
     branchId,
     period,
     dateFrom: from,
@@ -182,10 +213,7 @@ export const upsertTargetAnalytics = async ({
 
 export const archiveExpiredTargets = async () => {
   const now = new Date()
-  const expiredTargets = await TargetAnalyticsModel.find({
-    isDeleted: false,
-    dateTo: { $lt: now },
-  }).lean()
+  const expiredTargets = await findExpiredTargetAnalytics(now)
 
   if (!expiredTargets.length) return { processed: 0 }
 
@@ -196,12 +224,12 @@ export const archiveExpiredTargets = async () => {
       dateTo: target.dateTo,
     })
 
-    const alreadyArchived = await TargetAnalyticsHistoryModel.findOne({
+    const alreadyArchived = await findOneTargetAnalyticsHistory({
       sourceTargetId: target._id,
       isDeleted: false,
-    }).lean()
+    })
     if (!alreadyArchived) {
-      await TargetAnalyticsHistoryModel.create({
+      await createTargetAnalyticsHistory({
         sourceTargetId: target._id,
         branchId: target.branchId,
         period: target.period,
@@ -215,10 +243,7 @@ export const archiveExpiredTargets = async () => {
       })
     }
 
-    await TargetAnalyticsModel.updateOne(
-      { _id: target._id },
-      { $set: { isDeleted: true } }
-    )
+    await softDeleteTargetAnalyticsById(target._id)
   }
 
   return { processed: expiredTargets.length }
@@ -274,25 +299,21 @@ export const getTargetSummary = async ({
     : branchId
 
   const { start, end } = getCurrentPeriodRange(period)
-  const targetDoc = await TargetAnalyticsModel.findOne({
+  const targetDoc = await findOneTargetAnalyticsForSummary({
     isDeleted: false,
     branchId,
     period,
     dateFrom: { $lte: end },
     dateTo: { $gte: start },
   })
-    .sort({ createdAt: -1 })
-    .lean()
 
   const rangeFrom = targetDoc?.dateFrom || start
   const rangeTo = targetDoc?.dateTo || end
 
-  const branchEmployeeRows = await EmployeeModel.find({
+  const branchEmployeeRows = await findEmployeesSelectIdByBranch({
     isDeleted: false,
     branchId: branchObjectId,
   })
-    .select('_id')
-    .lean()
   const branchEmployeeIds = branchEmployeeRows.map((row) => row._id)
 
   const billingMatch = {
@@ -307,7 +328,7 @@ export const getTargetSummary = async ({
     })
   }
 
-  const billingAgg = await BillingEntryModel.aggregate([
+  const billingAgg = await billingEntryRepository.aggregate([
     {
       $match: billingMatch,
     },
@@ -340,17 +361,8 @@ export const getZoneTargetAnalytics = async ({
   if (zoneId) filter.zoneId = zoneId
   if (period) filter.period = period
   const [activeTargets, history] = await Promise.all([
-    BranchZoneTargetModel.find(filter)
-      .populate('branchId', 'name branchcode')
-      .populate('zoneId', 'name city')
-      .sort({ dateFrom: -1 })
-      .lean(),
-    BranchZoneTargetHistoryModel.find(filter)
-      .populate('branchId', 'name branchcode')
-      .populate('zoneId', 'name city')
-      .sort({ archivedAt: -1 })
-      .limit(200)
-      .lean(),
+    findBranchZoneTargets(filter),
+    findBranchZoneTargetHistory(filter),
   ])
   return { activeTargets, history }
 }
@@ -376,7 +388,7 @@ export const upsertZoneTargetAnalytics = async ({
       errorCodes.bad_request
     )
   }
-  const existing = await BranchZoneTargetModel.findOne({
+  const existing = await findOneBranchZoneTarget({
     isDeleted: false,
     branchId,
     zoneId,
@@ -392,7 +404,7 @@ export const upsertZoneTargetAnalytics = async ({
     await existing.save()
     return existing.toObject()
   }
-  const created = await BranchZoneTargetModel.create({
+  const created = await createBranchZoneTarget({
     branchId,
     zoneId,
     period,
@@ -409,10 +421,7 @@ export const upsertZoneTargetAnalytics = async ({
 
 export const closeExpiredZoneTargets = async () => {
   const now = new Date()
-  const result = await BranchZoneTargetModel.updateMany(
-    { isDeleted: false, status: 'active', dateTo: { $lt: now } },
-    { $set: { status: 'closed' } }
-  )
+  const result = await closeExpiredBranchZoneTargets(now)
   return { closed: result.modifiedCount }
 }
 
@@ -424,11 +433,7 @@ export const getMyZoneTargets = async ({ zoneIds = [], branchId }) => {
     }
   }
   if (branchId) filter.branchId = new mongoose.Types.ObjectId(String(branchId))
-  const targets = await BranchZoneTargetModel.find(filter)
-    .populate('zoneId', 'name city')
-    .populate('branchId', 'name branchcode')
-    .sort({ dateFrom: -1 })
-    .lean()
+  const targets = await findMyBranchZoneTargets(filter)
   return targets
 }
 
@@ -447,7 +452,7 @@ export const getZoneTargetSummary = async ({
   const branchObjectId = new mongoose.Types.ObjectId(branchId)
   const zoneObjectId = new mongoose.Types.ObjectId(zoneId)
   const { start, end } = getCurrentPeriodRange(period)
-  const targetDoc = await BranchZoneTargetModel.findOne({
+  const targetDoc = await findOneBranchZoneTargetForSummary({
     isDeleted: false,
     branchId: branchObjectId,
     zoneId: zoneObjectId,
@@ -455,11 +460,9 @@ export const getZoneTargetSummary = async ({
     dateFrom: { $lte: end },
     dateTo: { $gte: start },
   })
-    .sort({ createdAt: -1 })
-    .lean()
   const rangeFrom = targetDoc?.dateFrom || start
   const rangeTo = targetDoc?.dateTo || end
-  const zoneEmployees = await EmployeeModel.find({
+  const zoneEmployees = await findZoneEmployeesSelectId({
     isDeleted: false,
     branchId: branchObjectId,
     $or: [
@@ -467,8 +470,6 @@ export const getZoneTargetSummary = async ({
       { zoneId: zoneObjectId }, // legacy fallback
     ],
   })
-    .select('_id')
-    .lean()
   const employeeIds = zoneEmployees.map((e) => e._id)
   const match = {
     isDeleted: false,
@@ -482,7 +483,7 @@ export const getZoneTargetSummary = async ({
         }
       : { salespersonId: null }),
   }
-  const agg = await BillingEntryModel.aggregate([
+  const agg = await billingEntryRepository.aggregate([
     { $match: match },
     { $group: { _id: null, total: { $sum: '$amount' } } },
   ])
@@ -510,19 +511,8 @@ export const getEmployeeTargetAnalytics = async ({
   if (employeeId) filter.employeeId = employeeId
   if (period) filter.period = period
   const [activeTargets, history] = await Promise.all([
-    BranchEmployeeTargetModel.find(filter)
-      .populate('branchId', 'name branchcode')
-      .populate('zoneId', 'name city')
-      .populate('employeeId', 'name email')
-      .sort({ dateFrom: -1 })
-      .lean(),
-    BranchEmployeeTargetHistoryModel.find(filter)
-      .populate('branchId', 'name branchcode')
-      .populate('zoneId', 'name city')
-      .populate('employeeId', 'name email')
-      .sort({ archivedAt: -1 })
-      .limit(200)
-      .lean(),
+    findBranchEmployeeTargets(filter),
+    findBranchEmployeeTargetHistory(filter),
   ])
   return { activeTargets, history }
 }
@@ -547,7 +537,7 @@ export const upsertEmployeeTargetAnalytics = async ({
       errorCodes.bad_request
     )
   }
-  const existing = await BranchEmployeeTargetModel.findOne({
+  const existing = await findOneBranchEmployeeTarget({
     isDeleted: false,
     branchId,
     employeeId,
@@ -562,7 +552,7 @@ export const upsertEmployeeTargetAnalytics = async ({
     await existing.save()
     return existing.toObject()
   }
-  const created = await BranchEmployeeTargetModel.create({
+  const created = await createBranchEmployeeTarget({
     branchId,
     zoneId: zoneId || null,
     employeeId,
@@ -591,7 +581,7 @@ export const getEmployeeTargetSummary = async ({
   const branchObjectId = new mongoose.Types.ObjectId(branchId)
   const employeeObjectId = new mongoose.Types.ObjectId(employeeId)
   const { start, end } = getCurrentPeriodRange(period)
-  const targetDoc = await BranchEmployeeTargetModel.findOne({
+  const targetDoc = await findOneBranchEmployeeTargetForSummary({
     isDeleted: false,
     branchId: branchObjectId,
     employeeId: employeeObjectId,
@@ -599,11 +589,9 @@ export const getEmployeeTargetSummary = async ({
     dateFrom: { $lte: end },
     dateTo: { $gte: start },
   })
-    .sort({ createdAt: -1 })
-    .lean()
   const rangeFrom = targetDoc?.dateFrom || start
   const rangeTo = targetDoc?.dateTo || end
-  const agg = await BillingEntryModel.aggregate([
+  const agg = await billingEntryRepository.aggregate([
     {
       $match: {
         isDeleted: false,
@@ -631,10 +619,7 @@ export const getEmployeeTargetSummary = async ({
 
 export const archiveExpiredZoneAndEmployeeTargets = async () => {
   const now = new Date()
-  const expiredZone = await BranchZoneTargetModel.find({
-    isDeleted: false,
-    dateTo: { $lt: now },
-  }).lean()
+  const expiredZone = await findExpiredBranchZoneTargets(now)
   for (const target of expiredZone) {
     const snapshot = await getZoneTargetSummary({
       branchId: String(target.branchId),
@@ -642,12 +627,12 @@ export const archiveExpiredZoneAndEmployeeTargets = async () => {
       period: target.period,
       branchFilter: {},
     })
-    const exists = await BranchZoneTargetHistoryModel.findOne({
+    const exists = await findOneBranchZoneTargetHistory({
       sourceTargetId: target._id,
       isDeleted: false,
-    }).lean()
+    })
     if (!exists) {
-      await BranchZoneTargetHistoryModel.create({
+      await createBranchZoneTargetHistory({
         sourceTargetId: target._id,
         branchId: target.branchId,
         zoneId: target.zoneId,
@@ -659,15 +644,9 @@ export const archiveExpiredZoneAndEmployeeTargets = async () => {
         archivedAt: new Date(),
       })
     }
-    await BranchZoneTargetModel.updateOne(
-      { _id: target._id },
-      { $set: { isDeleted: true } }
-    )
+    await softDeleteBranchZoneTargetById(target._id)
   }
-  const expiredEmployee = await BranchEmployeeTargetModel.find({
-    isDeleted: false,
-    dateTo: { $lt: now },
-  }).lean()
+  const expiredEmployee = await findExpiredBranchEmployeeTargets(now)
   for (const target of expiredEmployee) {
     const snapshot = await getEmployeeTargetSummary({
       branchId: String(target.branchId),
@@ -675,12 +654,12 @@ export const archiveExpiredZoneAndEmployeeTargets = async () => {
       period: target.period,
       branchFilter: {},
     })
-    const exists = await BranchEmployeeTargetHistoryModel.findOne({
+    const exists = await findOneBranchEmployeeTargetHistory({
       sourceTargetId: target._id,
       isDeleted: false,
-    }).lean()
+    })
     if (!exists) {
-      await BranchEmployeeTargetHistoryModel.create({
+      await createBranchEmployeeTargetHistory({
         sourceTargetId: target._id,
         branchId: target.branchId,
         zoneId: target.zoneId || null,
@@ -693,10 +672,7 @@ export const archiveExpiredZoneAndEmployeeTargets = async () => {
         archivedAt: new Date(),
       })
     }
-    await BranchEmployeeTargetModel.updateOne(
-      { _id: target._id },
-      { $set: { isDeleted: true } }
-    )
+    await softDeleteBranchEmployeeTargetById(target._id)
   }
   return {
     zoneProcessed: expiredZone.length,

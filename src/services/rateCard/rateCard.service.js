@@ -1,7 +1,31 @@
-import RateCardModel from '../../models/rateCard.model.js'
-import RateCombinationModel from '../../models/rateCombination.model.js'
-import ProductModel from '../../models/product.model.js'
-import SupplierModel from '../../models/supplier.model.js'
+import {
+  findOneAndUpdateRateCardWithPopulate,
+  findRateCardsWithPopulate,
+  findRateCardsBySupplierWithPopulate,
+  findRateCardByIdLean,
+  deleteRateCardById,
+  findOneAndDeleteRateCard,
+  findOneAndUpdateRateCard,
+} from '../../repository/rateCard.repository.js'
+import {
+  findOneAndUpdateRateCombination,
+  findRateCombinationsLean,
+  findRateCombinationsWithPopulate,
+  distinctCombinationUniqueIds,
+  findRateCombinationByIdLean,
+  deleteRateCombinationById,
+  deleteManyRateCombinations,
+} from '../../repository/rateCombination.repository.js'
+import {
+  findProductById,
+  findProductByIdSelectFields,
+  searchProducts as searchProductsRepo,
+} from '../../repository/product.repository.js'
+import {
+  findSupplierById,
+  findSupplierByIdSelectFields,
+  searchSuppliers as searchSuppliersRepo,
+} from '../../repository/supplier.repository.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 
@@ -16,7 +40,7 @@ export const upsertRate = async ({
   nextDueDate,
   branchId,
 }) => {
-  const product = await ProductModel.findById(productId)
+  const product = await findProductById(productId)
   if (!product) {
     throw new CustomError(
       statusCodes.notFound,
@@ -25,7 +49,7 @@ export const upsertRate = async ({
     )
   }
 
-  const supplier = await SupplierModel.findById(supplierId)
+  const supplier = await findSupplierById(supplierId)
   if (!supplier) {
     throw new CustomError(
       statusCodes.notFound,
@@ -60,7 +84,7 @@ export const upsertRate = async ({
     }
 
     // Upsert rate combination
-    await RateCombinationModel.findOneAndUpdate(
+    await findOneAndUpdateRateCombination(
       {
         product: productId,
         combinationUniqueId: combinationUniqueId.trim(),
@@ -68,17 +92,16 @@ export const upsertRate = async ({
         branchId: branchIdForDoc,
         isDeleted: false,
       },
-      comboUpdate,
-      { upsert: true, new: true }
+      comboUpdate
     )
 
     // Get all combination rates for this product+supplier
-    const allCombos = await RateCombinationModel.find({
+    const allCombos = await findRateCombinationsLean({
       product: productId,
       supplier: supplierId,
       branchId: branchIdForDoc,
       isDeleted: false,
-    }).lean()
+    })
 
     // Product rate = minimum of all combination rates
     const productRate =
@@ -101,7 +124,7 @@ export const upsertRate = async ({
     }
 
     // Upsert rate card with min rate
-    rateCardEntry = await RateCardModel.findOneAndUpdate(
+    rateCardEntry = await findOneAndUpdateRateCardWithPopulate(
       { product: productId, supplier: supplierId, branchId: branchIdForDoc },
       {
         rate: productRate,
@@ -109,15 +132,11 @@ export const upsertRate = async ({
         branchId: branchIdForDoc,
         ...(allCombos.length > 0 ? minComboGst : {}),
         ...(nextDueDate ? { nextDueDate } : {}),
-      },
-      { upsert: true, new: true }
+      }
     )
-      .populate('product', 'name sku price')
-      .populate('supplier', 'name shopname phone_1 email')
-      .lean()
   } else {
     // Product-level rate (no combination) - existing behavior
-    rateCardEntry = await RateCardModel.findOneAndUpdate(
+    rateCardEntry = await findOneAndUpdateRateCardWithPopulate(
       { product: productId, supplier: supplierId, branchId: branchIdForDoc },
       {
         rate,
@@ -126,12 +145,8 @@ export const upsertRate = async ({
         ...(typeof includeGst === 'boolean' ? { includeGst } : {}),
         ...(typeof gstPercentage === 'number' ? { gstPercentage } : {}),
         ...(nextDueDate ? { nextDueDate } : {}),
-      },
-      { upsert: true, new: true }
+      }
     )
-      .populate('product', 'name sku price')
-      .populate('supplier', 'name shopname phone_1 email')
-      .lean()
   }
 
   return rateCardEntry
@@ -142,9 +157,10 @@ export const getSuppliersByProduct = async ({
   combinationUniqueId,
   branchFilter = {},
 }) => {
-  const product = await ProductModel.findById(productId)
-    .select('name sku price description hasVariants variantCombinations')
-    .lean()
+  const product = await findProductByIdSelectFields(
+    productId,
+    'name sku price description hasVariants variantCombinations'
+  )
   if (!product) {
     throw new CustomError(
       statusCodes.notFound,
@@ -161,18 +177,12 @@ export const getSuppliersByProduct = async ({
     combinationUniqueId !== 'base'
   ) {
     // Return suppliers with rates for this specific combination
-    const comboRates = await RateCombinationModel.find({
+    const comboRates = await findRateCombinationsWithPopulate({
       product: productId,
       combinationUniqueId: combinationUniqueId.trim(),
       isDeleted: false,
       ...branchFilter,
     })
-      .populate(
-        'supplier',
-        'name shopname phone_1 phone_2 email address shop_location'
-      )
-      .sort({ rate: 1 })
-      .lean()
 
     rates = comboRates.map((r) => ({
       _id: r._id,
@@ -184,17 +194,11 @@ export const getSuppliersByProduct = async ({
     }))
   } else {
     // Product-level: return from rate card
-    const cardRates = await RateCardModel.find({
+    const cardRates = await findRateCardsWithPopulate({
       product: productId,
       isDeleted: false,
       ...branchFilter,
     })
-      .populate(
-        'supplier',
-        'name shopname phone_1 phone_2 email address shop_location'
-      )
-      .sort({ rate: 1 })
-      .lean()
 
     rates = cardRates.map((r) => ({
       _id: r._id,
@@ -206,13 +210,11 @@ export const getSuppliersByProduct = async ({
     }))
 
     // Get combination IDs that have rates (for Search by Product filter)
-    const combosWithRates = await RateCombinationModel.find({
+    const combosWithRates = await distinctCombinationUniqueIds({
       product: productId,
       isDeleted: false,
       ...branchFilter,
     })
-      .distinct('combinationUniqueId')
-      .lean()
 
     return { product, rates, combinationIdsWithRates: combosWithRates || [] }
   }
@@ -224,9 +226,10 @@ export const getProductsBySupplier = async ({
   supplierId,
   branchFilter = {},
 }) => {
-  const supplier = await SupplierModel.findById(supplierId)
-    .select('name shopname phone_1 phone_2 email address')
-    .lean()
+  const supplier = await findSupplierByIdSelectFields(
+    supplierId,
+    'name shopname phone_1 phone_2 email address'
+  )
   if (!supplier) {
     throw new CustomError(
       statusCodes.notFound,
@@ -235,14 +238,11 @@ export const getProductsBySupplier = async ({
     )
   }
 
-  const rates = await RateCardModel.find({
+  const rates = await findRateCardsBySupplierWithPopulate({
     supplier: supplierId,
     isDeleted: false,
     ...branchFilter,
   })
-    .populate('product', 'name sku price description')
-    .sort({ createdAt: -1 })
-    .lean()
 
   const mappedRates = rates.map((r) => ({
     _id: r._id,
@@ -258,8 +258,7 @@ export const getProductsBySupplier = async ({
 
 export const deleteRateCard = async ({ rateCardId, rateCombinationId }) => {
   if (rateCombinationId) {
-    const rateCombo =
-      await RateCombinationModel.findById(rateCombinationId).lean()
+    const rateCombo = await findRateCombinationByIdLean(rateCombinationId)
     if (!rateCombo) {
       throw new CustomError(
         statusCodes.notFound,
@@ -267,24 +266,24 @@ export const deleteRateCard = async ({ rateCardId, rateCombinationId }) => {
         errorCodes.not_found
       )
     }
-    await RateCombinationModel.findByIdAndDelete(rateCombinationId)
+    await deleteRateCombinationById(rateCombinationId)
 
-    const remaining = await RateCombinationModel.find({
+    const remaining = await findRateCombinationsLean({
       product: rateCombo.product,
       supplier: rateCombo.supplier,
       branchId: rateCombo.branchId || null,
       isDeleted: false,
-    }).lean()
+    })
 
     if (remaining.length === 0) {
-      await RateCardModel.findOneAndDelete({
+      await findOneAndDeleteRateCard({
         product: rateCombo.product,
         supplier: rateCombo.supplier,
         branchId: rateCombo.branchId || null,
       })
     } else {
       const minRate = Math.min(...remaining.map((r) => r.rate))
-      await RateCardModel.findOneAndUpdate(
+      await findOneAndUpdateRateCard(
         {
           product: rateCombo.product,
           supplier: rateCombo.supplier,
@@ -302,7 +301,7 @@ export const deleteRateCard = async ({ rateCardId, rateCombinationId }) => {
     }
   }
 
-  const rateCard = await RateCardModel.findById(rateCardId).lean()
+  const rateCard = await findRateCardByIdLean(rateCardId)
   if (!rateCard) {
     throw new CustomError(
       statusCodes.notFound,
@@ -311,8 +310,8 @@ export const deleteRateCard = async ({ rateCardId, rateCombinationId }) => {
     )
   }
 
-  await RateCardModel.findByIdAndDelete(rateCardId)
-  await RateCombinationModel.deleteMany({
+  await deleteRateCardById(rateCardId)
+  await deleteManyRateCombinations({
     product: rateCard.product,
     supplier: rateCard.supplier,
     branchId: rateCard.branchId || null,
@@ -336,11 +335,10 @@ export const searchProducts = async ({ search = '', limit = 10 }) => {
     ]
   }
 
-  const products = await ProductModel.find(filter)
-    .select('name sku price')
-    .sort(search ? { name: 1 } : { createdAt: -1 })
-    .limit(take)
-    .lean()
+  const products = await searchProductsRepo(filter, {
+    sort: search ? { name: 1 } : { createdAt: -1 },
+    limit: take,
+  })
 
   return { products }
 }
@@ -356,11 +354,10 @@ export const searchSuppliers = async ({ search = '', limit = 10 }) => {
     ]
   }
 
-  const suppliers = await SupplierModel.find(filter)
-    .select('name shopname phone_1 email shop_location')
-    .sort(search ? { name: 1 } : { createdAt: -1 })
-    .limit(take)
-    .lean()
+  const suppliers = await searchSuppliersRepo(filter, {
+    sort: search ? { name: 1 } : { createdAt: -1 },
+    limit: take,
+  })
 
   return { suppliers }
 }

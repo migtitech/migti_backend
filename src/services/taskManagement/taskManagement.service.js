@@ -1,8 +1,17 @@
 import mongoose from 'mongoose'
-import TaskManagementModel from '../../models/taskManagement.model.js'
 import { TASK_STATUS } from '../../models/taskManagement.model.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
+import {
+  countTasks,
+  createTask as createTaskDoc,
+  findTaskById,
+  findTaskByIdLean,
+  findTaskByIdWithPopulates,
+  findTaskByIdWithPopulatesAndPhone,
+  findTasks,
+  insertTasks,
+} from '../../repository/taskManagement.repository.js'
 
 export const createTask = async (payload) => {
   const {
@@ -37,7 +46,7 @@ export const createTask = async (payload) => {
     doc.productInfo.image = new mongoose.Types.ObjectId(rawProductInfo.image)
   }
   if (rest.dueDate) doc.dueDate = new Date(rest.dueDate)
-  const task = await TaskManagementModel.create(doc)
+  const task = await createTaskDoc(doc)
   return task.toObject()
 }
 
@@ -80,7 +89,7 @@ export const createDraftTasksForQueryProducts = async ({ query }) => {
   }
 
   if (!docs.length) return []
-  const created = await TaskManagementModel.insertMany(docs)
+  const created = await insertTasks(docs)
   return created.map((d) => d.toObject())
 }
 
@@ -108,16 +117,9 @@ export const listTasks = async ({
     ]
   }
 
-  const totalItems = await TaskManagementModel.countDocuments(filter)
+  const totalItems = await countTasks(filter)
 
-  const tasks = await TaskManagementModel.find(filter)
-    .populate('employeeId', 'name email designation')
-    .populate('branchId', 'name address')
-    .populate('productInfo.image', 'path')
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(limit)
-    .lean()
+  const tasks = await findTasks(filter, skip, limit)
 
   const totalPages = Math.ceil(totalItems / limit)
   return {
@@ -142,11 +144,7 @@ export const getTaskById = async (taskId, branchFilter = {}) => {
     )
   }
   const filter = { _id: new mongoose.Types.ObjectId(taskId), ...branchFilter }
-  const task = await TaskManagementModel.findOne(filter)
-    .populate('employeeId', 'name email designation phone')
-    .populate('branchId', 'name address')
-    .populate('productInfo.image', 'path')
-    .lean()
+  const task = await findTaskByIdLean(filter)
   if (!task) {
     throw new CustomError(
       statusCodes.notFound,
@@ -177,7 +175,7 @@ export const assignEmployeeToTask = async (
     )
   }
   const filter = { _id: new mongoose.Types.ObjectId(taskId), ...branchFilter }
-  const task = await TaskManagementModel.findOne(filter)
+  const task = await findTaskById(filter)
   if (!task) {
     throw new CustomError(
       statusCodes.notFound,
@@ -189,11 +187,7 @@ export const assignEmployeeToTask = async (
   task.assignedDate = new Date()
   task.status = TASK_STATUS.ASSIGNED
   await task.save()
-  const updated = await TaskManagementModel.findById(task._id)
-    .populate('employeeId', 'name email designation')
-    .populate('branchId', 'name address')
-    .populate('productInfo.image', 'path')
-    .lean()
+  const updated = await findTaskByIdWithPopulates(task._id)
   return updated
 }
 
@@ -212,7 +206,7 @@ export const updateTaskSupplierInfo = async ({
   }
 
   const filter = { _id: new mongoose.Types.ObjectId(taskId), ...branchFilter }
-  const task = await TaskManagementModel.findOne(filter)
+  const task = await findTaskById(filter)
   if (!task) {
     throw new CustomError(
       statusCodes.notFound,
@@ -264,11 +258,7 @@ export const updateTaskSupplierInfo = async ({
 
   await task.save()
 
-  const updated = await TaskManagementModel.findById(task._id)
-    .populate('employeeId', 'name email designation phone')
-    .populate('branchId', 'name address')
-    .populate('productInfo.image', 'path')
-    .lean()
+  const updated = await findTaskByIdWithPopulatesAndPhone(task._id)
 
   return updated
 }
@@ -287,7 +277,7 @@ export const updateTaskInfo = async ({
   }
 
   const filter = { _id: new mongoose.Types.ObjectId(taskId), ...branchFilter }
-  const task = await TaskManagementModel.findOne(filter)
+  const task = await findTaskById(filter)
   if (!task) {
     throw new CustomError(
       statusCodes.notFound,
@@ -317,11 +307,7 @@ export const updateTaskInfo = async ({
 
   await task.save()
 
-  const updated = await TaskManagementModel.findById(task._id)
-    .populate('employeeId', 'name email designation phone')
-    .populate('branchId', 'name address')
-    .populate('productInfo.image', 'path')
-    .lean()
+  const updated = await findTaskByIdWithPopulatesAndPhone(task._id)
 
   return updated
 }
@@ -335,7 +321,7 @@ export const deleteTask = async ({ taskId, branchFilter = {} }) => {
     )
   }
   const filter = { _id: new mongoose.Types.ObjectId(taskId), ...branchFilter }
-  const task = await TaskManagementModel.findOne(filter)
+  const task = await findTaskById(filter)
   if (!task) {
     throw new CustomError(
       statusCodes.notFound,

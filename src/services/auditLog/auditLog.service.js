@@ -1,7 +1,7 @@
 import crypto from 'crypto'
 import os from 'os'
 import logger from '../../core/config/logger.js'
-import AuditLogModel from '../../models/auditLog.model.js'
+import { createAuditLog } from '../../repository/auditLog.repository.js'
 
 const STORE_RAW_JWT = process.env.AUDIT_LOG_STORE_RAW_JWT === 'true'
 
@@ -165,7 +165,7 @@ export function scheduleJwtAuthAudit({
         : null,
   }
 
-  void AuditLogModel.create(doc).catch((err) => {
+  void createAuditLog(doc).catch((err) => {
     logger.error('audit_log insert failed (jwt_auth)', err)
   })
 }

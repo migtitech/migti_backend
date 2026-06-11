@@ -1,15 +1,14 @@
-import PoProductModel from '../../models/poProduct.model.js'
-import DocumentModel from '../../models/document.model.js'
+import poProductRepository, {
+  PO_PRODUCT_INVENTORY_STATUS,
+  resolvePoProductLineStatus,
+} from '../../repository/poProduct.repository.js'
+import documentRepository from '../../repository/document.repository.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 import CustomError from '../../utils/exception.js'
 import {
   buildBaseStages,
   loadPoProductForAccess,
 } from '../purchaseBucket/purchaseBucket.service.js'
-import {
-  PO_PRODUCT_INVENTORY_STATUS,
-  resolvePoProductLineStatus,
-} from '../../models/poProduct.model.js'
 
 const OBJECT_ID_REGEX = /^[a-fA-F0-9]{24}$/
 
@@ -106,7 +105,7 @@ export const listDispatchmentQueuePoProducts = async (q, _user) => {
   }
 
   const countPipeline = [...stages, { $count: 'c' }]
-  const countRes = await PoProductModel.aggregate(countPipeline)
+  const countRes = await poProductRepository.aggregate(countPipeline)
   const total = countRes[0]?.c || 0
 
   const listPipeline = [
@@ -133,7 +132,7 @@ export const listDispatchmentQueuePoProducts = async (q, _user) => {
       },
     },
   ]
-  const data = await PoProductModel.aggregate(listPipeline)
+  const data = await poProductRepository.aggregate(listPipeline)
 
   return { data, total, page, pageSize }
 }
@@ -151,7 +150,7 @@ export const markPoProductDelivered = async (
   if (!allowed) return null
   const cur = resolvePoProductLineStatus(allowed)
   if (cur === PO_PRODUCT_INVENTORY_STATUS.DELIVERED) {
-    return await PoProductModel.findById(allowed._id).lean()
+    return await poProductRepository.findById(allowed._id).lean()
   }
   if (cur !== PO_PRODUCT_INVENTORY_STATUS.READY_FOR_DISPATCHMENT) {
     throw new CustomError(
@@ -168,7 +167,7 @@ export const markPoProductDelivered = async (
       errorCodes.bad_request
     )
   }
-  const recvDoc = await DocumentModel.findById(docId).lean()
+  const recvDoc = await documentRepository.findById(docId).lean()
   if (!recvDoc || !isImageDocumentRecord(recvDoc)) {
     throw new CustomError(
       statusCodes.badRequest,
@@ -186,7 +185,7 @@ export const markPoProductDelivered = async (
   if (receivingRemark !== undefined) {
     setPayload.receivingRemark = normalizeReceivingRemark(receivingRemark)
   }
-  return await PoProductModel.findOneAndUpdate(
+  return await poProductRepository.findOneAndUpdate(
     { _id: allowed._id, isDeleted: false },
     {
       $set: setPayload,

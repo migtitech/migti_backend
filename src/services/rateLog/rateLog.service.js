@@ -1,5 +1,10 @@
-import RateLogModel from '../../models/rateLog.model.js'
-import IndustryModel from '../../models/industry.model.js'
+import {
+  findRateLogs,
+  insertManyRateLogs,
+  aggregateRateLogs,
+  distinctRateLogIndustryNames,
+} from '../../repository/rateLog.repository.js'
+import { findIndustryByIdSelectName } from '../../repository/industry.repository.js'
 
 const normalizeVariants = (variants = []) =>
   (Array.isArray(variants) ? variants : [])
@@ -67,9 +72,7 @@ const resolveIndustryName = async ({ industry_id, fallbackName = '' }) => {
   if (fallbackName && String(fallbackName).trim())
     return String(fallbackName).trim()
   if (!industry_id) return ''
-  const industry = await IndustryModel.findById(industry_id)
-    .select('name')
-    .lean()
+  const industry = await findIndustryByIdSelectName(industry_id)
   return industry?.name || ''
 }
 
@@ -143,13 +146,12 @@ export const captureRateLogsForProductChanges = async ({
   }
   if (!uniqueDocs.length) return
 
-  const existing = await RateLogModel.find({
-    $or: uniqueDocs.map((doc) => buildExactMatchFilter(doc)),
-  })
-    .select(
-      'quotationId product_title description variants amount unit industry_name'
-    )
-    .lean()
+  const existing = await findRateLogs(
+    {
+      $or: uniqueDocs.map((doc) => buildExactMatchFilter(doc)),
+    },
+    'quotationId product_title description variants amount unit industry_name'
+  )
 
   const existingFp = new Set(existing.map(rateLogFingerprint))
   const novel = uniqueDocs.filter(
@@ -157,7 +159,7 @@ export const captureRateLogsForProductChanges = async ({
   )
   if (!novel.length) return
 
-  await RateLogModel.insertMany(novel, { ordered: false })
+  await insertManyRateLogs(novel, { ordered: false })
 }
 
 export const listRateLogs = async ({
@@ -317,7 +319,7 @@ export const listRateLogs = async ({
   }
 
   const [items, totalCountRows, industries] = await Promise.all([
-    RateLogModel.aggregate([
+    aggregateRateLogs([
       ...pipeline,
       { $sort: { created_at: -1 } },
       { $skip: skip },
@@ -335,8 +337,8 @@ export const listRateLogs = async ({
         },
       },
     ]),
-    RateLogModel.aggregate([...pipeline, { $count: 'total' }]),
-    RateLogModel.distinct('industry_name', {
+    aggregateRateLogs([...pipeline, { $count: 'total' }]),
+    distinctRateLogIndustryNames({
       isDeleted: false,
       ...branchFilter,
     }),

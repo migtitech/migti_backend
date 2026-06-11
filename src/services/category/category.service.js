@@ -1,20 +1,33 @@
-import CategoryModel from '../../models/category.model.js'
-import GroupModel from '../../models/group.model.js'
-import ProductModel from '../../models/product.model.js'
+import {
+  findOneCategory,
+  findOneCategoryLean,
+  findCategoryByIdLean,
+  findCategoriesLean,
+  findCategoryByIdAndUpdate,
+  createCategory,
+  countCategories,
+  findCategoriesWithListPopulate,
+  findAllCategoriesWithPopulate,
+  findCategoryByIdWithPopulate,
+  findSubcategoriesByParent,
+  findCategoryByIdAndUpdateWithPopulate,
+  deleteCategoryById,
+} from '../../repository/category.repository.js'
+import { countProducts } from '../../repository/product.repository.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 import { generateSlug, generateUniqueSlug } from '../../utils/slugGenerator.js'
 
 const generateCategoryCode = async (parentId) => {
   if (!parentId) {
-    const roots = await CategoryModel.find(
+    const roots = await findCategoriesLean(
       {
         parent: null,
         isDeleted: false,
         categoryCode: { $exists: true, $ne: '' },
       },
       { categoryCode: 1 }
-    ).lean()
+    )
     const nums = roots
       .map((c) => {
         const m = c.categoryCode?.match(/^MIG(\d+)$/i)
@@ -24,23 +37,23 @@ const generateCategoryCode = async (parentId) => {
     const next = nums.length > 0 ? Math.max(...nums) + 1 : 1
     return `MIG${String(next).padStart(2, '0')}`
   }
-  const parent = await CategoryModel.findById(parentId).lean()
+  const parent = await findCategoryByIdLean(parentId)
   let parentCode = parent?.categoryCode
   if (!parentCode) {
     parentCode = await generateCategoryCode(parent?.parent || null)
-    await CategoryModel.findByIdAndUpdate(parentId, {
+    await findCategoryByIdAndUpdate(parentId, {
       categoryCode: parentCode,
     })
   }
   const prefix = parent.categoryCode
-  const subs = await CategoryModel.find(
+  const subs = await findCategoriesLean(
     {
       parent: parentId,
       isDeleted: false,
       categoryCode: { $exists: true, $ne: '' },
     },
     { categoryCode: 1 }
-  ).lean()
+  )
   const re = new RegExp(`^${prefix}SUB(\\d+)$`, 'i')
   const nums = subs
     .map((c) => {
@@ -55,13 +68,13 @@ const generateCategoryCode = async (parentId) => {
 export const addCategory = async (data) => {
   const baseSlug = generateSlug(data.name)
   const slug = await generateUniqueSlug(baseSlug, async (s) => {
-    return await CategoryModel.findOne({ slug: s })
+    return await findOneCategory({ slug: s })
   })
 
   const parentId = data.parent || null
 
   if (parentId) {
-    const parentCategory = await CategoryModel.findById(parentId).lean()
+    const parentCategory = await findCategoryByIdLean(parentId)
     if (!parentCategory) {
       throw new CustomError(
         statusCodes.notFound,
@@ -71,11 +84,11 @@ export const addCategory = async (data) => {
     }
   }
 
-  const existing = await CategoryModel.findOne({
+  const existing = await findOneCategoryLean({
     name: data.name,
     parent: parentId,
     isDeleted: false,
-  }).lean()
+  })
 
   if (existing) {
     throw new CustomError(
@@ -87,7 +100,7 @@ export const addCategory = async (data) => {
 
   const categoryCode = await generateCategoryCode(parentId)
 
-  const category = await CategoryModel.create({
+  const category = await createCategory({
     ...data,
     slug,
     group: data.group || null,
@@ -135,15 +148,9 @@ export const listCategories = async ({
     filter.status = status
   }
 
-  const totalItems = await CategoryModel.countDocuments(filter)
+  const totalItems = await countCategories(filter)
 
-  const categories = await CategoryModel.find(filter)
-    .populate('group', 'name code')
-    .populate('parent', 'name slug categoryCode')
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(limit)
-    .lean()
+  const categories = await findCategoriesWithListPopulate(filter, { skip, limit })
 
   const totalPages = Math.ceil(totalItems / limit)
 
@@ -161,20 +168,13 @@ export const listCategories = async ({
 }
 
 export const getAllCategories = async () => {
-  const categories = await CategoryModel.find({ isDeleted: false })
-    .populate('group', 'name code')
-    .populate('parent', 'name slug categoryCode')
-    .sort({ createdAt: -1 })
-    .lean()
+  const categories = await findAllCategoriesWithPopulate()
 
   return { categories }
 }
 
 export const getCategoryById = async ({ categoryId }) => {
-  const category = await CategoryModel.findById(categoryId)
-    .populate('group', 'name code')
-    .populate('parent', 'name slug')
-    .lean()
+  const category = await findCategoryByIdWithPopulate(categoryId)
 
   if (!category) {
     throw new CustomError(
@@ -184,14 +184,7 @@ export const getCategoryById = async ({ categoryId }) => {
     )
   }
 
-  const subcategoriesRaw = await CategoryModel.find({
-    parent: categoryId,
-    isDeleted: false,
-  })
-    .select(
-      '_id name categoryCode description status sortOrder group parent createdAt'
-    )
-    .lean()
+  const subcategoriesRaw = await findSubcategoriesByParent(categoryId)
 
   const subcategories = subcategoriesRaw.map((s) => ({
     ...s,
@@ -202,7 +195,7 @@ export const getCategoryById = async ({ categoryId }) => {
 }
 
 export const updateCategory = async ({ categoryId, ...updateData }) => {
-  const category = await CategoryModel.findById(categoryId).lean()
+  const category = await findCategoryByIdLean(categoryId)
   if (!category) {
     throw new CustomError(
       statusCodes.notFound,
@@ -214,7 +207,7 @@ export const updateCategory = async ({ categoryId, ...updateData }) => {
   if (updateData.name && updateData.name !== category.name) {
     const baseSlug = generateSlug(updateData.name)
     updateData.slug = await generateUniqueSlug(baseSlug, async (s) => {
-      return await CategoryModel.findOne({ slug: s, _id: { $ne: categoryId } })
+      return await findOneCategory({ slug: s, _id: { $ne: categoryId } })
     })
   }
 
@@ -225,23 +218,16 @@ export const updateCategory = async ({ categoryId, ...updateData }) => {
     updateData.group = null
   }
 
-  const updated = await CategoryModel.findByIdAndUpdate(
+  const updated = await findCategoryByIdAndUpdateWithPopulate(
     categoryId,
-    updateData,
-    {
-      new: true,
-      runValidators: true,
-    }
+    updateData
   )
-    .populate('group', 'name code')
-    .populate('parent', 'name slug categoryCode')
-    .lean()
 
   return updated
 }
 
 export const deleteCategory = async ({ categoryId }) => {
-  const category = await CategoryModel.findById(categoryId).lean()
+  const category = await findCategoryByIdLean(categoryId)
   if (!category) {
     throw new CustomError(
       statusCodes.notFound,
@@ -250,7 +236,7 @@ export const deleteCategory = async ({ categoryId }) => {
     )
   }
 
-  const subCount = await CategoryModel.countDocuments({
+  const subCount = await countCategories({
     parent: categoryId,
     isDeleted: false,
   })
@@ -262,7 +248,7 @@ export const deleteCategory = async ({ categoryId }) => {
     )
   }
 
-  const productCount = await ProductModel.countDocuments({
+  const productCount = await countProducts({
     $or: [{ category: categoryId }, { subcategory: categoryId }],
     isDeleted: false,
   })
@@ -274,7 +260,7 @@ export const deleteCategory = async ({ categoryId }) => {
     )
   }
 
-  await CategoryModel.findByIdAndDelete(categoryId)
+  await deleteCategoryById(categoryId)
 
   return {
     deletedCategory: {

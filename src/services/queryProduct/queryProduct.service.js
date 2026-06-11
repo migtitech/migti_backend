@@ -1,8 +1,13 @@
 import mongoose from 'mongoose'
-import QueryProductModel, {
+import {
   deriveProBucketStatus,
   PRO_BUCKET_STATUS,
-} from '../../models/queryProduct.model.js'
+  deleteQueryProductsByQueryId,
+  findQueryProductsByQueryId,
+  findQueryProductsForRatesCarryOver,
+  insertQueryProducts,
+  softDeleteQueryProductsByQueryId,
+} from '../../repository/queryProduct.repository.js'
 
 const OBJECT_ID_REGEX = /^[a-fA-F0-9]{24}$/
 
@@ -84,16 +89,11 @@ export const replaceQueryProductDocuments = async ({
 
   let ratesQueues = new Map()
   if (!skipRatesCarryOver) {
-    const existingRows = await QueryProductModel.find({
-      queryId: qid,
-      isDeleted: false,
-    })
-      .select('lineIndex rawProductCode rates')
-      .lean()
+    const existingRows = await findQueryProductsForRatesCarryOver(qid)
     ratesQueues = buildRatesQueuesFromExisting(existingRows)
   }
 
-  await QueryProductModel.deleteMany({ queryId: qid })
+  await deleteQueryProductsByQueryId(qid)
 
   if (!Array.isArray(products) || !products.length) {
     return
@@ -138,16 +138,13 @@ export const replaceQueryProductDocuments = async ({
     }
   })
 
-  await QueryProductModel.insertMany(rows, { ordered: true })
+  await insertQueryProducts(rows, { ordered: true })
 }
 
 export const softDeleteQueryProductRowsForQuery = async (queryId) => {
   const qid = toOid(queryId)
   if (!qid) return
-  await QueryProductModel.updateMany(
-    { queryId: qid, isDeleted: false },
-    { $set: { isDeleted: true } }
-  )
+  await softDeleteQueryProductsByQueryId(qid)
 }
 
 /**
@@ -156,7 +153,5 @@ export const softDeleteQueryProductRowsForQuery = async (queryId) => {
 export const listQueryProductDocuments = async (queryId) => {
   const qid = toOid(queryId)
   if (!qid) return []
-  return QueryProductModel.find({ queryId: qid, isDeleted: false })
-    .sort({ lineIndex: 1 })
-    .lean()
+  return findQueryProductsByQueryId(qid)
 }

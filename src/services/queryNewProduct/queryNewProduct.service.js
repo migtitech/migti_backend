@@ -1,6 +1,4 @@
 import mongoose from 'mongoose'
-import QueryNewProductModel from '../../models/queryNewProduct.model.js'
-import CategoryModel from '../../models/category.model.js'
 import {
   getNextSequence,
   formatProductCodeValue,
@@ -8,6 +6,17 @@ import {
 } from '../codeSequence/codeSequence.service.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
+import {
+  findCategoryByIdWithGroupParent,
+  findCategoryByIdWithParent,
+} from '../../repository/category.repository.js'
+import {
+  countQueryNewProducts,
+  createQueryNewProduct,
+  findQueryNewProductById,
+  findQueryNewProducts,
+  softDeleteQueryNewProductById,
+} from '../../repository/queryNewProduct.repository.js'
 
 const toOidOrNull = (id) => {
   if (id == null || id === '') return null
@@ -33,7 +42,7 @@ export const addQueryNewProduct = async ({
   const sId = toOidOrNull(subcategoryId)
 
   if (cId) {
-    const cat = await CategoryModel.findById(cId).select('group parent').lean()
+    const cat = await findCategoryByIdWithGroupParent(cId)
     if (!cat) {
       throw new CustomError(
         statusCodes.notFound,
@@ -58,7 +67,7 @@ export const addQueryNewProduct = async ({
   }
 
   if (sId) {
-    const sub = await CategoryModel.findById(sId).select('parent').lean()
+    const sub = await findCategoryByIdWithParent(sId)
     if (!sub) {
       throw new CustomError(
         statusCodes.notFound,
@@ -88,7 +97,7 @@ export const addQueryNewProduct = async ({
   const rN = await getNextSequence('ritems')
   const query_tracking_code = formatRitemsValue(rN)
 
-  const doc = await QueryNewProductModel.create({
+  const doc = await createQueryNewProduct({
     name: name?.trim(),
     description: description?.trim() || '',
     unit: unit?.trim() || '',
@@ -167,16 +176,9 @@ export const listQueryNewProducts = async ({
     filter.$and = andParts
   }
 
-  const totalItems = await QueryNewProductModel.countDocuments(filter)
+  const totalItems = await countQueryNewProducts(filter)
 
-  const items = await QueryNewProductModel.find(filter)
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(limit)
-    .populate('images', 'path')
-    .populate('groupId', 'name code')
-    .populate('categoryId', 'name categoryCode')
-    .lean()
+  const items = await findQueryNewProducts(filter, skip, limit)
 
   const totalPages = Math.ceil(totalItems / limit) || 1
 
@@ -194,14 +196,7 @@ export const listQueryNewProducts = async ({
 }
 
 export const getQueryNewProductById = async ({ productId }) => {
-  const product = await QueryNewProductModel.findOne({
-    _id: productId,
-    isDeleted: false,
-  })
-    .populate('images', 'path')
-    .populate('groupId', 'name code')
-    .populate('categoryId', 'name categoryCode')
-    .lean()
+  const product = await findQueryNewProductById(productId)
 
   if (!product) {
     const err = new Error('Product not found')
@@ -213,11 +208,7 @@ export const getQueryNewProductById = async ({ productId }) => {
 }
 
 export const deleteQueryNewProduct = async ({ productId }) => {
-  const product = await QueryNewProductModel.findOneAndUpdate(
-    { _id: productId, isDeleted: false },
-    { $set: { isDeleted: true } },
-    { new: true }
-  ).lean()
+  const product = await softDeleteQueryNewProductById(productId)
 
   if (!product) {
     const err = new Error('Product not found')

@@ -1,6 +1,13 @@
 import mongoose from 'mongoose'
-import EmployeeModel from '../../models/employee.model.js'
-import NotificationModel from '../../models/notification.model.js'
+import { findEmployeesByRoles } from '../../repository/employee.repository.js'
+import {
+  countNotifications,
+  countUnreadNotifications,
+  findNotifications,
+  insertNotifications,
+  updateManyNotifications,
+  updateNotification,
+} from '../../repository/notification.repository.js'
 
 export const serializeNotificationDoc = (doc) => {
   const o = doc?.toObject ? doc.toObject() : doc
@@ -38,7 +45,7 @@ export const getEmployeeIdsByRoles = async ({ roles, branchId } = {}) => {
     filter.branchId = new mongoose.Types.ObjectId(String(branchId))
   }
 
-  const employees = await EmployeeModel.find(filter).select('_id').lean()
+  const employees = await findEmployeesByRoles(filter)
   return employees.map((e) => e._id)
 }
 
@@ -83,7 +90,7 @@ export const createNotifications = async ({
     metadata: meta,
   }))
 
-  const inserted = await NotificationModel.insertMany(docs)
+  const inserted = await insertNotifications(docs)
 
   if (io) {
     for (const doc of inserted) {
@@ -171,12 +178,8 @@ export const listNotificationsForUser = async ({
   const filter = { userId: uid }
   if (unreadOnly) filter.isRead = false
 
-  const totalItems = await NotificationModel.countDocuments(filter)
-  const rows = await NotificationModel.find(filter)
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(limit)
-    .lean()
+  const totalItems = await countNotifications(filter)
+  const rows = await findNotifications(filter, skip, limit)
 
   return {
     items: rows.map((r) => serializeNotificationDoc(r)),
@@ -198,11 +201,11 @@ export const markNotificationRead = async ({ notificationId, userId }) => {
   const nid = new mongoose.Types.ObjectId(String(notificationId))
   const uid = new mongoose.Types.ObjectId(String(userId))
 
-  const updated = await NotificationModel.findOneAndUpdate(
+  const updated = await updateNotification(
     { _id: nid, userId: uid },
     { $set: { isRead: true, readAt: new Date() } },
     { new: true }
-  ).lean()
+  )
 
   return updated ? serializeNotificationDoc(updated) : null
 }
@@ -212,7 +215,7 @@ export const markAllNotificationsRead = async ({ userId }) => {
     return { modifiedCount: 0 }
   }
   const uid = new mongoose.Types.ObjectId(String(userId))
-  const result = await NotificationModel.updateMany(
+  const result = await updateManyNotifications(
     { userId: uid, isRead: false },
     { $set: { isRead: true, readAt: new Date() } }
   )
@@ -222,5 +225,5 @@ export const markAllNotificationsRead = async ({ userId }) => {
 export const countUnreadForUser = async (userId) => {
   if (!userId || !mongoose.Types.ObjectId.isValid(String(userId))) return 0
   const uid = new mongoose.Types.ObjectId(String(userId))
-  return NotificationModel.countDocuments({ userId: uid, isRead: false })
+  return countUnreadNotifications({ userId: uid, isRead: false })
 }

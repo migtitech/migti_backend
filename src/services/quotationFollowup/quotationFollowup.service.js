@@ -1,12 +1,25 @@
 import mongoose from 'mongoose'
-import QuotationFollowupModel, {
+import {
   QUOTATION_FOLLOWUP_STATUS,
-} from '../../models/quotationFollowup.model.js'
-import IndustryModel from '../../models/industry.model.js'
-import EmployeeModel from '../../models/employee.model.js'
-import QuotationModel from '../../models/quotation.model.js'
-import QueryModel from '../../models/query.model.js'
-import PurchaseOrderModel from '../../models/purchaseOrder.model.js'
+  findOneQuotationFollowupLean,
+  createQuotationFollowup,
+  findQuotationFollowupsByQuotationIds,
+  updateOneQuotationFollowup,
+  findQuotationFollowups,
+  countQuotationFollowups,
+  findByIdAndUpdateQuotationFollowup,
+} from '../../repository/quotationFollowup.repository.js'
+import { findOneIndustrySelectAreaName } from '../../repository/industry.repository.js'
+import {
+  findEmployeesByZoneRoles,
+  findEmployeeSelectZoneFields,
+} from '../../repository/employee.repository.js'
+import {
+  findQuotationsSelectFields,
+  quotationExists,
+} from '../../repository/quotation.repository.js'
+import { findQueryIdsLean } from '../../repository/query.repository.js'
+import { distinctPurchaseOrderQuotationIds } from '../../repository/purchaseOrder.repository.js'
 import {
   getTerritoryIndustryIdsForUser,
   resolveQueryAccessFilter,
@@ -19,12 +32,10 @@ const SALES_ZONE_ROLES = ['sales_manager', 'sales_exicutive', 'sales']
 const resolveZoneIdFromQuotation = async (quotation = {}) => {
   const industryId = quotation.industry_id
   if (industryId && mongoose.Types.ObjectId.isValid(String(industryId))) {
-    const industry = await IndustryModel.findOne({
+    const industry = await findOneIndustrySelectAreaName({
       _id: industryId,
       isDeleted: false,
     })
-      .select('area name')
-      .lean()
     if (industry?.area) return industry.area
   }
 
@@ -48,17 +59,17 @@ export const createQuotationFollowupEntry = async ({ quotation } = {}) => {
   const quotationId = quotation?._id
   if (!quotationId) return null
 
-  const existing = await QuotationFollowupModel.findOne({
+  const existing = await findOneQuotationFollowupLean({
     quotationId,
     isDeleted: false,
-  }).lean()
+  })
   if (existing) return existing
 
   const zoneId = await resolveZoneIdFromQuotation(quotation)
   const followupDate = new Date()
   followupDate.setDate(followupDate.getDate() + 2)
 
-  const entry = await QuotationFollowupModel.create({
+  const entry = await createQuotationFollowup({
     quotationId,
     quotationCode: String(quotation.quotationCode || '').trim(),
     status: String(quotation.status || '').trim(),
@@ -99,20 +110,18 @@ const buildQuotationAccessFilter = async ({
     role,
     branchFilter,
   })
-  const queries = await QueryModel.find({
+  const queries = await findQueryIdsLean({
     isDeleted: false,
     ...branchFilter,
     ...accessFilter,
   })
-    .select('_id')
-    .lean()
   const queryIds = (queries || []).map((q) => q._id)
   if (!queryIds.length) return { queryId: { $in: [] } }
   return { queryId: { $in: queryIds } }
 }
 
 const getPurchaseOrderQuotationIds = async () =>
-  PurchaseOrderModel.distinct('quotationId', {
+  distinctPurchaseOrderQuotationIds({
     isDeleted: false,
     quotationId: { $ne: null },
   })
@@ -121,12 +130,7 @@ const syncMissingFollowupEntries = async (quotations = []) => {
   if (!quotations.length) return
 
   const quotationIds = quotations.map((q) => q._id)
-  const existing = await QuotationFollowupModel.find({
-    quotationId: { $in: quotationIds },
-    isDeleted: false,
-  })
-    .select('quotationId industry_id')
-    .lean()
+  const existing = await findQuotationFollowupsByQuotationIds(quotationIds)
   const existingByQuotationId = new Map(
     existing.map((row) => [String(row.quotationId), row])
   )
@@ -146,7 +150,7 @@ const syncMissingFollowupEntries = async (quotations = []) => {
         String(row.industry_id) !== String(quotationIndustryId))
     ) {
       const zoneId = await resolveZoneIdFromQuotation(quotation)
-      await QuotationFollowupModel.updateOne(
+      await updateOneQuotationFollowup(
         { _id: row._id },
         {
           $set: {
@@ -169,15 +173,12 @@ const getSalesPersonsForZones = async (zoneIds = [], branchFilter = {}) => {
 
   if (!validZoneIds.length) return []
 
-  return EmployeeModel.find({
+  return findEmployeesByZoneRoles({
     ...branchFilter,
     isDeleted: false,
     role: { $in: SALES_ZONE_ROLES },
     $or: [{ zoneIds: { $in: validZoneIds } }, { zoneId: { $in: validZoneIds } }],
   })
-    .select('name email phone role zoneIds zoneId')
-    .sort({ name: 1 })
-    .lean()
 }
 
 const resolveEmployeeZoneIds = (employee = {}) => {
@@ -226,11 +227,10 @@ export const listQuotationFollowups = async ({
       : {}),
   }
 
-  const eligibleQuotations = await QuotationModel.find(eligibleQuotationFilter)
-    .select(
-      '_id quotationCode status industry_id companyInfo branchId created_by'
-    )
-    .lean()
+  const eligibleQuotations = await findQuotationsSelectFields(
+    eligibleQuotationFilter,
+    '_id quotationCode status industry_id companyInfo branchId created_by'
+  )
 
   await syncMissingFollowupEntries(eligibleQuotations)
 
@@ -293,29 +293,19 @@ export const listQuotationFollowups = async ({
 
   const skip = (Number(pageNumber) - 1) * Number(pageSize)
   const [items, total, overdueCount] = await Promise.all([
-    QuotationFollowupModel.find(filter)
-      .sort({ followup_date: 1, createdAt: -1 })
-      .skip(skip)
-      .limit(Number(pageSize))
-      .populate('zoneId', 'name city')
-      .populate('salesEmployeeId', 'name email phone role')
-      .populate('industry_id', 'name location')
-      .populate('followupHistory.followedUpBy', 'name email phone role')
-      .lean(),
-    QuotationFollowupModel.countDocuments(filter),
-    QuotationFollowupModel.countDocuments(overdueBaseFilter),
+    findQuotationFollowups(filter, { skip, limit: Number(pageSize) }),
+    countQuotationFollowups(filter),
+    countQuotationFollowups(overdueBaseFilter),
   ])
 
   let zoneSalesPersons = []
   if (includeZoneSalesPersons) {
     let salesPersonZoneIds = zoneIds
     if (currentUserId && !isFullAccessRole) {
-      const employee = await EmployeeModel.findOne({
+      const employee = await findEmployeeSelectZoneFields({
         _id: currentUserId,
         isDeleted: false,
       })
-        .select('zoneIds zoneId')
-        .lean()
       salesPersonZoneIds = resolveEmployeeZoneIds(employee).map(String)
     }
     if (salesPersonZoneIds?.length) {
@@ -357,11 +347,11 @@ export const updateQuotationFollowupRemark = async ({
     )
   }
 
-  const existing = await QuotationFollowupModel.findOne({
+  const existing = await findOneQuotationFollowupLean({
     _id: followupId,
     isDeleted: false,
     ...branchFilter,
-  }).lean()
+  })
 
   if (!existing) {
     throw new CustomError(
@@ -379,7 +369,7 @@ export const updateQuotationFollowupRemark = async ({
       branchFilter,
       role,
     })
-    const canAccess = await QuotationModel.exists({
+    const canAccess = await quotationExists({
       _id: existing.quotationId,
       isDeleted: false,
       ...branchFilter,
@@ -408,7 +398,7 @@ export const updateQuotationFollowupRemark = async ({
     followedUpAt: new Date(),
   }
 
-  const updated = await QuotationFollowupModel.findByIdAndUpdate(
+  const updated = await findByIdAndUpdateQuotationFollowup(
     followupId,
     {
       $set: {
@@ -420,11 +410,6 @@ export const updateQuotationFollowupRemark = async ({
     },
     { new: true, runValidators: true }
   )
-    .populate('zoneId', 'name city')
-    .populate('salesEmployeeId', 'name email phone role')
-    .populate('industry_id', 'name location')
-    .populate('followupHistory.followedUpBy', 'name email phone role')
-    .lean()
 
   return updated
 }

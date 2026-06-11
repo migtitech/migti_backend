@@ -1,9 +1,17 @@
-import RoleModel from '../../models/role.model.js'
+import {
+  findRoleByName,
+  createRole,
+  countRoles,
+  findRoles,
+  findRoleById,
+  updateRoleById,
+  deleteRoleById,
+} from '../../repository/role.repository.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 
 export const addRole = async ({ name, description, permissions }) => {
-  const existingRole = await RoleModel.findOne({ name })
+  const existingRole = await findRoleByName(name)
   if (existingRole) {
     throw new CustomError(
       statusCodes.conflict,
@@ -12,7 +20,7 @@ export const addRole = async ({ name, description, permissions }) => {
     )
   }
 
-  const role = await RoleModel.create({ name, description, permissions })
+  const role = await createRole({ name, description, permissions })
   return role.toObject()
 }
 
@@ -27,13 +35,9 @@ export const listRoles = async (page = 1, limit = 10, search = '') => {
     ]
   }
 
-  const totalItems = await RoleModel.countDocuments()
+  const totalItems = await countRoles()
 
-  const roles = await RoleModel.find(filter)
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(limit)
-    .lean()
+  const roles = await findRoles(filter, { skip, limit })
 
   const totalPages = Math.ceil(totalItems / limit)
 
@@ -51,7 +55,7 @@ export const listRoles = async (page = 1, limit = 10, search = '') => {
 }
 
 export const getRoleById = async ({ roleId }) => {
-  const role = await RoleModel.findById(roleId).lean()
+  const role = await findRoleById(roleId)
   if (!role) {
     throw new CustomError(
       statusCodes.notFound,
@@ -63,7 +67,7 @@ export const getRoleById = async ({ roleId }) => {
 }
 
 export const updateRole = async ({ roleId, ...updateData }) => {
-  const role = await RoleModel.findById(roleId).lean()
+  const role = await findRoleById(roleId)
   if (!role) {
     throw new CustomError(
       statusCodes.notFound,
@@ -72,16 +76,13 @@ export const updateRole = async ({ roleId, ...updateData }) => {
     )
   }
 
-  const updatedRole = await RoleModel.findByIdAndUpdate(roleId, updateData, {
-    new: true,
-    runValidators: true,
-  }).lean()
+  const updatedRole = await updateRoleById(roleId, updateData)
 
   return updatedRole
 }
 
 export const deleteRole = async ({ roleId }) => {
-  const role = await RoleModel.findById(roleId).lean()
+  const role = await findRoleById(roleId)
   if (!role) {
     throw new CustomError(
       statusCodes.notFound,
@@ -90,7 +91,7 @@ export const deleteRole = async ({ roleId }) => {
     )
   }
 
-  await RoleModel.findByIdAndDelete(roleId)
+  await deleteRoleById(roleId)
 
   return {
     deletedRole: {

@@ -1,14 +1,23 @@
-import GroupModel from '../../models/group.model.js'
-import CategoryModel from '../../models/category.model.js'
+import {
+  GroupModel,
+  findOneGroupLean,
+  createGroup,
+  countGroups,
+  findGroups,
+  findGroupByIdLean,
+  findGroupByIdAndUpdateLean,
+  deleteGroupById,
+} from '../../repository/group.repository.js'
+import { countCategories } from '../../repository/category.repository.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 import { generateUniqueCode } from '../codeSequence/codeSequence.service.js'
 
 export const addGroup = async (data) => {
-  const existing = await GroupModel.findOne({
+  const existing = await findOneGroupLean({
     name: { $regex: new RegExp(`^${data.name.trim()}$`, 'i') },
     isDeleted: false,
-  }).lean()
+  })
 
   if (existing) {
     throw new CustomError(
@@ -23,7 +32,7 @@ export const addGroup = async (data) => {
     field: 'code',
   })
   const { code: _omit, ...rest } = data
-  const group = await GroupModel.create({ ...rest, code })
+  const group = await createGroup({ ...rest, code })
   return group.toObject()
 }
 
@@ -51,13 +60,9 @@ export const listGroups = async ({
     filter.status = status
   }
 
-  const totalItems = await GroupModel.countDocuments(filter)
+  const totalItems = await countGroups(filter)
 
-  const groups = await GroupModel.find(filter)
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(limit)
-    .lean()
+  const groups = await findGroups(filter, { skip, limit })
 
   const totalPages = Math.ceil(totalItems / limit)
 
@@ -75,7 +80,7 @@ export const listGroups = async ({
 }
 
 export const getGroupById = async ({ groupId }) => {
-  const group = await GroupModel.findById(groupId).lean()
+  const group = await findGroupByIdLean(groupId)
 
   if (!group) {
     throw new CustomError(
@@ -89,7 +94,7 @@ export const getGroupById = async ({ groupId }) => {
 }
 
 export const updateGroup = async ({ groupId, ...updateData }) => {
-  const group = await GroupModel.findById(groupId).lean()
+  const group = await findGroupByIdLean(groupId)
   if (!group) {
     throw new CustomError(
       statusCodes.notFound,
@@ -100,16 +105,13 @@ export const updateGroup = async ({ groupId, ...updateData }) => {
 
   // Code is server-generated; do not allow client to override it
   const { code: _omit, ...rest } = updateData
-  const updated = await GroupModel.findByIdAndUpdate(groupId, rest, {
-    new: true,
-    runValidators: true,
-  }).lean()
+  const updated = await findGroupByIdAndUpdateLean(groupId, rest)
 
   return updated
 }
 
 export const deleteGroup = async ({ groupId }) => {
-  const group = await GroupModel.findById(groupId).lean()
+  const group = await findGroupByIdLean(groupId)
   if (!group) {
     throw new CustomError(
       statusCodes.notFound,
@@ -118,7 +120,7 @@ export const deleteGroup = async ({ groupId }) => {
     )
   }
 
-  const categoryCount = await CategoryModel.countDocuments({
+  const categoryCount = await countCategories({
     group: groupId,
     isDeleted: false,
   })
@@ -130,7 +132,7 @@ export const deleteGroup = async ({ groupId }) => {
     )
   }
 
-  await GroupModel.findByIdAndDelete(groupId)
+  await deleteGroupById(groupId)
 
   return {
     deletedGroup: {

@@ -1,7 +1,10 @@
 import path from 'path'
 import fs from 'fs'
 import { v4 as uuidv4 } from 'uuid'
-import DocumentModel from '../../models/document.model.js'
+import {
+  createDocument,
+  findDocumentById,
+} from '../../repository/document.repository.js'
 import { uploadToS3, getSignedUrlForPath } from '../../core/helpers/s3bucket.js'
 
 const ASSETS_DIR = path.join(process.cwd(), 'assets')
@@ -45,7 +48,7 @@ async function createDocumentsFromBuffersLocal(files) {
       .join('images', 'products', String(timestamp), name)
       .split(path.sep)
       .join('/')
-    const doc = await DocumentModel.create({
+    const doc = await createDocument({
       path: relativePath,
       originalName: file.originalname || '',
       mimeType: file.mimetype || '',
@@ -77,7 +80,7 @@ export const createDocumentsFromS3Uploads = async (files) => {
       })
       continue
     }
-    const doc = await DocumentModel.create({
+    const doc = await createDocument({
       path: result.data.url,
       originalName: file.originalname || '',
       mimeType: file.mimetype || '',
@@ -103,7 +106,7 @@ export const createDocumentsForFiles = async (files) => {
       .relative(ASSETS_DIR, file.path)
       .split(path.sep)
       .join('/')
-    const doc = await DocumentModel.create({
+    const doc = await createDocument({
       path: relativePath,
       originalName: file.originalname || '',
       mimeType: file.mimetype || '',
@@ -137,7 +140,7 @@ export const createDocumentsForUploadedFiles = async (files) => {
  * Get document by id.
  */
 export const getDocumentById = async (documentId) => {
-  const doc = await DocumentModel.findById(documentId).lean()
+  const doc = await findDocumentById(documentId)
   return doc
 }
 
@@ -149,7 +152,7 @@ export const getDocumentServeInfo = async (
   documentId,
   signedUrlExpiresIn = 86400
 ) => {
-  const doc = await DocumentModel.findById(documentId).lean()
+  const doc = await findDocumentById(documentId)
   if (!doc?.path) return null
   const p = doc.path
   if (

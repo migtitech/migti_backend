@@ -1,12 +1,22 @@
-import AdminModel from '../../models/admin.model.js'
-import SuperAdminModel from '../../models/super.admin.js'
+import {
+  findAdminByEmail,
+  findAdminByEmailExists,
+  createAdmin,
+  countAdmins,
+  findAdmins,
+  findAdminById,
+  findAdminByIdRaw,
+  updateAdminById,
+  deleteAdminById,
+} from '../../repository/admin.repository.js'
+import { findSuperAdminByEmail } from '../../repository/superAdmin.repository.js'
 import { Message, statusCodes, errorCodes } from '../../core/common/constant.js'
 import CustomError from '../../utils/exception.js'
 import { decrypt, encrypt } from '../../core/crypto/helper.cryto.js'
 import { createTokenPair } from '../../core/helpers/jwt.helper.js'
 
 export const adminLogin = async ({ email, password }) => {
-  const admin = await AdminModel.findOne({ email }).lean()
+  const admin = await findAdminByEmail(email)
   if (!admin) {
     throw new CustomError(
       statusCodes.notFound,
@@ -43,7 +53,7 @@ export const adminLogin = async ({ email, password }) => {
 }
 
 export const superAdminLogin = async ({ email, password }) => {
-  const superAdmin = await SuperAdminModel.findOne({ email }).lean()
+  const superAdmin = await findSuperAdminByEmail(email)
 
   if (!superAdmin) {
     throw new CustomError(
@@ -81,7 +91,7 @@ export const superAdminLogin = async ({ email, password }) => {
 
 export const addAdmin = async (adminData) => {
   let { name, email, password } = adminData
-  const existingAdmin = await AdminModel.findOne({ email })
+  const existingAdmin = await findAdminByEmailExists(email)
   if (existingAdmin) {
     throw new CustomError(
       statusCodes.conflict,
@@ -91,7 +101,7 @@ export const addAdmin = async (adminData) => {
   }
   adminData.password = encrypt(password)
   adminData.access = ['admin']
-  const adminDoc = await AdminModel.create(adminData)
+  const adminDoc = await createAdmin(adminData)
   const admin = adminDoc.toObject()
   return admin
 }
@@ -101,14 +111,9 @@ export const listAdmins = async ({ pageNumber = 1, pageSize = 10 }) => {
   const limit = Math.min(100, Math.max(1, parseInt(pageSize)))
   const skip = (page - 1) * limit
 
-  const totalItems = await AdminModel.countDocuments()
+  const totalItems = await countAdmins()
 
-  const admins = await AdminModel.find()
-    .select('-password')
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(limit)
-    .lean()
+  const admins = await findAdmins({ skip, limit })
 
   const totalPages = Math.ceil(totalItems / limit)
   const hasNextPage = page < totalPages
@@ -128,7 +133,7 @@ export const listAdmins = async ({ pageNumber = 1, pageSize = 10 }) => {
 }
 
 export const updateAdmin = async ({ adminId, ...updateData }) => {
-  const admin = await AdminModel.findById(adminId).lean()
+  const admin = await findAdminByIdRaw(adminId)
   if (!admin) {
     throw new CustomError(
       statusCodes.notFound,
@@ -141,18 +146,13 @@ export const updateAdmin = async ({ adminId, ...updateData }) => {
     updateData.password = encrypt(updateData.password)
   }
 
-  const updatedAdmin = await AdminModel.findByIdAndUpdate(adminId, updateData, {
-    new: true,
-    runValidators: true,
-  })
-    .select('-password')
-    .lean()
+  const updatedAdmin = await updateAdminById(adminId, updateData)
 
   return updatedAdmin
 }
 
 export const deleteAdmin = async ({ adminId }) => {
-  const admin = await AdminModel.findById(adminId).lean()
+  const admin = await findAdminByIdRaw(adminId)
   if (!admin) {
     throw new CustomError(
       statusCodes.notFound,
@@ -161,7 +161,7 @@ export const deleteAdmin = async ({ adminId }) => {
     )
   }
 
-  await AdminModel.findByIdAndDelete(adminId)
+  await deleteAdminById(adminId)
 
   return {
     deletedAdmin: {
@@ -175,7 +175,7 @@ export const deleteAdmin = async ({ adminId }) => {
 }
 
 export const updateAdminAccess = async ({ adminId, access }) => {
-  const admin = await AdminModel.findById(adminId).lean()
+  const admin = await findAdminByIdRaw(adminId)
   if (!admin) {
     throw new CustomError(
       statusCodes.notFound,
@@ -184,22 +184,13 @@ export const updateAdminAccess = async ({ adminId, access }) => {
     )
   }
 
-  const updatedAdmin = await AdminModel.findByIdAndUpdate(
-    adminId,
-    { access },
-    {
-      new: true,
-      runValidators: true,
-    }
-  )
-    .select('-password')
-    .lean()
+  const updatedAdmin = await updateAdminById(adminId, { access })
 
   return updatedAdmin
 }
 
 export const getAdminById = async ({ adminId }) => {
-  const admin = await AdminModel.findById(adminId).select('-password').lean()
+  const admin = await findAdminById(adminId)
 
   if (!admin) {
     throw new CustomError(

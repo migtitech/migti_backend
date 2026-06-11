@@ -1,5 +1,5 @@
-import PoPaymentBacklogModel from '../../models/poPaymentBacklog.model.js'
-import EmployeeModel from '../../models/employee.model.js'
+import poPaymentBacklogRepository from '../../repository/poPaymentBacklog.repository.js'
+import employeeRepository from '../../repository/employee.repository.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 
@@ -12,7 +12,7 @@ export const createPoPaymentBacklogEntry = async ({
   const purchaseOrderId = purchaseOrder?._id
   if (!purchaseOrderId) return null
 
-  const existing = await PoPaymentBacklogModel.findOne({
+  const existing = await poPaymentBacklogRepository.findOne({
     purchaseOrderId,
     isDeleted: false,
   }).lean()
@@ -21,7 +21,7 @@ export const createPoPaymentBacklogEntry = async ({
   const dueDate = new Date()
   dueDate.setDate(dueDate.getDate() + 35)
 
-  const entry = await PoPaymentBacklogModel.create({
+  const entry = await poPaymentBacklogRepository.create({
     purchaseOrderId,
     po_snapshot: purchaseOrder,
     branchId: purchaseOrder.branchId || null,
@@ -78,7 +78,7 @@ export const listPoPaymentBacklog = async ({
   }
 
   if (salesPersonName) {
-    const matchingEmployees = await EmployeeModel.find({
+    const matchingEmployees = await employeeRepository.find({
       name: { $regex: salesPersonName, $options: 'i' },
       isDeleted: false,
     })
@@ -90,17 +90,17 @@ export const listPoPaymentBacklog = async ({
 
   const skip = (Number(pageNumber) - 1) * Number(pageSize)
   const [items, total] = await Promise.all([
-    PoPaymentBacklogModel.find(filter)
+    poPaymentBacklogRepository.find(filter)
       .sort({ due_date: 1, createdAt: -1 })
       .skip(skip)
       .limit(Number(pageSize))
       .populate('employeeId', 'name email phone role')
       .populate('branchId', 'branchName branchCode')
       .lean(),
-    PoPaymentBacklogModel.countDocuments(filter),
+    poPaymentBacklogRepository.countDocuments(filter),
   ])
 
-  const totalAmount = await PoPaymentBacklogModel.aggregate([
+  const totalAmount = await poPaymentBacklogRepository.aggregate([
     { $match: { ...filter, isDeleted: { $ne: true } } },
     { $group: { _id: null, total: { $sum: '$amount' } } },
   ])
@@ -108,11 +108,11 @@ export const listPoPaymentBacklog = async ({
   // Global analytics — always computed on all unsettled entries (ignores active filters)
   const globalPendingFilter = { isDeleted: false, is_settled: false }
   const [globalAmountAgg, globalCompaniesAgg] = await Promise.all([
-    PoPaymentBacklogModel.aggregate([
+    poPaymentBacklogRepository.aggregate([
       { $match: globalPendingFilter },
       { $group: { _id: null, total: { $sum: '$amount' } } },
     ]),
-    PoPaymentBacklogModel.aggregate([
+    poPaymentBacklogRepository.aggregate([
       { $match: globalPendingFilter },
       { $group: { _id: '$clients_snapshot.name' } },
       { $count: 'total' },
@@ -140,7 +140,7 @@ export const listPoPaymentBacklog = async ({
 
 /** Mark a backlog entry as settled (is_settled = true). */
 export const settlePoPaymentBacklog = async ({ backlogId }) => {
-  const entry = await PoPaymentBacklogModel.findOne({
+  const entry = await poPaymentBacklogRepository.findOne({
     _id: backlogId,
     isDeleted: false,
   })

@@ -1,4 +1,7 @@
-import PoProductModel from '../../models/poProduct.model.js'
+import poProductRepository, {
+  PO_PRODUCT_INVENTORY_STATUS,
+  resolvePoProductLineStatus,
+} from '../../repository/poProduct.repository.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 import {
@@ -6,10 +9,6 @@ import {
   loadPoProductForAccess,
   getPurchaseBucketPoProductById,
 } from '../purchaseBucket/purchaseBucket.service.js'
-import {
-  PO_PRODUCT_INVENTORY_STATUS,
-  resolvePoProductLineStatus,
-} from '../../models/poProduct.model.js'
 import mongoose from 'mongoose'
 
 const OBJECT_ID_REGEX = /^[a-fA-F0-9]{24}$/
@@ -94,7 +93,7 @@ export const listDeliveryApprovalQueuePoProducts = async (q, _user) => {
   }
 
   const countPipeline = [...stages, { $count: 'c' }]
-  const countRes = await PoProductModel.aggregate(countPipeline)
+  const countRes = await poProductRepository.aggregate(countPipeline)
   const total = countRes[0]?.c || 0
 
   const listPipeline = [
@@ -129,7 +128,7 @@ export const listDeliveryApprovalQueuePoProducts = async (q, _user) => {
       },
     },
   ]
-  const data = await PoProductModel.aggregate(listPipeline)
+  const data = await poProductRepository.aggregate(listPipeline)
 
   return { data, total, page, pageSize }
 }
@@ -160,7 +159,7 @@ export const updatePoProductEnrichment = async (id, body) => {
   const oid = toOid(id)
   if (!oid) return null
 
-  const allowed = await PoProductModel.findOne({ _id: oid, isDeleted: false }).lean()
+  const allowed = await poProductRepository.findOne({ _id: oid, isDeleted: false }).lean()
   if (!allowed) return null
 
   const update = {}
@@ -174,7 +173,7 @@ export const updatePoProductEnrichment = async (id, body) => {
 
   if (!Object.keys(update).length) return getPurchaseBucketPoProductById(String(oid), {})
 
-  await PoProductModel.findOneAndUpdate(
+  await poProductRepository.findOneAndUpdate(
     { _id: oid, isDeleted: false },
     { $set: update },
     { new: true }
@@ -190,7 +189,7 @@ export const getPoCodeSuggestions = async (search) => {
   const term = String(search || '').trim()
   if (!term) return []
   const rx = new RegExp(escapeRegex(term), 'i')
-  const results = await PoProductModel.aggregate([
+  const results = await poProductRepository.aggregate([
     { $match: { poCode: rx, isDeleted: false } },
     { $group: { _id: '$poCode' } },
     { $sort: { _id: 1 } },
@@ -203,13 +202,13 @@ export const createPoProduct = async (body) => {
   const purchaseOrderId = toOid(body.purchaseOrderId)
   if (!purchaseOrderId) return null
 
-  const maxLine = await PoProductModel.findOne({ purchaseOrderId })
+  const maxLine = await poProductRepository.findOne({ purchaseOrderId })
     .sort({ lineIndex: -1 })
     .select('lineIndex')
     .lean()
   const nextLineIndex = maxLine ? maxLine.lineIndex + 1 : 0
 
-  const doc = new PoProductModel({
+  const doc = poProductRepository.new({
     purchaseOrderId,
     poCode: String(body.poCode || '').trim(),
     lineIndex: nextLineIndex,
@@ -255,7 +254,7 @@ export const approveDeliveryByHod = async (id, user) => {
     )
   }
   const approverId = toOid(user?.id || user?._id)
-  await PoProductModel.findOneAndUpdate(
+  await poProductRepository.findOneAndUpdate(
     { _id: allowed._id, isDeleted: false },
     {
       $set: {

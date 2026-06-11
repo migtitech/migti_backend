@@ -1,18 +1,62 @@
 import mongoose from 'mongoose'
-import QueryModel from '../../models/query.model.js'
-import QuotationModel, {
-  QUOTATION_STATUS,
-} from '../../models/quotation.model.js'
-import PurchaseOrderModel, {
-  PURCHASE_ORDER_STATUS,
-} from '../../models/purchaseOrder.model.js'
-import PoEntryModel from '../../models/poEntry.model.js'
-import BillingEntryModel from '../../models/billingEntry.model.js'
-import QueryActivityModel from '../../models/queryActivity.model.js'
-import EmployeeModel from '../../models/employee.model.js'
-import IndustryModel from '../../models/industry.model.js'
-import AdminModel from '../../models/admin.model.js'
-import SuperAdminModel from '../../models/super.admin.js'
+import { QUOTATION_STATUS } from '../../models/quotation.model.js'
+import { PURCHASE_ORDER_STATUS } from '../../models/purchaseOrder.model.js'
+import {
+  createQuery,
+  countQueries,
+  findQueriesPaginated,
+  findQueryByIdWithDetails,
+  findOneQuerySelectIdLean,
+  findOneQueryLean,
+  updateQueryById,
+  softDeleteQueryById,
+  updateQueryStatus,
+  findQueryByIdPopulateIndustry,
+  findQueryIdsLean,
+  findQueriesForBranchAnalytics,
+  findPendingQueriesForDashboard,
+} from '../../repository/query.repository.js'
+import {
+  findQuotationsByQueryIds,
+  countQuotations,
+  findQuotationsSelectProductsLean,
+  findQuotationsForBranchAnalytics,
+  findPendingQuotationsForDashboard,
+} from '../../repository/quotation.repository.js'
+import {
+  countPurchaseOrders,
+  findOutstandingPurchaseOrders,
+  findPendingPurchaseOrdersForDashboard,
+} from '../../repository/purchaseOrder.repository.js'
+import {
+  countPoEntries,
+  aggregatePoEntryAmount,
+  findPoEntriesForBranchAnalytics,
+} from '../../repository/poEntry.repository.js'
+import {
+  countBillingEntries,
+  aggregateBillingEntryAmount,
+  findBillingEntriesForBranchAnalytics,
+  findRecentBillingEntriesBySalesperson,
+} from '../../repository/billingEntry.repository.js'
+import {
+  countQueryActivities,
+  findQueryActivitiesPaginated,
+  createQueryActivity,
+  findQueryActivityByIdPopulated,
+} from '../../repository/queryActivity.repository.js'
+import {
+  findProcurementEmployeesByGroups,
+  findZoneEmployeesByRole,
+  findEmployeeByIdWithNameEmail,
+  findEmployeeZoneIdsLean,
+} from '../../repository/employee.repository.js'
+import {
+  findIndustryAreaById,
+  findIndustriesSelectIdLean,
+} from '../../repository/industry.repository.js'
+import { findAdminByIdWithNameEmail } from '../../repository/admin.repository.js'
+import { findSuperAdminByIdWithNameEmail } from '../../repository/superAdmin.repository.js'
 import { signPathsInBatch } from '../document/document.service.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
@@ -27,7 +71,10 @@ import {
   formatProductCodeValue,
   formatRitemsValue,
 } from '../codeSequence/codeSequence.service.js'
-import ProductModel from '../../models/product.model.js'
+import {
+  findProductsByProductCodes,
+  createProductFromQueryLine as createProductFromQueryLineRepo,
+} from '../../repository/product.repository.js'
 import {
   getTargetAnalytics as getTargetAnalyticsData,
   upsertTargetAnalytics as upsertTargetAnalyticsData,
@@ -42,9 +89,9 @@ import {
   closeExpiredZoneTargets as closeExpiredZoneTargetsData,
 } from '../targetAnalytics/targetAnalytics.service.js'
 import { computePurchaseOrderFinancials } from '../purchaseOrder/purchaseOrder.service.js'
-import BranchEmployeeTargetModel from '../../models/branchEmployeeTarget.model.js'
-import BranchZoneTargetModel from '../../models/branchZoneTarget.model.js'
-import TargetAnalyticsModel from '../../models/targetAnalytics.model.js'
+import { findBranchEmployeeTargetOne } from '../../repository/branchEmployeeTarget.repository.js'
+import { aggregateBranchZoneTargetAmount } from '../../repository/branchZoneTarget.repository.js'
+import { findTargetAnalyticsForCurrentWindow } from '../../repository/targetAnalytics.repository.js'
 import { assertSubZoneBelongsToArea } from '../subZone/subZone.service.js'
 import { resolveQueryAccessFilter } from '../../core/helpers/queryAccess.js'
 import {
@@ -52,13 +99,16 @@ import {
   replaceQueryProductDocuments,
   softDeleteQueryProductRowsForQuery,
 } from '../queryProduct/queryProduct.service.js'
-import QueryProductModel, {
+import {
+  aggregateQueryProductRateAvailableCounts,
   deriveProBucketStatus,
   PRO_BUCKET_STATUS,
-} from '../../models/queryProduct.model.js'
-import ProductlHodRatesModel, {
+} from '../../repository/queryProduct.repository.js'
+import {
+  updateProductlHodRatesStatusByProCodes,
+  findApprovedProductlHodRatesByProCode,
   PRODUCTL_HOD_RATE_STATUS,
-} from '../../models/productlHodRates.model.js'
+} from '../../repository/productlHodRates.repository.js'
 import { createNotifications } from '../notification/notification.service.js'
 
 const OBJECT_ID_REGEX = /^[a-fA-F0-9]{24}$/
@@ -81,21 +131,10 @@ const attachQueryProductRateAvailableCounts = async (queries = []) => {
 
   let grouped = []
   try {
-    grouped = await QueryProductModel.aggregate([
-      {
-        $match: {
-          isDeleted: { $ne: true },
-          queryId: { $in: queryIds },
-          status: { $in: QUERY_PRODUCT_RATE_STATUSES },
-        },
-      },
-      {
-        $group: {
-          _id: '$queryId',
-          count: { $sum: 1 },
-        },
-      },
-    ])
+    grouped = await aggregateQueryProductRateAvailableCounts(
+      queryIds,
+      QUERY_PRODUCT_RATE_STATUSES
+    )
   } catch (err) {
     console.error('query_products rate count aggregation failed', err)
     grouped = []
@@ -209,9 +248,7 @@ const collectQueryGroupIds = (products = []) => {
 const resolveQueryZoneId = async (query = {}) => {
   const industryId = toObjectIdOrNull(query.industry_id)
   if (industryId) {
-    const industry = await IndustryModel.findById(industryId)
-      .select('area')
-      .lean()
+    const industry = await findIndustryAreaById(industryId)
     const zoneId = toObjectIdOrNull(industry?.area)
     if (zoneId) return zoneId
   }
@@ -265,14 +302,12 @@ export const notifyEmployeesForCreatedQuery = async ({ query, io } = {}) => {
     let salesEmployeeIds = []
 
     if (groupIds.length) {
-      const procurementEmployees = await EmployeeModel.find({
+      const procurementEmployees = await findProcurementEmployeesByGroups({
         ...branchFilter,
         role: { $in: PROCUREMENT_QUERY_ROLES },
         assigned_groups: { $in: groupIds },
         isDeleted: false,
       })
-        .select('_id')
-        .lean()
       procurementEmployeeIds = collectEmployeeIds(procurementEmployees)
     }
 
@@ -282,22 +317,18 @@ export const notifyEmployeesForCreatedQuery = async ({ query, io } = {}) => {
       }
 
       const [hodZoneEmployees, salesZoneEmployees] = await Promise.all([
-        EmployeeModel.find({
+        findZoneEmployeesByRole({
           ...branchFilter,
           role: { $in: QUERY_ZONE_HOD_ROLES },
           ...zoneMatch,
           isDeleted: false,
-        })
-          .select('_id')
-          .lean(),
-        EmployeeModel.find({
+        }),
+        findZoneEmployeesByRole({
           ...branchFilter,
           role: { $in: QUERY_ZONE_SALES_ROLES },
           ...zoneMatch,
           isDeleted: false,
-        })
-          .select('_id')
-          .lean(),
+        }),
       ])
       hodEmployeeIds = collectEmployeeIds(hodZoneEmployees)
       salesEmployeeIds = collectEmployeeIds(salesZoneEmployees)
@@ -351,8 +382,8 @@ export const notifyEmployeesForCreatedQuery = async ({ query, io } = {}) => {
  * `category` validation is skipped via `validateBeforeSave: false` since it may
  * not always be present on the query line.
  */
-const createProductFromQueryLine = async (p, productCode) => {
-  const doc = new ProductModel({
+const createProductFromQueryLine = async (p, productCode) =>
+  createProductFromQueryLineRepo({
     name: String(p.productName || '').trim() || productCode,
     sku: productCode,
     productCode,
@@ -363,9 +394,6 @@ const createProductFromQueryLine = async (p, productCode) => {
     category: toObjectIdOrNull(p.categoryId),
     subcategory: toObjectIdOrNull(p.subcategoryId),
   })
-  await doc.save({ validateBeforeSave: false })
-  return doc
-}
 
 /**
  * Ensures every query product line has a valid `rawProductCode` and `product_id`,
@@ -398,12 +426,7 @@ const enrichQueryProductsWithRawCodes = async (products) => {
 
   const existingByCode = new Map()
   if (incomingCodes.length) {
-    const existingProducts = await ProductModel.find({
-      productCode: { $in: incomingCodes },
-      isDeleted: false,
-    })
-      .select('_id productCode')
-      .lean()
+    const existingProducts = await findProductsByProductCodes(incomingCodes)
     for (const prod of existingProducts) {
       existingByCode.set(String(prod.productCode).trim(), prod)
     }
@@ -457,12 +480,7 @@ export const mergeQuotationRefsForQueries = async (queries = []) => {
   if (!queries?.length) return queries
   const ids = queries.map((q) => q._id).filter(Boolean)
   if (!ids.length) return queries
-  const rows = await QuotationModel.find({
-    queryId: { $in: ids },
-    isDeleted: false,
-  })
-    .select('queryId quotationCode')
-    .lean()
+  const rows = await findQuotationsByQueryIds(ids)
   const byQuery = new Map()
   for (const r of rows) {
     const k = String(r.queryId)
@@ -492,14 +510,9 @@ const syncProductlHodRatesOnQueryCreate = async (products = []) => {
   ]
   if (!proCodes.length) return
 
-  await ProductlHodRatesModel.updateMany(
-    {
-      pro_code: { $in: proCodes },
-      isDeleted: false,
-    },
-    {
-      $set: { status: PRODUCTL_HOD_RATE_STATUS.HOD_APPROVAL_PENDING },
-    }
+  await updateProductlHodRatesStatusByProCodes(
+    proCodes,
+    PRODUCTL_HOD_RATE_STATUS.HOD_APPROVAL_PENDING
   )
 }
 
@@ -523,7 +536,7 @@ export const addQuery = async ({
 
   await validateCompanyInfoSubZone(companyInfo, branchId)
 
-  const doc = await QueryModel.create({
+  const doc = await createQuery({
     queryCode,
     query_tracking_code,
     status: status || 'drafted',
@@ -667,13 +680,8 @@ export const listQueries = async ({
     ]
   }
 
-  const totalItemsPromise = QueryModel.countDocuments(filter)
-  const queriesPromise = QueryModel.find(filter)
-    .populate('industry_id', 'name location email')
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(limit)
-    .lean()
+  const totalItemsPromise = countQueries(filter)
+  const queriesPromise = findQueriesPaginated(filter, skip, limit)
 
   const [totalItems, queries] = await Promise.all([
     totalItemsPromise,
@@ -724,46 +732,15 @@ export const getQueryById = async ({
     role,
     branchFilter,
   })
-  let queryQuery = QueryModel.findOne({
-    _id: queryId,
-    isDeleted: false,
-    ...branchFilter,
-    ...ownershipFilter,
-  })
-    .populate(
-      'industry_id',
-      'name location address email purchase_manager_name purchase_manager_phone'
-    )
-
-  if (!forPdf) {
-    queryQuery = queryQuery
-      .populate('created_by', 'name email')
-      .populate({
-        path: 'products.groupId',
-        select: 'name code',
-      })
-      .populate({
-        path: 'products.categoryId',
-        select: 'name categoryCode',
-      })
-      .populate({
-        path: 'products.subcategoryId',
-        select: 'name categoryCode',
-      })
-  }
-
-  const query = await queryQuery
-    .populate({
-      path: 'products.product_id',
-      select: 'name shortDescription images hsnNumber gstPercentage unit',
-      populate: { path: 'images', select: 'path', model: 'document' },
-    })
-    .populate({
-      path: 'products.images',
-      select: 'path',
-      model: 'document',
-    })
-    .lean()
+  const query = await findQueryByIdWithDetails(
+    {
+      _id: queryId,
+      isDeleted: false,
+      ...branchFilter,
+      ...ownershipFilter,
+    },
+    { forPdf }
+  )
 
   if (!query) {
     throw new CustomError(
@@ -880,14 +857,12 @@ export const getQueryLineProcurementRates = async ({
     role,
     branchFilter,
   })
-  const queryOk = await QueryModel.findOne({
+  const queryOk = await findOneQuerySelectIdLean({
     _id: queryId,
     isDeleted: false,
     ...branchFilter,
     ...ownershipFilter,
   })
-    .select('_id')
-    .lean()
   if (!queryOk) {
     throw new CustomError(
       statusCodes.notFound,
@@ -900,13 +875,7 @@ export const getQueryLineProcurementRates = async ({
   const rows = await listQueryProductDocuments(qid)
   const doc = matchQueryProductRowByCode(rows, code, lineIndex)
 
-  const hodRows = await ProductlHodRatesModel.find({
-    pro_code: code,
-    status: PRODUCTL_HOD_RATE_STATUS.HOD_APPROVED,
-    isDeleted: false,
-  })
-    .sort({ createdAt: -1 })
-    .lean()
+  const hodRows = await findApprovedProductlHodRatesByProCode(code)
 
   return {
     rawProductCode: code,
@@ -934,14 +903,12 @@ export const getQueryLineProcurementRates = async ({
 
 const resolvePerformerName = async (performerId) => {
   if (!performerId) return null
-  let user = await EmployeeModel.findById(performerId)
-    .select('name email')
-    .lean()
+  let user = await findEmployeeByIdWithNameEmail(performerId)
   if (user)
     return { name: user.name, email: user.email, role: user.role || 'employee' }
-  user = await AdminModel.findById(performerId).select('name email').lean()
+  user = await findAdminByIdWithNameEmail(performerId)
   if (user) return { name: user.name, email: user.email, role: 'admin' }
-  user = await SuperAdminModel.findById(performerId).select('name email').lean()
+  user = await findSuperAdminByIdWithNameEmail(performerId)
   if (user) return { name: user.name, email: user.email, role: 'super_admin' }
   return null
 }
@@ -961,12 +928,12 @@ export const listQueryActivities = async ({
     role,
     branchFilter,
   })
-  const queryBelongs = await QueryModel.findOne({
+  const queryBelongs = await findOneQueryLean({
     _id: queryId,
     isDeleted: false,
     ...branchFilter,
     ...ownershipFilter,
-  }).lean()
+  })
   if (!queryBelongs) {
     throw new CustomError(
       statusCodes.notFound,
@@ -980,13 +947,8 @@ export const listQueryActivities = async ({
   const skip = (page - 1) * limit
 
   const filter = { queryId }
-  const totalItems = await QueryActivityModel.countDocuments(filter)
-  const activities = await QueryActivityModel.find(filter)
-    .select('queryId type performedBy meta createdAt')
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(limit)
-    .lean()
+  const totalItems = await countQueryActivities(filter)
+  const activities = await findQueryActivitiesPaginated(filter, skip, limit)
 
   const totalPages = Math.ceil(totalItems / limit)
 
@@ -1035,12 +997,12 @@ export const recordQueryActivity = async ({
     role,
     branchFilter,
   })
-  const query = await QueryModel.findOne({
+  const query = await findOneQueryLean({
     _id: queryId,
     isDeleted: false,
     ...branchFilter,
     ...ownershipFilter,
-  }).lean()
+  })
   if (!query) {
     throw new CustomError(
       statusCodes.notFound,
@@ -1049,7 +1011,7 @@ export const recordQueryActivity = async ({
     )
   }
 
-  const activity = await QueryActivityModel.create({
+  const activity = await createQueryActivity({
     queryId,
     type,
     performedBy,
@@ -1060,9 +1022,7 @@ export const recordQueryActivity = async ({
     },
   })
 
-  const populated = await QueryActivityModel.findById(activity._id)
-    .populate('performedBy', 'name email')
-    .lean()
+  const populated = await findQueryActivityByIdPopulated(activity._id)
   return populated
 }
 
@@ -1085,12 +1045,12 @@ export const updateQuery = async ({
     role,
     branchFilter,
   })
-  const existing = await QueryModel.findOne({
+  const existing = await findOneQueryLean({
     _id: queryId,
     isDeleted: false,
     ...branchFilter,
     ...ownershipFilter,
-  }).lean()
+  })
   if (!existing) {
     throw new CustomError(
       statusCodes.notFound,
@@ -1122,12 +1082,7 @@ export const updateQuery = async ({
   if (status !== undefined) updatePayload.status = status
   if (close_remark !== undefined) updatePayload.close_remark = close_remark
 
-  const updated = await QueryModel.findByIdAndUpdate(queryId, updatePayload, {
-    new: true,
-    runValidators: true,
-  })
-    .populate('industry_id', 'name location email')
-    .lean()
+  const updated = await updateQueryById(queryId, updatePayload)
 
   if (updated && products !== undefined) {
     try {
@@ -1157,12 +1112,12 @@ export const deleteQuery = async ({
     role,
     branchFilter,
   })
-  const existing = await QueryModel.findOne({
+  const existing = await findOneQueryLean({
     _id: queryId,
     isDeleted: false,
     ...branchFilter,
     ...ownershipFilter,
-  }).lean()
+  })
   if (!existing) {
     throw new CustomError(
       statusCodes.notFound,
@@ -1171,11 +1126,7 @@ export const deleteQuery = async ({
     )
   }
 
-  await QueryModel.findByIdAndUpdate(
-    queryId,
-    { isDeleted: true },
-    { new: true }
-  )
+  await softDeleteQueryById(queryId)
 
   try {
     await softDeleteQueryProductRowsForQuery(queryId)
@@ -1207,12 +1158,12 @@ export const linkConvertedQuotationToQuery = async ({
     role,
     branchFilter,
   })
-  const existing = await QueryModel.findOne({
+  const existing = await findOneQueryLean({
     _id: queryId,
     isDeleted: false,
     ...branchFilter,
     ...ownershipFilter,
-  }).lean()
+  })
   if (!existing) {
     throw new CustomError(
       statusCodes.notFound,
@@ -1248,12 +1199,12 @@ export const convertQueryToQuotation = async ({
     role,
     branchFilter,
   })
-  const existing = await QueryModel.findOne({
+  const existing = await findOneQueryLean({
     queryCode,
     isDeleted: false,
     ...branchFilter,
     ...ownershipFilter,
-  }).lean()
+  })
   if (!existing) {
     throw new CustomError(
       statusCodes.notFound,
@@ -1296,18 +1247,10 @@ export const convertQueryToQuotation = async ({
   )
 
   if (existing.status !== 'convertedToQuotation') {
-    await QueryModel.updateOne(
-      { _id: existing._id },
-      { $set: { status: 'convertedToQuotation' } }
-    )
+    await updateQueryStatus(existing._id, 'convertedToQuotation')
   }
 
-  const updatedQuery = await QueryModel.findById(existing._id)
-    .populate(
-      'industry_id',
-      'name location address email purchase_manager_name purchase_manager_phone'
-    )
-    .lean()
+  const updatedQuery = await findQueryByIdPopulateIndustry(existing._id)
 
   return { query: updatedQuery, quotation }
 }
@@ -1359,7 +1302,7 @@ export const getTodayDashboardStats = async ({
     createdAt: { $gte: start, $lt: end },
   }
 
-  const todayQueryCount = await QueryModel.countDocuments(queryFilter)
+  const todayQueryCount = await countQueries(queryFilter)
 
   let quotationFilter = {
     isDeleted: false,
@@ -1368,13 +1311,11 @@ export const getTodayDashboardStats = async ({
   }
 
   if (currentUserId && !isFullAccessRole) {
-    const ownQueryIds = await QueryModel.find({
+    const ownQueryIds = await findQueryIdsLean({
       isDeleted: false,
       ...branchFilter,
       ...ownershipFilter,
     })
-      .select('_id')
-      .lean()
 
     const ids = ownQueryIds.map((q) => q._id)
     quotationFilter = {
@@ -1383,11 +1324,8 @@ export const getTodayDashboardStats = async ({
     }
   }
 
-  const todayQuotationCount =
-    await QuotationModel.countDocuments(quotationFilter)
-  const todayQuotations = await QuotationModel.find(quotationFilter)
-    .select('products')
-    .lean()
+  const todayQuotationCount = await countQuotations(quotationFilter)
+  const todayQuotations = await findQuotationsSelectProductsLean(quotationFilter)
 
   const todayQuotedAmount = todayQuotations.reduce(
     (sum, q) => sum + computeQuotationAmount(q?.products || []),
@@ -1527,13 +1465,11 @@ export const getBranchAnalytics = async ({
   }
 
   if (currentUserId && !isFullAccessRole) {
-    const ownQueryIds = await QueryModel.find({
+    const ownQueryIds = await findQueryIdsLean({
       isDeleted: false,
       ...branchFilter,
       ...ownershipFilter,
     })
-      .select('_id')
-      .lean()
     quotationBaseFilter.queryId = { $in: ownQueryIds.map((q) => q._id) }
   }
 
@@ -1545,23 +1481,17 @@ export const getBranchAnalytics = async ({
     poAmountAgg,
     billingAmountAgg,
   ] = await Promise.all([
-    QueryModel.countDocuments(queryBaseFilter),
-    QuotationModel.countDocuments(quotationBaseFilter),
-    PoEntryModel.countDocuments(poBaseFilter),
-    BillingEntryModel.countDocuments(billingBaseFilter),
-    PoEntryModel.aggregate([
-      { $match: poBaseFilter },
-      { $group: { _id: null, total: { $sum: '$amount' } } },
-    ]),
-    BillingEntryModel.aggregate([
-      { $match: billingBaseFilter },
-      { $group: { _id: null, total: { $sum: '$amount' } } },
-    ]),
+    countQueries(queryBaseFilter),
+    countQuotations(quotationBaseFilter),
+    countPoEntries(poBaseFilter),
+    countBillingEntries(billingBaseFilter),
+    aggregatePoEntryAmount(poBaseFilter),
+    aggregateBillingEntryAmount(billingBaseFilter),
   ])
 
-  const quotedAmountDocs = await QuotationModel.find(quotationBaseFilter)
-    .select('products')
-    .lean()
+  const quotedAmountDocs = await findQuotationsSelectProductsLean(
+    quotationBaseFilter
+  )
   const quotedAmount = quotedAmountDocs.reduce(
     (sum, q) => sum + computeQuotationAmount(q?.products || []),
     0
@@ -1573,12 +1503,7 @@ export const getBranchAnalytics = async ({
   let totalItems = 0
   if (tab === 'queries') {
     totalItems = totalQueries
-    rows = await QueryModel.find(queryBaseFilter)
-      .select('queryCode status companyInfo createdAt branchId')
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .lean()
+    rows = await findQueriesForBranchAnalytics(queryBaseFilter, skip, limit)
     rows = rows.map((item) => ({
       _id: item._id,
       queryCode: item.queryCode || '',
@@ -1589,14 +1514,11 @@ export const getBranchAnalytics = async ({
     }))
   } else if (tab === 'quotations') {
     totalItems = totalQuotation
-    rows = await QuotationModel.find(quotationBaseFilter)
-      .select(
-        'quotationCode status companyInfo createdAt branchId totalAmount products'
-      )
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .lean()
+    rows = await findQuotationsForBranchAnalytics(
+      quotationBaseFilter,
+      skip,
+      limit
+    )
     rows = rows.map((item) => ({
       _id: item._id,
       quotationCode: item.quotationCode || '',
@@ -1611,16 +1533,7 @@ export const getBranchAnalytics = async ({
     }))
   } else if (tab === 'po') {
     totalItems = totalPo
-    rows = await PoEntryModel.find(poBaseFilter)
-      .select(
-        'poNumber amount entryDate remark companyId salespersonId createdAt'
-      )
-      .populate('companyId', 'name')
-      .populate('salespersonId', 'name')
-      .sort({ entryDate: -1, createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .lean()
+    rows = await findPoEntriesForBranchAnalytics(poBaseFilter, skip, limit)
     rows = rows.map((item) => ({
       _id: item._id,
       poNumber: item.poNumber || '',
@@ -1632,16 +1545,11 @@ export const getBranchAnalytics = async ({
     }))
   } else if (tab === 'billing') {
     totalItems = totalBilling
-    rows = await BillingEntryModel.find(billingBaseFilter)
-      .select(
-        'billingNumber amount entryDate remark companyId salespersonId createdAt'
-      )
-      .populate('companyId', 'name')
-      .populate('salespersonId', 'name')
-      .sort({ entryDate: -1, createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .lean()
+    rows = await findBillingEntriesForBranchAnalytics(
+      billingBaseFilter,
+      skip,
+      limit
+    )
     rows = rows.map((item) => ({
       _id: item._id,
       billingNumber: item.billingNumber || '',
@@ -1747,15 +1655,13 @@ const getBranchTargetDocForCurrentWindow = async (
   start,
   end
 ) => {
-  return TargetAnalyticsModel.findOne({
+  return findTargetAnalyticsForCurrentWindow({
     isDeleted: false,
     branchId,
     period,
     dateFrom: { $lte: end },
     dateTo: { $gte: start },
   })
-    .sort({ createdAt: -1 })
-    .lean()
 }
 
 /** Billing total for branch: strict branchId on billingentries, entryDate in range. */
@@ -1771,10 +1677,7 @@ const getBranchBillingTotalByEntryDate = async (
     branchId: bid,
     entryDate: { $gte: rangeFrom, $lte: rangeTo },
   }
-  const agg = await BillingEntryModel.aggregate([
-    { $match: match },
-    { $group: { _id: null, total: { $sum: '$amount' } } },
-  ])
+  const agg = await aggregateBillingEntryAmount(match)
   return Number(agg?.[0]?.total || 0)
 }
 
@@ -1882,12 +1785,10 @@ const getEmployeeAreaScope = async ({ employeeId, branchId = null }) => {
     return { areaObjectIds: [], areaScopeValues: [], industryObjectIds: [] }
   }
 
-  const employee = await EmployeeModel.findOne({
+  const employee = await findEmployeeZoneIdsLean({
     _id: new mongoose.Types.ObjectId(String(employeeId)),
     isDeleted: false,
   })
-    .select('zoneIds zoneId')
-    .lean()
 
   const rawAreaIds = [
     ...(Array.isArray(employee?.zoneIds) ? employee.zoneIds : []),
@@ -1910,9 +1811,7 @@ const getEmployeeAreaScope = async ({ employeeId, branchId = null }) => {
   if (branchId && mongoose.Types.ObjectId.isValid(String(branchId))) {
     industryFilter.branchId = new mongoose.Types.ObjectId(String(branchId))
   }
-  const industries = await IndustryModel.find(industryFilter)
-    .select('_id')
-    .lean()
+  const industries = await findIndustriesSelectIdLean(industryFilter)
   const industryObjectIds = industries.map((row) => row._id).filter(Boolean)
 
   return { areaObjectIds, areaScopeValues, industryObjectIds }
@@ -1936,10 +1835,7 @@ const getZoneTargetAmountForPeriod = async ({
   if (branchId && mongoose.Types.ObjectId.isValid(String(branchId))) {
     match.branchId = new mongoose.Types.ObjectId(String(branchId))
   }
-  const agg = await BranchZoneTargetModel.aggregate([
-    { $match: match },
-    { $group: { _id: null, total: { $sum: '$targetAmount' } } },
-  ])
+  const agg = await aggregateBranchZoneTargetAmount(match)
   return Number(agg?.[0]?.total || 0)
 }
 
@@ -1958,10 +1854,7 @@ const getScopedBillingForRange = async ({
   if (branchId && mongoose.Types.ObjectId.isValid(String(branchId))) {
     match.branchId = new mongoose.Types.ObjectId(String(branchId))
   }
-  const agg = await BillingEntryModel.aggregate([
-    { $match: match },
-    { $group: { _id: null, total: { $sum: '$amount' } } },
-  ])
+  const agg = await aggregateBillingEntryAmount(match)
   return Number(agg?.[0]?.total || 0)
 }
 
@@ -1991,17 +1884,13 @@ const getEmployeeTargetAmountForPeriod = async ({
       : null
 
   // Prefer branch-scoped target when available; fall back to employee-period target.
-  const targetDoc = await BranchEmployeeTargetModel.findOne(
+  const targetDoc = await findBranchEmployeeTargetOne(
     branchObjectId ? { ...baseFilter, branchId: branchObjectId } : baseFilter
   )
-    .sort({ createdAt: -1 })
-    .lean()
 
   if (targetDoc) return Number(targetDoc.targetAmount || 0)
 
-  const fallbackDoc = await BranchEmployeeTargetModel.findOne(baseFilter)
-    .sort({ createdAt: -1 })
-    .lean()
+  const fallbackDoc = await findBranchEmployeeTargetOne(baseFilter)
   return Number(fallbackDoc?.targetAmount || 0)
 }
 
@@ -2023,10 +1912,7 @@ const getEmployeeBillingForRange = async ({
     ],
   }
 
-  const agg = await BillingEntryModel.aggregate([
-    { $match: billingFilter },
-    { $group: { _id: null, total: { $sum: '$amount' } } },
-  ])
+  const agg = await aggregateBillingEntryAmount(billingFilter)
   return Number(agg?.[0]?.total || 0)
 }
 
@@ -2125,28 +2011,28 @@ export const getSalesDashboardCards = async ({
     pendingQuotationsRaw,
     pendingPurchaseOrdersRaw,
   ] = await Promise.all([
-    QueryModel.countDocuments({
+    countQueries({
       isDeleted: false,
       ...branchScopedFilter,
       ...salesScopeFilter,
       ...monthCreatedFilter,
     }),
-    QuotationModel.countDocuments({
+    countQuotations({
       isDeleted: false,
       ...branchScopedFilter,
       ...salesScopeFilter,
       ...monthCreatedFilter,
     }),
-    PurchaseOrderModel.countDocuments({
+    countPurchaseOrders({
       isDeleted: false,
       ...branchScopedFilter,
       ...salesScopeFilter,
       ...monthCreatedFilter,
     }),
-    QueryModel.countDocuments(pendingQueryFilter),
-    QuotationModel.countDocuments(pendingQuotationFilter),
-    PurchaseOrderModel.countDocuments(pendingPoFilter),
-    PurchaseOrderModel.find({
+    countQueries(pendingQueryFilter),
+    countQuotations(pendingQuotationFilter),
+    countPurchaseOrders(pendingPoFilter),
+    findOutstandingPurchaseOrders({
       isDeleted: false,
       ...branchScopedFilter,
       ...salesScopeFilter,
@@ -2156,26 +2042,10 @@ export const getSalesDashboardCards = async ({
           PURCHASE_ORDER_STATUS.FULFILLED,
         ],
       },
-    })
-      .select('products freightCharge packingCharge payments status')
-      .lean(),
-    QueryModel.find(pendingQueryFilter)
-      .sort({ createdAt: -1 })
-      .limit(25)
-      .select('queryCode companyInfo status createdAt')
-      .lean(),
-    QuotationModel.find(pendingQuotationFilter)
-      .sort({ createdAt: -1 })
-      .limit(25)
-      .select('quotationCode companyInfo status createdAt')
-      .lean(),
-    PurchaseOrderModel.find(pendingPoFilter)
-      .sort({ createdAt: -1 })
-      .limit(25)
-      .select(
-        'poCode quotationId companyInfo status createdAt products freightCharge packingCharge payments'
-      )
-      .lean(),
+    }),
+    findPendingQueriesForDashboard(pendingQueryFilter),
+    findPendingQuotationsForDashboard(pendingQuotationFilter),
+    findPendingPurchaseOrdersForDashboard(pendingPoFilter),
   ])
 
   let pendingCollectionAmount = 0
@@ -2279,11 +2149,7 @@ export const getRecentSalesBillings = async ({ employeeId, limit = 5 }) => {
     salespersonId: new mongoose.Types.ObjectId(String(employeeId)),
   }
 
-  const rows = await BillingEntryModel.find(filter)
-    .sort({ entryDate: -1, createdAt: -1 })
-    .limit(take)
-    .populate('companyId', 'name')
-    .lean()
+  const rows = await findRecentBillingEntriesBySalesperson(filter, take)
 
   return rows.map((row) => {
     const d = row.entryDate || row.createdAt

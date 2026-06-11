@@ -1,12 +1,11 @@
-import PurchaseTaskModel, {
+import purchaseTaskRepository, {
   PURCHASE_TASK_STATUS,
   PURCHASE_TASK_TYPE,
   PURCHASE_TASK_PRIORITY,
-} from '../../models/purchaseTask.model.js'
-import QuotationModel from '../../models/quotation.model.js'
-import EmployeeModel from '../../models/employee.model.js'
-import ProductModel from '../../models/product.model.js'
-import CategoryModel from '../../models/category.model.js'
+} from '../../repository/purchaseTask.repository.js'
+import quotationRepository from '../../repository/quotation.repository.js'
+import employeeRepository from '../../repository/employee.repository.js'
+import productRepository from '../../repository/product.repository.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 
@@ -32,7 +31,7 @@ export const assignQuotationTask = async ({
   supplierRateRemark,
   branchIdFromRequest = null,
 }) => {
-  const quotation = await QuotationModel.findOne({
+  const quotation = await quotationRepository.findOne({
     _id: quotationId,
     isDeleted: false,
   }).lean()
@@ -45,7 +44,7 @@ export const assignQuotationTask = async ({
     )
   }
 
-  const employee = await EmployeeModel.findOne({
+  const employee = await employeeRepository.findOne({
     _id: assignedTo,
     isDeleted: false,
   }).lean()
@@ -69,7 +68,7 @@ export const assignQuotationTask = async ({
   const branchId =
     quotation.branchId || employee.branchId || branchIdFromRequest || null
 
-  const doc = await PurchaseTaskModel.create({
+  const doc = await purchaseTaskRepository.create({
     quotationId: quotation._id,
     assignedTo: employee._id,
     assignedBy: assignedBy || null,
@@ -136,7 +135,7 @@ export const autoAssignPurchaseTasksForQuotation = async ({
       return
     }
 
-    const productDocs = await ProductModel.find({ _id: { $in: productIds } })
+    const productDocs = await productRepository.find({ _id: { $in: productIds } })
       .select('category')
       .populate('category', 'name')
       .lean()
@@ -161,7 +160,7 @@ export const autoAssignPurchaseTasksForQuotation = async ({
       },
     }))
 
-    const matchingEmployees = await EmployeeModel.find({
+    const matchingEmployees = await employeeRepository.find({
       isDeleted: false,
       branchId: effectiveBranchId,
       categories: { $ne: null, $ne: '' },
@@ -175,7 +174,7 @@ export const autoAssignPurchaseTasksForQuotation = async ({
       return
     }
 
-    const existingTasks = await PurchaseTaskModel.find({
+    const existingTasks = await purchaseTaskRepository.find({
       isDeleted: false,
       quotationId: quotation._id,
     })
@@ -219,7 +218,7 @@ export const autoAssignPurchaseTasksForQuotation = async ({
       return
     }
 
-    await PurchaseTaskModel.insertMany(docsToCreate)
+    await purchaseTaskRepository.insertMany(docsToCreate)
   } catch {
     // Never block query/quotation flows because of auto-assignment issues
   }
@@ -300,7 +299,7 @@ export const listPurchaseTasksForUser = async ({
   }
 
   return paginateQuery({
-    model: PurchaseTaskModel,
+    model: purchaseTaskRepository,
     filter,
     pageNumber,
     pageSize,
@@ -313,7 +312,7 @@ export const updatePurchaseTaskStatus = async ({
   targetRate,
   branchFilter = {},
 }) => {
-  const existing = await PurchaseTaskModel.findOne({
+  const existing = await purchaseTaskRepository.findOne({
     _id: taskId,
     isDeleted: false,
     ...branchFilter,
@@ -335,7 +334,7 @@ export const updatePurchaseTaskStatus = async ({
     updatePayload.targetRate = targetRate
   }
 
-  const updated = await PurchaseTaskModel.findByIdAndUpdate(
+  const updated = await purchaseTaskRepository.findByIdAndUpdate(
     taskId,
     { $set: updatePayload },
     { new: true, runValidators: true }
@@ -353,7 +352,7 @@ export const updatePurchaseTaskRemark = async ({
   supplierRateRemark,
   branchFilter = {},
 }) => {
-  const existing = await PurchaseTaskModel.findOne({
+  const existing = await purchaseTaskRepository.findOne({
     _id: taskId,
     isDeleted: false,
     ...branchFilter,
@@ -367,7 +366,7 @@ export const updatePurchaseTaskRemark = async ({
     )
   }
 
-  const updated = await PurchaseTaskModel.findByIdAndUpdate(
+  const updated = await purchaseTaskRepository.findByIdAndUpdate(
     taskId,
     {
       $set: {
@@ -405,7 +404,7 @@ export const adminListPurchaseTasks = async ({
   }
 
   if (role) {
-    const employees = await EmployeeModel.find({
+    const employees = await employeeRepository.find({
       isDeleted: false,
       role,
     })
@@ -416,7 +415,7 @@ export const adminListPurchaseTasks = async ({
     if (ids.length === 0) {
       // No employees for this role -> empty result
       return paginateQuery({
-        model: PurchaseTaskModel,
+        model: purchaseTaskRepository,
         filter: { _id: { $in: [] } },
         pageNumber,
         pageSize,
@@ -427,7 +426,7 @@ export const adminListPurchaseTasks = async ({
   }
 
   return paginateQuery({
-    model: PurchaseTaskModel,
+    model: purchaseTaskRepository,
     filter,
     pageNumber,
     pageSize,

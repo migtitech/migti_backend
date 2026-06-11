@@ -1,4 +1,13 @@
-import IndustryBranchModel from '../../models/industryBranch.model.js'
+import {
+  createIndustryBranch,
+  findIndustryBranchByIdWithPopulate,
+  countIndustryBranches,
+  findIndustryBranchesWithPopulate,
+  findOneIndustryBranchWithPopulate,
+  findOneIndustryBranchLean,
+  findIndustryBranchByIdAndUpdateWithPopulate,
+  softDeleteIndustryBranchById,
+} from '../../repository/industryBranch.repository.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 
@@ -9,16 +18,14 @@ export const addIndustryBranch = async ({
   address,
   gst,
 }) => {
-  const branchDoc = await IndustryBranchModel.create({
+  const branchDoc = await createIndustryBranch({
     industryId,
     name: name || '',
     location: location || '',
     address: address || '',
     gst: gst || '',
   })
-  const result = await IndustryBranchModel.findById(branchDoc._id)
-    .populate('industryId', 'name location address gstNumber')
-    .lean()
+  const result = await findIndustryBranchByIdWithPopulate(branchDoc._id)
   return result
 }
 
@@ -45,14 +52,9 @@ export const listIndustryBranches = async ({
     ]
   }
 
-  const totalItems = await IndustryBranchModel.countDocuments(filter)
+  const totalItems = await countIndustryBranches(filter)
 
-  const branches = await IndustryBranchModel.find(filter)
-    .populate('industryId', 'name location address gstNumber')
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(limit)
-    .lean()
+  const branches = await findIndustryBranchesWithPopulate(filter, { skip, limit })
 
   const totalPages = Math.ceil(totalItems / limit)
   return {
@@ -69,12 +71,10 @@ export const listIndustryBranches = async ({
 }
 
 export const getIndustryBranchById = async ({ industryBranchId }) => {
-  const branch = await IndustryBranchModel.findOne({
+  const branch = await findOneIndustryBranchWithPopulate({
     _id: industryBranchId,
     isDeleted: false,
   })
-    .populate('industryId', 'name location address gstNumber')
-    .lean()
 
   if (!branch) {
     throw new CustomError(
@@ -95,10 +95,10 @@ export const updateIndustryBranch = async ({
   address,
   gst,
 }) => {
-  const branch = await IndustryBranchModel.findOne({
+  const branch = await findOneIndustryBranchLean({
     _id: industryBranchId,
     isDeleted: false,
-  }).lean()
+  })
 
   if (!branch) {
     throw new CustomError(
@@ -115,22 +115,19 @@ export const updateIndustryBranch = async ({
   if (address !== undefined) updateData.address = address
   if (gst !== undefined) updateData.gst = gst || ''
 
-  const updated = await IndustryBranchModel.findByIdAndUpdate(
+  const updated = await findIndustryBranchByIdAndUpdateWithPopulate(
     industryBranchId,
-    updateData,
-    { new: true, runValidators: true }
+    updateData
   )
-    .populate('industryId', 'name location address gstNumber')
-    .lean()
 
   return updated
 }
 
 export const deleteIndustryBranch = async ({ industryBranchId }) => {
-  const branch = await IndustryBranchModel.findOne({
+  const branch = await findOneIndustryBranchLean({
     _id: industryBranchId,
     isDeleted: false,
-  }).lean()
+  })
 
   if (!branch) {
     throw new CustomError(
@@ -140,11 +137,7 @@ export const deleteIndustryBranch = async ({ industryBranchId }) => {
     )
   }
 
-  await IndustryBranchModel.findByIdAndUpdate(
-    industryBranchId,
-    { $set: { isDeleted: true } },
-    { new: true }
-  )
+  await softDeleteIndustryBranchById(industryBranchId)
 
   return {
     deletedIndustryBranch: {

@@ -1,13 +1,35 @@
 import mongoose from 'mongoose'
-import QueryModel from '../../models/query.model.js'
-import QueryProductModel, {
+import {
+  findQueryByIdSelectQueryCode,
+  findQueryByIdSelectBranchId,
+} from '../../repository/query.repository.js'
+import {
+  findQueryProductsForProBucketList,
+  countQueryProducts,
+  findQueryProductByIdSelectId,
+  findQueryProductByIdWithProBucketPopulates,
+  findQueryProductByIdSelectRawProductCode,
+  findByIdAndUpdateQueryProductQueryCode,
+  findByIdAndUpdateQueryProductHodApproved,
+  findByIdAndUpdateQueryProductRates,
+  findOneAndUpdateQueryProduct,
   deriveProBucketStatus,
-} from '../../models/queryProduct.model.js'
-import ProductlHodRatesModel, {
+} from '../../repository/queryProduct.repository.js'
+import queryProductRepository from '../../repository/queryProduct.repository.js'
+import {
+  findProductlHodRatesByProCode,
+  updateManyPendingProductlHodRates,
+  updateManyApprovedProductlHodRates,
+  createProductlHodRate,
+  insertManyProductlHodRates,
   PRODUCTL_HOD_RATE_STATUS,
-} from '../../models/productlHodRates.model.js'
-import ProductHodRateHistoryModel from '../../models/productHodRateHistory.model.js'
-import SupplierModel from '../../models/supplier.model.js'
+} from '../../repository/productlHodRates.repository.js'
+import {
+  createProductHodRateHistory,
+  countProductHodRateHistories,
+  findProductHodRateHistories,
+} from '../../repository/productHodRateHistory.repository.js'
+import { findSupplierByIdSelectFields } from '../../repository/supplier.repository.js'
 import { transformPathsToSignedUrls } from '../document/document.service.js'
 import {
   createNotifications,
@@ -239,16 +261,12 @@ export const listProBucketQueryProducts = async (q) => {
   }
 
   const [total, pendingCount, rawRows] = await Promise.all([
-    QueryProductModel.countDocuments(filter),
-    QueryProductModel.countDocuments(pendingFilter),
-    QueryProductModel.find(filter)
-      .sort({ createdAt: -1, lineIndex: 1 })
-      .skip((page - 1) * pageSize)
-      .limit(pageSize)
-      .populate('groupId', 'name _id')
-      .populate('categoryId', 'name _id')
-      .populate('images', 'name path mimetype _id')
-      .lean(),
+    countQueryProducts(filter),
+    countQueryProducts(pendingFilter),
+    findQueryProductsForProBucketList(filter, {
+      skip: (page - 1) * pageSize,
+      limit: pageSize,
+    }),
   ])
 
   const rows = await Promise.all(
@@ -270,18 +288,8 @@ export const listProBucketQueryProducts = async (q) => {
   }
 }
 
-const withQueryProductPopulates = (q) =>
-  q
-    .populate('groupId', 'name')
-    .populate('categoryId', 'name')
-    .populate('product_id', 'name')
-    .populate(
-      'queryId',
-      'queryCode query_tracking_code status companyInfo branchId'
-    )
-    .populate('images', 'name path mimetype')
-    .populate('rates.submittedBy', 'name email')
-    .lean()
+const withQueryProductPopulates = (id) =>
+  findQueryProductByIdWithProBucketPopulates(id)
 
 /** HOD rate-management snapshot for a query product line. */
 export const buildRateManagementSnapshot = async (doc) => {
@@ -298,12 +306,7 @@ export const buildRateManagementSnapshot = async (doc) => {
   const proCode = String(doc?.rawProductCode || '').trim()
   let hodRows = []
   if (proCode) {
-    hodRows = await ProductlHodRatesModel.find({
-      pro_code: proCode,
-      isDeleted: false,
-    })
-      .sort({ createdAt: -1 })
-      .lean()
+    hodRows = await findProductlHodRatesByProCode(proCode)
   }
 
   const pendingRows = hodRows.filter(
@@ -350,15 +353,13 @@ export const getProBucketQueryProductById = async (id) => {
   const oid = toOid(id)
   if (!oid) return null
 
-  const exists = await QueryProductModel.findOne({
+  const exists = await findQueryProductByIdSelectId({
     _id: oid,
     isDeleted: false,
   })
-    .select('_id')
-    .lean()
   if (!exists) return null
 
-  const doc = await withQueryProductPopulates(QueryProductModel.findById(oid))
+  const doc = await withQueryProductPopulates(oid)
   if (doc?.images?.length) {
     doc.images = await transformPathsToSignedUrls(doc.images)
   }
@@ -386,15 +387,13 @@ const resolveQueryCodeForProduct = async (queryProduct) => {
   const qid = toOid(queryProduct?.queryId)
   if (!qid) return ''
 
-  const query = await QueryModel.findById(qid).select('queryCode').lean()
+  const query = await findQueryByIdSelectQueryCode(qid)
   const fromQuery = String(query?.queryCode || '').trim()
   if (!fromQuery) return ''
 
   const productId = toOid(queryProduct?._id)
   if (productId) {
-    await QueryProductModel.findByIdAndUpdate(productId, {
-      $set: { queryCode: fromQuery },
-    })
+    await findByIdAndUpdateQueryProductQueryCode(productId, fromQuery)
   }
 
   return fromQuery
@@ -405,10 +404,12 @@ export const updateQueryProductHodRates = async (id, payload, user = null) => {
   const oid = toOid(id)
   if (!oid) throw new Error('Invalid id')
 
-  const existing = await QueryProductModel.findOne({
-    _id: oid,
-    isDeleted: false,
-  }).lean()
+  const existing = await queryProductRepository
+    .findOne({
+      _id: oid,
+      isDeleted: false,
+    })
+    .lean()
   if (!existing) return null
 
   const proCode = String(existing.rawProductCode || '').trim()
@@ -457,12 +458,15 @@ export const updateQueryProductHodRates = async (id, payload, user = null) => {
     status: PRODUCTL_HOD_RATE_STATUS.HOD_APPROVAL_PENDING,
   }
 
-  const pendingResult = await ProductlHodRatesModel.updateMany(pendingFilter, {
-    $set: hodRateSet,
-  })
+  const pendingResult = await updateManyPendingProductlHodRates(
+    pendingFilter,
+    {
+      $set: hodRateSet,
+    }
+  )
 
   if (!pendingResult.matchedCount) {
-    const approvedResult = await ProductlHodRatesModel.updateMany(
+    const approvedResult = await updateManyApprovedProductlHodRates(
       {
         pro_code: proCode,
         isDeleted: false,
@@ -472,7 +476,7 @@ export const updateQueryProductHodRates = async (id, payload, user = null) => {
     )
 
     if (!approvedResult.matchedCount) {
-      await ProductlHodRatesModel.create({
+      await createProductlHodRate({
         pro_code: proCode,
         ...hodRateSet,
         unit: submittedRateUnit,
@@ -482,7 +486,7 @@ export const updateQueryProductHodRates = async (id, payload, user = null) => {
 
   const updatedBy = toOid(user?.id || user?._id)
 
-  const historyDoc = await ProductHodRateHistoryModel.create({
+  const historyDoc = await createProductHodRateHistory({
     queryCode,
     queryId,
     queryProductId: oid,
@@ -503,9 +507,7 @@ export const updateQueryProductHodRates = async (id, payload, user = null) => {
     String(oid)
   )
 
-  await QueryProductModel.findByIdAndUpdate(oid, {
-    $set: { hodApproved: true },
-  })
+  await findByIdAndUpdateQueryProductHodApproved(oid)
 
   return getProBucketQueryProductById(String(oid))
 }
@@ -536,12 +538,10 @@ export const listQueryProductHodRateHistories = async (id, q = {}, user = null) 
   const oid = toOid(id)
   if (!oid) throw new Error('Invalid id')
 
-  const existing = await QueryProductModel.findOne({
+  const existing = await findQueryProductByIdSelectRawProductCode({
     _id: oid,
     isDeleted: false,
   })
-    .select('rawProductCode')
-    .lean()
   if (!existing) return null
 
   const proCode = String(existing.rawProductCode || '').trim()
@@ -572,13 +572,11 @@ export const listQueryProductHodRateHistories = async (id, q = {}, user = null) 
   }
 
   const [total, rows] = await Promise.all([
-    ProductHodRateHistoryModel.countDocuments(filter),
-    ProductHodRateHistoryModel.find(filter)
-      .sort({ createdAt: -1 })
-      .skip((page - 1) * pageSize)
-      .limit(pageSize)
-      .populate('updatedBy', 'name email')
-      .lean(),
+    countProductHodRateHistories(filter),
+    findProductHodRateHistories(filter, {
+      skip: (page - 1) * pageSize,
+      limit: pageSize,
+    }),
   ])
 
   return {
@@ -594,10 +592,12 @@ export const appendProBucketRates = async (id, ratesInput, user, io = null) => {
   const oid = toOid(id)
   if (!oid) throw new Error('Invalid id')
 
-  const existing = await QueryProductModel.findOne({
-    _id: oid,
-    isDeleted: false,
-  }).lean()
+  const existing = await queryProductRepository
+    .findOne({
+      _id: oid,
+      isDeleted: false,
+    })
+    .lean()
   if (!existing) {
     return null
   }
@@ -607,11 +607,10 @@ export const appendProBucketRates = async (id, ratesInput, user, io = null) => {
     const supId = toOid(r?.supplierId)
     let supSnap = null
     if (supId) {
-      const sup = await SupplierModel.findById(supId)
-        .select(
-          'uniqueId name shopname address shippingAddress billingAddress phone_1 phone_2 email other_contact label shop_location gst categories remark catalog branchId'
-        )
-        .lean()
+      const sup = await findSupplierByIdSelectFields(
+        supId,
+        'uniqueId name shopname address shippingAddress billingAddress phone_1 phone_2 email other_contact label shop_location gst categories remark catalog branchId'
+      )
       if (!sup) {
         throw new Error('Supplier not found: ' + String(r.supplierId))
       }
@@ -635,14 +634,14 @@ export const appendProBucketRates = async (id, ratesInput, user, io = null) => {
   const newLen = (existing.rates?.length || 0) + toPush.length
   const nextStatus = deriveProBucketStatus(newLen)
 
-  await QueryProductModel.findByIdAndUpdate(oid, {
+  await findByIdAndUpdateQueryProductRates(oid, {
     $push: { rates: { $each: toPush } },
     $set: { status: nextStatus },
   })
 
   const rawProductCode = String(existing.rawProductCode || '').trim()
   if (rawProductCode) {
-    await ProductlHodRatesModel.insertMany(
+    await insertManyProductlHodRates(
       toPush.map((r) => ({
         pro_code: rawProductCode,
         min_rate: r.rate,
@@ -699,9 +698,7 @@ export const appendProBucketRates = async (id, ratesInput, user, io = null) => {
       ? doc.queryId.branchId
       : null
   if (!queryBranchId && existing.queryId) {
-    const q = await QueryModel.findById(existing.queryId)
-      .select('branchId')
-      .lean()
+    const q = await findQueryByIdSelectBranchId(existing.queryId)
     queryBranchId = q?.branchId || null
   }
   const submitterBranchId = user?.branchId || null
@@ -775,15 +772,11 @@ export const updateQueryProduct = async (id, payload) => {
     throw new Error('No valid fields to update')
   }
 
-  const doc = await QueryProductModel.findOneAndUpdate(
+  const doc = await findOneAndUpdateQueryProduct(
     { _id: oid, isDeleted: false },
     { $set: update },
     { new: true }
   )
-    .populate('groupId', 'name _id')
-    .populate('categoryId', 'name _id')
-    .populate('images', 'name path mimetype _id')
-    .lean()
 
   if (!doc) return null
 

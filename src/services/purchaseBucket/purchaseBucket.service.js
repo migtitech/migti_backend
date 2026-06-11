@@ -1,16 +1,17 @@
 import mongoose from 'mongoose'
-import PoProductModel from '../../models/poProduct.model.js'
-import EmployeeModel from '../../models/employee.model.js'
-import ProductModel from '../../models/product.model.js'
-import QueryProductModel from '../../models/queryProduct.model.js'
-import DocumentModel from '../../models/document.model.js'
-import GroupModel from '../../models/group.model.js'
-import PurchaseBillingRequestModel, {
+import poProductRepository, {
+  PO_PRODUCT_PROCUREMENT_STATUS,
+} from '../../repository/poProduct.repository.js'
+import employeeRepository from '../../repository/employee.repository.js'
+import productRepository from '../../repository/product.repository.js'
+import queryProductRepository from '../../repository/queryProduct.repository.js'
+import documentRepository from '../../repository/document.repository.js'
+import groupRepository from '../../repository/group.repository.js'
+import purchaseBillingRequestRepository, {
   PURCHASE_BILLING_REQUEST_STATUS,
-} from '../../models/purchaseBillingRequest.model.js'
+} from '../../repository/purchaseBillingRequest.repository.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
-import { PO_PRODUCT_PROCUREMENT_STATUS } from '../../models/poProduct.model.js'
 import { transformPathsToSignedUrls } from '../document/document.service.js'
 
 const OBJECT_ID_REGEX = /^[a-fA-F0-9]{24}$/
@@ -54,7 +55,7 @@ export const resolvePoLineStatusKey = (doc) => {
 const buildEmployeeSnapshot = async (employeeId) => {
   const id = toOid(employeeId)
   if (!id) return null
-  const e = await EmployeeModel.findById(id).select('-password').lean()
+  const e = await employeeRepository.findById(id).select('-password').lean()
   return e || null
 }
 
@@ -93,7 +94,7 @@ const normalizeBillDocumentId = async (attachmentDocumentId) => {
       errorCodes.bad_request
     )
   }
-  const doc = await DocumentModel.findById(id).lean()
+  const doc = await documentRepository.findById(id).lean()
   if (!doc) {
     throw new CustomError(
       statusCodes.badRequest,
@@ -115,7 +116,7 @@ const resolveOptionalAttachmentDocumentIdForLine = async (raw) => {
       errorCodes.validation_error
     )
   }
-  const doc = await DocumentModel.findById(id).lean()
+  const doc = await documentRepository.findById(id).lean()
   if (!doc) {
     throw new CustomError(
       statusCodes.badRequest,
@@ -139,7 +140,7 @@ export const updatePoProductLineAttachment = async ({
     attachmentDocumentId
   )
   const oid = toOid(id)
-  await PoProductModel.findOneAndUpdate(
+  await PoproductRepository.findOneAndUpdate(
     { _id: oid, isDeleted: false },
     { $set: { attachmentDocumentId: resolved } }
   )
@@ -155,13 +156,13 @@ export async function resolveEffectiveGroupIdForPoProduct(doc) {
       ? doc.product_id._id
       : doc.product_id
   if (pid && mongoose.Types.ObjectId.isValid(String(pid))) {
-    const p = await ProductModel.findById(pid).select('group').lean()
+    const p = await productRepository.findById(pid).select('group').lean()
     if (p?.group) return p.group
   }
   const qid = doc.queryId
   const code = String(doc.rawProductCode || '').trim()
   if (qid && code) {
-    const qp = await QueryProductModel.findOne({
+    const qp = await QueryproductRepository.findOne({
       queryId: qid,
       rawProductCode: code,
       isDeleted: false,
@@ -177,7 +178,7 @@ export async function resolveEffectiveGroupIdForPoProduct(doc) {
 export async function loadPoProductForAccess(id) {
   const oid = toOid(id)
   if (!oid) return null
-  return PoProductModel.findOne({ _id: oid, isDeleted: false }).lean()
+  return PoproductRepository.findOne({ _id: oid, isDeleted: false }).lean()
 }
 
 /** Aggregation stages for PO product lists — no role/group/branch filtering. */
@@ -338,11 +339,11 @@ export const listPurchaseBucketPoProducts = async (q, _user) => {
     },
     { $count: 'c' },
   ]
-  const pendingRes = await PoProductModel.aggregate(pendingPipeline)
+  const pendingRes = await PoproductRepository.aggregate(pendingPipeline)
   const pendingCount = pendingRes[0]?.c || 0
 
   const countPipeline = [...stages, { $count: 'c' }]
-  const countRes = await PoProductModel.aggregate(countPipeline)
+  const countRes = await PoproductRepository.aggregate(countPipeline)
   const total = countRes[0]?.c || 0
 
   const listPipeline = [
@@ -400,7 +401,7 @@ export const listPurchaseBucketPoProducts = async (q, _user) => {
       },
     },
   ]
-  const data = await PoProductModel.aggregate(listPipeline)
+  const data = await PoproductRepository.aggregate(listPipeline)
 
   return { data, total, pendingCount, page, pageSize }
 }
@@ -443,7 +444,7 @@ const getQueryProductLineRates = async (doc) => {
   if (queryOid) {
     const scoped = { ...baseByCode, queryId: queryOid }
     if (lineOk) {
-      qp = await QueryProductModel.findOne({
+      qp = await QueryproductRepository.findOne({
         ...scoped,
         lineIndex: Number(lineNum),
       })
@@ -451,7 +452,7 @@ const getQueryProductLineRates = async (doc) => {
         .lean()
     }
     if (!qp) {
-      qp = await QueryProductModel.findOne(scoped)
+      qp = await QueryproductRepository.findOne(scoped)
         .sort({ lineIndex: 1 })
         .populate(qpPopulates)
         .lean()
@@ -459,7 +460,7 @@ const getQueryProductLineRates = async (doc) => {
   }
 
   if (!qp) {
-    qp = await QueryProductModel.findOne(baseByCode)
+    qp = await QueryproductRepository.findOne(baseByCode)
       .sort({ updatedAt: -1, lineIndex: 1 })
       .populate(qpPopulates)
       .lean()
@@ -547,13 +548,13 @@ export const getPurchaseBucketPoProductById = async (id, _user) => {
   const allowed = await loadPoProductForAccess(id)
   if (!allowed) return null
 
-  const doc = await withPoProductPopulates(PoProductModel.findById(allowed._id))
+  const doc = await withPoProductPopulates(PoproductRepository.findById(allowed._id))
   if (!doc) return null
 
   const effectiveGroupId = await resolveEffectiveGroupIdForPoProduct(doc)
   let groupName = ''
   if (effectiveGroupId) {
-    const g = await GroupModel.findById(effectiveGroupId).select('name').lean()
+    const g = await groupRepository.findById(effectiveGroupId).select('name').lean()
     groupName = g?.name || ''
   }
 
@@ -714,7 +715,7 @@ export const raisePurchaseBucketPaymentRequest = async ({
       errorCodes.bad_request
     )
   }
-  const lineImageDoc = await DocumentModel.findById(lineAttOid).lean()
+  const lineImageDoc = await documentRepository.findById(lineAttOid).lean()
   if (!lineImageDoc || !isImageDocumentRecord(lineImageDoc)) {
     throw new CustomError(
       statusCodes.badRequest,
@@ -759,7 +760,7 @@ export const raisePurchaseBucketPaymentRequest = async ({
         errorCodes.bad_request
       )
     }
-    const existingBr = await PurchaseBillingRequestModel.findOne({
+    const existingBr = await purchaseBillingRequestRepository.findOne({
       _id: brOid,
       isDeleted: false,
     }).lean()
@@ -791,7 +792,7 @@ export const raisePurchaseBucketPaymentRequest = async ({
         ? { ...supplier, password: undefined }
         : null
 
-    await PurchaseBillingRequestModel.findByIdAndUpdate(brOid, {
+    await purchaseBillingRequestRepository.findByIdAndUpdate(brOid, {
       $set: {
         status: PURCHASE_BILLING_REQUEST_STATUS.PENDING,
         amount: amt,
@@ -808,7 +809,7 @@ export const raisePurchaseBucketPaymentRequest = async ({
       },
     })
 
-    await PoProductModel.findByIdAndUpdate(oid, {
+    await PoproductRepository.findByIdAndUpdate(oid, {
       $set: {
         procurementStatus: PO_PRODUCT_PROCUREMENT_STATUS.PAYMENT_REQUEST_RAISED,
         status: 'payment_request_raised',
@@ -828,7 +829,7 @@ export const raisePurchaseBucketPaymentRequest = async ({
       ? { ...supplier, password: undefined }
       : null
 
-  const billingRequest = await PurchaseBillingRequestModel.create({
+  const billingRequest = await purchaseBillingRequestRepository.create({
     poProductId: oid,
     purchaseOrderId: allowed.purchaseOrderId || null,
     amount: amt,
@@ -843,7 +844,7 @@ export const raisePurchaseBucketPaymentRequest = async ({
   })
 
   try {
-    await PoProductModel.findByIdAndUpdate(oid, {
+    await PoproductRepository.findByIdAndUpdate(oid, {
       $set: {
         procurementStatus: PO_PRODUCT_PROCUREMENT_STATUS.PAYMENT_REQUEST_RAISED,
         status: 'payment_request_raised',
@@ -855,7 +856,7 @@ export const raisePurchaseBucketPaymentRequest = async ({
       },
     })
   } catch (e) {
-    await PurchaseBillingRequestModel.findByIdAndDelete(billingRequest._id)
+    await purchaseBillingRequestRepository.findByIdAndDelete(billingRequest._id)
     throw e
   }
 
@@ -866,19 +867,19 @@ export const raisePurchaseBucketPaymentRequest = async ({
 export const getPurchaseBillingRequestStatusCounts = async () => {
   const base = { isDeleted: false }
   const [pending, approved, rejected, total] = await Promise.all([
-    PurchaseBillingRequestModel.countDocuments({
+    purchaseBillingRequestRepository.countDocuments({
       ...base,
       status: PURCHASE_BILLING_REQUEST_STATUS.PENDING,
     }),
-    PurchaseBillingRequestModel.countDocuments({
+    purchaseBillingRequestRepository.countDocuments({
       ...base,
       status: PURCHASE_BILLING_REQUEST_STATUS.APPROVED,
     }),
-    PurchaseBillingRequestModel.countDocuments({
+    purchaseBillingRequestRepository.countDocuments({
       ...base,
       status: PURCHASE_BILLING_REQUEST_STATUS.REJECTED,
     }),
-    PurchaseBillingRequestModel.countDocuments(base),
+    purchaseBillingRequestRepository.countDocuments(base),
   ])
   return { pending, approved, rejected, total }
 }
@@ -918,7 +919,7 @@ export const markPurchaseBucketLinePurchased = async ({ id, user }) => {
       errorCodes.validation_error
     )
   }
-  const updated = await PoProductModel.findOneAndUpdate(
+  const updated = await PoproductRepository.findOneAndUpdate(
     { _id: oid, isDeleted: false },
     { $set: { status: 'purchased' } },
     { new: true }

@@ -1,4 +1,13 @@
-import CompanyBranchModel from '../../models/companyBranch.model.js'
+import {
+  findCompanyBranchByEmailOrCode,
+  createCompanyBranch,
+  countCompanyBranches,
+  findCompanyBranches,
+  findCompanyBranchById,
+  findCompanyBranchByIdRaw,
+  updateCompanyBranchById,
+  deleteCompanyBranchById,
+} from '../../repository/companyBranch.repository.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 
@@ -16,10 +25,11 @@ export const addCompanyBranch = async ({
   mapLocationUrl,
   signature,
 }) => {
-  const existingBranch = await CompanyBranchModel.findOne({
+  const existingBranch = await findCompanyBranchByEmailOrCode({
     companyId,
-    $or: [{ email }, { branchcode }],
-  }).lean()
+    email,
+    branchcode,
+  })
 
   if (existingBranch) {
     throw new CustomError(
@@ -29,7 +39,7 @@ export const addCompanyBranch = async ({
     )
   }
 
-  const branchDoc = await CompanyBranchModel.create({
+  const branchDoc = await createCompanyBranch({
     name,
     companyId,
     ...(adminId ? { adminId } : {}),
@@ -60,14 +70,9 @@ export const listCompanyBranches = async ({
     filter.companyId = companyId
   }
 
-  const totalItems = await CompanyBranchModel.countDocuments(filter)
+  const totalItems = await countCompanyBranches(filter)
 
-  const branches = await CompanyBranchModel.find(filter)
-    .populate('signature', 'path')
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(limit)
-    .lean()
+  const branches = await findCompanyBranches(filter, { skip, limit })
 
   const totalPages = Math.ceil(totalItems / limit)
   const hasNextPage = page < totalPages
@@ -87,9 +92,7 @@ export const listCompanyBranches = async ({
 }
 
 export const getCompanyBranchById = async ({ companyBranchId }) => {
-  const branch = await CompanyBranchModel.findById(companyBranchId)
-    .populate('signature', 'path')
-    .lean()
+  const branch = await findCompanyBranchById(companyBranchId)
 
   if (!branch) {
     throw new CustomError(
@@ -106,7 +109,7 @@ export const updateCompanyBranch = async ({
   companyBranchId,
   ...updateData
 }) => {
-  const branch = await CompanyBranchModel.findById(companyBranchId).lean()
+  const branch = await findCompanyBranchByIdRaw(companyBranchId)
   if (!branch) {
     throw new CustomError(
       statusCodes.notFound,
@@ -115,22 +118,16 @@ export const updateCompanyBranch = async ({
     )
   }
 
-  const updatedBranch = await CompanyBranchModel.findByIdAndUpdate(
+  const updatedBranch = await updateCompanyBranchById(
     companyBranchId,
-    updateData,
-    {
-      new: true,
-      runValidators: true,
-    }
+    updateData
   )
-    .populate('signature', 'path')
-    .lean()
 
   return updatedBranch
 }
 
 export const deleteCompanyBranch = async ({ companyBranchId }) => {
-  const branch = await CompanyBranchModel.findById(companyBranchId).lean()
+  const branch = await findCompanyBranchByIdRaw(companyBranchId)
   if (!branch) {
     throw new CustomError(
       statusCodes.notFound,
@@ -139,7 +136,7 @@ export const deleteCompanyBranch = async ({ companyBranchId }) => {
     )
   }
 
-  await CompanyBranchModel.findByIdAndDelete(companyBranchId)
+  await deleteCompanyBranchById(companyBranchId)
 
   return {
     deletedBranch: {

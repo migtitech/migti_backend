@@ -1,9 +1,15 @@
 import mongoose from 'mongoose'
-import VisitModel from '../../models/visit.model.js'
-import EmployeeModel from '../../models/employee.model.js'
-import AreaModel from '../../models/area.model.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
+import { findIndustryZoneByBranch } from '../../repository/area.repository.js'
+import { findEmployeeByIdAndBranch } from '../../repository/employee.repository.js'
+import {
+  countVisits,
+  createVisit as createVisitDoc,
+  findVisitByFilterLean,
+  findVisits,
+  updateVisitById,
+} from '../../repository/visit.repository.js'
 
 const startOfUtcDay = (yyyyMmDd) => {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(yyyyMmDd || '').trim())
@@ -91,17 +97,8 @@ export const createVisit = async ({
   created_by = null,
 }) => {
   const [zone, employee] = await Promise.all([
-    AreaModel.findOne({
-      _id: zoneId,
-      branchId,
-      isDeleted: false,
-      areaType: 'industry',
-    }).lean(),
-    EmployeeModel.findOne({
-      _id: employeeId,
-      branchId,
-      isDeleted: false,
-    }).lean(),
+    findIndustryZoneByBranch(zoneId, branchId),
+    findEmployeeByIdAndBranch(employeeId, branchId),
   ])
 
   if (!zone) {
@@ -126,7 +123,7 @@ export const createVisit = async ({
     .filter((id) => mongoose.Types.ObjectId.isValid(id))
     .map((id) => new mongoose.Types.ObjectId(id))
 
-  const doc = await VisitModel.create({
+  const doc = await createVisitDoc({
     branchId,
     zoneId,
     employeeId,
@@ -165,17 +162,9 @@ export const listVisits = async ({
     ...statusFilter,
     ...dateFilter,
   }
-  const totalItems = await VisitModel.countDocuments(filter)
+  const totalItems = await countVisits(filter)
 
-  const visits = await VisitModel.find(filter)
-    .populate('branchId', 'name location')
-    .populate('zoneId', 'name city areaType')
-    .populate('employeeId', 'name role')
-    .populate('industryIds', 'name')
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(limit)
-    .lean()
+  const visits = await findVisits(filter, skip, limit)
 
   const totalPages = Math.max(1, Math.ceil(totalItems / limit))
 
@@ -226,12 +215,12 @@ export const completeVisitWithRemark = async ({
     )
   }
 
-  const visit = await VisitModel.findOne({
+  const visit = await findVisitByFilterLean({
     _id: visitId,
     employeeId,
     isDeleted: false,
     ...branchFilter,
-  }).lean()
+  })
 
   if (!visit) {
     throw new CustomError(
@@ -241,14 +230,14 @@ export const completeVisitWithRemark = async ({
     )
   }
 
-  const updated = await VisitModel.findByIdAndUpdate(
+  const updated = await updateVisitById(
     visitId,
     {
       remark: trimmedRemark,
       status: 'completed',
     },
     { new: true, runValidators: true }
-  ).lean()
+  )
 
   return updated
 }

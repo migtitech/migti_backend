@@ -1,14 +1,37 @@
 import mongoose from 'mongoose'
-import QuotationModel, {
-  QUOTATION_STATUS,
-} from '../../models/quotation.model.js'
-import QuotationSnapshotModel from '../../models/quotationSnapshot.model.js'
-import QueryModel from '../../models/query.model.js'
+import { QUOTATION_STATUS } from '../../repository/quotation.repository.js'
+import quotationRepository, {
+  findQuotationProductsById,
+  findQuotationsProductsForSum,
+  findQuotationsForList,
+  findQuotationByIdWithDetails,
+  findQuotationByIdSelectQueryProducts,
+  findQuotationByIdSelectQueryId,
+  findQuotationByQueryIdWithPopulate,
+  findByIdAndUpdateQuotationWithPopulate,
+  findByIdAndUpdateQuotationStatus,
+} from '../../repository/quotation.repository.js'
+import {
+  countQuotationSnapshotsByQuotationId,
+  createQuotationSnapshot,
+  findQuotationSnapshotsByQuotationId,
+} from '../../repository/quotationSnapshot.repository.js'
+import {
+  appendConvertedQuotationOnQuery as appendConvertedQuotationOnQueryRepo,
+  pullConvertedQuotationFromQuery,
+  findQueryById,
+  findQueryIdsLean,
+} from '../../repository/query.repository.js'
+import { findCompanyBranchSignatureById } from '../../repository/companyBranch.repository.js'
+import {
+  aggregateQueryProductStatsByQueryIds,
+  PRO_BUCKET_STATUS,
+} from '../../repository/queryProduct.repository.js'
+import { distinctApprovedProCodes } from '../../repository/productlHodRates.repository.js'
 import CustomError from '../../utils/exception.js'
 import { getNextSequence } from '../codeSequence/codeSequence.service.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 import {
-  transformProductImagesToSigned,
   transformPathsToSignedUrls,
   signPathsInBatch,
 } from '../document/document.service.js'
@@ -18,7 +41,6 @@ import {
   RATE_MASTER_TYPE,
 } from '../rateMaster/rateMaster.service.js'
 import { autoAssignPurchaseTasksForQuotation } from '../purchaseTask/purchaseTask.service.js'
-import CompanyBranchModel from '../../models/companyBranch.model.js'
 import { getDocumentById, toDisplayPath } from '../document/document.service.js'
 import { captureRateLogsForProductChanges } from '../rateLog/rateLog.service.js'
 import {
@@ -26,12 +48,6 @@ import {
   getTerritoryIndustryIdsForUser,
 } from '../../core/helpers/queryAccess.js'
 import { listQueryProductDocuments } from '../queryProduct/queryProduct.service.js'
-import QueryProductModel, {
-  PRO_BUCKET_STATUS,
-} from '../../models/queryProduct.model.js'
-import ProductlHodRatesModel, {
-  PRODUCTL_HOD_RATE_STATUS,
-} from '../../models/productlHodRates.model.js'
 
 /** Persist quotation ref on the source query (deduped by quotationId). */
 export const appendConvertedQuotationOnQuery = async (
@@ -40,19 +56,10 @@ export const appendConvertedQuotationOnQuery = async (
   quotationCode = ''
 ) => {
   if (!queryId || !quotationId) return
-  await QueryModel.updateOne(
-    {
-      _id: queryId,
-      convertedQuotations: { $not: { $elemMatch: { quotationId } } },
-    },
-    {
-      $push: {
-        convertedQuotations: {
-          quotationId,
-          quotationCode: String(quotationCode || '').trim(),
-        },
-      },
-    }
+  await appendConvertedQuotationOnQueryRepo(
+    queryId,
+    quotationId,
+    quotationCode
   )
 }
 
@@ -125,11 +132,7 @@ export const checkProductsAllHaveHodApprovedRates = async (
 
   let approvedSet = approvedProCodesSet
   if (!approvedSet) {
-    const approvedCodes = await ProductlHodRatesModel.distinct('pro_code', {
-      pro_code: { $in: proCodes },
-      status: PRODUCTL_HOD_RATE_STATUS.HOD_APPROVED,
-      isDeleted: false,
-    })
+    const approvedCodes = await distinctApprovedProCodes(proCodes)
     approvedSet = new Set(approvedCodes.map(String))
   }
 
@@ -143,13 +146,11 @@ export const checkQuotationAllProductsHodRatesApproved = async ({
   quotationId,
   branchFilter = {},
 }) => {
-  const quotation = await QuotationModel.findOne({
+  const quotation = await findQuotationProductsById({
     _id: quotationId,
     isDeleted: false,
     ...branchFilter,
   })
-    .select('products')
-    .lean()
 
   if (!quotation) {
     throw new CustomError(
@@ -178,11 +179,7 @@ const enrichQuotationsWithHodRatesApproval = async (quotations = []) => {
 
   let approvedProCodesSet = new Set()
   if (allProCodes.size) {
-    const approvedCodes = await ProductlHodRatesModel.distinct('pro_code', {
-      pro_code: { $in: [...allProCodes] },
-      status: PRODUCTL_HOD_RATE_STATUS.HOD_APPROVED,
-      isDeleted: false,
-    })
+    const approvedCodes = await distinctApprovedProCodes([...allProCodes])
     approvedProCodesSet = new Set(approvedCodes.map(String))
   }
 
@@ -273,12 +270,12 @@ const createQuotationSnapshotOnHodApproval = async ({
       errorCodes.bad_request
     )
   }
-  const count = await QuotationSnapshotModel.countDocuments({ quotationId })
+  const count = await countQuotationSnapshotsByQuotationId(quotationId)
   const revision = count + 1
   const snapshotCode = `${baseCode}R${revision}`
   const payload = buildQuotationSnapshotPayload(quotationLean)
 
-  await QuotationSnapshotModel.create({
+  await createQuotationSnapshot({
     quotationId,
     revision,
     snapshotCode,
@@ -362,11 +359,11 @@ export const createQuotationFromQuery = async ({
   productsOverride,
   reuseExisting = true,
 }) => {
-  const query = await QueryModel.findOne({
+  const query = await findQueryById({
     _id: queryId,
     isDeleted: false,
     ...branchFilter,
-  }).lean()
+  })
 
   if (!query) {
     throw new CustomError(
@@ -377,11 +374,13 @@ export const createQuotationFromQuery = async ({
   }
 
   if (reuseExisting) {
-    const existingQuotation = await QuotationModel.findOne({
-      queryId: query._id,
-      isDeleted: false,
-      ...(branchId ? { branchId } : {}),
-    }).lean()
+    const existingQuotation = await quotationRepository
+      .findOne({
+        queryId: query._id,
+        isDeleted: false,
+        ...(branchId ? { branchId } : {}),
+      })
+      .lean()
 
     if (existingQuotation) {
       return existingQuotation
@@ -428,7 +427,7 @@ export const createQuotationFromQuery = async ({
     }
   })
 
-  const doc = await QuotationModel.create({
+  const doc = await quotationRepository.create({
     quotationCode,
     queryId: query._id,
     status: QUOTATION_STATUS.DRAFT,
@@ -600,13 +599,11 @@ export const listQuotations = async ({
         role,
         branchFilter,
       })
-      const queryIds = await QueryModel.find({
+      const queryIds = await findQueryIdsLean({
         isDeleted: false,
         ...branchFilter,
         ...accessFilter,
       })
-        .select('_id')
-        .lean()
       const ids = (queryIds || []).map((q) => q._id)
       filter.queryId = { $in: ids }
     }
@@ -629,21 +626,15 @@ export const listQuotations = async ({
     String(industryId).trim() &&
     mongoose.Types.ObjectId.isValid(industryId)
   ) {
-    const forSum = await QuotationModel.find(filter).select('products').lean()
+    const forSum = await findQuotationsProductsForSum(filter)
     totalAmountSum = forSum.reduce(
       (sum, q) => sum + computeTotalAmountFromProducts(q.products),
       0
     )
   }
 
-  const totalItemsPromise = QuotationModel.countDocuments(filter)
-  const quotationsPromise = QuotationModel.find(filter)
-    .populate('queryId', 'queryCode status')
-    .populate('industry_id', 'name location email')
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(limit)
-    .lean()
+  const totalItemsPromise = quotationRepository.countDocuments(filter)
+  const quotationsPromise = findQuotationsForList(filter, { skip, limit })
 
   const [totalItems, quotations] = await Promise.all([
     totalItemsPromise,
@@ -667,36 +658,9 @@ export const listQuotations = async ({
     const uniqueIds = [
       ...new Map(queryIdsOnPage.map((oid) => [String(oid), oid])).values(),
     ]
-    const agg = await QueryProductModel.aggregate([
-      {
-        $match: {
-          queryId: { $in: uniqueIds },
-          isDeleted: false,
-        },
-      },
-      {
-        $group: {
-          _id: '$queryId',
-          queryProductItemCount: { $sum: 1 },
-          queryProductRateSubmittedOrFulfilledCount: {
-            $sum: {
-              $cond: [
-                {
-                  $in: [
-                    '$status',
-                    [
-                      PRO_BUCKET_STATUS.RATE_SUBMITTED,
-                      PRO_BUCKET_STATUS.FULFILLED,
-                    ],
-                  ],
-                },
-                1,
-                0,
-              ],
-            },
-          },
-        },
-      },
+    const agg = await aggregateQueryProductStatsByQueryIds(uniqueIds, [
+      PRO_BUCKET_STATUS.RATE_SUBMITTED,
+      PRO_BUCKET_STATUS.FULFILLED,
     ])
     queryProductStatsByQueryId = new Map(
       agg.map((row) => [
@@ -758,37 +722,14 @@ export const getQuotationById = async ({
   skipHodRatesCheck = false,
   forPdf = false,
 }) => {
-  let quotationQuery = QuotationModel.findOne({
-    _id: quotationId,
-    isDeleted: false,
-    ...branchFilter,
-  })
-    .populate(
-      'queryId',
-      'queryCode status companyInfo industry_id products created_by branchId'
-    )
-    .populate(
-      'industry_id',
-      'name location address email purchase_manager_name purchase_manager_phone gstNumber'
-    )
-
-  if (!forPdf) {
-    quotationQuery = quotationQuery.populate('created_by', 'name email')
-  }
-
-  const quotation = await quotationQuery
-    .populate({
-      path: 'products.product_id',
-      select:
-        'name shortDescription images hsnNumber gstPercentage unit productCode companyProductCodes',
-      populate: { path: 'images', select: 'path', model: 'document' },
-    })
-    .populate({
-      path: 'products.images',
-      select: 'path',
-      model: 'document',
-    })
-    .lean()
+  const quotation = await findQuotationByIdWithDetails(
+    {
+      _id: quotationId,
+      isDeleted: false,
+      ...branchFilter,
+    },
+    { forPdf }
+  )
 
   if (!quotation) {
     throw new CustomError(
@@ -847,9 +788,7 @@ export const getQuotationById = async ({
     })()
 
     if (effectiveBranchId) {
-      const branch = await CompanyBranchModel.findById(effectiveBranchId)
-        .select('signature')
-        .lean()
+      const branch = await findCompanyBranchSignatureById(effectiveBranchId)
       const rawSig = branch?.signature
       const signatureId =
         rawSig == null
@@ -921,13 +860,11 @@ export const getProBucketLinesForQuotation = async ({
   isFullAccessRole: _isFullAccessRole = true,
   role: _role = '',
 }) => {
-  const quotation = await QuotationModel.findOne({
+  const quotation = await findQuotationByIdSelectQueryProducts({
     _id: quotationId,
     isDeleted: false,
     ...branchFilter,
   })
-    .select('queryId products')
-    .lean()
 
   if (!quotation) {
     throw new CustomError(
@@ -981,13 +918,11 @@ export const getQuotationLineProcurementRates = async ({
   isFullAccessRole = true,
   role = '',
 }) => {
-  const quotation = await QuotationModel.findOne({
+  const quotation = await findQuotationByIdSelectQueryId({
     _id: quotationId,
     isDeleted: false,
     ...branchFilter,
   })
-    .select('queryId')
-    .lean()
 
   if (!quotation) {
     throw new CustomError(
@@ -1030,11 +965,13 @@ export const listQuotationSnapshots = async ({
   isFullAccessRole: _isFullAccessRole = true,
   role: _role = '',
 }) => {
-  const existing = await QuotationModel.findOne({
-    _id: quotationId,
-    isDeleted: false,
-    ...branchFilter,
-  }).lean()
+  const existing = await quotationRepository
+    .findOne({
+      _id: quotationId,
+      isDeleted: false,
+      ...branchFilter,
+    })
+    .lean()
 
   if (!existing) {
     throw new CustomError(
@@ -1044,12 +981,7 @@ export const listQuotationSnapshots = async ({
     )
   }
 
-  const snapshots = await QuotationSnapshotModel.find({
-    quotationId: existing._id,
-  })
-    .sort({ revision: -1 })
-    .select('revision snapshotCode payload createdAt approvedBy')
-    .lean()
+  const snapshots = await findQuotationSnapshotsByQuotationId(existing._id)
 
   return { snapshots }
 }
@@ -1072,11 +1004,13 @@ export const updateQuotation = async ({
   isFullAccessRole: _isFullAccessRole = true,
   role: _role = '',
 }) => {
-  const existing = await QuotationModel.findOne({
-    _id: quotationId,
-    isDeleted: false,
-    ...branchFilter,
-  }).lean()
+  const existing = await quotationRepository
+    .findOne({
+      _id: quotationId,
+      isDeleted: false,
+      ...branchFilter,
+    })
+    .lean()
 
   if (!existing) {
     throw new CustomError(
@@ -1121,15 +1055,11 @@ export const updateQuotation = async ({
     updatePayload.status = computeStatusFromProducts(effectiveProducts || [])
   }
 
-  const updated = await QuotationModel.findByIdAndUpdate(
+  const updated = await findByIdAndUpdateQuotationWithPopulate(
     quotationId,
     updatePayload,
     { new: true, runValidators: true }
   )
-    .populate('queryId', 'queryCode status')
-    .populate('industry_id', 'name location email')
-    .populate({ path: 'products.images', select: 'path' })
-    .lean()
 
   if (updated?.products?.length) {
     for (const p of updated.products) {
@@ -1170,11 +1100,13 @@ export const updateQuotationStatus = async ({
   approvedBy = null,
   role: _role = '',
 }) => {
-  const existing = await QuotationModel.findOne({
-    _id: quotationId,
-    isDeleted: false,
-    ...branchFilter,
-  }).lean()
+  const existing = await quotationRepository
+    .findOne({
+      _id: quotationId,
+      isDeleted: false,
+      ...branchFilter,
+    })
+    .lean()
 
   if (!existing) {
     throw new CustomError(
@@ -1199,14 +1131,11 @@ export const updateQuotationStatus = async ({
 
   const previousStatus = existing.status
 
-  const updated = await QuotationModel.findByIdAndUpdate(
+  const updated = await findByIdAndUpdateQuotationStatus(
     quotationId,
     { $set: { status } },
     { new: true, runValidators: true }
   )
-    .populate('queryId', 'queryCode status')
-    .populate('industry_id', 'name location email')
-    .lean()
 
   if (
     status === QUOTATION_STATUS.HOD_APPROVED &&
@@ -1218,7 +1147,7 @@ export const updateQuotationStatus = async ({
         approvedBy: approvedBy || null,
       })
     } catch (err) {
-      await QuotationModel.findByIdAndUpdate(
+      await quotationRepository.findByIdAndUpdate(
         quotationId,
         { $set: { status: previousStatus } },
         { new: true, runValidators: true }
@@ -1249,34 +1178,34 @@ export const getQuotationByQueryId = async ({
       role,
       branchFilter,
     })
-    const sourceQuery = await QueryModel.findOne({
-      _id: queryId,
-      isDeleted: false,
-      ...branchFilter,
-      ...accessFilter,
-    })
-      .select('_id')
-      .lean()
+    const sourceQuery = await findQueryById(
+      {
+        _id: queryId,
+        isDeleted: false,
+        ...branchFilter,
+        ...accessFilter,
+      },
+      '_id'
+    )
     if (!sourceQuery) return null
   }
-  const quotation = await QuotationModel.findOne({
+  const quotation = await findQuotationByQueryIdWithPopulate({
     queryId,
     isDeleted: false,
     ...branchFilter,
   })
-    .populate('queryId', 'queryCode status')
-    .populate('industry_id', 'name location email')
-    .lean()
 
   return quotation || null
 }
 
 export const deleteQuotation = async ({ quotationId, branchFilter = {} }) => {
-  const existing = await QuotationModel.findOne({
-    _id: quotationId,
-    isDeleted: false,
-    ...branchFilter,
-  }).lean()
+  const existing = await quotationRepository
+    .findOne({
+      _id: quotationId,
+      isDeleted: false,
+      ...branchFilter,
+    })
+    .lean()
 
   if (!existing) {
     throw new CustomError(
@@ -1286,17 +1215,14 @@ export const deleteQuotation = async ({ quotationId, branchFilter = {} }) => {
     )
   }
 
-  await QuotationModel.findByIdAndUpdate(
+  await quotationRepository.findByIdAndUpdate(
     quotationId,
     { isDeleted: true },
     { new: true }
   )
 
   if (existing.queryId) {
-    await QueryModel.updateOne(
-      { _id: existing.queryId },
-      { $pull: { convertedQuotations: { quotationId: existing._id } } }
-    )
+    await pullConvertedQuotationFromQuery(existing.queryId, existing._id)
   }
 
   return {

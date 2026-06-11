@@ -1,9 +1,9 @@
 import mongoose from 'mongoose'
-import PoEntryModel from '../../models/poEntry.model.js'
-import BillingEntryModel from '../../models/billingEntry.model.js'
-import DocumentModel from '../../models/document.model.js'
-import IndustryModel from '../../models/industry.model.js'
-import EmployeeModel from '../../models/employee.model.js'
+import poEntryRepository from '../../repository/poEntry.repository.js'
+import billingEntryRepository from '../../repository/billingEntry.repository.js'
+import documentRepository from '../../repository/document.repository.js'
+import industryRepository from '../../repository/industry.repository.js'
+import employeeRepository from '../../repository/employee.repository.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 import { toDisplayPath } from '../document/document.service.js'
@@ -12,7 +12,7 @@ import { getTerritoryIndustryIdsForUser } from '../../core/helpers/queryAccess.j
 const normalizeAttachmentDocumentId = async (attachmentDocumentId) => {
   const id = attachmentDocumentId && String(attachmentDocumentId).trim()
   if (!id) return null
-  const doc = await DocumentModel.findById(id).lean()
+  const doc = await documentRepository.findById(id).lean()
   if (!doc) {
     throw new CustomError(
       statusCodes.badRequest,
@@ -122,7 +122,7 @@ const resolveSalespersonIdForIndustry = async ({
   if (branchId && mongoose.Types.ObjectId.isValid(String(branchId))) {
     industryFilter.branchId = new mongoose.Types.ObjectId(String(branchId))
   }
-  const industry = await IndustryModel.findOne(industryFilter)
+  const industry = await industryRepository.findOne(industryFilter)
     .select('area subZoneId branchId')
     .lean()
   if (!industry) {
@@ -154,7 +154,7 @@ const resolveSalespersonIdForIndustry = async ({
     )
   }
 
-  const emp = await EmployeeModel.findOne(empFilter)
+  const emp = await employeeRepository.findOne(empFilter)
     .select('_id')
     .sort({ name: 1 })
     .lean()
@@ -170,7 +170,7 @@ const resolveSalespersonIdForIndustry = async ({
 
 export const getPoBillingFormOptions = async ({ branchFilter = {} }) => {
   const filter = { isDeleted: false, ...branchFilter }
-  const companies = await IndustryModel.find(filter)
+  const companies = await industryRepository.find(filter)
     .select('_id name')
     .sort({ name: 1 })
     .lean()
@@ -211,7 +211,7 @@ export const createPoEntry = async ({
     mongoose.Types.ObjectId.isValid(String(purchaseOrderId).trim())
       ? String(purchaseOrderId).trim()
       : null
-  const doc = await PoEntryModel.create({
+  const doc = await poEntryRepository.create({
     poNumber: String(poNumber || '')
       .trim()
       .toUpperCase(),
@@ -327,20 +327,20 @@ export const upsertPoEntryLinkedToPurchaseOrder = async ({
     attachmentDocumentId,
   }
   const poOid = new mongoose.Types.ObjectId(String(purchaseOrder._id))
-  const existing = await PoEntryModel.findOne({
+  const existing = await poEntryRepository.findOne({
     purchaseOrderId: poOid,
     isDeleted: false,
   })
     .select('_id')
     .lean()
   if (existing?._id) {
-    await PoEntryModel.updateOne(
+    await poEntryRepository.updateOne(
       { _id: existing._id },
       { $set: { ...base, purchaseOrderId: poOid } }
     )
-    return PoEntryModel.findById(existing._id).lean()
+    return poEntryRepository.findById(existing._id).lean()
   }
-  const doc = await PoEntryModel.create({
+  const doc = await poEntryRepository.create({
     ...base,
     purchaseOrderId: poOid,
     entryDate: new Date(),
@@ -365,7 +365,7 @@ export const createBillingEntry = async ({
   const resolvedSalespersonId = trimmedSalesId
     ? trimmedSalesId
     : await resolveSalespersonIdForIndustry({ companyId, branchId })
-  const doc = await BillingEntryModel.create({
+  const doc = await billingEntryRepository.create({
     billingNumber: String(billingNumber || '')
       .trim()
       .toUpperCase(),
@@ -423,7 +423,7 @@ export const getPoBillingAnalytics = async ({
       const areaObjectIds = selectedAreaIds
         .filter((id) => mongoose.Types.ObjectId.isValid(id))
         .map((id) => new mongoose.Types.ObjectId(id))
-      const areaScopedIndustries = await IndustryModel.find({
+      const areaScopedIndustries = await industryRepository.find({
         isDeleted: false,
         ...branchFilter,
         area: { $in: [...selectedAreaIds, ...areaObjectIds] },
@@ -472,13 +472,13 @@ export const getPoBillingAnalytics = async ({
 
   const [totalPoCount, totalBillingCount, poAmountAgg, billingAmountAgg] =
     await Promise.all([
-      PoEntryModel.countDocuments(poFilter),
-      BillingEntryModel.countDocuments(billingFilter),
-      PoEntryModel.aggregate([
+      poEntryRepository.countDocuments(poFilter),
+      billingEntryRepository.countDocuments(billingFilter),
+      poEntryRepository.aggregate([
         { $match: poFilter },
         { $group: { _id: null, total: { $sum: '$amount' } } },
       ]),
-      BillingEntryModel.aggregate([
+      billingEntryRepository.aggregate([
         { $match: billingFilter },
         { $group: { _id: null, total: { $sum: '$amount' } } },
       ]),
@@ -487,7 +487,7 @@ export const getPoBillingAnalytics = async ({
   const poAmount = poAmountAgg?.[0]?.total || 0
   const billingAmount = billingAmountAgg?.[0]?.total || 0
 
-  const activeModel = tab === 'billing' ? BillingEntryModel : PoEntryModel
+  const activeModel = tab === 'billing' ? billingEntryRepository : poEntryRepository
   const activeFilter = tab === 'billing' ? billingFilter : poFilter
   const totalItems = tab === 'billing' ? totalBillingCount : totalPoCount
 

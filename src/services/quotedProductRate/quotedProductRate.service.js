@@ -1,5 +1,5 @@
-import QuotedProductRateModel from '../../models/quotedProductRate.model.js'
-import ProductModel from '../../models/product.model.js'
+import { bulkWriteQuotedProductRates } from '../../repository/quotedProductRate.repository.js'
+import { findProductsByIdsSelectProductCode } from '../../repository/product.repository.js'
 
 /**
  * Upsert quoted product rates snapshot for a quotation.
@@ -29,9 +29,7 @@ export const upsertQuotedRatesForQuotation = async ({ quotation }) => {
   const productCodeMap = new Map()
   if (productIdSet.size > 0) {
     const ids = Array.from(productIdSet)
-    const products = await ProductModel.find({ _id: { $in: ids } })
-      .select('_id productCode')
-      .lean()
+    const products = await findProductsByIdsSelectProductCode(ids)
     products.forEach((prod) => {
       productCodeMap.set(String(prod._id), prod.productCode || '')
     })
@@ -93,5 +91,5 @@ export const upsertQuotedRatesForQuotation = async ({ quotation }) => {
 
   if (ops.length === 0) return
 
-  await QuotedProductRateModel.bulkWrite(ops, { ordered: false })
+  await bulkWriteQuotedProductRates(ops, { ordered: false })
 }

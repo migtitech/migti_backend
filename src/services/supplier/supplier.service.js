@@ -1,5 +1,14 @@
-import SupplierModel from '../../models/supplier.model.js'
-import CategoryModel from '../../models/category.model.js'
+import {
+  createSupplier,
+  countSuppliers,
+  findSuppliersWithPopulate,
+  findSuppliersSelectFields,
+  findOneSupplierWithPopulate,
+  findOneSupplierLean,
+  findSupplierByIdAndUpdateWithPopulate,
+  deleteSupplierById,
+} from '../../repository/supplier.repository.js'
+import { countCategories } from '../../repository/category.repository.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 import { uploadToS3 } from '../../core/helpers/s3bucket.js'
@@ -28,7 +37,7 @@ const buildSupplierSearchFilter = (search = '') => {
 
 const ensureCategoriesExist = async (categoryIds) => {
   if (categoryIds.length === 0) return
-  const count = await CategoryModel.countDocuments({
+  const count = await countCategories({
     _id: { $in: categoryIds },
   })
   if (count !== categoryIds.length) {
@@ -45,7 +54,7 @@ export const addSupplier = async (data) => {
   await ensureCategoriesExist(categories)
 
   const { branchId, ...rest } = data
-  const supplier = await SupplierModel.create({
+  const supplier = await createSupplier({
     ...rest,
     categories,
     label: data.label || data.labal || '',
@@ -92,14 +101,9 @@ export const listSuppliers = async ({
     }
   }
 
-  const totalItems = await SupplierModel.countDocuments(filter)
+  const totalItems = await countSuppliers(filter)
 
-  const suppliers = await SupplierModel.find(filter)
-    .populate('categories', 'name slug')
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(limit)
-    .lean()
+  const suppliers = await findSuppliersWithPopulate(filter, { skip, limit })
 
   const totalPages = Math.ceil(totalItems / limit)
 
@@ -125,25 +129,17 @@ export const searchSuppliers = async ({
   const filter = { ...buildSupplierSearchFilter(search), ...branchFilter }
   const sort = search ? { name: 1 } : { createdAt: -1 }
 
-  const suppliers = await SupplierModel.find(filter)
-    .select(
-      'name shopname email phone_1 phone_2 other_contact label shop_location'
-    )
-    .sort(sort)
-    .limit(take)
-    .lean()
+  const suppliers = await findSuppliersSelectFields(filter, { sort, limit: take })
 
   return { suppliers }
 }
 
 export const getSupplierById = async ({ supplierId, branchFilter = {} }) => {
-  const supplier = await SupplierModel.findOne({
+  const supplier = await findOneSupplierWithPopulate({
     _id: supplierId,
     isDeleted: false,
     ...branchFilter,
   })
-    .populate('categories', 'name slug')
-    .lean()
 
   if (!supplier) {
     throw new CustomError(
@@ -170,11 +166,11 @@ export const uploadSupplierCatalog = async (
   { supplierId, branchFilter = {} },
   file
 ) => {
-  const supplier = await SupplierModel.findOne({
+  const supplier = await findOneSupplierLean({
     _id: supplierId,
     isDeleted: false,
     ...branchFilter,
-  }).lean()
+  })
   if (!supplier) {
     throw new CustomError(
       statusCodes.notFound,
@@ -209,13 +205,9 @@ export const uploadSupplierCatalog = async (
     uploadedAt,
   }
 
-  const updated = await SupplierModel.findByIdAndUpdate(
-    supplierId,
-    { catalog },
-    { new: true, runValidators: true }
-  )
-    .populate('categories', 'name slug')
-    .lean()
+  const updated = await findSupplierByIdAndUpdateWithPopulate(supplierId, {
+    catalog,
+  })
 
   return updated
 }
@@ -225,11 +217,11 @@ export const updateSupplier = async ({
   branchFilter = {},
   ...updateData
 }) => {
-  const supplier = await SupplierModel.findOne({
+  const supplier = await findOneSupplierLean({
     _id: supplierId,
     isDeleted: false,
     ...branchFilter,
-  }).lean()
+  })
   if (!supplier) {
     throw new CustomError(
       statusCodes.notFound,
@@ -250,26 +242,20 @@ export const updateSupplier = async ({
     await ensureCategoriesExist(allowedUpdate.categories)
   }
 
-  const updated = await SupplierModel.findByIdAndUpdate(
+  const updated = await findSupplierByIdAndUpdateWithPopulate(
     supplierId,
-    allowedUpdate,
-    {
-      new: true,
-      runValidators: true,
-    }
+    allowedUpdate
   )
-    .populate('categories', 'name slug')
-    .lean()
 
   return updated
 }
 
 export const deleteSupplier = async ({ supplierId, branchFilter = {} }) => {
-  const supplier = await SupplierModel.findOne({
+  const supplier = await findOneSupplierLean({
     _id: supplierId,
     isDeleted: false,
     ...branchFilter,
-  }).lean()
+  })
   if (!supplier) {
     throw new CustomError(
       statusCodes.notFound,
@@ -278,7 +264,7 @@ export const deleteSupplier = async ({ supplierId, branchFilter = {} }) => {
     )
   }
 
-  await SupplierModel.findByIdAndDelete(supplierId)
+  await deleteSupplierById(supplierId)
 
   return {
     deletedSupplier: {

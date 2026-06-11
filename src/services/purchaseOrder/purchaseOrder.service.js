@@ -1,18 +1,18 @@
 import mongoose from 'mongoose'
-import PurchaseOrderModel, {
+import purchaseOrderRepository, {
   PURCHASE_ORDER_STATUS,
   PO_PAYMENT_RECEIVED_STATUS,
-} from '../../models/purchaseOrder.model.js'
-import PoPaymentModel from '../../models/poPayment.model.js'
-import PoEntryModel from '../../models/poEntry.model.js'
-import QuotationModel, {
+} from '../../repository/purchaseOrder.repository.js'
+import poPaymentRepository from '../../repository/poPayment.repository.js'
+import poEntryRepository from '../../repository/poEntry.repository.js'
+import quotationRepository, {
   QUOTATION_STATUS,
-} from '../../models/quotation.model.js'
-import QueryProductModel from '../../models/queryProduct.model.js'
-import PoProductModel, {
+} from '../../repository/quotation.repository.js'
+import queryProductRepository from '../../repository/queryProduct.repository.js'
+import poProductRepository, {
   PO_PRODUCT_PROCUREMENT_STATUS,
   resolvePoProductLineStatus,
-} from '../../models/poProduct.model.js'
+} from '../../repository/poProduct.repository.js'
 import CustomError from '../../utils/exception.js'
 import { getNextSequence } from '../codeSequence/codeSequence.service.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
@@ -20,7 +20,7 @@ import {
   transformProductImagesToSigned,
   transformPathsToSignedUrls,
 } from '../document/document.service.js'
-import CompanyBranchModel from '../../models/companyBranch.model.js'
+import companyBranchRepository from '../../repository/companyBranch.repository.js'
 import { getDocumentById, toDisplayPath } from '../document/document.service.js'
 import { computeTotalAmountFromProducts } from '../quotation/quotation.service.js'
 import {
@@ -160,7 +160,7 @@ const syncPoEntryAfterPurchaseOrderLean = async (poLean, created_by = null) => {
     const { upsertPoEntryLinkedToPurchaseOrder } = await import(
       '../poBilling/poBilling.service.js'
     )
-    const poPayUp = await PoPaymentModel.findOne({
+    const poPayUp = await poPaymentRepository.findOne({
       purchaseOrderId: poLean._id,
       isDeleted: false,
     }).lean()
@@ -297,7 +297,7 @@ const syncPoProductsFromPurchaseOrder = async (poDoc) => {
 
   const queryProductRows =
     queryId && rawCodes.length
-      ? await QueryProductModel.find({
+      ? await queryProductRepository.find({
           queryId,
           isDeleted: false,
           rawProductCode: { $in: rawCodes },
@@ -314,7 +314,7 @@ const syncPoProductsFromPurchaseOrder = async (poDoc) => {
     queryProductMap.get(code).push(row)
   }
 
-  const existingProcurement = await PoProductModel.find({
+  const existingProcurement = await poProductRepository.find({
     purchaseOrderId: poId,
   })
     .select(
@@ -340,7 +340,7 @@ const syncPoProductsFromPurchaseOrder = async (poDoc) => {
     ])
   )
 
-  await PoProductModel.deleteMany({ purchaseOrderId: poId })
+  await poProductRepository.deleteMany({ purchaseOrderId: poId })
   if (!products.length) return
 
   const docs = products.map((product, index) => {
@@ -430,7 +430,7 @@ const syncPoProductsFromPurchaseOrder = async (poDoc) => {
     }
   })
 
-  await PoProductModel.insertMany(docs)
+  await poProductRepository.insertMany(docs)
 }
 
 const assertQuotationAccess = async () => {
@@ -446,7 +446,7 @@ export const createPurchaseOrderFromQuotation = async ({
   reuseExisting = true,
   role = '',
 }) => {
-  const quotation = await QuotationModel.findOne({
+  const quotation = await quotationRepository.findOne({
     _id: quotationId,
     isDeleted: false,
     ...branchFilter,
@@ -479,7 +479,7 @@ export const createPurchaseOrderFromQuotation = async ({
   }
 
   if (reuseExisting) {
-    const existing = await PurchaseOrderModel.findOne({
+    const existing = await purchaseOrderRepository.findOne({
       quotationId: quotation._id,
       isDeleted: false,
     }).lean()
@@ -495,7 +495,7 @@ export const createPurchaseOrderFromQuotation = async ({
   const poCode = formatPoCode(numericCode, companyName)
   const products = cloneProductsFromQuotation(quotation.products || [])
 
-  const doc = await PurchaseOrderModel.create({
+  const doc = await purchaseOrderRepository.create({
     poCode,
     quotationId: quotation._id,
     queryId: quotation.queryId,
@@ -525,7 +525,7 @@ export const getPurchaseOrderByQuotationId = async ({
   currentUserId = null,
   isFullAccessRole = true,
 }) => {
-  const quotation = await QuotationModel.findOne({
+  const quotation = await quotationRepository.findOne({
     _id: quotationId,
     isDeleted: false,
     ...branchFilter,
@@ -548,7 +548,7 @@ export const getPurchaseOrderByQuotationId = async ({
     isFullAccessRole,
   })
 
-  const po = await PurchaseOrderModel.findOne({
+  const po = await purchaseOrderRepository.findOne({
     quotationId,
     isDeleted: false,
     ...branchFilter,
@@ -574,7 +574,7 @@ export const listPoProductLinesForPurchaseOrder = async ({
   } else {
     filter.poCode = String(poCode || '').trim()
   }
-  const po = await PurchaseOrderModel.findOne(filter)
+  const po = await purchaseOrderRepository.findOne(filter)
     .select('_id poCode')
     .lean()
   if (!po) {
@@ -584,7 +584,7 @@ export const listPoProductLinesForPurchaseOrder = async ({
       errorCodes.not_found
     )
   }
-  const rawLines = await PoProductModel.find({
+  const rawLines = await poProductRepository.find({
     purchaseOrderId: po._id,
     isDeleted: false,
   })
@@ -684,7 +684,7 @@ export const listPoProductLinesForPurchaseOrder = async ({
  */
 const loadPoProductLineStatusesForOrder = async (purchaseOrderId) => {
   if (!purchaseOrderId) return []
-  const lines = await PoProductModel.find({
+  const lines = await poProductRepository.find({
     purchaseOrderId,
     isDeleted: false,
   })
@@ -762,9 +762,9 @@ export const listPurchaseOrders = async ({
     ]
   }
 
-  const totalItems = await PurchaseOrderModel.countDocuments(filter)
+  const totalItems = await purchaseOrderRepository.countDocuments(filter)
 
-  const rows = await PurchaseOrderModel.find(filter)
+  const rows = await purchaseOrderRepository.find(filter)
     .populate('quotationId', 'quotationCode status')
     .populate('queryId', 'queryCode status')
     .populate('industry_id', 'name location email')
@@ -778,7 +778,7 @@ export const listPurchaseOrders = async ({
   const ids = rows.map((r) => r._id).filter(Boolean)
   const payRows =
     ids.length > 0
-      ? await PoPaymentModel.find({
+      ? await poPaymentRepository.find({
           purchaseOrderId: { $in: ids },
           isDeleted: false,
         }).lean()
@@ -854,9 +854,9 @@ export const listMyAssignedPurchaseOrders = async ({
     ]
   }
 
-  const totalItems = await PurchaseOrderModel.countDocuments(filter)
+  const totalItems = await purchaseOrderRepository.countDocuments(filter)
 
-  const rows = await PurchaseOrderModel.find(filter)
+  const rows = await purchaseOrderRepository.find(filter)
     .populate('quotationId', 'quotationCode status')
     .populate('queryId', 'queryCode status')
     .populate('industry_id', 'name location email')
@@ -870,7 +870,7 @@ export const listMyAssignedPurchaseOrders = async ({
   const ids = rows.map((r) => r._id).filter(Boolean)
   const payRows =
     ids.length > 0
-      ? await PoPaymentModel.find({
+      ? await poPaymentRepository.find({
           purchaseOrderId: { $in: ids },
           isDeleted: false,
         }).lean()
@@ -911,7 +911,7 @@ export const getPurchaseOrderById = async ({
   currentUserId: _currentUserId = null,
   isFullAccessRole: _isFullAccessRole = true,
 }) => {
-  const po = await PurchaseOrderModel.findOne({
+  const po = await purchaseOrderRepository.findOne({
     _id: purchaseOrderId,
     isDeleted: false,
     ...branchFilter,
@@ -972,7 +972,7 @@ export const getPurchaseOrderById = async ({
   }
 
   if (po.branchId) {
-    const branch = await CompanyBranchModel.findById(po.branchId)
+    const branch = await companyBranchRepository.findById(po.branchId)
       .select('signature')
       .lean()
     const signatureId = branch?.signature ? String(branch.signature) : ''
@@ -987,7 +987,7 @@ export const getPurchaseOrderById = async ({
     }
   }
 
-  const poPay = await PoPaymentModel.findOne({
+  const poPay = await poPaymentRepository.findOne({
     purchaseOrderId: po._id,
     isDeleted: false,
   })
@@ -1009,7 +1009,7 @@ export const getPurchaseOrderById = async ({
   po.financials = computePurchaseOrderFinancials(po, poPay)
   po.poPayment = poPay || null
 
-  const poEntry = await PoEntryModel.findOne({
+  const poEntry = await poEntryRepository.findOne({
     purchaseOrderId: po._id,
     isDeleted: false,
   })
@@ -1048,7 +1048,7 @@ export const appendPoPaymentLedger = async ({
   currentUserId: _currentUserId = null,
   isFullAccessRole: _isFullAccessRole = true,
 }) => {
-  const existing = await PurchaseOrderModel.findOne({
+  const existing = await purchaseOrderRepository.findOne({
     _id: purchaseOrderId,
     isDeleted: false,
     ...branchFilter,
@@ -1083,7 +1083,7 @@ export const appendPoPaymentLedger = async ({
         : null,
   }
 
-  const poPayDoc = await PoPaymentModel.findOne({
+  const poPayDoc = await poPaymentRepository.findOne({
     purchaseOrderId,
     isDeleted: false,
   })
@@ -1099,23 +1099,23 @@ export const appendPoPaymentLedger = async ({
       recordedBy: null,
     }))
     const ledgers = [...migrated, newEntry]
-    await PoPaymentModel.create({
+    await poPaymentRepository.create({
       purchaseOrderId,
       ledgers,
     })
     if (migrated.length > 0) {
-      await PurchaseOrderModel.findByIdAndUpdate(purchaseOrderId, {
+      await purchaseOrderRepository.findByIdAndUpdate(purchaseOrderId, {
         $set: { payments: [] },
       })
     }
   } else {
-    await PoPaymentModel.findByIdAndUpdate(poPayDoc._id, {
+    await poPaymentRepository.findByIdAndUpdate(poPayDoc._id, {
       $push: { ledgers: newEntry },
     })
   }
 
-  const freshPo = await PurchaseOrderModel.findById(purchaseOrderId).lean()
-  const finPay = await PoPaymentModel.findOne({
+  const freshPo = await purchaseOrderRepository.findById(purchaseOrderId).lean()
+  const finPay = await poPaymentRepository.findOne({
     purchaseOrderId,
     isDeleted: false,
   }).lean()
@@ -1124,10 +1124,10 @@ export const appendPoPaymentLedger = async ({
   const snapshot = buildPoSnapshotFromPo(freshPo, finPay)
 
   await Promise.all([
-    PurchaseOrderModel.findByIdAndUpdate(purchaseOrderId, {
+    purchaseOrderRepository.findByIdAndUpdate(purchaseOrderId, {
       $set: { paymentReceivedStatus: payStatus },
     }),
-    PoPaymentModel.findOneAndUpdate(
+    poPaymentRepository.findOneAndUpdate(
       { purchaseOrderId, isDeleted: false },
       { $set: { poSnapshot: snapshot, snapshotAt: new Date() } }
     ),
@@ -1153,7 +1153,7 @@ export const appendPurchaseOrderPayment = async ({
   currentUserId: _currentUserId = null,
   isFullAccessRole: _isFullAccessRole = true,
 }) => {
-  const existing = await PurchaseOrderModel.findOne({
+  const existing = await purchaseOrderRepository.findOne({
     _id: purchaseOrderId,
     isDeleted: false,
     ...branchFilter,
@@ -1184,7 +1184,7 @@ export const appendPurchaseOrderPayment = async ({
     )
   }
 
-  const hasPoPay = await PoPaymentModel.findOne({
+  const hasPoPay = await poPaymentRepository.findOne({
     purchaseOrderId,
     isDeleted: false,
   })
@@ -1209,7 +1209,7 @@ export const appendPurchaseOrderPayment = async ({
     remark: String(remark || '').trim(),
   }
 
-  const updated = await PurchaseOrderModel.findByIdAndUpdate(
+  const updated = await purchaseOrderRepository.findByIdAndUpdate(
     purchaseOrderId,
     { $push: { payments: entry } },
     { new: true, runValidators: true }
@@ -1232,7 +1232,7 @@ export const appendPurchaseOrderPayment = async ({
 
   const financials = computePurchaseOrderFinancials(updated, null)
   const payStatus = resolvePaymentReceivedStatus(financials)
-  await PurchaseOrderModel.findByIdAndUpdate(purchaseOrderId, {
+  await purchaseOrderRepository.findByIdAndUpdate(purchaseOrderId, {
     $set: { paymentReceivedStatus: payStatus },
   })
   updated.paymentReceivedStatus = payStatus
@@ -1264,7 +1264,7 @@ export const updatePurchaseOrder = async ({
   currentUserId: _currentUserId = null,
   isFullAccessRole: _isFullAccessRole = true,
 }) => {
-  const existing = await PurchaseOrderModel.findOne({
+  const existing = await purchaseOrderRepository.findOne({
     _id: purchaseOrderId,
     isDeleted: false,
     ...branchFilter,
@@ -1324,7 +1324,7 @@ export const updatePurchaseOrder = async ({
       toAttachmentDocumentId(attachmentDocumentId)
   }
 
-  const updated = await PurchaseOrderModel.findByIdAndUpdate(
+  const updated = await purchaseOrderRepository.findByIdAndUpdate(
     purchaseOrderId,
     updatePayload,
     {
@@ -1362,14 +1362,14 @@ export const updatePurchaseOrder = async ({
   }
 
   if (updated) {
-    const poPayUp = await PoPaymentModel.findOne({
+    const poPayUp = await poPaymentRepository.findOne({
       purchaseOrderId: updated._id,
       isDeleted: false,
     }).lean()
     updated.financials = computePurchaseOrderFinancials(updated, poPayUp)
     const payUp = resolvePaymentReceivedStatus(updated.financials)
     if (String(updated.paymentReceivedStatus || '') !== payUp) {
-      await PurchaseOrderModel.findByIdAndUpdate(purchaseOrderId, {
+      await purchaseOrderRepository.findByIdAndUpdate(purchaseOrderId, {
         $set: { paymentReceivedStatus: payUp },
       })
       updated.paymentReceivedStatus = payUp
@@ -1389,7 +1389,7 @@ export const updatePurchaseOrderStatus = async ({
   currentUserId: _currentUserId = null,
   isFullAccessRole: _isFullAccessRole = true,
 }) => {
-  const existing = await PurchaseOrderModel.findOne({
+  const existing = await purchaseOrderRepository.findOne({
     _id: purchaseOrderId,
     isDeleted: false,
     ...branchFilter,
@@ -1411,7 +1411,7 @@ export const updatePurchaseOrderStatus = async ({
     )
   }
 
-  const updated = await PurchaseOrderModel.findByIdAndUpdate(
+  const updated = await purchaseOrderRepository.findByIdAndUpdate(
     purchaseOrderId,
     { $set: { status } },
     { new: true, runValidators: true }
@@ -1429,7 +1429,7 @@ export const approvePurchaseOrderAsHod = async ({
   purchaseOrderId,
   branchFilter = {},
 }) => {
-  const existing = await PurchaseOrderModel.findOne({
+  const existing = await purchaseOrderRepository.findOne({
     _id: purchaseOrderId,
     isDeleted: false,
     ...branchFilter,
@@ -1460,14 +1460,14 @@ export const approvePurchaseOrderAsHod = async ({
   }
 
   if (String(existing.status || '') === PURCHASE_ORDER_STATUS.HOD_APPROVED) {
-    return PurchaseOrderModel.findById(purchaseOrderId)
+    return purchaseOrderRepository.findById(purchaseOrderId)
       .populate('quotationId', 'quotationCode status')
       .populate('queryId', 'queryCode status')
       .populate('industry_id', 'name location email')
       .lean()
   }
 
-  const updated = await PurchaseOrderModel.findByIdAndUpdate(
+  const updated = await purchaseOrderRepository.findByIdAndUpdate(
     purchaseOrderId,
     { $set: { status: PURCHASE_ORDER_STATUS.HOD_APPROVED } },
     { new: true, runValidators: true }
@@ -1512,7 +1512,7 @@ export const closePurchaseOrderAsHod = async ({
   purchaseOrderId,
   branchFilter = {},
 }) => {
-  const existing = await PurchaseOrderModel.findOne({
+  const existing = await purchaseOrderRepository.findOne({
     _id: purchaseOrderId,
     isDeleted: false,
     ...branchFilter,
@@ -1535,7 +1535,7 @@ export const closePurchaseOrderAsHod = async ({
   }
 
   if (String(existing.status || '') === PURCHASE_ORDER_STATUS.CLOSED) {
-    await PoProductModel.updateMany(
+    await poProductRepository.updateMany(
       {
         purchaseOrderId,
         isDeleted: false,
@@ -1547,20 +1547,20 @@ export const closePurchaseOrderAsHod = async ({
         },
       }
     )
-    return PurchaseOrderModel.findById(purchaseOrderId)
+    return purchaseOrderRepository.findById(purchaseOrderId)
       .populate('quotationId', 'quotationCode status')
       .populate('queryId', 'queryCode status')
       .populate('industry_id', 'name location email')
       .lean()
   }
 
-  await PurchaseOrderModel.findByIdAndUpdate(
+  await purchaseOrderRepository.findByIdAndUpdate(
     purchaseOrderId,
     { $set: { status: PURCHASE_ORDER_STATUS.CLOSED } },
     { new: true, runValidators: true }
   )
 
-  await PoProductModel.updateMany(
+  await poProductRepository.updateMany(
     {
       purchaseOrderId,
       isDeleted: false,
@@ -1573,7 +1573,7 @@ export const closePurchaseOrderAsHod = async ({
     }
   )
 
-  const updated = await PurchaseOrderModel.findById(purchaseOrderId)
+  const updated = await purchaseOrderRepository.findById(purchaseOrderId)
     .populate('quotationId', 'quotationCode status')
     .populate('queryId', 'queryCode status')
     .populate('industry_id', 'name location email')

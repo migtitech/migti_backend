@@ -1,5 +1,13 @@
-import AreaModel from '../../models/area.model.js'
-import CompanyBranchModel from '../../models/companyBranch.model.js'
+import {
+  findOneAreaLean,
+  createArea,
+  countAreas,
+  findAreasWithPopulate,
+  findAreaByIdWithDetailPopulate,
+  findAreaByIdAndUpdateWithPopulate,
+  deleteAreaById,
+} from '../../repository/area.repository.js'
+import { findOneCompanyBranchLean } from '../../repository/companyBranch.repository.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 
@@ -7,10 +15,10 @@ export const addArea = async (data) => {
   const companyId = data.companyId
   const branchId = data.branchId
 
-  const branch = await CompanyBranchModel.findOne({
+  const branch = await findOneCompanyBranchLean({
     _id: branchId,
     companyId,
-  }).lean()
+  })
   if (!branch) {
     throw new CustomError(
       statusCodes.badRequest,
@@ -19,12 +27,12 @@ export const addArea = async (data) => {
     )
   }
 
-  const existing = await AreaModel.findOne({
+  const existing = await findOneAreaLean({
     companyId,
     branchId,
     name: data.name,
     isDeleted: false,
-  }).lean()
+  })
 
   if (existing) {
     throw new CustomError(
@@ -34,7 +42,7 @@ export const addArea = async (data) => {
     )
   }
 
-  const area = await AreaModel.create(data)
+  const area = await createArea(data)
   return area.toObject()
 }
 
@@ -72,15 +80,9 @@ export const listAreas = async ({
     filter.areaType = areaType
   }
 
-  const totalItems = await AreaModel.countDocuments(filter)
+  const totalItems = await countAreas(filter)
 
-  const areas = await AreaModel.find(filter)
-    .populate('companyId', 'name')
-    .populate('branchId', 'name location')
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(limit)
-    .lean()
+  const areas = await findAreasWithPopulate(filter, { skip, limit })
 
   const totalPages = Math.ceil(totalItems / limit)
 
@@ -98,10 +100,7 @@ export const listAreas = async ({
 }
 
 export const getAreaById = async ({ areaId, branchFilter = {} }) => {
-  const area = await AreaModel.findOne({ _id: areaId, ...branchFilter })
-    .populate('companyId', 'name email')
-    .populate('branchId', 'name location branchcode')
-    .lean()
+  const area = await findAreaByIdWithDetailPopulate({ _id: areaId, ...branchFilter })
 
   if (!area) {
     throw new CustomError(
@@ -119,7 +118,7 @@ export const updateArea = async ({
   branchFilter = {},
   ...updateData
 }) => {
-  const area = await AreaModel.findOne({ _id: areaId, ...branchFilter }).lean()
+  const area = await findOneAreaLean({ _id: areaId, ...branchFilter })
 
   if (!area) {
     throw new CustomError(
@@ -129,19 +128,13 @@ export const updateArea = async ({
     )
   }
 
-  const updated = await AreaModel.findByIdAndUpdate(areaId, updateData, {
-    new: true,
-    runValidators: true,
-  })
-    .populate('companyId', 'name')
-    .populate('branchId', 'name location')
-    .lean()
+  const updated = await findAreaByIdAndUpdateWithPopulate(areaId, updateData)
 
   return updated
 }
 
 export const deleteArea = async ({ areaId, branchFilter = {} }) => {
-  const area = await AreaModel.findOne({ _id: areaId, ...branchFilter }).lean()
+  const area = await findOneAreaLean({ _id: areaId, ...branchFilter })
 
   if (!area) {
     throw new CustomError(
@@ -151,7 +144,7 @@ export const deleteArea = async ({ areaId, branchFilter = {} }) => {
     )
   }
 
-  await AreaModel.findByIdAndDelete(areaId)
+  await deleteAreaById(areaId)
 
   return {
     deletedArea: {

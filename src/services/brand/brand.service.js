@@ -1,5 +1,15 @@
-import BrandModel from '../../models/brand.model.js'
-import ProductModel from '../../models/product.model.js'
+import {
+  findBrandBySlug,
+  findBrandBySlugExcludingId,
+  findActiveBrandByName,
+  createBrand,
+  countBrands,
+  findBrands,
+  findBrandById,
+  updateBrandById,
+  deleteBrandById,
+} from '../../repository/brand.repository.js'
+import { countProductsByBrand } from '../../repository/product.repository.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 import { generateSlug, generateUniqueSlug } from '../../utils/slugGenerator.js'
@@ -7,13 +17,10 @@ import { generateSlug, generateUniqueSlug } from '../../utils/slugGenerator.js'
 export const addBrand = async (data) => {
   const baseSlug = generateSlug(data.name)
   const slug = await generateUniqueSlug(baseSlug, async (s) => {
-    return await BrandModel.findOne({ slug: s })
+    return await findBrandBySlug(s)
   })
 
-  const existing = await BrandModel.findOne({
-    name: data.name,
-    isDeleted: false,
-  }).lean()
+  const existing = await findActiveBrandByName(data.name)
   if (existing) {
     throw new CustomError(
       statusCodes.conflict,
@@ -22,7 +29,7 @@ export const addBrand = async (data) => {
     )
   }
 
-  const brand = await BrandModel.create({ ...data, slug })
+  const brand = await createBrand({ ...data, slug })
   return brand.toObject()
 }
 
@@ -49,13 +56,9 @@ export const listBrands = async ({
     filter.status = status
   }
 
-  const totalItems = await BrandModel.countDocuments(filter)
+  const totalItems = await countBrands(filter)
 
-  const brands = await BrandModel.find(filter)
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(limit)
-    .lean()
+  const brands = await findBrands(filter, { skip, limit })
 
   const totalPages = Math.ceil(totalItems / limit)
 
@@ -73,7 +76,7 @@ export const listBrands = async ({
 }
 
 export const getBrandById = async ({ brandId }) => {
-  const brand = await BrandModel.findById(brandId).lean()
+  const brand = await findBrandById(brandId)
 
   if (!brand) {
     throw new CustomError(
@@ -87,7 +90,7 @@ export const getBrandById = async ({ brandId }) => {
 }
 
 export const updateBrand = async ({ brandId, ...updateData }) => {
-  const brand = await BrandModel.findById(brandId).lean()
+  const brand = await findBrandById(brandId)
   if (!brand) {
     throw new CustomError(
       statusCodes.notFound,
@@ -99,20 +102,17 @@ export const updateBrand = async ({ brandId, ...updateData }) => {
   if (updateData.name && updateData.name !== brand.name) {
     const baseSlug = generateSlug(updateData.name)
     updateData.slug = await generateUniqueSlug(baseSlug, async (s) => {
-      return await BrandModel.findOne({ slug: s, _id: { $ne: brandId } })
+      return await findBrandBySlugExcludingId(s, brandId)
     })
   }
 
-  const updated = await BrandModel.findByIdAndUpdate(brandId, updateData, {
-    new: true,
-    runValidators: true,
-  }).lean()
+  const updated = await updateBrandById(brandId, updateData)
 
   return updated
 }
 
 export const deleteBrand = async ({ brandId }) => {
-  const brand = await BrandModel.findById(brandId).lean()
+  const brand = await findBrandById(brandId)
   if (!brand) {
     throw new CustomError(
       statusCodes.notFound,
@@ -121,10 +121,7 @@ export const deleteBrand = async ({ brandId }) => {
     )
   }
 
-  const productCount = await ProductModel.countDocuments({
-    brand: brandId,
-    isDeleted: false,
-  })
+  const productCount = await countProductsByBrand(brandId)
   if (productCount > 0) {
     throw new CustomError(
       statusCodes.conflict,
@@ -133,7 +130,7 @@ export const deleteBrand = async ({ brandId }) => {
     )
   }
 
-  await BrandModel.findByIdAndDelete(brandId)
+  await deleteBrandById(brandId)
 
   return {
     deletedBrand: {

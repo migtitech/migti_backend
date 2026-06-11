@@ -1,4 +1,13 @@
-import CompanyModel from '../../models/company.model.js'
+import {
+  findCompanyByEmail,
+  createCompany,
+  countCompanies,
+  findCompanies,
+  findCompanyById,
+  findCompanyByIdRaw,
+  updateCompanyById,
+  deleteCompanyById,
+} from '../../repository/company.repository.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 
@@ -17,7 +26,7 @@ export const addCompany = async ({
   website = '',
   isActive = true,
 }) => {
-  const existingCompany = await CompanyModel.findOne({ email }).lean()
+  const existingCompany = await findCompanyByEmail(email)
   if (existingCompany) {
     throw new CustomError(
       statusCodes.conflict,
@@ -26,7 +35,7 @@ export const addCompany = async ({
     )
   }
 
-  const companyDoc = await CompanyModel.create({
+  const companyDoc = await createCompany({
     name,
     logoUrl: logoUrl || DEFAULT_LOGO_URL,
     email,
@@ -65,14 +74,9 @@ export const listCompanies = async ({
     ]
   }
 
-  const totalItems = await CompanyModel.countDocuments(filter)
+  const totalItems = await countCompanies(filter)
 
-  const companies = await CompanyModel.find(filter)
-    .select('-password')
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(limit)
-    .lean()
+  const companies = await findCompanies(filter, { skip, limit })
 
   const totalPages = Math.ceil(totalItems / limit)
   const hasNextPage = page < totalPages
@@ -92,9 +96,7 @@ export const listCompanies = async ({
 }
 
 export const getCompanyById = async ({ companyId }) => {
-  const company = await CompanyModel.findById(companyId)
-    .select('-password')
-    .lean()
+  const company = await findCompanyById(companyId)
 
   if (!company) {
     throw new CustomError(
@@ -108,7 +110,7 @@ export const getCompanyById = async ({ companyId }) => {
 }
 
 export const updateCompany = async ({ companyId, ...updateData }) => {
-  const company = await CompanyModel.findById(companyId).lean()
+  const company = await findCompanyByIdRaw(companyId)
   if (!company) {
     throw new CustomError(
       statusCodes.notFound,
@@ -150,22 +152,13 @@ export const updateCompany = async ({ companyId, ...updateData }) => {
     delete updateData.isActive
   }
 
-  const updatedCompany = await CompanyModel.findByIdAndUpdate(
-    companyId,
-    updateData,
-    {
-      new: true,
-      runValidators: true,
-    }
-  )
-    .select('-password')
-    .lean()
+  const updatedCompany = await updateCompanyById(companyId, updateData)
 
   return updatedCompany
 }
 
 export const deleteCompany = async ({ companyId }) => {
-  const company = await CompanyModel.findById(companyId).lean()
+  const company = await findCompanyByIdRaw(companyId)
   if (!company) {
     throw new CustomError(
       statusCodes.notFound,
@@ -174,7 +167,7 @@ export const deleteCompany = async ({ companyId }) => {
     )
   }
 
-  await CompanyModel.findByIdAndDelete(companyId)
+  await deleteCompanyById(companyId)
 
   return {
     deletedCompany: {

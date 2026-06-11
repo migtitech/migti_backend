@@ -1,6 +1,6 @@
 import { getQuotationById } from './quotation.service.js'
 import { QUOTATION_STATUS } from '../../models/quotation.model.js'
-import CompanyBranchModel from '../../models/companyBranch.model.js'
+import { findCompanyBranchSignatureById } from '../../repository/companyBranch.repository.js'
 import CustomError from '../../utils/exception.js'
 import { errorCodes, statusCodes } from '../../core/common/constant.js'
 import { getDocumentServeInfo } from '../document/document.service.js'
@@ -736,9 +736,7 @@ export const exportQuotationPdf = async ({
       : rawBranchId
 
   if (resolvedBranchId) {
-    const branch = await CompanyBranchModel.findById(resolvedBranchId)
-      .select('signature')
-      .lean()
+    const branch = await findCompanyBranchSignatureById(resolvedBranchId)
     if (branch?.signature) {
       signatureUrl = await toSignatureDataUri(branch.signature)
     }

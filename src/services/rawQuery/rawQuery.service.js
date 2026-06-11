@@ -1,11 +1,25 @@
-import RawQueryModel from '../../models/rawQuery.model.js'
-import SuperAdminModel from '../../models/super.admin.js'
-import RawQueryActivityModel from '../../models/rawQueryActivity.model.js'
-import EmployeeModel from '../../models/employee.model.js'
-import AdminModel from '../../models/admin.model.js'
-import IndustryModel from '../../models/industry.model.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
+import { findIndustryIdsByNameSearch } from '../../repository/industry.repository.js'
+import {
+  countRawQueries,
+  createRawQuery,
+  deleteRawQueryById,
+  findRawQueries,
+  findRawQueryById,
+  findRawQueryByIdLean,
+  rawQueryNumberExists,
+  updateRawQueryById,
+} from '../../repository/rawQuery.repository.js'
+import {
+  countRawQueryActivities,
+  createRawQueryActivity,
+  findRawQueryActivities,
+  findRawQueryActivityById,
+} from '../../repository/rawQueryActivity.repository.js'
+import { findEmployeeByIdWithNameEmail } from '../../repository/employee.repository.js'
+import { findAdminByIdWithNameEmail } from '../../repository/admin.repository.js'
+import { findSuperAdminByIdWithNameEmail } from '../../repository/superAdmin.repository.js'
 
 const generateRawQueryNumber = async () => {
   let number
@@ -13,7 +27,7 @@ const generateRawQueryNumber = async () => {
   while (exists) {
     const rand = Math.floor(10000 + Math.random() * 90000)
     number = `RQRY0${rand}`
-    exists = await RawQueryModel.exists({ raw_query_number: number })
+    exists = await rawQueryNumberExists(number)
   }
   return number
 }
@@ -31,7 +45,7 @@ export const addRawQuery = async ({
 }) => {
   const raw_query_number = await generateRawQueryNumber()
 
-  const rawQueryDoc = await RawQueryModel.create({
+  const rawQueryDoc = await createRawQuery({
     raw_query_number,
     priority,
     title,
@@ -59,12 +73,7 @@ export const listRawQueries = async ({
 
   const filter = { ...branchFilter }
   if (search) {
-    const industryIds = await IndustryModel.find({
-      name: { $regex: search, $options: 'i' },
-      isDeleted: false,
-    })
-      .distinct('_id')
-      .lean()
+    const industryIds = await findIndustryIdsByNameSearch(search)
     filter.$or = [
       { title: { $regex: search, $options: 'i' } },
       { company_info: { $regex: search, $options: 'i' } },
@@ -75,14 +84,9 @@ export const listRawQueries = async ({
     ]
   }
 
-  const totalItems = await RawQueryModel.countDocuments(filter)
+  const totalItems = await countRawQueries(filter)
 
-  const rawQueries = await RawQueryModel.find(filter)
-    .populate('industry_id', 'name location email')
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(limit)
-    .lean()
+  const rawQueries = await findRawQueries(filter, skip, limit)
 
   const totalPages = Math.ceil(totalItems / limit)
   const hasNextPage = page < totalPages
@@ -102,17 +106,10 @@ export const listRawQueries = async ({
 }
 
 export const getRawQueryById = async ({ rawQueryId, branchFilter = {} }) => {
-  const rawQuery = await RawQueryModel.findOne({
+  const rawQuery = await findRawQueryById({
     _id: rawQueryId,
     ...branchFilter,
   })
-    .populate('supplier_id')
-    .populate(
-      'industry_id',
-      'name location address email purchase_manager_name purchase_manager_phone'
-    )
-    .populate('created_by', 'name email')
-    .lean()
 
   if (!rawQuery) {
     throw new CustomError(
@@ -127,14 +124,12 @@ export const getRawQueryById = async ({ rawQueryId, branchFilter = {} }) => {
 
 const resolvePerformerName = async (performerId) => {
   if (!performerId) return null
-  let user = await EmployeeModel.findById(performerId)
-    .select('name email')
-    .lean()
+  let user = await findEmployeeByIdWithNameEmail(performerId)
   if (user)
     return { name: user.name, email: user.email, role: user.role || 'employee' }
-  user = await AdminModel.findById(performerId).select('name email').lean()
+  user = await findAdminByIdWithNameEmail(performerId)
   if (user) return { name: user.name, email: user.email, role: 'admin' }
-  user = await SuperAdminModel.findById(performerId).select('name email').lean()
+  user = await findSuperAdminByIdWithNameEmail(performerId)
   if (user) return { name: user.name, email: user.email, role: 'super_admin' }
   return null
 }
@@ -145,10 +140,10 @@ export const listRawQueryActivities = async ({
   pageSize = 10,
   branchFilter = {},
 }) => {
-  const rawQueryBelongs = await RawQueryModel.findOne({
+  const rawQueryBelongs = await findRawQueryByIdLean({
     _id: rawQueryId,
     ...branchFilter,
-  }).lean()
+  })
   if (!rawQueryBelongs) {
     throw new CustomError(
       statusCodes.notFound,
@@ -162,13 +157,8 @@ export const listRawQueryActivities = async ({
   const skip = (page - 1) * limit
 
   const filter = { rawQueryId }
-  const totalItems = await RawQueryActivityModel.countDocuments(filter)
-  const activities = await RawQueryActivityModel.find(filter)
-    .select('rawQueryId type performedBy meta createdAt')
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(limit)
-    .lean()
+  const totalItems = await countRawQueryActivities(filter)
+  const activities = await findRawQueryActivities(filter, skip, limit)
 
   const totalPages = Math.ceil(totalItems / limit)
 
@@ -208,10 +198,10 @@ export const recordRawQueryActivity = async ({
   meta = {},
   branchFilter = {},
 }) => {
-  const rawQuery = await RawQueryModel.findOne({
+  const rawQuery = await findRawQueryByIdLean({
     _id: rawQueryId,
     ...branchFilter,
-  }).lean()
+  })
   if (!rawQuery) {
     throw new CustomError(
       statusCodes.notFound,
@@ -220,7 +210,7 @@ export const recordRawQueryActivity = async ({
     )
   }
 
-  const activity = await RawQueryActivityModel.create({
+  const activity = await createRawQueryActivity({
     rawQueryId,
     type,
     performedBy,
@@ -231,9 +221,7 @@ export const recordRawQueryActivity = async ({
     },
   })
 
-  const populated = await RawQueryActivityModel.findById(activity._id)
-    .populate('performedBy', 'name email')
-    .lean()
+  const populated = await findRawQueryActivityById(activity._id)
   return populated
 }
 
@@ -242,10 +230,10 @@ export const updateRawQuery = async ({
   branchFilter = {},
   ...updateData
 }) => {
-  const rawQuery = await RawQueryModel.findOne({
+  const rawQuery = await findRawQueryByIdLean({
     _id: rawQueryId,
     ...branchFilter,
-  }).lean()
+  })
   if (!rawQuery) {
     throw new CustomError(
       statusCodes.notFound,
@@ -254,23 +242,19 @@ export const updateRawQuery = async ({
     )
   }
 
-  const updatedRawQuery = await RawQueryModel.findByIdAndUpdate(
-    rawQueryId,
-    updateData,
-    {
-      new: true,
-      runValidators: true,
-    }
-  ).lean()
+  const updatedRawQuery = await updateRawQueryById(rawQueryId, updateData, {
+    new: true,
+    runValidators: true,
+  })
 
   return updatedRawQuery
 }
 
 export const deleteRawQuery = async ({ rawQueryId, branchFilter = {} }) => {
-  const rawQuery = await RawQueryModel.findOne({
+  const rawQuery = await findRawQueryByIdLean({
     _id: rawQueryId,
     ...branchFilter,
-  }).lean()
+  })
   if (!rawQuery) {
     throw new CustomError(
       statusCodes.notFound,
@@ -279,7 +263,7 @@ export const deleteRawQuery = async ({ rawQueryId, branchFilter = {} }) => {
     )
   }
 
-  await RawQueryModel.findByIdAndDelete(rawQueryId)
+  await deleteRawQueryById(rawQueryId)
 
   return {
     deletedRawQuery: {

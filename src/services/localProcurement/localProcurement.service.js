@@ -1,10 +1,10 @@
 import mongoose from 'mongoose'
-import LocalProcurementModel, {
+import localProcurementRepository, {
   LOCAL_PROCUREMENT_STATUS,
-} from '../../models/localProcurement.model.js'
-import QueryProductModel from '../../models/queryProduct.model.js'
-import EmployeeModel from '../../models/employee.model.js'
-import DocumentModel from '../../models/document.model.js'
+} from '../../repository/localProcurement.repository.js'
+import queryProductRepository from '../../repository/queryProduct.repository.js'
+import employeeRepository from '../../repository/employee.repository.js'
+import documentRepository from '../../repository/document.repository.js'
 import { transformPathsToSignedUrls } from '../document/document.service.js'
 
 const OBJECT_ID_REGEX = /^[a-fA-F0-9]{24}$/
@@ -88,7 +88,7 @@ const withSignedImages = async (row) => {
 }
 
 export const listLocalProcurementEmployees = async () => {
-  const rows = await EmployeeModel.find({
+  const rows = await employeeRepository.find({
     isDeleted: false,
     role: new RegExp(`^${LOCAL_PROCUREMENT_ROLE}$`, 'i'),
   })
@@ -114,7 +114,7 @@ export const assignLocalProcurement = async ({
   if (!qpOid) throw new Error('Invalid query product id')
   if (!employeeOid) throw new Error('Invalid employee id')
 
-  const employee = await EmployeeModel.findOne({
+  const employee = await employeeRepository.findOne({
     _id: employeeOid,
     isDeleted: false,
   }).lean()
@@ -123,7 +123,7 @@ export const assignLocalProcurement = async ({
     throw new Error('Selected employee must have the local procurement role')
   }
 
-  const queryProduct = await QueryProductModel.findOne({
+  const queryProduct = await queryProductRepository.findOne({
     _id: qpOid,
     isDeleted: false,
   })
@@ -142,7 +142,7 @@ export const assignLocalProcurement = async ({
   const branchId =
     employee.branchId || branchIdFromUser || queryProduct.branchId || null
 
-  const doc = await LocalProcurementModel.create({
+  const doc = await localProcurementRepository.create({
     queryProductId: qpOid,
     queryCode: queryProduct.queryCode || '',
     productSnapshot: buildProductSnapshot(queryProduct, images),
@@ -153,7 +153,7 @@ export const assignLocalProcurement = async ({
     branchId,
   })
 
-  const populated = await LocalProcurementModel.findById(doc._id)
+  const populated = await localProcurementRepository.findById(doc._id)
     .populate('employeeId', 'name email phone role designation')
     .populate('assignedBy', 'name email phone role designation')
     .lean()
@@ -192,8 +192,8 @@ export const listLocalProcurements = async (q = {}, user = null) => {
   }
 
   const [total, rawRows] = await Promise.all([
-    LocalProcurementModel.countDocuments(filter),
-    LocalProcurementModel.find(filter)
+    localProcurementRepository.countDocuments(filter),
+    localProcurementRepository.find(filter)
       .sort({ createdAt: -1 })
       .skip((page - 1) * pageSize)
       .limit(pageSize)
@@ -217,7 +217,7 @@ export const submitLocalProcurement = async (id, payload, user = null) => {
   const oid = toOid(id)
   if (!oid) throw new Error('Invalid id')
 
-  const existing = await LocalProcurementModel.findOne({
+  const existing = await localProcurementRepository.findOne({
     _id: oid,
     isDeleted: false,
   }).lean()
@@ -267,7 +267,7 @@ export const submitLocalProcurement = async (id, payload, user = null) => {
 
   const docs =
     documentIds.length > 0
-      ? await DocumentModel.find({ _id: { $in: documentIds } }).lean()
+      ? await documentRepository.find({ _id: { $in: documentIds } }).lean()
       : []
   const docById = new Map(docs.map((d) => [String(d._id), d]))
 
@@ -307,7 +307,7 @@ export const submitLocalProcurement = async (id, payload, user = null) => {
     update.$push.images = { $each: imageEntries }
   }
 
-  const doc = await LocalProcurementModel.findOneAndUpdate(
+  const doc = await localProcurementRepository.findOneAndUpdate(
     { _id: oid, isDeleted: false },
     update,
     { new: true }

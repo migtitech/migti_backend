@@ -1,11 +1,10 @@
 import mongoose from 'mongoose'
-import LocalPurchaseModel, {
+import localPurchaseRepository, {
   LOCAL_PURCHASE_STATUS,
-} from '../../models/localPurchase.model.js'
-import PoProductModel from '../../models/poProduct.model.js'
-import QueryProductModel from '../../models/queryProduct.model.js'
-import DocumentModel from '../../models/document.model.js'
-import EmployeeModel from '../../models/employee.model.js'
+} from '../../repository/localPurchase.repository.js'
+import queryProductRepository from '../../repository/queryProduct.repository.js'
+import documentRepository from '../../repository/document.repository.js'
+import employeeRepository from '../../repository/employee.repository.js'
 import { loadPoProductForAccess } from '../purchaseBucket/purchaseBucket.service.js'
 import { transformPathsToSignedUrls } from '../document/document.service.js'
 
@@ -88,7 +87,7 @@ const fetchImagesForPoLine = async (poLine) => {
     if (queryOid) {
       const scoped = { ...baseByCode, queryId: queryOid }
       if (lineOk) {
-        qp = await QueryProductModel.findOne({
+        qp = await queryProductRepository.findOne({
           ...scoped,
           lineIndex: Number(lineNum),
         })
@@ -96,7 +95,7 @@ const fetchImagesForPoLine = async (poLine) => {
           .lean()
       }
       if (!qp) {
-        qp = await QueryProductModel.findOne(scoped)
+        qp = await queryProductRepository.findOne(scoped)
           .sort({ lineIndex: 1 })
           .populate('images', 'path mimeType originalName name')
           .lean()
@@ -104,7 +103,7 @@ const fetchImagesForPoLine = async (poLine) => {
     }
 
     if (!qp) {
-      qp = await QueryProductModel.findOne(baseByCode)
+      qp = await queryProductRepository.findOne(baseByCode)
         .sort({ updatedAt: -1, lineIndex: 1 })
         .populate('images', 'path mimeType originalName name')
         .lean()
@@ -122,7 +121,7 @@ const fetchImagesForPoLine = async (poLine) => {
       : poLine.attachmentDocumentId
   const attOid = toOid(attachmentId)
   if (attOid) {
-    const doc = await DocumentModel.findById(attOid).lean()
+    const doc = await documentRepository.findById(attOid).lean()
     if (doc) {
       const [signed] = await transformPathsToSignedUrls([doc])
       if (signed) images.push(signed)
@@ -168,7 +167,7 @@ export const getLocalPurchaseById = async (id, user = null) => {
     filter.employeeId = uid
   }
 
-  const row = await LocalPurchaseModel.findOne(filter)
+  const row = await localPurchaseRepository.findOne(filter)
     .populate(
       'employeeId',
       'name email phone role designation companyEmail'
@@ -190,7 +189,7 @@ export const getLocalPurchaseById = async (id, user = null) => {
 }
 
 export const listLocalPurchaseEmployees = async () => {
-  const rows = await EmployeeModel.find({
+  const rows = await employeeRepository.find({
     isDeleted: false,
     role: new RegExp(`^${LOCAL_PURCHASE_ROLE}$`, 'i'),
   })
@@ -218,7 +217,7 @@ export const assignLocalPurchase = async ({
   if (!poOid) throw new Error('Invalid PO product id')
   if (!employeeOid) throw new Error('Invalid employee id')
 
-  const employee = await EmployeeModel.findOne({
+  const employee = await employeeRepository.findOne({
     _id: employeeOid,
     isDeleted: false,
   }).lean()
@@ -233,7 +232,7 @@ export const assignLocalPurchase = async ({
   const branchId =
     employee.branchId || branchIdFromUser || poLine.branchId || null
 
-  const doc = await LocalPurchaseModel.create({
+  const doc = await localPurchaseRepository.create({
     poProductId: poOid,
     poCode: poLine.poCode || '',
     queryCode: poLine.queryCode || '',
@@ -248,7 +247,7 @@ export const assignLocalPurchase = async ({
     branchId,
   })
 
-  const populated = await LocalPurchaseModel.findById(doc._id)
+  const populated = await localPurchaseRepository.findById(doc._id)
     .populate('employeeId', 'name email phone role designation')
     .populate('assignedBy', 'name email phone role designation')
     .lean()
@@ -299,8 +298,8 @@ export const listLocalPurchases = async (q = {}, user = null) => {
   }
 
   const [total, data] = await Promise.all([
-    LocalPurchaseModel.countDocuments(filter),
-    LocalPurchaseModel.find(filter)
+    localPurchaseRepository.countDocuments(filter),
+    localPurchaseRepository.find(filter)
       .sort({ createdAt: -1 })
       .skip((page - 1) * pageSize)
       .limit(pageSize)
@@ -360,7 +359,7 @@ const resolveBillAndProductImages = async (payload, uid) => {
   const allDocIds = [...(billOid ? [billOid] : []), ...productImageOids]
   const docs =
     allDocIds.length > 0
-      ? await DocumentModel.find({ _id: { $in: allDocIds } }).lean()
+      ? await documentRepository.find({ _id: { $in: allDocIds } }).lean()
       : []
   const docById = new Map(docs.map((d) => [String(d._id), d]))
 
@@ -386,7 +385,7 @@ export const submitLocalPurchase = async (id, payload, user = null) => {
   const oid = toOid(id)
   if (!oid) throw new Error('Invalid id')
 
-  const existing = await LocalPurchaseModel.findOne({
+  const existing = await localPurchaseRepository.findOne({
     _id: oid,
     isDeleted: false,
   }).lean()
@@ -411,7 +410,7 @@ export const submitLocalPurchase = async (id, payload, user = null) => {
   }
   if (bill) updateSet.bill = bill
 
-  const doc = await LocalPurchaseModel.findOneAndUpdate(
+  const doc = await localPurchaseRepository.findOneAndUpdate(
     { _id: oid, isDeleted: false },
     {
       $set: updateSet,
@@ -436,7 +435,7 @@ export const updateLocalPurchaseAttachments = async (id, payload, user = null) =
   const oid = toOid(id)
   if (!oid) throw new Error('Invalid id')
 
-  const existing = await LocalPurchaseModel.findOne({
+  const existing = await localPurchaseRepository.findOne({
     _id: oid,
     isDeleted: false,
   }).lean()
@@ -459,7 +458,7 @@ export const updateLocalPurchaseAttachments = async (id, payload, user = null) =
   if (hasBill) updateSet.bill = bill
   if (hasImages) updateSet.productImages = productImages
 
-  const doc = await LocalPurchaseModel.findOneAndUpdate(
+  const doc = await localPurchaseRepository.findOneAndUpdate(
     { _id: oid, isDeleted: false },
     { $set: updateSet },
     { new: true }

@@ -1,8 +1,19 @@
 import mongoose from 'mongoose'
-import EmployeeLocationModel from '../../models/employeeLocation.model.js'
-import EmployeeModel from '../../models/employee.model.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
+import {
+  aggregateEmployees,
+  findEmployeeByIdNotDeleted,
+  findEmployeeByIdSelectId,
+  getEmployeeLocationCollectionName,
+} from '../../repository/employee.repository.js'
+import {
+  aggregateEmployeeLocations,
+  countEmployeeLocations,
+  createEmployeeLocation as createEmployeeLocationDoc,
+  findEmployeeLocations,
+  findLatestEmployeeLocation,
+} from '../../repository/employeeLocation.repository.js'
 
 export const createEmployeeLocation = async ({
   employeeId,
@@ -13,10 +24,7 @@ export const createEmployeeLocation = async ({
   accuracyM = null,
   created_by = null,
 }) => {
-  const employee = await EmployeeModel.findOne({
-    _id: employeeId,
-    isDeleted: false,
-  }).lean()
+  const employee = await findEmployeeByIdNotDeleted(employeeId)
   if (!employee) {
     throw new CustomError(
       statusCodes.badRequest,
@@ -25,7 +33,7 @@ export const createEmployeeLocation = async ({
     )
   }
 
-  const doc = await EmployeeLocationModel.create({
+  const doc = await createEmployeeLocationDoc({
     employeeId,
     latitude: Number(latitude),
     longitude: Number(longitude),
@@ -52,13 +60,8 @@ export const listEmployeeLocations = async ({
     ...(employeeId ? { employeeId } : {}),
   }
 
-  const totalItems = await EmployeeLocationModel.countDocuments(filter)
-  const locations = await EmployeeLocationModel.find(filter)
-    .populate('employeeId', 'name email role')
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(limit)
-    .lean()
+  const totalItems = await countEmployeeLocations(filter)
+  const locations = await findEmployeeLocations(filter, skip, limit)
 
   const totalPages = Math.max(1, Math.ceil(totalItems / limit))
 
@@ -93,7 +96,7 @@ export const listEmployeeLocations = async ({
  * All non-deleted employees with their most recent location row (if any).
  */
 export const listTeamEmployeesWithLatestLocation = async () => {
-  const locCollection = EmployeeLocationModel.collection.name
+  const locCollection = getEmployeeLocationCollectionName()
 
   const pipeline = [
     { $match: { isDeleted: false } },
@@ -139,7 +142,7 @@ export const listTeamEmployeesWithLatestLocation = async () => {
     { $sort: { name: 1 } },
   ]
 
-  const rows = await EmployeeModel.aggregate(pipeline)
+  const rows = await aggregateEmployees(pipeline)
 
   return (rows || []).map((r) => {
     const loc = r.lastLoc
@@ -171,12 +174,7 @@ export const listEmployeeLocationHistoryBinned = async ({
   pageSize = 10,
   intervalMinutes = 30,
 }) => {
-  const employee = await EmployeeModel.findOne({
-    _id: employeeId,
-    isDeleted: false,
-  })
-    .select('_id')
-    .lean()
+  const employee = await findEmployeeByIdSelectId(employeeId)
 
   if (!employee) {
     throw new CustomError(
@@ -219,7 +217,7 @@ export const listEmployeeLocationHistoryBinned = async ({
     },
   ]
 
-  const [agg] = await EmployeeLocationModel.aggregate(pipeline)
+  const [agg] = await aggregateEmployeeLocations(pipeline)
   const totalItems = agg?.total?.[0]?.count ?? 0
   const totalPages = Math.max(1, Math.ceil(totalItems / limit))
   const raw = agg?.page || []
@@ -253,12 +251,10 @@ export const getLatestEmployeeLocation = async ({ employeeId }) => {
     return null
   }
 
-  const row = await EmployeeLocationModel.findOne({
+  const row = await findLatestEmployeeLocation({
     isDeleted: false,
     employeeId,
   })
-    .sort({ createdAt: -1 })
-    .lean()
 
   if (!row) {
     return null
