@@ -5,48 +5,96 @@ on:
     branches:
       - prod
 
+concurrency:
+  group: production-backend-deploy
+  cancel-in-progress: false
+
 jobs:
-  build-and-push:
+  ci:
+    name: Lint, format check, and build
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          node-version: 20
+          cache: npm
 
-      - name: Build & Push Docker Image
-        run: |
-          docker build -t migittech/migti_crm_backend:dev .
-          docker push migittech/migti_crm_backend:dev
+      - name: Install dependencies
+        run: npm ci
 
+      - name: Prettier check
+        run: npm run format:check
+
+      - name: ESLint check
+        run: npm run lint:check
+
+      - name: Build
+        run: npm run build
 
   deploy:
-    needs: build-and-push
+    name: Deploy to production server
+    needs: ci
     runs-on: ubuntu-latest
+    environment: production
 
     steps:
-      - name: Deploy to Server via SSH
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Prepare production .env
+        env:
+          PROD_ENV_FILE: ${{ secrets.PROD_ENV_FILE }}
+        run: echo "$PROD_ENV_FILE" > .env.production
+
+      - name: Copy .env to server
+        uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SERVER_HOST }}
-          username: root
+          username: ${{ secrets.SERVER_USERNAME }}
           password: ${{ secrets.SERVER_PASSWORD }}
-          port: 22
+          port: ${{ secrets.SERVER_PORT }}
+          source: .env.production
+          target: ${{ secrets.DEPLOY_PATH }}
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+          DEPLOY_BRANCH: ${{ secrets.DEPLOY_BRANCH }}
+          PM2_APP_NAME: ${{ secrets.PM2_APP_NAME }}
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          port: ${{ secrets.SERVER_PORT }}
+          envs: DEPLOY_PATH,DEPLOY_BRANCH,PM2_APP_NAME
+          script_stop: true
           script: |
-            docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-            docker pull migittech/migti_crm_backend:latest
-            docker rm -f migti_backend || true
-            docker run -d \
-            --name migti_backend \
-            -p 7200:7200 \
-            --restart always \
-            --env-file /crm/prod/.env \
-            migittech/migti_crm_backend:latest
+            set -euo pipefail
+
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+
+            cd "$DEPLOY_PATH"
+
+            mv -f .env.production .env
+
+            git checkout "$DEPLOY_BRANCH"
+            git stash push -m "deploy-stash" || true
+            git pull origin "$DEPLOY_BRANCH"
+            git stash pop || true
+            git reset --hard "origin/$DEPLOY_BRANCH"
+            git clean -fd
+
+            npm install -f
+            npm run build
+
+            if pm2 describe "$PM2_APP_NAME" > /dev/null 2>&1; then
+              pm2 restart "$PM2_APP_NAME"
+            else
+              pm2 start npm --name "$PM2_APP_NAME" -- start
+            fi
+
+            pm2 save

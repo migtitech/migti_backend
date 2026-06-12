@@ -11,6 +11,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint src --fix",
+    "lint:check": "eslint src",
     "test": "echo \"Error: no test specified\" && exit 1",
     "prestart": "npm run build",
     "docker:build:dev": "docker build -t migittech/migti_crm_backend:dev .",
