@@ -222,6 +222,7 @@ var uploadMultipleToS3 = exports.uploadMultipleToS3 = /*#__PURE__*/function () {
     return _ref2.apply(this, arguments);
   };
 }();
+var signedUrlCache = new Map();
 
 /**
  * Generate a presigned (signed) URL for private S3 objects. Use when bucket is private.
@@ -232,11 +233,14 @@ var uploadMultipleToS3 = exports.uploadMultipleToS3 = /*#__PURE__*/function () {
 var getSignedUrlForPath = exports.getSignedUrlForPath = /*#__PURE__*/function () {
   var _ref3 = (0, _asyncToGenerator2["default"])(/*#__PURE__*/_regenerator["default"].mark(function _callee3(s3PathOrUrl) {
     var expiresIn,
+      cacheKey,
+      cached,
       bucketName,
       key,
       match,
       command,
       signedUrl,
+      cacheTtlMs,
       _args3 = arguments,
       _t3;
     return _regenerator["default"].wrap(function (_context3) {
@@ -244,48 +248,63 @@ var getSignedUrlForPath = exports.getSignedUrlForPath = /*#__PURE__*/function ()
         case 0:
           expiresIn = _args3.length > 1 && _args3[1] !== undefined ? _args3[1] : 3600;
           _context3.prev = 1;
+          cacheKey = "".concat(s3PathOrUrl, ":").concat(expiresIn);
+          cached = signedUrlCache.get(cacheKey);
+          if (!(cached && cached.expiresAt > Date.now())) {
+            _context3.next = 2;
+            break;
+          }
+          return _context3.abrupt("return", cached.url);
+        case 2:
           bucketName = getBucketName();
           key = s3PathOrUrl;
           if (!(typeof s3PathOrUrl === 'string' && s3PathOrUrl.startsWith('http'))) {
-            _context3.next = 3;
+            _context3.next = 4;
             break;
           }
           match = s3PathOrUrl.match(/\.amazonaws\.com\/(.+)$/);
           if (match) {
-            _context3.next = 2;
+            _context3.next = 3;
             break;
           }
           return _context3.abrupt("return", null);
-        case 2:
-          key = decodeURIComponent(match[1]);
         case 3:
+          key = decodeURIComponent(match[1]);
+        case 4:
           if (!(!key || typeof key !== 'string')) {
-            _context3.next = 4;
+            _context3.next = 5;
             break;
           }
           return _context3.abrupt("return", null);
-        case 4:
+        case 5:
           command = new _clientS.GetObjectCommand({
             Bucket: bucketName,
             Key: key
           });
-          _context3.next = 5;
+          _context3.next = 6;
           return (0, _s3RequestPresigner.getSignedUrl)(s3Client, command, {
             expiresIn: expiresIn
           });
-        case 5:
-          signedUrl = _context3.sent;
-          return _context3.abrupt("return", signedUrl);
         case 6:
-          _context3.prev = 6;
+          signedUrl = _context3.sent;
+          if (signedUrl) {
+            cacheTtlMs = Math.max(60000, (expiresIn - 120) * 1000);
+            signedUrlCache.set(cacheKey, {
+              url: signedUrl,
+              expiresAt: Date.now() + cacheTtlMs
+            });
+          }
+          return _context3.abrupt("return", signedUrl);
+        case 7:
+          _context3.prev = 7;
           _t3 = _context3["catch"](1);
           console.error('getSignedUrlForPath error:', _t3);
           return _context3.abrupt("return", null);
-        case 7:
+        case 8:
         case "end":
           return _context3.stop();
       }
-    }, _callee3, null, [[1, 6]]);
+    }, _callee3, null, [[1, 7]]);
   }));
   return function getSignedUrlForPath(_x3) {
     return _ref3.apply(this, arguments);

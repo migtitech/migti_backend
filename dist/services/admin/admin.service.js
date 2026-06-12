@@ -115,11 +115,11 @@ var superAdminLogin = exports.superAdminLogin = /*#__PURE__*/function () {
 }();
 var addAdmin = exports.addAdmin = /*#__PURE__*/function () {
   var _ref5 = (0, _asyncToGenerator2["default"])(/*#__PURE__*/_regenerator["default"].mark(function _callee3(adminData) {
-    var name, email, password, existingAdmin, adminDoc, admin;
+    var email, password, existingAdmin, adminDoc, admin;
     return _regenerator["default"].wrap(function (_context3) {
       while (1) switch (_context3.prev = _context3.next) {
         case 0:
-          name = adminData.name, email = adminData.email, password = adminData.password;
+          email = adminData.email, password = adminData.password;
           _context3.next = 1;
           return _adminModel["default"].findOne({
             email: email

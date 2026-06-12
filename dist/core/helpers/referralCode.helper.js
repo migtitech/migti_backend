@@ -7,7 +7,6 @@ Object.defineProperty(exports, "__esModule", {
 exports.imageToBase64 = exports.generateUniqueReferralCode = exports.generateReferralCode = void 0;
 var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
-var _path = _interopRequireDefault(require("path"));
 var _fs = _interopRequireDefault(require("fs"));
 var generateReferralCode = exports.generateReferralCode = function generateReferralCode() {
   var length = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 12;

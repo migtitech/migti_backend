@@ -94,6 +94,7 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_PORT }}
           envs: PROD_ENV_FILE,DEPLOY_PATH,DEPLOY_BRANCH,PM2_APP_NAME
+          command_timeout: 30m
           script_stop: true
           script: |
             set -euo pipefail
@@ -106,19 +107,30 @@ jobs:
             printf '%s\n' "$PROD_ENV_FILE" > .env
             chmod 600 .env
 
+            git fetch origin "$DEPLOY_BRANCH"
             git checkout "$DEPLOY_BRANCH"
-            git stash push -m "deploy-stash" || true
-            git pull origin "$DEPLOY_BRANCH"
-            git stash pop || true
             git reset --hard "origin/$DEPLOY_BRANCH"
             git clean -fd
 
-            npm install -f
+            echo "Node: $(node -v)"
+            echo "NPM: $(npm -v)"
 
+            # Babel is a devDependency — must install dev packages for build
+            NODE_ENV=development npm install -f
+
+            echo "Running build..."
+            npm run build
+
+            if ! command -v pm2 > /dev/null 2>&1; then
+              npm install -g pm2
+            fi
+
+            echo "Restarting PM2 app: $PM2_APP_NAME"
             if pm2 describe "$PM2_APP_NAME" > /dev/null 2>&1; then
-              pm2 restart "$PM2_APP_NAME"
+              pm2 restart "$PM2_APP_NAME" --update-env
             else
-              pm2 start npm --name "$PM2_APP_NAME" -- start
+              pm2 start dist/index.js --name "$PM2_APP_NAME" --update-env
             fi
 
             pm2 save
+            pm2 status "$PM2_APP_NAME"

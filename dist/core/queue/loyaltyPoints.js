@@ -20,7 +20,7 @@ var agenda = exports.agenda = new _agenda["default"]({
 });
 agenda.define('add-loyalty-points', /*#__PURE__*/function () {
   var _ref = (0, _asyncToGenerator2["default"])(/*#__PURE__*/_regenerator["default"].mark(function _callee(job) {
-    var _job$attrs$data, referrerUserId, points, referrerUser, updatedUser, _t;
+    var _job$attrs$data, referrerUserId, points, referrerUser, _t;
     return _regenerator["default"].wrap(function (_context) {
       while (1) switch (_context.prev = _context.next) {
         case 0:
@@ -46,7 +46,6 @@ agenda.define('add-loyalty-points', /*#__PURE__*/function () {
             "new": true
           }).select('-password');
         case 3:
-          updatedUser = _context.sent;
           _context.next = 5;
           break;
         case 4:

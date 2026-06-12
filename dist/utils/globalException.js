@@ -6,14 +6,10 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports["default"] = void 0;
 var _logger = _interopRequireDefault(require("../core/config/logger.js"));
-var _nodeProcess = _interopRequireDefault(require("node:process"));
-var globalExceptionHandler = function globalExceptionHandler(err, req, res, next) {
-  var _err$isOperational;
+var globalExceptionHandler = function globalExceptionHandler(err, req, res, _next) {
   var statusCode = (err === null || err === void 0 ? void 0 : err.statusCode) || 500;
   var message = (err === null || err === void 0 ? void 0 : err.message) || 'Internal Server Error';
   var errorCode = (err === null || err === void 0 ? void 0 : err.errorCode) || 'UNKNOWN_ERROR';
-  var errors = (err === null || err === void 0 ? void 0 : err.errors) || [];
-  var isOperational = (_err$isOperational = err === null || err === void 0 ? void 0 : err.isOperational) !== null && _err$isOperational !== void 0 ? _err$isOperational : false;
   var stack = (err === null || err === void 0 ? void 0 : err.stack) || 'No stack trace available';
 
   // Log error with request context

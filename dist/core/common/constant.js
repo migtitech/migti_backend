@@ -4,7 +4,7 @@ var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefau
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.urls = exports.statusCodes = exports.moduleName = exports.fileTypesFolderNames = exports.externalAPI = exports.errorCodes = exports.documentTypes = exports.database_urls = exports.courseTypes = exports.checkRole = exports.USER_ROLES = exports.SchemaTypes = exports.PURCHASE_ORDER_BYPASS_ROLES = exports.NOTIFICATION_TYPES = exports.NOTIFICATION_PRIORITY = exports.Message = exports.MODULE_LIST = exports.MODULES = exports.FULL_ACCESS_ROLES = exports.EVENT_CODE_PREFIX = exports.EMAIL_CONFIG = exports.DocumentPath = exports.BRANCH_BYPASS_ROLES = exports.ACTIONS = void 0;
+exports.urls = exports.statusCodes = exports.moduleName = exports.fileTypesFolderNames = exports.externalAPI = exports.errorCodes = exports.documentTypes = exports.database_urls = exports.courseTypes = exports.checkRole = exports.USER_ROLES = exports.SchemaTypes = exports.PURCHASE_ORDER_BYPASS_ROLES = exports.PRODUCT_UNIT_CODES = exports.PRODUCT_UNITS = exports.NOTIFICATION_TYPES = exports.NOTIFICATION_PRIORITY = exports.Message = exports.MODULE_LIST = exports.MODULES = exports.FULL_ACCESS_ROLES = exports.EVENT_CODE_PREFIX = exports.EMAIL_CONFIG = exports.DocumentPath = exports.DEFAULT_PRODUCT_UNIT = exports.BRANCH_BYPASS_ROLES = exports.ACTIONS = void 0;
 var _slicedToArray2 = _interopRequireDefault(require("@babel/runtime/helpers/slicedToArray"));
 var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
 require("dotenv/config");
@@ -246,6 +246,8 @@ var MODULES = exports.MODULES = Object.freeze({
   VISIT_MANAGEMENT: 'visit_management',
   MY_VISITS: 'my_visits',
   PRO_BUCKET: 'pro_bucket',
+  /** Local procurement assignments (/local-pro). */
+  LOCAL_PROCUREMENT: 'local_procurement',
   /** PO queue (/po-bucket) — separate from main purchase order list. */
   PO_BUCKET: 'po_bucket',
   /** Purchase queue (/purchase-bucket). */
@@ -319,3 +321,106 @@ var NOTIFICATION_PRIORITY = exports.NOTIFICATION_PRIORITY = Object.freeze({
   HIGH: 'high',
   URGENT: 'urgent'
 });
+
+/** Product / line-item unit codes (value stored in DB). */
+var PRODUCT_UNITS = exports.PRODUCT_UNITS = Object.freeze([{
+  code: 'NOS',
+  label: 'Numbers'
+}, {
+  code: 'PCS',
+  label: 'Pieces'
+}, {
+  code: 'PKT',
+  label: 'Packet'
+}, {
+  code: 'BOX',
+  label: 'Box'
+}, {
+  code: 'BAG',
+  label: 'Bag'
+}, {
+  code: 'SET',
+  label: 'Set'
+}, {
+  code: 'PR',
+  label: 'Pair'
+}, {
+  code: 'DOZ',
+  label: 'Dozen'
+}, {
+  code: 'BDL',
+  label: 'Bundle'
+}, {
+  code: 'ROLL',
+  label: 'Roll'
+}, {
+  code: 'STRIP',
+  label: 'Strip'
+}, {
+  code: 'CAN',
+  label: 'Can'
+}, {
+  code: 'TIN',
+  label: 'Tin'
+}, {
+  code: 'JAR',
+  label: 'Jar'
+}, {
+  code: 'BTL',
+  label: 'Bottle'
+}, {
+  code: 'CTN',
+  label: 'Carton'
+}, {
+  code: 'TRAY',
+  label: 'Tray'
+}, {
+  code: 'DRM',
+  label: 'Drum'
+}, {
+  code: 'TUB',
+  label: 'Tub'
+}, {
+  code: 'KG',
+  label: 'Kilogram'
+}, {
+  code: 'GM',
+  label: 'Gram'
+}, {
+  code: 'MG',
+  label: 'Milligram'
+}, {
+  code: 'LTR',
+  label: 'Litre'
+}, {
+  code: 'ML',
+  label: 'Millilitre'
+}, {
+  code: 'MTR',
+  label: 'Metre'
+}, {
+  code: 'CM',
+  label: 'Centimetre'
+}, {
+  code: 'MM',
+  label: 'Millimetre'
+}, {
+  code: 'KM',
+  label: 'Kilometre'
+}, {
+  code: 'FT',
+  label: 'Foot'
+}, {
+  code: 'IN',
+  label: 'Inch'
+}, {
+  code: 'SQFT',
+  label: 'Square Foot'
+}, {
+  code: 'SQM',
+  label: 'Square Metre'
+}]);
+var PRODUCT_UNIT_CODES = exports.PRODUCT_UNIT_CODES = Object.freeze(PRODUCT_UNITS.map(function (u) {
+  return u.code;
+}));
+var DEFAULT_PRODUCT_UNIT = exports.DEFAULT_PRODUCT_UNIT = 'PCS';
