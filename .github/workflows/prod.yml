@@ -39,17 +39,12 @@ jobs:
   deploy:
     name: Deploy to production server
     needs: ci
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, migti-prod]
     environment: production
 
     steps:
       - name: Validate deploy secrets
         env:
-          SERVER_HOST: ${{ secrets.SERVER_HOST }}
-          SERVER_USERNAME: ${{ secrets.SERVER_USERNAME }}
-          SERVER_PASSWORD: ${{ secrets.SERVER_PASSWORD }}
-          SERVER_SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
-          SERVER_PORT: ${{ secrets.SERVER_PORT }}
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
           DEPLOY_BRANCH: ${{ secrets.DEPLOY_BRANCH }}
           PM2_APP_NAME: ${{ secrets.PM2_APP_NAME }}
@@ -65,72 +60,53 @@ jobs:
             fi
           }
 
-          check_required SERVER_HOST
-          check_required SERVER_USERNAME
-          check_required SERVER_PORT
           check_required DEPLOY_PATH
           check_required DEPLOY_BRANCH
           check_required PM2_APP_NAME
           check_required PROD_ENV_FILE
 
-          if [ -z "$SERVER_PASSWORD" ] && [ -z "$SERVER_SSH_KEY" ]; then
-            echo "::error::Set either SERVER_PASSWORD or SERVER_SSH_KEY"
-            missing=1
-          fi
-
           exit $missing
 
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.2.0
+      - name: Deploy on server
         env:
           PROD_ENV_FILE: ${{ secrets.PROD_ENV_FILE }}
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
           DEPLOY_BRANCH: ${{ secrets.DEPLOY_BRANCH }}
           PM2_APP_NAME: ${{ secrets.PM2_APP_NAME }}
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USERNAME }}
-          password: ${{ secrets.SERVER_PASSWORD }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          port: ${{ secrets.SERVER_PORT }}
-          envs: PROD_ENV_FILE,DEPLOY_PATH,DEPLOY_BRANCH,PM2_APP_NAME
-          command_timeout: 30m
-          script_stop: true
-          script: |
-            set -euo pipefail
+        run: |
+          set -euo pipefail
 
-            export NVM_DIR="$HOME/.nvm"
-            [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
 
-            cd "$DEPLOY_PATH"
+          cd "$DEPLOY_PATH"
 
-            printf '%s\n' "$PROD_ENV_FILE" > .env
-            chmod 600 .env
+          printf '%s\n' "$PROD_ENV_FILE" > .env
+          chmod 600 .env
 
-            git fetch origin "$DEPLOY_BRANCH"
-            git checkout "$DEPLOY_BRANCH"
-            git reset --hard "origin/$DEPLOY_BRANCH"
-            git clean -fd
+          git fetch origin "$DEPLOY_BRANCH"
+          git checkout "$DEPLOY_BRANCH"
+          git reset --hard "origin/$DEPLOY_BRANCH"
+          git clean -fd
 
-            echo "Node: $(node -v)"
-            echo "NPM: $(npm -v)"
+          echo "Node: $(node -v)"
+          echo "NPM: $(npm -v)"
 
-            # Babel is a devDependency — must install dev packages for build
-            NODE_ENV=development npm install -f
+          NODE_ENV=development npm install -f
 
-            echo "Running build..."
-            npm run build
+          echo "Running build..."
+          npm run build
 
-            if ! command -v pm2 > /dev/null 2>&1; then
-              npm install -g pm2
-            fi
+          if ! command -v pm2 > /dev/null 2>&1; then
+            npm install -g pm2
+          fi
 
-            echo "Restarting PM2 app: $PM2_APP_NAME"
-            if pm2 describe "$PM2_APP_NAME" > /dev/null 2>&1; then
-              pm2 restart "$PM2_APP_NAME" --update-env
-            else
-              pm2 start dist/index.js --name "$PM2_APP_NAME" --update-env
-            fi
+          echo "Restarting PM2 app: $PM2_APP_NAME"
+          if pm2 describe "$PM2_APP_NAME" > /dev/null 2>&1; then
+            pm2 restart "$PM2_APP_NAME" --update-env
+          else
+            pm2 start dist/index.js --name "$PM2_APP_NAME" --update-env
+          fi
 
-            pm2 save
-            pm2 status "$PM2_APP_NAME"
+          pm2 save
+          pm2 status "$PM2_APP_NAME"
