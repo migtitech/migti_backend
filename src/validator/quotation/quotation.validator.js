@@ -55,7 +55,7 @@ const quotationProductItemSchema = Joi.object({
   discountAmount: Joi.number().min(0).allow(null).optional(),
   notAvailable: Joi.boolean().optional().default(false),
   notAvailableRemark: Joi.string().allow('').optional(),
-  deliveryDate: Joi.date().allow(null).optional(),
+  deliveryDate: Joi.string().allow(null, '').optional(),
 })
 
 const quotationStatusValues = Object.values(QUOTATION_STATUS)

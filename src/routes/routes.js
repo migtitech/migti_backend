@@ -38,6 +38,8 @@ import notificationRouter from './notification.routes.js'
 import poPaymentBacklogRouter from './poPaymentBacklog.routes.js'
 import quotationFollowupRouter from './quotationFollowup.routes.js'
 import billingRequestRouter from './billingRequest.routes.js'
+import companyDocumentRouter from './companyDocument.routes.js'
+import hodDashboardRouter from './hodDashboard.routes.js'
 
 const mainRoutes = express.Router()
 mainRoutes.use((req, res, next) => {
@@ -101,5 +103,7 @@ mainRoutes.use('/v1/notifications', notificationRouter)
 mainRoutes.use('/v1/po-payment-backlog', poPaymentBacklogRouter)
 mainRoutes.use('/v1/quotation-followups', quotationFollowupRouter)
 mainRoutes.use('/v1/billing-requests', billingRequestRouter)
+mainRoutes.use('/v1/company-documents', companyDocumentRouter)
+mainRoutes.use('/v1/hod-dashboard', hodDashboardRouter)
 
 export default mainRoutes

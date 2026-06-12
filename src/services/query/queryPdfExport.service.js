@@ -62,7 +62,11 @@ const buildHtml = (query, orgContext = {}) => {
   }
 
   const customerName = ci.name || (industry && industry.name) || ''
-  const customerAddress = ci.address || (industry && industry.address) || ''
+  const customerAddress =
+    ci.address ||
+    (industry &&
+      (industry.shippingAddress || industry.billingAddress || industry.address)) ||
+    ''
   const pmList = Array.isArray(ci.purchaseManagers) ? ci.purchaseManagers : []
   const primaryPm = pmList[0] || null
   const customerContactPerson =

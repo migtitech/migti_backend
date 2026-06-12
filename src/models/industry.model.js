@@ -36,9 +36,15 @@ const industrySchema = new mongoose.Schema(
       trim: true,
       default: '',
     },
-    address: {
+    shippingAddress: {
       type: SchemaTypes.String,
-      default: '',
+      required: true,
+      trim: true,
+    },
+    billingAddress: {
+      type: SchemaTypes.String,
+      required: true,
+      trim: true,
     },
     purchase_manager_name: {
       type: SchemaTypes.String,

@@ -17,7 +17,10 @@ export const addIndustryBranch = async ({
     gst: gst || '',
   })
   const result = await IndustryBranchModel.findById(branchDoc._id)
-    .populate('industryId', 'name location address gstNumber')
+    .populate(
+      'industryId',
+      'name location shippingAddress billingAddress gstNumber'
+    )
     .lean()
   return result
 }
@@ -48,7 +51,10 @@ export const listIndustryBranches = async ({
   const totalItems = await IndustryBranchModel.countDocuments(filter)
 
   const branches = await IndustryBranchModel.find(filter)
-    .populate('industryId', 'name location address gstNumber')
+    .populate(
+      'industryId',
+      'name location shippingAddress billingAddress gstNumber'
+    )
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit)
@@ -73,7 +79,10 @@ export const getIndustryBranchById = async ({ industryBranchId }) => {
     _id: industryBranchId,
     isDeleted: false,
   })
-    .populate('industryId', 'name location address gstNumber')
+    .populate(
+      'industryId',
+      'name location shippingAddress billingAddress gstNumber'
+    )
     .lean()
 
   if (!branch) {
@@ -120,7 +129,10 @@ export const updateIndustryBranch = async ({
     updateData,
     { new: true, runValidators: true }
   )
-    .populate('industryId', 'name location address gstNumber')
+    .populate(
+      'industryId',
+      'name location shippingAddress billingAddress gstNumber'
+    )
     .lean()
 
   return updated

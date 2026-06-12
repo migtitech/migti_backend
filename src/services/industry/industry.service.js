@@ -232,7 +232,8 @@ const nullIfEmpty = (v) => (v === '' || v == null ? null : v)
 
 const ALLOWED_UPDATE_FIELDS = [
   'location',
-  'address',
+  'shippingAddress',
+  'billingAddress',
   'gstNumber',
   'purchase_manager_name',
   'purchase_manager_phone',

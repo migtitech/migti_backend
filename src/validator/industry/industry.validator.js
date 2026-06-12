@@ -22,9 +22,13 @@ export const createIndustrySchema = Joi.object({
     .allow('', null)
     .optional(),
   location: Joi.string().optional().allow(''),
-  address: Joi.string().trim().required().messages({
-    'any.required': 'Address is required',
-    'string.empty': 'Address is required',
+  shippingAddress: Joi.string().trim().required().max(500).messages({
+    'any.required': 'Shipping address is required',
+    'string.empty': 'Shipping address is required',
+  }),
+  billingAddress: Joi.string().trim().required().max(500).messages({
+    'any.required': 'Billing address is required',
+    'string.empty': 'Billing address is required',
   }),
   purchase_manager_name: Joi.string().optional().allow('', null),
   purchase_manager_phone: Joi.string().optional().allow('', null),
@@ -74,7 +78,7 @@ const gstNumberUpdateRule = Joi.string()
       'GST number must be valid 15-character GSTIN (e.g. 22AABCU9603R1ZX)',
   })
 
-// Edit mode: location, address, GST, purchase manager(s), and branch can be updated
+// Edit mode: location, addresses, GST, purchase manager(s), and branch can be updated
 export const updateIndustrySchema = Joi.object({
   industryId: Joi.string().required(),
   gstNumber: gstNumberUpdateRule,
@@ -87,7 +91,14 @@ export const updateIndustrySchema = Joi.object({
     .allow('', null)
     .optional(),
   location: Joi.string().optional().allow(''),
-  address: Joi.string().optional().allow(''),
+  shippingAddress: Joi.string().trim().required().max(500).messages({
+    'any.required': 'Shipping address is required',
+    'string.empty': 'Shipping address is required',
+  }),
+  billingAddress: Joi.string().trim().required().max(500).messages({
+    'any.required': 'Billing address is required',
+    'string.empty': 'Billing address is required',
+  }),
   purchase_manager_name: Joi.string().optional().allow('', null),
   purchase_manager_phone: Joi.string().optional().allow('', null),
   purchaseManagers: Joi.array().items(purchaseManagerItemSchema).optional(),

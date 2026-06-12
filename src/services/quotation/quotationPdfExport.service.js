@@ -58,9 +58,13 @@ const formatCurrency = (value) => {
 
 const formatDeliveryDatePdf = (value) => {
   if (!value) return '—'
-  const d = new Date(value)
-  if (Number.isNaN(d.getTime())) return '—'
-  return d.toLocaleDateString('en-GB')
+  const text = String(value).trim()
+  if (!text) return '—'
+  if (/^\d{4}-\d{2}-\d{2}/.test(text)) {
+    const d = new Date(text)
+    if (!Number.isNaN(d.getTime())) return d.toLocaleDateString('en-GB')
+  }
+  return text
 }
 
 const formatVariants = (variants) => {
@@ -170,7 +174,12 @@ const buildHtml = (quotation, orgContext = {}) => {
 
   const customerName = ci.name || queryCompanyInfo.name || industry.name || ''
   const customerAddress =
-    ci.address || queryCompanyInfo.address || industry.address || ''
+    ci.address ||
+    queryCompanyInfo.address ||
+    industry.shippingAddress ||
+    industry.billingAddress ||
+    industry.address ||
+    ''
 
   const pmList = Array.isArray(ci.purchaseManagers) ? ci.purchaseManagers : []
   const primaryPm = pmList[0] || null
@@ -253,7 +262,7 @@ const buildHtml = (quotation, orgContext = {}) => {
               typeof productRef.gstPercentage === 'number' &&
               !Number.isNaN(productRef.gstPercentage)
             ? productRef.gstPercentage
-            : 0
+            : 18
       const gstAmount = taxable * (gstPercent / 100)
 
       totalTaxable += taxable
@@ -627,7 +636,7 @@ const buildHtml = (quotation, orgContext = {}) => {
         ${hasDiscount ? '<th>Discount</th>' : ''}
         <th>Qty.</th>
         <th>Unit</th>
-        <th>Delivery Date</th>
+        <th>Delivery Within</th>
         <th>GST %</th>
         <th>Total</th>
         <th>Photo</th>

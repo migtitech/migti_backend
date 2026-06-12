@@ -69,7 +69,7 @@ const quotationProductItemSchema = new mongoose.Schema(
     // Not available: product without rate, remark stored
     notAvailable: { type: SchemaTypes.Boolean, default: false },
     notAvailableRemark: { type: SchemaTypes.String, default: '' },
-    deliveryDate: { type: SchemaTypes.Date, default: null },
+    deliveryDate: { type: SchemaTypes.String, trim: true, default: null },
   },
   { _id: true }
 )
