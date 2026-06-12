@@ -1,55 +1,139 @@
 stages:
   - deploy
 
-prod-deploy:
+.deploy-backend:
   stage: deploy
   tags:
     - migti-prod
     - linux
-  rules:
-    - if: $CI_COMMIT_BRANCH == "prod"
   variables:
     GIT_STRATEGY: none
   script:
     - set -euo pipefail
     - |
-      for secret_name in PROD_ENV_FILE DEPLOY_PATH DEPLOY_BRANCH PM2_APP_NAME; do
-        if [ -z "${!secret_name:-}" ]; then
-          echo "Missing required CI/CD variable: $secret_name"
+      for var_name in DEPLOY_PATH DEPLOY_BRANCH PM2_APP_NAME PM2_SCRIPT; do
+        if [ -z "${!var_name:-}" ]; then
+          echo "Missing required variable: $var_name"
           exit 1
         fi
       done
     - export NVM_DIR="$HOME/.nvm"
     - '[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" || true'
     - cd "$DEPLOY_PATH"
-    - cp "$PROD_ENV_FILE" .env
-    - chmod 600 .env
+    - |
+      if [ -n "${ENV_FILE:-}" ] && [ -f "$ENV_FILE" ]; then
+        cp "$ENV_FILE" .env
+        chmod 600 .env
+        if [ -d src ]; then
+          cp "$ENV_FILE" src/.env
+          chmod 600 src/.env
+        fi
+      else
+        echo "Keeping existing .env in $DEPLOY_PATH"
+      fi
     - git remote set-url origin "https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git"
     - git fetch origin "$DEPLOY_BRANCH"
     - git checkout "$DEPLOY_BRANCH"
     - git reset --hard "origin/$DEPLOY_BRANCH"
     - git clean -fd
-    - echo "Node $(node -v)"
-    - echo "NPM $(npm -v)"
-    - echo "=== CI Installing dependencies ==="
+    - echo "Node $(node -v) | NPM $(npm -v)"
+    - echo "=== Installing dependencies ==="
     - NODE_ENV=development npm install -f
-    - echo "=== CI Prettier check ==="
+    - echo "=== Prettier check ==="
     - npm run format:check
-    - echo "=== CI ESLint check ==="
+    - echo "=== ESLint check ==="
     - npm run lint:check
-    - echo "=== CI Build ==="
+    - echo "=== Build ==="
     - npm run build
-    - echo "=== CD Restarting application ==="
+    - echo "=== Restarting PM2: $PM2_APP_NAME ==="
     - |
       if ! command -v pm2 > /dev/null 2>&1; then
         npm install -g pm2
       fi
     - |
+      PM2_START_DIR="${PM2_CWD:-$DEPLOY_PATH}"
       if pm2 describe "$PM2_APP_NAME" > /dev/null 2>&1; then
         pm2 restart "$PM2_APP_NAME" --update-env
       else
-        pm2 start dist/index.js --name "$PM2_APP_NAME" --update-env
+        pm2 start "$PM2_SCRIPT" --name "$PM2_APP_NAME" --cwd "$PM2_START_DIR" --update-env
       fi
     - pm2 save
     - pm2 status "$PM2_APP_NAME"
-    - echo "=== CI/CD completed successfully ==="
+    - echo "=== Deploy completed: $DEPLOY_PATH ($DEPLOY_BRANCH) ==="
+
+# prod → deploy to both indore and noida
+prod-indore-deploy:
+  extends: .deploy-backend
+  rules:
+    - if: $CI_COMMIT_BRANCH == "prod"
+  variables:
+    DEPLOY_PATH: /migti/migti_backend
+    DEPLOY_BRANCH: prod
+    PM2_APP_NAME: migtibackend
+    PM2_SCRIPT: src/index.js
+    PM2_CWD: /migti/migti_backend/src
+    ENV_FILE: /migti/migti_backend/.env
+
+prod-noida-deploy:
+  extends: .deploy-backend
+  rules:
+    - if: $CI_COMMIT_BRANCH == "prod"
+  variables:
+    DEPLOY_PATH: /migti/noida/migti_backend
+    DEPLOY_BRANCH: prod
+    PM2_APP_NAME: migticrm_noida
+    PM2_SCRIPT: src/index.js
+    PM2_CWD: /migti/noida/migti_backend/src
+    ENV_FILE: /migti/noida/migti_backend/.env
+
+# migti_indore → /migti/migti_backend
+migti-indore-deploy:
+  extends: .deploy-backend
+  rules:
+    - if: $CI_COMMIT_BRANCH == "migti_indore"
+  variables:
+    DEPLOY_PATH: /migti/migti_backend
+    DEPLOY_BRANCH: migti_indore
+    PM2_APP_NAME: migtibackend
+    PM2_SCRIPT: src/index.js
+    PM2_CWD: /migti/migti_backend/src
+    ENV_FILE: /migti/migti_backend/.env
+
+# migti_noida → /migti/noida/migti_backend
+migti-noida-deploy:
+  extends: .deploy-backend
+  rules:
+    - if: $CI_COMMIT_BRANCH == "migti_noida"
+  variables:
+    DEPLOY_PATH: /migti/noida/migti_backend
+    DEPLOY_BRANCH: migti_noida
+    PM2_APP_NAME: migticrm_noida
+    PM2_SCRIPT: src/index.js
+    PM2_CWD: /migti/noida/migti_backend/src
+    ENV_FILE: /migti/noida/migti_backend/.env
+
+# dev branch from migti_indore → /migti/dev/indore
+dev-indore-deploy:
+  extends: .deploy-backend
+  rules:
+    - if: $CI_COMMIT_BRANCH == "dev_indore"
+  variables:
+    DEPLOY_PATH: /migti/dev/indore/migti_backend
+    DEPLOY_BRANCH: dev_indore
+    PM2_APP_NAME: dev_indore_backend
+    PM2_SCRIPT: src/index.js
+    PM2_CWD: /migti/dev/indore/migti_backend/src
+    ENV_FILE: /migti/dev/indore/migti_backend/.env
+
+# dev branch from migti_noida → /migti/dev/noida
+dev-noida-deploy:
+  extends: .deploy-backend
+  rules:
+    - if: $CI_COMMIT_BRANCH == "dev_noida"
+  variables:
+    DEPLOY_PATH: /migti/dev/noida/migti_backend
+    DEPLOY_BRANCH: dev_noida
+    PM2_APP_NAME: dev_noida_backend
+    PM2_SCRIPT: src/index.js
+    PM2_CWD: /migti/dev/noida/migti_backend/src
+    ENV_FILE: /migti/dev/noida/migti_backend/.env
