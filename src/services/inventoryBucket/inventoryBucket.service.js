@@ -124,7 +124,7 @@ export const getInventoryBucketPoProductById = async (id, user) => {
   return { ...doc, status: resolvePoProductLineStatus(doc) }
 }
 
-export const markInventoryReceived = async (id, user) => {
+export const markInventoryReceived = async (id, _user) => {
   const allowed = await loadPoProductForAccess(id)
   if (!allowed) return null
   const cur = resolvePoProductLineStatus(allowed)
@@ -154,7 +154,7 @@ export const markInventoryReceived = async (id, user) => {
 /**
  * After goods are received, mark line ready for dispatch (next step in workflow).
  */
-export const markReadyForDispatchment = async (id, user) => {
+export const markReadyForDispatchment = async (id, _user) => {
   const allowed = await loadPoProductForAccess(id)
   if (!allowed) return null
   const cur = resolvePoProductLineStatus(allowed)

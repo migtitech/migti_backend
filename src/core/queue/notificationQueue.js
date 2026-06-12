@@ -1,5 +1,5 @@
 import NotificationModel from '../../models/notification.model.js'
-import { Message, statusCodes, errorCodes } from '../common/constant.js'
+import { statusCodes, errorCodes } from '../common/constant.js'
 import CustomError from '../../utils/exception.js'
 
 class NotificationQueue {

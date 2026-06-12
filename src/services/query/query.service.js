@@ -510,7 +510,7 @@ export const addQuery = async ({
   created_by,
   branchId,
 }) => {
-  const branchFilter = branchId ? { branchId } : {}
+  const _branchFilter = branchId ? { branchId } : {}
   const numericCode = await getNextSequence('queryCode')
   const queryCode = formatQueryCode(numericCode, companyInfo?.name)
   const ritemsNum = await getNextSequence('ritems')
@@ -1963,7 +1963,7 @@ const getScopedBillingForRange = async ({
   return Number(agg?.[0]?.total || 0)
 }
 
-const getEmployeeTargetAmountForPeriod = async ({
+const _getEmployeeTargetAmountForPeriod = async ({
   employeeId,
   branchId = null,
   period,
@@ -2003,7 +2003,7 @@ const getEmployeeTargetAmountForPeriod = async ({
   return Number(fallbackDoc?.targetAmount || 0)
 }
 
-const getEmployeeBillingForRange = async ({
+const _getEmployeeBillingForRange = async ({
   employeeId,
   rangeFrom,
   rangeTo,

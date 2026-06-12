@@ -11,7 +11,6 @@ import mainRoutes from './routes/routes.js'
 import responseInterceptor from './utils/responseInterceptor.js'
 import { startAgenda, stopAgenda } from './core/queue/loyaltyPoints.js'
 import { startEmailQueue, stopEmailQueue } from './core/queue/emailQueue.js'
-import { seedPreferences } from './core/helpers/preferenceData.js'
 import { ensureAssetsDir } from './models/document.model.js'
 import {
   startTargetAnalyticsCron,

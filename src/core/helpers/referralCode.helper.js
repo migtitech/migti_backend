@@ -1,4 +1,3 @@
-import path from 'path'
 import fs from 'fs'
 
 export const generateReferralCode = (length = 12) => {

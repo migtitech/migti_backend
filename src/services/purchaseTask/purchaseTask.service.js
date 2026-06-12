@@ -6,7 +6,6 @@ import PurchaseTaskModel, {
 import QuotationModel from '../../models/quotation.model.js'
 import EmployeeModel from '../../models/employee.model.js'
 import ProductModel from '../../models/product.model.js'
-import CategoryModel from '../../models/category.model.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 
@@ -161,7 +160,7 @@ export const autoAssignPurchaseTasksForQuotation = async ({
     const matchingEmployees = await EmployeeModel.find({
       isDeleted: false,
       branchId: effectiveBranchId,
-      categories: { $ne: null, $ne: '' },
+      categories: { $nin: [null, ''] },
       ...(orConditions.length ? { $or: orConditions } : {}),
     })
       .select('_id categories branchId')
@@ -279,7 +278,7 @@ export const listPurchaseTasksForUser = async ({
   status = '',
   branchFilter = {},
   currentUserId = null,
-  role = null,
+  role: _role = null,
   isFullAccessRole = false,
 }) => {
   if (!currentUserId) {

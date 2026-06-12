@@ -8,7 +8,6 @@ import CustomError from '../../utils/exception.js'
 import { getNextSequence } from '../codeSequence/codeSequence.service.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 import {
-  transformProductImagesToSigned,
   transformPathsToSignedUrls,
   signPathsInBatch,
 } from '../document/document.service.js'
@@ -1142,7 +1141,7 @@ export const updateQuotation = async ({
         updatedProducts: updated?.products || [],
         quotationId: updated?._id || quotationId,
         industry_id: updated?.industry_id || existing?.industry_id || null,
-        created_by: currentUserId || null,
+        created_by: _currentUserId || null,
         branchId: updated?.branchId || existing?.branchId || null,
       })
     } catch (err) {

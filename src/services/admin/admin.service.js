@@ -80,7 +80,7 @@ export const superAdminLogin = async ({ email, password }) => {
 }
 
 export const addAdmin = async (adminData) => {
-  let { name, email, password } = adminData
+  let { email, password } = adminData
   const existingAdmin = await AdminModel.findOne({ email })
   if (existingAdmin) {
     throw new CustomError(

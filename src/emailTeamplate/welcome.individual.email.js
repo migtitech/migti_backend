@@ -1,4 +1,4 @@
-export const individualWelcomeEmail = (name, email) => {
+export const individualWelcomeEmail = (name, _email) => {
   return `
 <!DOCTYPE html>
 <html lang="en">

@@ -1,12 +1,9 @@
 import logger from '../core/config/logger.js'
-import process from 'node:process'
 
-const globalExceptionHandler = (err, req, res, next) => {
+const globalExceptionHandler = (err, req, res, _next) => {
   const statusCode = err?.statusCode || 500
   const message = err?.message || 'Internal Server Error'
   const errorCode = err?.errorCode || 'UNKNOWN_ERROR'
-  const errors = err?.errors || []
-  const isOperational = err?.isOperational ?? false
   const stack = err?.stack || 'No stack trace available'
 
   // Log error with request context

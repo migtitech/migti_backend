@@ -1,6 +1,6 @@
 import Agenda from 'agenda'
 import IndividualUserModel from '../../models/individualUser.model.js'
-import { Message, statusCodes, errorCodes } from '../common/constant.js'
+import { statusCodes, errorCodes } from '../common/constant.js'
 import CustomError from '../../utils/exception.js'
 
 const agenda = new Agenda({
@@ -20,7 +20,7 @@ agenda.define('add-loyalty-points', async (job) => {
       console.error(`Referrer user not found: ${referrerUserId}`)
       return
     }
-    const updatedUser = await IndividualUserModel.findByIdAndUpdate(
+    await IndividualUserModel.findByIdAndUpdate(
       referrerUserId,
       {
         $inc: { loyaltyPoints: points },

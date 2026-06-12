@@ -1,7 +1,7 @@
 export const enterpriseWelcomeEmail = (
   enterpriseName,
   contactPersonName,
-  email
+  _email
 ) => {
   return `
 <!DOCTYPE html>

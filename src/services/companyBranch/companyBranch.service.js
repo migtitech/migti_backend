@@ -7,7 +7,7 @@ export const addCompanyBranch = async ({
   companyId,
   adminId,
   email,
-  location,
+  location: _location,
   branchcode,
   phone,
   address,

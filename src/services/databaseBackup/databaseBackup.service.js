@@ -1,23 +1,22 @@
-import { spawn } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
 import logger from '../../core/config/logger.js'
 
-const getMongoUri = () => process.env.MONGODB_URI || process.env.DB_URL || ''
+const _getMongoUri = () => process.env.MONGODB_URI || process.env.DB_URL || ''
 
-const getBackupDir = () =>
+const _getBackupDir = () =>
   path.resolve(process.cwd(), process.env.MONGODB_BACKUP_DIR || 'backups')
 
-const getMaxBackupFiles = () => {
+const _getMaxBackupFiles = () => {
   const n = parseInt(process.env.MONGODB_BACKUP_MAX_FILES || '120', 10)
   return Number.isFinite(n) && n > 0 ? n : 120
 }
 
-function timestampForFilename() {
+function _timestampForFilename() {
   return new Date().toISOString().replace(/[:.]/g, '-')
 }
 
-function pruneOldBackups(backupDir, maxFiles) {
+function _pruneOldBackups(backupDir, maxFiles) {
   const entries = fs
     .readdirSync(backupDir, { withFileTypes: true })
     .filter(

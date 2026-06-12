@@ -115,8 +115,8 @@ const resolveProductDisplayCode = (productLine, productRef, industryId) => {
  */
 const buildHtml = (quotation, orgContext = {}) => {
   const {
-    branch,
-    company,
+    branch: _branch,
+    company: _company,
     logoDataUri = '',
     productImageDataUris = [],
   } = orgContext || {}

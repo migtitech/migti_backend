@@ -2,7 +2,6 @@ import mongoose from 'mongoose'
 import LocalPurchaseModel, {
   LOCAL_PURCHASE_STATUS,
 } from '../../models/localPurchase.model.js'
-import PoProductModel from '../../models/poProduct.model.js'
 import QueryProductModel from '../../models/queryProduct.model.js'
 import DocumentModel from '../../models/document.model.js'
 import EmployeeModel from '../../models/employee.model.js'

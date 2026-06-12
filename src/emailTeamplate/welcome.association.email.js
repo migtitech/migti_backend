@@ -1,7 +1,7 @@
 export const associationWelcomeEmail = (
   associationName,
   contactPersonName,
-  email
+  _email
 ) => {
   return `
 <!DOCTYPE html>

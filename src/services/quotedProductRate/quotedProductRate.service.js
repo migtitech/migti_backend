@@ -39,7 +39,7 @@ export const upsertQuotedRatesForQuotation = async ({ quotation }) => {
 
   const ops = []
 
-  quotation.products.forEach((p, index) => {
+  quotation.products.forEach((p, _index) => {
     const rate =
       typeof p.rate === 'number' && !Number.isNaN(p.rate) && p.rate >= 0
         ? p.rate

@@ -114,7 +114,7 @@ export const replaceQueryProductDocuments = async ({
       queryCode: code,
       lineIndex,
       productName: String(p.productName || '').trim(),
-      quantity: Number(p.quantity) ?? 0,
+      quantity: Number(p.quantity ?? 0),
       unit: (p.unit && String(p.unit).trim()) || '',
       hsnNumber: (p.hsnNumber && String(p.hsnNumber).trim()) || '',
       modelNumber: (p.modelNumber && String(p.modelNumber).trim()) || '',

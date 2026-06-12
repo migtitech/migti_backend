@@ -1,5 +1,4 @@
 import CategoryModel from '../../models/category.model.js'
-import GroupModel from '../../models/group.model.js'
 import ProductModel from '../../models/product.model.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'

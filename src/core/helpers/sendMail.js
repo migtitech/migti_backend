@@ -1,6 +1,6 @@
 import sgMail from '@sendgrid/mail'
 import process from 'node:process'
-import { EMAIL_CONFIG, Message } from '../common/constant.js'
+import { EMAIL_CONFIG } from '../common/constant.js'
 import logger from '../config/logger.js'
 
 // Initialize SendGrid with API key
