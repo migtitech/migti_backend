@@ -109,4 +109,4 @@ jobs:
           fi
 
           pm2 save
-          pm2 status "$PM2_APP_NAME"
+          pm2 status "$PM2_APP_NAME" 
