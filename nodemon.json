@@ -7,7 +7,7 @@
     "logs",
     "*.log",
     ".git",
-    "GCA_Backend_API.postman_collection.json"
+      "MIGTI_CRM_BACKEND.postman_collection.json"
   ],
   "ext": "js,json",
   "delay": 1000

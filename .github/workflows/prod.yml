@@ -43,24 +43,47 @@ jobs:
     environment: production
 
     steps:
-      - name: Prepare production .env
+      - name: Validate deploy secrets
         env:
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_USERNAME: ${{ secrets.SERVER_USERNAME }}
+          SERVER_PASSWORD: ${{ secrets.SERVER_PASSWORD }}
+          SERVER_SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
+          SERVER_PORT: ${{ secrets.SERVER_PORT }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+          DEPLOY_BRANCH: ${{ secrets.DEPLOY_BRANCH }}
+          PM2_APP_NAME: ${{ secrets.PM2_APP_NAME }}
           PROD_ENV_FILE: ${{ secrets.PROD_ENV_FILE }}
-        run: echo "$PROD_ENV_FILE" > .env.production
+        run: |
+          set -euo pipefail
+          missing=0
 
-      - name: Copy .env to server
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USERNAME }}
-          password: ${{ secrets.SERVER_PASSWORD }}
-          port: ${{ secrets.SERVER_PORT }}
-          source: .env.production
-          target: ${{ secrets.DEPLOY_PATH }}
+          check_required() {
+            if [ -z "${!1}" ]; then
+              echo "::error::Missing required secret: $1"
+              missing=1
+            fi
+          }
+
+          check_required SERVER_HOST
+          check_required SERVER_USERNAME
+          check_required SERVER_PORT
+          check_required DEPLOY_PATH
+          check_required DEPLOY_BRANCH
+          check_required PM2_APP_NAME
+          check_required PROD_ENV_FILE
+
+          if [ -z "$SERVER_PASSWORD" ] && [ -z "$SERVER_SSH_KEY" ]; then
+            echo "::error::Set either SERVER_PASSWORD or SERVER_SSH_KEY"
+            missing=1
+          fi
+
+          exit $missing
 
       - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.0.3
+        uses: appleboy/ssh-action@v1.2.0
         env:
+          PROD_ENV_FILE: ${{ secrets.PROD_ENV_FILE }}
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
           DEPLOY_BRANCH: ${{ secrets.DEPLOY_BRANCH }}
           PM2_APP_NAME: ${{ secrets.PM2_APP_NAME }}
@@ -68,8 +91,9 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USERNAME }}
           password: ${{ secrets.SERVER_PASSWORD }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_PORT }}
-          envs: DEPLOY_PATH,DEPLOY_BRANCH,PM2_APP_NAME
+          envs: PROD_ENV_FILE,DEPLOY_PATH,DEPLOY_BRANCH,PM2_APP_NAME
           script_stop: true
           script: |
             set -euo pipefail
@@ -79,7 +103,8 @@ jobs:
 
             cd "$DEPLOY_PATH"
 
-            mv -f .env.production .env
+            printf '%s\n' "$PROD_ENV_FILE" > .env
+            chmod 600 .env
 
             git checkout "$DEPLOY_BRANCH"
             git stash push -m "deploy-stash" || true

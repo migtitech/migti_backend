@@ -1,5 +1,5 @@
 {
-  "name": "GCA_Backend",
+  "name": "MIGTI_CRM_BACKEND",
   "version": "1.0.0",
   "main": "dist/index.js",
   "type": "module",
