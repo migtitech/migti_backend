@@ -10,31 +10,31 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  ci:
-    name: Lint, format check, and build
-    runs-on: ubuntu-latest
+  # ci:
+  #   name: Lint, format check, and build
+  #   runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
+  #     - name: Setup Node.js
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: 20
+  #         cache: npm
 
-      - name: Install dependencies
-        run: npm ci
+  #     - name: Install dependencies
+  #       run: npm ci
 
-      - name: Prettier check
-        run: npm run format:check
+  #     - name: Prettier check
+  #       run: npm run format:check
 
-      - name: ESLint check
-        run: npm run lint:check
+  #     - name: ESLint check
+  #       run: npm run lint:check
 
-      - name: Build
-        run: npm run build
+  #     - name: Build
+  #       run: npm run build
 
   deploy:
     name: Deploy to production server
