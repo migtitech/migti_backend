@@ -49,7 +49,9 @@ export const raisePaymentRequestBodySchema = Joi.object({
     phone_1: Joi.string().optional().allow('', null),
     email: Joi.string().optional().allow('', null),
     gst: Joi.string().optional().allow('', null),
-  }).optional().allow(null),
+  })
+    .optional()
+    .allow(null),
 })
 
 /** Sets `po_products.attachmentDocumentId` (product image on the line). */

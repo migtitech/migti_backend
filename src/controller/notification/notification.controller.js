@@ -1,8 +1,4 @@
-import {
-  Message,
-  statusCodes,
-  errorCodes,
-} from '../../core/common/constant.js'
+import { Message, statusCodes, errorCodes } from '../../core/common/constant.js'
 import CustomError from '../../utils/exception.js'
 import {
   listNotificationsSchema,
@@ -24,11 +20,7 @@ const parseUnreadOnly = (value) => {
   return false
 }
 
-const BROADCAST_ROLES = new Set([
-  'superadmin',
-  'admin',
-  'head_of_department',
-])
+const BROADCAST_ROLES = new Set(['superadmin', 'admin', 'head_of_department'])
 
 const canBroadcastNotifications = (req) => {
   const role = String(req.user?.role || '').toLowerCase()

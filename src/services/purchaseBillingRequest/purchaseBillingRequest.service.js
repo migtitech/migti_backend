@@ -317,7 +317,10 @@ export const getPurchaseBillingRequestById = async (id) => {
   }
 }
 
-export const updatePurchaseBillingRequestProof = async (id, proofDocumentId) => {
+export const updatePurchaseBillingRequestProof = async (
+  id,
+  proofDocumentId
+) => {
   if (!id || !OBJECT_ID_REGEX.test(String(id))) {
     throw new CustomError(
       statusCodes.badRequest,

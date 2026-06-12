@@ -41,7 +41,9 @@ export const listDeliveryApprovalQueuePoProducts = async (q, _user) => {
   )
   const { search, from, to } = q
 
-  const rawSubStatus = String(q.deliverySubStatus ?? DELIVERY_SUBSTATUS_HOD_PENDING).trim()
+  const rawSubStatus = String(
+    q.deliverySubStatus ?? DELIVERY_SUBSTATUS_HOD_PENDING
+  ).trim()
   const filterBySubStatus = rawSubStatus !== '' && rawSubStatus !== 'all'
 
   const rawStatus = q.status ? String(q.status).trim() : ''
@@ -139,7 +141,10 @@ export const getDeliveryApprovalPoProductById = async (id, user) => {
   if (!doc) return null
   const line = resolvePoProductLineStatus(doc)
   if (line !== PO_PRODUCT_INVENTORY_STATUS.DELIVERED) return null
-  if (String(doc.deliverySubStatus || '').trim() !== DELIVERY_SUBSTATUS_HOD_PENDING) {
+  if (
+    String(doc.deliverySubStatus || '').trim() !==
+    DELIVERY_SUBSTATUS_HOD_PENDING
+  ) {
     return null
   }
   return doc
@@ -160,19 +165,25 @@ export const updatePoProductEnrichment = async (id, body) => {
   const oid = toOid(id)
   if (!oid) return null
 
-  const allowed = await PoProductModel.findOne({ _id: oid, isDeleted: false }).lean()
+  const allowed = await PoProductModel.findOne({
+    _id: oid,
+    isDeleted: false,
+  }).lean()
   if (!allowed) return null
 
   const update = {}
-  if (body.remark !== undefined) update.remark = String(body.remark ?? '').trim()
-  if (body.description !== undefined) update.description = String(body.description ?? '').trim()
+  if (body.remark !== undefined)
+    update.remark = String(body.remark ?? '').trim()
+  if (body.description !== undefined)
+    update.description = String(body.description ?? '').trim()
   if (body.targetRate !== undefined) {
     update.targetRate = body.targetRate != null ? Number(body.targetRate) : null
   }
   if (body.quantity !== undefined) update.quantity = Number(body.quantity)
   if (body.status !== undefined) update.status = body.status
 
-  if (!Object.keys(update).length) return getPurchaseBucketPoProductById(String(oid), {})
+  if (!Object.keys(update).length)
+    return getPurchaseBucketPoProductById(String(oid), {})
 
   await PoProductModel.findOneAndUpdate(
     { _id: oid, isDeleted: false },

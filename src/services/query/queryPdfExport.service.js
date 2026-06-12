@@ -38,8 +38,11 @@ const MIGTI_PHONE2 = ''
  * Build HTML for Query PDF – same style/design as quotation PDF; no rate/total columns.
  */
 const buildHtml = (query, orgContext = {}) => {
-  const { industry, logoDataUri = '', productImageDataUris = [] } =
-    orgContext || {}
+  const {
+    industry,
+    logoDataUri = '',
+    productImageDataUris = [],
+  } = orgContext || {}
   const ci = query.companyInfo || {}
   const prods = Array.isArray(query.products) ? query.products : []
 
@@ -65,7 +68,9 @@ const buildHtml = (query, orgContext = {}) => {
   const customerAddress =
     ci.address ||
     (industry &&
-      (industry.shippingAddress || industry.billingAddress || industry.address)) ||
+      (industry.shippingAddress ||
+        industry.billingAddress ||
+        industry.address)) ||
     ''
   const pmList = Array.isArray(ci.purchaseManagers) ? ci.purchaseManagers : []
   const primaryPm = pmList[0] || null

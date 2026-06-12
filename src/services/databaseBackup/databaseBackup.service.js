@@ -3,8 +3,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import logger from '../../core/config/logger.js'
 
-const getMongoUri = () =>
-  process.env.MONGODB_URI || process.env.DB_URL || ''
+const getMongoUri = () => process.env.MONGODB_URI || process.env.DB_URL || ''
 
 const getBackupDir = () =>
   path.resolve(process.cwd(), process.env.MONGODB_BACKUP_DIR || 'backups')
@@ -21,7 +20,12 @@ function timestampForFilename() {
 function pruneOldBackups(backupDir, maxFiles) {
   const entries = fs
     .readdirSync(backupDir, { withFileTypes: true })
-    .filter((d) => d.isFile() && d.name.startsWith('db-backup-') && d.name.endsWith('.archive.gz'))
+    .filter(
+      (d) =>
+        d.isFile() &&
+        d.name.startsWith('db-backup-') &&
+        d.name.endsWith('.archive.gz')
+    )
     .map((d) => ({
       name: d.name,
       mtime: fs.statSync(path.join(backupDir, d.name)).mtimeMs,
@@ -93,5 +97,7 @@ export async function runDatabaseBackup() {
 
   // pruneOldBackups(backupDir, getMaxBackupFiles())
   // logger.info(`Database backup completed: ${archivePath}`)
-  logger.warn('Database backup skipped: mongodump is not available on this host (function temporarily disabled)')
+  logger.warn(
+    'Database backup skipped: mongodump is not available on this host (function temporarily disabled)'
+  )
 }

@@ -23,7 +23,9 @@ export const listQueryNewProductSchema = Joi.object({
   name: Joi.string().allow('', null),
   description: Joi.string().allow('', null),
   hsnNumber: Joi.string().allow('', null),
-  status: Joi.string().valid('pending', 'hod_approved', 'rejected').allow('', null),
+  status: Joi.string()
+    .valid('pending', 'hod_approved', 'rejected')
+    .allow('', null),
 })
 
 export const getQueryNewProductByIdSchema = Joi.object({

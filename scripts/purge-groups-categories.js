@@ -30,9 +30,7 @@ const connectionOptions = {
 }
 
 const DEFAULT_URI =
-  process.env.MONGO_URI ||
-  process.env.MONGODB_URI ||
-  process.env.DB_URL
+  process.env.MONGO_URI || process.env.MONGODB_URI || process.env.DB_URL
 
 /** Optional: node scripts/purge-groups-categories.js migtiapp */
 const dbArg = process.argv[2]?.trim()
@@ -69,33 +67,41 @@ async function countAll() {
 }
 
 async function clearReferences() {
-  const [products, employees, suppliers, queries, queryProducts, queryNewProducts] =
-    await Promise.all([
-      ProductModel.updateMany(
-        { isDeleted: false },
-        { $set: { group: null, category: null, subcategory: null } }
-      ),
-      EmployeeModel.updateMany(
-        { isDeleted: false },
-        { $set: { assigned_groups: [] } }
-      ),
-      SupplierModel.updateMany(
-        { isDeleted: false },
-        { $set: { categories: [] } }
-      ),
-      QueryModel.updateMany(
-        { isDeleted: false },
-        { $set: { 'products.$[].groupId': null, 'products.$[].categoryId': null } }
-      ),
-      QueryProductModel.updateMany(
-        { isDeleted: false },
-        { $set: { groupId: null, categoryId: null } }
-      ),
-      QueryNewProductModel.updateMany(
-        { isDeleted: false },
-        { $set: { groupId: null, categoryId: null } }
-      ),
-    ])
+  const [
+    products,
+    employees,
+    suppliers,
+    queries,
+    queryProducts,
+    queryNewProducts,
+  ] = await Promise.all([
+    ProductModel.updateMany(
+      { isDeleted: false },
+      { $set: { group: null, category: null, subcategory: null } }
+    ),
+    EmployeeModel.updateMany(
+      { isDeleted: false },
+      { $set: { assigned_groups: [] } }
+    ),
+    SupplierModel.updateMany(
+      { isDeleted: false },
+      { $set: { categories: [] } }
+    ),
+    QueryModel.updateMany(
+      { isDeleted: false },
+      {
+        $set: { 'products.$[].groupId': null, 'products.$[].categoryId': null },
+      }
+    ),
+    QueryProductModel.updateMany(
+      { isDeleted: false },
+      { $set: { groupId: null, categoryId: null } }
+    ),
+    QueryNewProductModel.updateMany(
+      { isDeleted: false },
+      { $set: { groupId: null, categoryId: null } }
+    ),
+  ])
 
   return {
     products: products.modifiedCount,
@@ -148,7 +154,11 @@ async function main() {
     console.log(`  Categories:     ${after.categories}`)
     console.log(`  Subcategories:  ${after.subcategories}`)
 
-    if (after.groups === 0 && after.categories === 0 && after.subcategories === 0) {
+    if (
+      after.groups === 0 &&
+      after.categories === 0 &&
+      after.subcategories === 0
+    ) {
       console.log('\nPurge completed successfully.')
     } else {
       console.error('\nPurge incomplete — some records remain.')

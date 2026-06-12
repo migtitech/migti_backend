@@ -71,8 +71,7 @@ export const listQuotationFollowupController = async (req, res) => {
     pageSize: pageSize ? Number(pageSize) : 20,
     branchFilter,
     includeZoneSalesPersons:
-      includeZoneSalesPersons === true ||
-      includeZoneSalesPersons === 'true',
+      includeZoneSalesPersons === true || includeZoneSalesPersons === 'true',
     currentUserId,
     isFullAccessRole: fullAccess,
     role: user.role || '',

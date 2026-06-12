@@ -104,8 +104,7 @@ const resolveProductDisplayCode = (productLine, productRef, industryId) => {
     if (match?.code) return String(match.code).trim()
   }
 
-  const fallback =
-    productRef?.productCode || productLine?.rawProductCode || ''
+  const fallback = productRef?.productCode || productLine?.rawProductCode || ''
   const trimmed = String(fallback).trim()
   return trimmed || '—'
 }
@@ -738,9 +737,7 @@ export const exportQuotationPdf = async ({
   const rawBranchId =
     quotation?.branchId || quotation?.queryId?.branchId || null
   const resolvedBranchId =
-    rawBranchId &&
-    typeof rawBranchId === 'object' &&
-    rawBranchId._id != null
+    rawBranchId && typeof rawBranchId === 'object' && rawBranchId._id != null
       ? rawBranchId._id
       : rawBranchId
 
@@ -753,7 +750,9 @@ export const exportQuotationPdf = async ({
     }
   }
 
-  const allProducts = Array.isArray(quotation.products) ? quotation.products : []
+  const allProducts = Array.isArray(quotation.products)
+    ? quotation.products
+    : []
   const productImageDataUris = await Promise.all(
     allProducts.map((p) => resolveFirstProductLineImageDataUri(p))
   )

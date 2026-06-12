@@ -101,9 +101,7 @@ const attachQueryProductRateAvailableCounts = async (queries = []) => {
     grouped = []
   }
 
-  const byQueryId = new Map(
-    grouped.map((g) => [String(g._id), g.count || 0])
-  )
+  const byQueryId = new Map(grouped.map((g) => [String(g._id), g.count || 0]))
 
   return queries.map((q) => ({
     ...q,
@@ -686,7 +684,10 @@ export const listQueries = async ({
   ])
 
   const rateCountById = new Map(
-    queriesWithRateCounts.map((q) => [String(q._id), q.queryProductRateAvailableCount])
+    queriesWithRateCounts.map((q) => [
+      String(q._id),
+      q.queryProductRateAvailableCount,
+    ])
   )
   const queriesWithRefsAndCounts = queriesWithRefs.map((q) => ({
     ...q,
@@ -729,11 +730,10 @@ export const getQueryById = async ({
     isDeleted: false,
     ...branchFilter,
     ...ownershipFilter,
-  })
-    .populate(
-      'industry_id',
-      'name location address email purchase_manager_name purchase_manager_phone'
-    )
+  }).populate(
+    'industry_id',
+    'name location address email purchase_manager_name purchase_manager_phone'
+  )
 
   if (!forPdf) {
     queryQuery = queryQuery
@@ -839,9 +839,7 @@ const resolveQueryProductLineStatus = (doc) => {
   if (!doc) return null
   const ratesLen = Array.isArray(doc.rates) ? doc.rates.length : 0
   return (
-    doc.status ||
-    deriveProBucketStatus(ratesLen) ||
-    PRO_BUCKET_STATUS.PENDING
+    doc.status || deriveProBucketStatus(ratesLen) || PRO_BUCKET_STATUS.PENDING
   )
 }
 

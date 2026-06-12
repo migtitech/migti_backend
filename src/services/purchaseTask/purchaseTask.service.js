@@ -10,10 +10,7 @@ import CategoryModel from '../../models/category.model.js'
 import CustomError from '../../utils/exception.js'
 import { statusCodes, errorCodes } from '../../core/common/constant.js'
 
-const PURCHASE_ROLES = [
-  'purchase_exicutive',
-  'purchase_executive',
-]
+const PURCHASE_ROLES = ['purchase_exicutive', 'purchase_executive']
 
 export const assignQuotationTask = async ({
   quotationId,

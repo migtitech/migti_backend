@@ -175,8 +175,7 @@ export const listLocalProcurements = async (q = {}, user = null) => {
     q.status != null && q.status !== '' ? String(q.status).trim() : ''
   const filter = {
     isDeleted: false,
-    ...(statusRaw &&
-    Object.values(LOCAL_PROCUREMENT_STATUS).includes(statusRaw)
+    ...(statusRaw && Object.values(LOCAL_PROCUREMENT_STATUS).includes(statusRaw)
       ? { status: statusRaw }
       : {}),
     ...createdAtRangeFilter(q.from, q.to),

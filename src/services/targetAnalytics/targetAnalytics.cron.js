@@ -16,9 +16,7 @@ export const startTargetAnalyticsCron = () => {
     async () => {
       try {
         const closed = await closeExpiredZoneTargets()
-        logger.info(
-          `Zone targets closed: ${closed.closed}`
-        )
+        logger.info(`Zone targets closed: ${closed.closed}`)
         const result = await archiveExpiredTargets()
         const ext = await archiveExpiredZoneAndEmployeeTargets()
         logger.info(

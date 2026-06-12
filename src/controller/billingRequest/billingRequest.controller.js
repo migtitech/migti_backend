@@ -12,7 +12,14 @@ import {
 
 export const listBillingRequestsController = async (req, res) => {
   const { pageNumber, pageSize, status, poCode, dateFrom, dateTo } = req.query
-  const data = await listBillingRequests({ pageNumber, pageSize, status, poCode, dateFrom, dateTo })
+  const data = await listBillingRequests({
+    pageNumber,
+    pageSize,
+    status,
+    poCode,
+    dateFrom,
+    dateTo,
+  })
   return res.status(statusCodes.ok).json({ success: true, data })
 }
 

@@ -2,8 +2,7 @@ import mongoose from 'mongoose'
 import dotenv from 'dotenv'
 dotenv.config()
 const connectDB = async () => {
-  const uri =
-    process.env.MONGODB_URI
+  const uri = process.env.MONGODB_URI
   const connectionOptions = {
     maxPoolSize: 10,
     serverSelectionTimeoutMS: 5000,

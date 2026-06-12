@@ -49,7 +49,11 @@ const billingRequestProductSchema = new mongoose.Schema(
       default: null,
     },
     hodRemark: { type: SchemaTypes.String, trim: true, default: '' },
-    hodReviewedBy: { type: SchemaTypes.ObjectId, ref: 'employee', default: null },
+    hodReviewedBy: {
+      type: SchemaTypes.ObjectId,
+      ref: 'employee',
+      default: null,
+    },
     hodReviewedBySnapshot: { type: mongoose.Schema.Types.Mixed, default: null },
     hodReviewedAt: { type: SchemaTypes.Date, default: null },
     /** Set to true once the purchase team marks this product as purchased */
@@ -116,7 +120,10 @@ const billingRequestSchema = new mongoose.Schema(
       ref: 'employee',
       default: null,
     },
-    financeApprovedBySnapshot: { type: mongoose.Schema.Types.Mixed, default: null },
+    financeApprovedBySnapshot: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
+    },
     financeApprovedAt: { type: SchemaTypes.Date, default: null },
   },
   { timestamps: true, collection: 'billing_requests' }
@@ -136,6 +143,9 @@ billingRequestSchema.statics.generateCode = function () {
   return `BR-${yyyymmdd}-${rand}`
 }
 
-const BillingRequestModel = mongoose.model('billingRequest', billingRequestSchema)
+const BillingRequestModel = mongoose.model(
+  'billingRequest',
+  billingRequestSchema
+)
 
 export default BillingRequestModel

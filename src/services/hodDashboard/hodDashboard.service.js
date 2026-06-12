@@ -38,8 +38,7 @@ const PO_AWAITING_STATUSES = [
 
 const toObjectId = (value) => {
   if (!value) return null
-  const raw =
-    typeof value === 'object' && value._id != null ? value._id : value
+  const raw = typeof value === 'object' && value._id != null ? value._id : value
   const str = String(raw).trim()
   return mongoose.Types.ObjectId.isValid(str)
     ? new mongoose.Types.ObjectId(str)
@@ -190,9 +189,17 @@ export const getHodOverview = async ({
   const branchMatch = branchObjectId ? { branchId: branchObjectId } : {}
 
   const createdRange = (extra = {}) =>
-    withDateRange({ isDeleted: false, ...branchMatch, ...extra }, 'createdAt', range)
+    withDateRange(
+      { isDeleted: false, ...branchMatch, ...extra },
+      'createdAt',
+      range
+    )
   const entryRange = (extra = {}) =>
-    withDateRange({ isDeleted: false, ...branchMatch, ...extra }, 'entryDate', range)
+    withDateRange(
+      { isDeleted: false, ...branchMatch, ...extra },
+      'entryDate',
+      range
+    )
 
   // ---- Point-in-time pending KPIs (not date-scoped; these are open work) ----
   const [

@@ -38,9 +38,7 @@ const resolveZoneIdFromQuotation = async (quotation = {}) => {
 
 const resolveCompanyName = (quotation = {}) =>
   String(
-    quotation.companyInfo?.name ||
-      quotation.companyInfo?.companyName ||
-      ''
+    quotation.companyInfo?.name || quotation.companyInfo?.companyName || ''
   ).trim()
 
 /** Create follow-up row when a quotation is created. Idempotent. */
@@ -173,7 +171,10 @@ const getSalesPersonsForZones = async (zoneIds = [], branchFilter = {}) => {
     ...branchFilter,
     isDeleted: false,
     role: { $in: SALES_ZONE_ROLES },
-    $or: [{ zoneIds: { $in: validZoneIds } }, { zoneId: { $in: validZoneIds } }],
+    $or: [
+      { zoneIds: { $in: validZoneIds } },
+      { zoneId: { $in: validZoneIds } },
+    ],
   })
     .select('name email phone role zoneIds zoneId')
     .sort({ name: 1 })
@@ -261,7 +262,10 @@ export const listQuotationFollowups = async ({
   }
 
   if (quotationCode && String(quotationCode).trim()) {
-    filter.quotationCode = { $regex: String(quotationCode).trim(), $options: 'i' }
+    filter.quotationCode = {
+      $regex: String(quotationCode).trim(),
+      $options: 'i',
+    }
   }
 
   if (companyName && String(companyName).trim()) {

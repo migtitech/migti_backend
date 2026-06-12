@@ -5,7 +5,13 @@ const objectIdJoi = Joi.string().pattern(objectIdPattern).messages({
   'string.pattern.base': 'id must be a valid Mongo ObjectId',
 })
 
-const PRO_BUCKET_STATUSES = ['pending', 'rate_submitted', 'fulfilled', 'approval_pending', '']
+const PRO_BUCKET_STATUSES = [
+  'pending',
+  'rate_submitted',
+  'fulfilled',
+  'approval_pending',
+  '',
+]
 
 export const listProBucketQueryProductsSchema = Joi.object({
   page: Joi.number().integer().min(1).optional(),
@@ -55,7 +61,12 @@ export const appendProBucketRatesParamSchema = Joi.object({
   id: objectIdJoi.required(),
 })
 
-const PRO_BUCKET_UPDATE_STATUSES = ['pending', 'rate_submitted', 'fulfilled', 'approval_pending']
+const PRO_BUCKET_UPDATE_STATUSES = [
+  'pending',
+  'rate_submitted',
+  'fulfilled',
+  'approval_pending',
+]
 
 export const updateQueryProductParamSchema = Joi.object({
   id: objectIdJoi.required(),
@@ -72,7 +83,9 @@ export const updateQueryProductBodySchema = Joi.object({
   remark: Joi.string().allow('', null).optional(),
   groupId: objectIdJoi.allow('', null).optional(),
   categoryId: objectIdJoi.allow('', null).optional(),
-  status: Joi.string().valid(...PRO_BUCKET_UPDATE_STATUSES).optional(),
+  status: Joi.string()
+    .valid(...PRO_BUCKET_UPDATE_STATUSES)
+    .optional(),
   rawProductCode: Joi.string().allow('', null).optional(),
   query_tracking_code: Joi.string().allow('', null).optional(),
   images: Joi.array().items(objectIdJoi).optional(),

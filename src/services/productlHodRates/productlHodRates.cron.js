@@ -23,7 +23,9 @@ export const startProductlHodRatesCron = () => {
     { timezone: 'Asia/Kolkata' }
   )
 
-  logger.info('Productl HOD rates reset cron initialized (daily at 12:00 AM IST)')
+  logger.info(
+    'Productl HOD rates reset cron initialized (daily at 12:00 AM IST)'
+  )
 }
 
 export const stopProductlHodRatesCron = async () => {

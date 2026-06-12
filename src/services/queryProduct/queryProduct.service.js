@@ -30,8 +30,7 @@ const cleanVariants = (variants) => {
 
 /** Match key for carrying Pro Bucket `rates` across sync: same as query line `rawProductCode`. */
 const legacyRatesKey = (rawProductCode, lineIndex) => {
-  const c =
-    rawProductCode != null ? String(rawProductCode).trim() : ''
+  const c = rawProductCode != null ? String(rawProductCode).trim() : ''
   return c || `__line:${lineIndex}`
 }
 
@@ -100,8 +99,7 @@ export const replaceQueryProductDocuments = async ({
   }
 
   const rows = products.map((p, lineIndex) => {
-    const rawCode =
-      (p.rawProductCode && String(p.rawProductCode).trim()) || ''
+    const rawCode = (p.rawProductCode && String(p.rawProductCode).trim()) || ''
 
     const prevRates = skipRatesCarryOver
       ? []

@@ -15,7 +15,9 @@ const getCronExpression = () =>
 export const startDatabaseBackupCron = () => {
   if (backupCronJob || !isBackupEnabled()) {
     if (!isBackupEnabled()) {
-      logger.info('Database backup cron is disabled (set MONGODB_BACKUP_ENABLED=false)')
+      logger.info(
+        'Database backup cron is disabled (set MONGODB_BACKUP_ENABLED=false)'
+      )
     }
     return
   }

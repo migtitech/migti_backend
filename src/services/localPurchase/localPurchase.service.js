@@ -169,14 +169,8 @@ export const getLocalPurchaseById = async (id, user = null) => {
   }
 
   const row = await LocalPurchaseModel.findOne(filter)
-    .populate(
-      'employeeId',
-      'name email phone role designation companyEmail'
-    )
-    .populate(
-      'assignedBy',
-      'name email phone role designation companyEmail'
-    )
+    .populate('employeeId', 'name email phone role designation companyEmail')
+    .populate('assignedBy', 'name email phone role designation companyEmail')
     .lean()
   if (!row) return null
 
@@ -273,10 +267,7 @@ export const listLocalPurchases = async (q = {}, user = null) => {
 
   const statusRaw =
     q.status != null && q.status !== '' ? String(q.status).trim() : ''
-  if (
-    statusRaw &&
-    Object.values(LOCAL_PURCHASE_STATUS).includes(statusRaw)
-  ) {
+  if (statusRaw && Object.values(LOCAL_PURCHASE_STATUS).includes(statusRaw)) {
     filter.status = statusRaw
   }
 
@@ -379,7 +370,12 @@ const resolveBillAndProductImages = async (payload, uid) => {
     return buildDocumentEntry(docOid, found, uploadedAt, uid)
   })
 
-  return { bill, productImages, hasBill: !!billOid, hasImages: productImageOids.length > 0 }
+  return {
+    bill,
+    productImages,
+    hasBill: !!billOid,
+    hasImages: productImageOids.length > 0,
+  }
 }
 
 export const submitLocalPurchase = async (id, payload, user = null) => {
@@ -400,7 +396,10 @@ export const submitLocalPurchase = async (id, payload, user = null) => {
 
   const submittedAt = new Date()
   const submissionRemark = String(payload.remark || '').trim()
-  const { bill, productImages } = await resolveBillAndProductImages(payload, uid)
+  const { bill, productImages } = await resolveBillAndProductImages(
+    payload,
+    uid
+  )
 
   const updateSet = {
     productImages,
@@ -432,7 +431,11 @@ export const submitLocalPurchase = async (id, payload, user = null) => {
   })
 }
 
-export const updateLocalPurchaseAttachments = async (id, payload, user = null) => {
+export const updateLocalPurchaseAttachments = async (
+  id,
+  payload,
+  user = null
+) => {
   const oid = toOid(id)
   if (!oid) throw new Error('Invalid id')
 

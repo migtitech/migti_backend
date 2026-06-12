@@ -291,10 +291,7 @@ export const updateIndustry = async ({
     const prevGst = normalizeGstNumber(industry.gstNumber)
     if (nextGst && nextGst !== prevGst) {
       const existingByGst = await findActiveIndustryByGstNumber(nextGst)
-      if (
-        existingByGst &&
-        String(existingByGst._id) !== String(industryId)
-      ) {
+      if (existingByGst && String(existingByGst._id) !== String(industryId)) {
         throw new CustomError(
           statusCodes.conflict,
           'Industry already present',

@@ -111,7 +111,9 @@ export const listProductSchema = Joi.object({
   category: Joi.string().allow('', null),
   subcategory: Joi.string().allow('', null),
   brand: Joi.string().allow('', null),
-  status: Joi.string().valid('active', 'inactive', 'draft', 'hod_approved').allow('', null),
+  status: Joi.string()
+    .valid('active', 'inactive', 'draft', 'hod_approved')
+    .allow('', null),
   hsnNumber: Joi.string().allow('', null),
   modelNumber: Joi.string().allow('', null),
   sortBy: Joi.string()
@@ -152,7 +154,9 @@ export const updateProductSchema = Joi.object({
   dimensions: dimensionsJoi.optional(),
   dimensionUnit: Joi.string().valid('cm', 'in', 'm').optional(),
   tags: Joi.array().items(Joi.string()).optional(),
-  status: Joi.string().valid('active', 'inactive', 'draft', 'hod_approved').optional(),
+  status: Joi.string()
+    .valid('active', 'inactive', 'draft', 'hod_approved')
+    .optional(),
   unit: Joi.string()
     .valid(...PRODUCT_UNIT_CODES)
     .optional(),

@@ -135,9 +135,8 @@ export const updatePoProductLineAttachment = async ({
   if (!allowed) {
     return null
   }
-  const resolved = await resolveOptionalAttachmentDocumentIdForLine(
-    attachmentDocumentId
-  )
+  const resolved =
+    await resolveOptionalAttachmentDocumentIdForLine(attachmentDocumentId)
   const oid = toOid(id)
   await PoProductModel.findOneAndUpdate(
     { _id: oid, isDeleted: false },
@@ -566,13 +565,8 @@ export const getPurchaseBucketPoProductById = async (id, _user) => {
     ])
     doc.attachmentDocumentId = signed || doc.attachmentDocumentId
   }
-  if (
-    doc.receivingDocumentId &&
-    typeof doc.receivingDocumentId === 'object'
-  ) {
-    const [signed] = await transformPathsToSignedUrls([
-      doc.receivingDocumentId,
-    ])
+  if (doc.receivingDocumentId && typeof doc.receivingDocumentId === 'object') {
+    const [signed] = await transformPathsToSignedUrls([doc.receivingDocumentId])
     doc.receivingDocumentId = signed || doc.receivingDocumentId
   }
   if (

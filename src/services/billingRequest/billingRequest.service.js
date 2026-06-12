@@ -59,11 +59,19 @@ export const listBillingRequests = async ({
 export const getBillingRequestById = async (id) => {
   const oid = toOid(id)
   if (!oid) {
-    throw new CustomError(statusCodes.badRequest, 'Invalid id', errorCodes.bad_request)
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Invalid id',
+      errorCodes.bad_request
+    )
   }
   const doc = await BillingRequestModel.findById(oid).lean()
   if (!doc) {
-    throw new CustomError(statusCodes.notFound, 'Billing request not found', errorCodes.not_found)
+    throw new CustomError(
+      statusCodes.notFound,
+      'Billing request not found',
+      errorCodes.not_found
+    )
   }
   return doc
 }
@@ -77,28 +85,52 @@ const toOid = (v) => {
   return new mongoose.Types.ObjectId(s)
 }
 
-export const hodProductAction = async ({ billingRequestId, productId, action, remark, user }) => {
+export const hodProductAction = async ({
+  billingRequestId,
+  productId,
+  action,
+  remark,
+  user,
+}) => {
   const brOid = toOid(billingRequestId)
   const pOid = toOid(productId)
   if (!brOid || !pOid) {
-    throw new CustomError(statusCodes.badRequest, 'Invalid id', errorCodes.bad_request)
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Invalid id',
+      errorCodes.bad_request
+    )
   }
   if (!['approved', 'rejected'].includes(action)) {
-    throw new CustomError(statusCodes.badRequest, 'action must be approved or rejected', errorCodes.bad_request)
+    throw new CustomError(
+      statusCodes.badRequest,
+      'action must be approved or rejected',
+      errorCodes.bad_request
+    )
   }
 
   const doc = await BillingRequestModel.findById(brOid)
   if (!doc) {
-    throw new CustomError(statusCodes.notFound, 'Billing request not found', errorCodes.not_found)
+    throw new CustomError(
+      statusCodes.notFound,
+      'Billing request not found',
+      errorCodes.not_found
+    )
   }
 
   const product = doc.products.id(pOid)
   if (!product) {
-    throw new CustomError(statusCodes.notFound, 'Product not found', errorCodes.not_found)
+    throw new CustomError(
+      statusCodes.notFound,
+      'Product not found',
+      errorCodes.not_found
+    )
   }
 
   const reviewerId = toOid(user?.id)
-  const reviewerSnapshot = reviewerId ? await buildEmployeeSnapshot(reviewerId) : null
+  const reviewerSnapshot = reviewerId
+    ? await buildEmployeeSnapshot(reviewerId)
+    : null
   const now = new Date()
 
   product.hodStatus = action
@@ -123,15 +155,29 @@ export const hodProductAction = async ({ billingRequestId, productId, action, re
   return doc.toObject()
 }
 
-export const financeApproveBillingRequest = async ({ id, financeRemark, paidAmount, paymentProofDocId, user }) => {
+export const financeApproveBillingRequest = async ({
+  id,
+  financeRemark,
+  paidAmount,
+  paymentProofDocId,
+  user,
+}) => {
   const oid = toOid(id)
   if (!oid) {
-    throw new CustomError(statusCodes.badRequest, 'Invalid id', errorCodes.bad_request)
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Invalid id',
+      errorCodes.bad_request
+    )
   }
 
   const doc = await BillingRequestModel.findById(oid).lean()
   if (!doc) {
-    throw new CustomError(statusCodes.notFound, 'Billing request not found', errorCodes.not_found)
+    throw new CustomError(
+      statusCodes.notFound,
+      'Billing request not found',
+      errorCodes.not_found
+    )
   }
 
   const approverId = toOid(user?.id)
@@ -144,7 +190,9 @@ export const financeApproveBillingRequest = async ({ id, financeRemark, paidAmou
     {
       $set: {
         status: BILLING_REQUEST_STATUS.FINANCE_APPROVED,
-        financeRemark: financeRemark ? String(financeRemark).trim().slice(0, 2000) : '',
+        financeRemark: financeRemark
+          ? String(financeRemark).trim().slice(0, 2000)
+          : '',
         paidAmount: paidAmount != null ? Number(paidAmount) : null,
         paymentProofDocId: toOid(paymentProofDocId) || null,
         financeApprovedBy: approverId || null,
@@ -162,25 +210,45 @@ export const markProductPurchased = async ({ billingRequestId, productId }) => {
   const brOid = toOid(billingRequestId)
   const pOid = toOid(productId)
   if (!brOid || !pOid) {
-    throw new CustomError(statusCodes.badRequest, 'Invalid id', errorCodes.bad_request)
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Invalid id',
+      errorCodes.bad_request
+    )
   }
 
   const doc = await BillingRequestModel.findById(brOid)
   if (!doc) {
-    throw new CustomError(statusCodes.notFound, 'Billing request not found', errorCodes.not_found)
+    throw new CustomError(
+      statusCodes.notFound,
+      'Billing request not found',
+      errorCodes.not_found
+    )
   }
 
   if (doc.status !== BILLING_REQUEST_STATUS.FINANCE_APPROVED) {
-    throw new CustomError(statusCodes.badRequest, 'Billing request must be finance approved before marking purchased', errorCodes.bad_request)
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Billing request must be finance approved before marking purchased',
+      errorCodes.bad_request
+    )
   }
 
   const product = doc.products.id(pOid)
   if (!product) {
-    throw new CustomError(statusCodes.notFound, 'Product not found', errorCodes.not_found)
+    throw new CustomError(
+      statusCodes.notFound,
+      'Product not found',
+      errorCodes.not_found
+    )
   }
 
   if (product.isPurchased) {
-    throw new CustomError(statusCodes.badRequest, 'Product is already marked as purchased', errorCodes.bad_request)
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Product is already marked as purchased',
+      errorCodes.bad_request
+    )
   }
 
   product.isPurchased = true
@@ -199,33 +267,62 @@ export const markProductPurchased = async ({ billingRequestId, productId }) => {
   return doc.toObject()
 }
 
-export const resubmitProduct = async ({ billingRequestId, productId, billDocId, productImageDocId, amount, remark }) => {
+export const resubmitProduct = async ({
+  billingRequestId,
+  productId,
+  billDocId,
+  productImageDocId,
+  amount,
+  remark,
+}) => {
   const brOid = toOid(billingRequestId)
   const pOid = toOid(productId)
   if (!brOid || !pOid) {
-    throw new CustomError(statusCodes.badRequest, 'Invalid id', errorCodes.bad_request)
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Invalid id',
+      errorCodes.bad_request
+    )
   }
   if (!toOid(billDocId)) {
-    throw new CustomError(statusCodes.badRequest, 'billDocId is required', errorCodes.bad_request)
+    throw new CustomError(
+      statusCodes.badRequest,
+      'billDocId is required',
+      errorCodes.bad_request
+    )
   }
 
   const doc = await BillingRequestModel.findById(brOid)
   if (!doc) {
-    throw new CustomError(statusCodes.notFound, 'Billing request not found', errorCodes.not_found)
+    throw new CustomError(
+      statusCodes.notFound,
+      'Billing request not found',
+      errorCodes.not_found
+    )
   }
 
   const product = doc.products.id(pOid)
   if (!product) {
-    throw new CustomError(statusCodes.notFound, 'Product not found', errorCodes.not_found)
+    throw new CustomError(
+      statusCodes.notFound,
+      'Product not found',
+      errorCodes.not_found
+    )
   }
 
   if (product.hodStatus !== 'rejected') {
-    throw new CustomError(statusCodes.badRequest, 'Only rejected products can be resubmitted', errorCodes.bad_request)
+    throw new CustomError(
+      statusCodes.badRequest,
+      'Only rejected products can be resubmitted',
+      errorCodes.bad_request
+    )
   }
 
   product.billDocId = toOid(billDocId)
-  if (toOid(productImageDocId)) product.productImageDocId = toOid(productImageDocId)
-  if (amount != null && !Number.isNaN(Number(amount))) product.amount = Number(amount)
+  if (toOid(productImageDocId))
+    product.productImageDocId = toOid(productImageDocId)
+  if (amount != null && !Number.isNaN(Number(amount)))
+    product.amount = Number(amount)
   if (remark != null) product.remark = String(remark).trim().slice(0, 2000)
 
   product.hodStatus = null
@@ -270,7 +367,9 @@ export const createBillingRequest = async ({ products, user }) => {
   }
 
   // Load all po_products in one query
-  const poProductOids = products.map((p) => toOid(p.poProductId)).filter(Boolean)
+  const poProductOids = products
+    .map((p) => toOid(p.poProductId))
+    .filter(Boolean)
   if (poProductOids.length !== products.length) {
     throw new CustomError(
       statusCodes.badRequest,
@@ -306,7 +405,9 @@ export const createBillingRequest = async ({ products, user }) => {
 
     const firstImageId =
       toOid(p.productImageDocId) ||
-      (Array.isArray(p.productImageDocIds) ? toOid(p.productImageDocIds[0]) : null) ||
+      (Array.isArray(p.productImageDocIds)
+        ? toOid(p.productImageDocIds[0])
+        : null) ||
       null
 
     return {

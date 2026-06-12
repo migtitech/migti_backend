@@ -550,7 +550,9 @@ export const createPasswordResetRequest = async ({ email, role, message }) => {
   const created = await PasswordResetRequestModel.create({
     userId: employee._id,
     message: String(message || '').trim(),
-    email: String(employee.email || '').trim().toLowerCase(),
+    email: String(employee.email || '')
+      .trim()
+      .toLowerCase(),
     role: employee.role,
   })
 

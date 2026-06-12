@@ -62,7 +62,10 @@ const syncPurchaseOrderRateMaster = async (po) => {
       items,
     })
   } catch (err) {
-    console.error('[purchaseOrder] rate_master sync failed:', err?.message || err)
+    console.error(
+      '[purchaseOrder] rate_master sync failed:',
+      err?.message || err
+    )
   }
 }
 
@@ -79,8 +82,7 @@ const isHodRole = (role) => {
   return normalized === 'head_of_department' || normalized === 'hod'
 }
 
-const canBypassPoHodApproval = (role) =>
-  isSalesRole(role) || isHodRole(role)
+const canBypassPoHodApproval = (role) => isSalesRole(role) || isHodRole(role)
 
 const lineTaxableAmount = (p) => {
   if (!p || p.notAvailable) return 0
@@ -157,9 +159,8 @@ export const computePurchaseOrderFinancials = (po, poPaymentLean = null) => {
 const syncPoEntryAfterPurchaseOrderLean = async (poLean, created_by = null) => {
   if (!poLean?._id) return
   try {
-    const { upsertPoEntryLinkedToPurchaseOrder } = await import(
-      '../poBilling/poBilling.service.js'
-    )
+    const { upsertPoEntryLinkedToPurchaseOrder } =
+      await import('../poBilling/poBilling.service.js')
     const poPayUp = await PoPaymentModel.findOne({
       purchaseOrderId: poLean._id,
       isDeleted: false,
@@ -1315,9 +1316,8 @@ export const updatePurchaseOrder = async ({
       sid && OBJECT_ID_REGEX.test(sid) ? sid : null
   }
   if (assigned_employee !== undefined) {
-    updatePayload.assigned_employee = sanitizeAssignedEmployeeSnapshot(
-      assigned_employee
-    )
+    updatePayload.assigned_employee =
+      sanitizeAssignedEmployeeSnapshot(assigned_employee)
   }
   if (attachmentDocumentId !== undefined) {
     updatePayload.attachmentDocumentId =
@@ -1479,9 +1479,8 @@ export const approvePurchaseOrderAsHod = async ({
 
   // Create payment backlog entry for the newly approved PO (fire-and-forget).
   try {
-    const { createPoPaymentBacklogEntry } = await import(
-      '../poPaymentBacklog/poPaymentBacklog.service.js'
-    )
+    const { createPoPaymentBacklogEntry } =
+      await import('../poPaymentBacklog/poPaymentBacklog.service.js')
     const financials = computePurchaseOrderFinancials(updated, null)
     const industryData = updated?.industry_id
     const clients_snapshot = industryData
@@ -1492,7 +1491,10 @@ export const approvePurchaseOrderAsHod = async ({
           email: industryData.email,
         }
       : updated?.companyInfo
-        ? { name: updated.companyInfo.name, location: updated.companyInfo.location }
+        ? {
+            name: updated.companyInfo.name,
+            location: updated.companyInfo.location,
+          }
         : null
 
     await createPoPaymentBacklogEntry({
@@ -1501,7 +1503,10 @@ export const approvePurchaseOrderAsHod = async ({
       clients_snapshot,
     })
   } catch (err) {
-    console.error('[approvePurchaseOrderAsHod] backlog creation failed:', err?.message || err)
+    console.error(
+      '[approvePurchaseOrderAsHod] backlog creation failed:',
+      err?.message || err
+    )
   }
 
   return updated

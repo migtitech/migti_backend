@@ -26,9 +26,7 @@ const median = (values) => {
   if (!values.length) return 0
   const sorted = [...values].sort((a, b) => a - b)
   const mid = Math.floor(sorted.length / 2)
-  return sorted.length % 2
-    ? sorted[mid]
-    : (sorted[mid - 1] + sorted[mid]) / 2
+  return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2
 }
 
 const formatMs = (ms) => `${ms.toFixed(1)} ms`
@@ -224,8 +222,9 @@ const run = async () => {
   printImprovement(legacyRateCounts, optimizedRateCounts)
 
   console.log('\n-- Quotation ref merge (5 runs each) --')
-  const mergeRefs = await timeAsync('Optimized mergeQuotationRefsForQueries', () =>
-    mergeQuotationRefsForQueries(sampleQueries)
+  const mergeRefs = await timeAsync(
+    'Optimized mergeQuotationRefsForQueries',
+    () => mergeQuotationRefsForQueries(sampleQueries)
   )
   printRow(mergeRefs)
 
@@ -234,8 +233,9 @@ const run = async () => {
     const legacyProducts = await timeAsync('Legacy: findOne per line', () =>
       resolveProductsLegacy(productLines)
     )
-    const optimizedProducts = await timeAsync('Optimized: single $in query', () =>
-      resolveProductsOptimized(productLines)
+    const optimizedProducts = await timeAsync(
+      'Optimized: single $in query',
+      () => resolveProductsOptimized(productLines)
     )
     printRow(legacyProducts)
     printRow(optimizedProducts)
@@ -244,11 +244,13 @@ const run = async () => {
 
   if (imagePaths.length >= 3) {
     console.log('\n-- S3 path signing (5 runs each) --')
-    const legacySigning = await timeAsync('Legacy: sign each path separately', () =>
-      signPathsLegacy(imagePaths.slice(0, 8))
+    const legacySigning = await timeAsync(
+      'Legacy: sign each path separately',
+      () => signPathsLegacy(imagePaths.slice(0, 8))
     )
-    const optimizedSigning = await timeAsync('Optimized: signPathsInBatch once', () =>
-      signPathsInBatch(imagePaths.slice(0, 8))
+    const optimizedSigning = await timeAsync(
+      'Optimized: signPathsInBatch once',
+      () => signPathsInBatch(imagePaths.slice(0, 8))
     )
     printRow(legacySigning)
     printRow(optimizedSigning)

@@ -69,10 +69,7 @@ export const listPurchaseOrderSchema = Joi.object({
   employeeId: Joi.string().pattern(objectIdPattern).allow('').optional(),
   /** When true, omit POs with `paymentReceivedStatus` = full_payment_received. */
   excludeFullPayment: Joi.alternatives()
-    .try(
-      Joi.boolean(),
-      Joi.string().valid('true', 'false', '1', '0')
-    )
+    .try(Joi.boolean(), Joi.string().valid('true', 'false', '1', '0'))
     .optional(),
 })
 

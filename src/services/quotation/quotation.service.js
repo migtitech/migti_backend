@@ -187,11 +187,12 @@ const enrichQuotationsWithHodRatesApproval = async (quotations = []) => {
   }
 
   return quotations.map((q) => {
-    const { proCodes, allHaveCodes } =
-      proCodesByQuotationId.get(String(q._id)) || {
-        proCodes: [],
-        allHaveCodes: false,
-      }
+    const { proCodes, allHaveCodes } = proCodesByQuotationId.get(
+      String(q._id)
+    ) || {
+      proCodes: [],
+      allHaveCodes: false,
+    }
     const allProductsHodRatesApproved =
       allHaveCodes &&
       proCodes.length > 0 &&
@@ -455,9 +456,8 @@ export const createQuotationFromQuery = async ({
   })
 
   try {
-    const { createQuotationFollowupEntry } = await import(
-      '../quotationFollowup/quotationFollowup.service.js'
-    )
+    const { createQuotationFollowupEntry } =
+      await import('../quotationFollowup/quotationFollowup.service.js')
     await createQuotationFollowupEntry({ quotation: created })
   } catch (err) {
     console.error(
@@ -729,9 +729,8 @@ export const listQuotations = async ({
     }
   })
 
-  const quotationsEnriched = await enrichQuotationsWithHodRatesApproval(
-    quotationsWithTotal
-  )
+  const quotationsEnriched =
+    await enrichQuotationsWithHodRatesApproval(quotationsWithTotal)
 
   return {
     quotations: quotationsEnriched,
@@ -1006,9 +1005,8 @@ export const getQuotationLineProcurementRates = async ({
     )
   }
 
-  const { getQueryLineProcurementRates } = await import(
-    '../query/query.service.js'
-  )
+  const { getQueryLineProcurementRates } =
+    await import('../query/query.service.js')
   return getQueryLineProcurementRates({
     queryId: String(qid),
     rawProductCode,

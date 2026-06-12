@@ -234,7 +234,13 @@ const productSchema = new mongoose.Schema(
     ],
     status: {
       type: SchemaTypes.String,
-      enum: ['active', 'inactive', 'draft', 'hod_approval_pending', 'hod_approved'],
+      enum: [
+        'active',
+        'inactive',
+        'draft',
+        'hod_approval_pending',
+        'hod_approved',
+      ],
       default: 'hod_approval_pending',
     },
     unit: {

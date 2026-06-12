@@ -18,8 +18,14 @@ export const listLocalProcurementsSchema = Joi.object({
     .valid(...statusValues)
     .allow('', null)
     .optional(),
-  from: Joi.alternatives().try(Joi.date(), Joi.string()).allow('', null).optional(),
-  to: Joi.alternatives().try(Joi.date(), Joi.string()).allow('', null).optional(),
+  from: Joi.alternatives()
+    .try(Joi.date(), Joi.string())
+    .allow('', null)
+    .optional(),
+  to: Joi.alternatives()
+    .try(Joi.date(), Joi.string())
+    .allow('', null)
+    .optional(),
   assignedTo: Joi.string().allow('', null).optional(),
   employeeId: Joi.string().allow('', null).optional(),
 })

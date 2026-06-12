@@ -527,7 +527,11 @@ const mapHodRateHistoryRow = (row) => ({
 })
 
 /** Paginated HOD rate history for a product (`pro_code`), newest first. HOD only. */
-export const listQueryProductHodRateHistories = async (id, q = {}, user = null) => {
+export const listQueryProductHodRateHistories = async (
+  id,
+  q = {},
+  user = null
+) => {
   const role = String(user?.role || '').toLowerCase()
   if (!PRO_BUCKET_HOD_ROLES.includes(role)) {
     throw new Error('Only Head of Department can view rate history')
@@ -683,10 +687,7 @@ export const appendProBucketRates = async (id, ratesInput, user, io = null) => {
       })
     }
   } catch (err) {
-    console.error(
-      '[proBucket] rate_master sync failed:',
-      err?.message || err
-    )
+    console.error('[proBucket] rate_master sync failed:', err?.message || err)
   }
 
   const doc = await getProBucketQueryProductById(String(oid))
@@ -766,9 +767,7 @@ export const updateQueryProduct = async (id, payload) => {
   }
 
   if (Array.isArray(payload.images)) {
-    update.images = payload.images
-      .map((id) => toOid(id))
-      .filter(Boolean)
+    update.images = payload.images.map((id) => toOid(id)).filter(Boolean)
   }
 
   if (Object.keys(update).length === 0) {

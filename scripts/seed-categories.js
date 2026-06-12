@@ -30,9 +30,7 @@ const connectionOptions = {
 }
 
 const DEFAULT_URI =
-  process.env.MONGO_URI ||
-  process.env.MONGODB_URI ||
-  process.env.DB_URL
+  process.env.MONGO_URI || process.env.MONGODB_URI || process.env.DB_URL
 
 const dbArg = process.argv[2]?.trim()
 
@@ -131,9 +129,7 @@ async function main() {
     console.log(`Connected to: ${mongoose.connection.name}\n`)
 
     const groupDocs = await GroupModel.find({ isDeleted: false }).lean()
-    const groupMap = new Map(
-      groupDocs.map((g) => [normalizeKey(g.name), g])
-    )
+    const groupMap = new Map(groupDocs.map((g) => [normalizeKey(g.name), g]))
 
     const missingGroups = new Set()
     for (const row of rows) {

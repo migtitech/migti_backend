@@ -48,9 +48,7 @@ const connectionOptions = {
 }
 
 const DEFAULT_URI =
-  process.env.MONGO_URI ||
-  process.env.MONGODB_URI ||
-  process.env.DB_URL
+  process.env.MONGO_URI || process.env.MONGODB_URI || process.env.DB_URL
 
 const dbArg = process.argv[2]?.trim()
 
@@ -84,7 +82,12 @@ async function main() {
 
     for (const name of GROUPS) {
       const existing = await GroupModel.findOne({
-        name: { $regex: new RegExp(`^${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') },
+        name: {
+          $regex: new RegExp(
+            `^${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`,
+            'i'
+          ),
+        },
         isDeleted: false,
       }).lean()
 
